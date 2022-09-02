@@ -1,6 +1,6 @@
 # fractal-garden
 
-This is a project where I want to build a kind of "garden" for fractals. In the end, the things this project should:
+This is a project where I want to build a kind of "garden" for fractals. In the end, this project should:
 
 1. be open-source 
 2. allow people to add new fractals to the mix
