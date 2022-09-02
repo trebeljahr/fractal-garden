@@ -8,6 +8,7 @@ class Config {
     this.save = () => saveCanvas(canvas, this.name, "jpg");
   }
 }
+
 let config;
 let length;
 let canvas;
