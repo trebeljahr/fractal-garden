@@ -14,6 +14,7 @@ customElements.define(
       <a href="/sierpinski-carpet/">Sierpinski Carpet</a>
       <a href="/fractal-tree/">Fractal Tree</a>
       <a href="/barnsley-fern/">Barnsley Fern</a>
+      <a href="/mandelbrot/">Mandelbrot Set</a>
       `;
 
       shadow.appendChild(navbar);
