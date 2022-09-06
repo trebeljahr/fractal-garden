@@ -13,6 +13,11 @@ let maxIterations = 20;
 let computing = false;
 
 const drawRules = {
+  V: () => {},
+  W: () => {},
+  X: () => {},
+  Y: () => {},
+  Z: () => {},
   F: drawForward,
   f: () => translate(0, -len),
   "+": () => rotate(angle * rotationDirection),
@@ -37,7 +42,7 @@ function drawForward() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(50);
-  rules = ruleSet.crystal;
+  rules = ruleSet.levyCurve;
   sentence = rules.axiom;
   const btn = createButton("Click");
   btn.mousePressed(() => {
@@ -49,6 +54,262 @@ function setup() {
 }
 
 const ruleSet = {
+  levyCurve: {
+    axiom: "F",
+    draw: drawRules,
+    replace: {
+      F: "-F++F-",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.3;
+      len = len || initialLength;
+      translate(width / 2, height / 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 45;
+    },
+    after: () => {
+      len /= 1.5;
+    },
+  },
+  hexagonalGosper: {
+    axiom: "XF",
+    draw: drawRules,
+    replace: {
+      X: "X+YF++YF-FX--FXFX-YF+",
+      Y: "-FX+YFYF++YF+FX--FX-Y",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.3;
+      len = len || initialLength;
+      translate(width / 2 - len * 2, height / 2 - len * 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 60;
+    },
+    after: () => {
+      len /= 2.3;
+    },
+  },
+  rings: {
+    axiom: "F+F+F+F",
+    draw: drawRules,
+    replace: {
+      F: "FF+F+F+F+F+F-F",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.3;
+      translate(width / 2, height / 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 90;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 3;
+    },
+  },
+  tiles: {
+    axiom: "F+F+F+F",
+    draw: drawRules,
+    replace: {
+      F: "FF+F-F+F+FF",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.3;
+      translate(width / 2, height / 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 90;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2;
+    },
+  },
+  fern4: {
+    axiom: "VZFFF",
+    draw: drawRules,
+    replace: {
+      V: "[+++W][---W]YV",
+      W: "+X[-W]Z",
+      X: "-W[+X]Z",
+      Y: "YZ",
+      Z: "[-FFF][+FFF]F",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.3;
+      translate(width / 2, height);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 20;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 1.3;
+    },
+  },
+  fern3: {
+    axiom: "Y",
+    draw: drawRules,
+    replace: {
+      X: "X[-FFF][+FFF]FX",
+      Y: "YFX[+Y][-Y]",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.5;
+      translate(width / 2, height);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 25.7;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2.05;
+    },
+  },
+  fern2: {
+    axiom: "F",
+    draw: drawRules,
+    replace: {
+      F: "FF+[+F-F-F]-[-F+F+F]",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.5;
+      translate(width / 2, height);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 22.5;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2.2;
+    },
+  },
+  fern1: {
+    setup: () => {
+      resetMatrix();
+      background(50);
+      angleMode(DEGREES);
+      translate(width / 2.5, height);
+      stroke(255);
+      rotate(20);
+      len = height / 3;
+    },
+    axiom: "X",
+    draw: {
+      F: () => {
+        line(0, 0, 0, -len);
+        translate(0, -len);
+      },
+      "-": () => rotate(+25),
+      "+": () => rotate(-25),
+      "[": () => push(),
+      "]": () => pop(),
+      X: () => {},
+    },
+    after: () => {
+      len = len / 2;
+    },
+    replace: {
+      X: "F+[[X]-X]-F[-FX]+X",
+      F: "FF",
+    },
+  },
+  waterpest: {
+    axiom: "F",
+    draw: drawRules,
+    replace: {
+      F: "F[+FF][-FF]F[-F][+F]F",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = height * 0.8;
+      translate(width / 2, height);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 22.5;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 3;
+    },
+  },
+  weed: {
+    axiom: "F",
+    draw: drawRules,
+    replace: {
+      F: "FF-[XY]+[XY]",
+      X: "+FY",
+      Y: "-FX",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = width / 5;
+      translate(width / 2, height);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 22.5;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2;
+    },
+  },
+  triangle: {
+    axiom: "F+F+F",
+    draw: drawRules,
+    replace: {
+      F: "F-F+F",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = width / 5;
+      translate(width / 2, height / 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 120;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= (1 + Math.sqrt(5)) / 2;
+    },
+  },
+  sierpinskiSquare: {
+    axiom: "F+XF+F+XF",
+    draw: drawRules,
+    replace: {
+      X: "XF-F+F-XF+F+XF-F+F-X",
+    },
+    setup: () => {
+      resetMatrix();
+      let initialLength = 10;
+      translate(0, height / 2);
+      background(50);
+      angleMode(DEGREES);
+      stroke(255);
+      angle = 90;
+      len = len || initialLength;
+    },
+    after: () => {},
+  },
   crystal: {
     axiom: "F+F+F+F",
     draw: drawRules,
@@ -253,7 +514,7 @@ const ruleSet = {
       "-": () => rotate(-angle),
     },
   },
-  sierpinski1: {
+  sierpinskiTriangle: {
     axiom: "F-G-G",
     replace: {
       F: "F-G+F+G-F",
@@ -278,7 +539,7 @@ const ruleSet = {
       "-": () => rotate(-120),
     },
   },
-  sierpinski2: {
+  sierpinskiArrowhead: {
     axiom: "A",
     replace: {
       A: "B-A-B",
@@ -302,36 +563,6 @@ const ruleSet = {
       B: drawForward,
       "+": () => rotate(60),
       "-": () => rotate(-60),
-    },
-  },
-  fern: {
-    setup: () => {
-      resetMatrix();
-      background(50);
-      angleMode(DEGREES);
-      translate(width / 2.5, height);
-      stroke(255);
-      rotate(20);
-      len = height / 3;
-    },
-    axiom: "X",
-    draw: {
-      F: () => {
-        line(0, 0, 0, -len);
-        translate(0, -len);
-      },
-      "-": () => rotate(+25),
-      "+": () => rotate(-25),
-      "[": () => push(),
-      "]": () => pop(),
-      X: () => {},
-    },
-    after: () => {
-      len = len / 2;
-    },
-    replace: {
-      X: "F+[[X]-X]-F[-FX]+X",
-      F: "FF",
     },
   },
 };
