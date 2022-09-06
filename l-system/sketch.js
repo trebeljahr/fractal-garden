@@ -1,3 +1,11 @@
+class Config {
+  constructor() {
+    this.fractal = Object.keys(ruleSet)[0];
+  }
+}
+
+let config;
+
 let len;
 let angle;
 let rotationDirection = 1;
@@ -18,6 +26,8 @@ const drawRules = {
   X: () => {},
   Y: () => {},
   Z: () => {},
+  G: drawForward,
+  B: drawForward,
   F: drawForward,
   f: () => translate(0, -len),
   "+": () => rotate(angle * rotationDirection),
@@ -41,15 +51,32 @@ function drawForward() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  const config = new Config();
+  const gui = new dat.GUI();
+  const o = gui.addFolder("Options");
+  const controller = o
+    .add(config, "fractal", {
+      ...Object.keys(ruleSet).reduce((agg, key) => {
+        return { ...agg, [key]: key };
+      }, {}),
+    })
+    .onChange(() => {
+      console.log(config);
+      resetMatrix();
+      background(50);
+      rules = ruleSet[config.fractal];
+      sentence = rules.axiom;
+      len = undefined;
+      iterations = 0;
+    });
+  o.open();
   background(50);
-  rules = ruleSet.levyCurve;
+  rules = ruleSet[config.fractal];
   sentence = rules.axiom;
   const btn = createButton("Click");
   btn.mousePressed(() => {
     if (computing) return;
-    console.log("Hello");
     generateNextSentence();
-    createP(sentence);
   });
 }
 
@@ -62,16 +89,17 @@ const ruleSet = {
     },
     setup: () => {
       resetMatrix();
-      let initialLength = height * 0.3;
+      let initialLength = width * 0.4;
       len = len || initialLength;
-      translate(width / 2, height / 2);
+      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 3);
       background(50);
       angleMode(DEGREES);
       stroke(255);
+      rotate(90);
       angle = 45;
     },
     after: () => {
-      len /= 1.5;
+      len /= Math.sqrt(2);
     },
   },
   hexagonalGosper: {
@@ -201,6 +229,12 @@ const ruleSet = {
     },
   },
   fern1: {
+    axiom: "X",
+    draw: drawRules,
+    replace: {
+      X: "F+[[X]-X]-F[-FX]+X",
+      F: "FF",
+    },
     setup: () => {
       resetMatrix();
       background(50);
@@ -208,26 +242,11 @@ const ruleSet = {
       translate(width / 2.5, height);
       stroke(255);
       rotate(20);
-      len = height / 3;
-    },
-    axiom: "X",
-    draw: {
-      F: () => {
-        line(0, 0, 0, -len);
-        translate(0, -len);
-      },
-      "-": () => rotate(+25),
-      "+": () => rotate(-25),
-      "[": () => push(),
-      "]": () => pop(),
-      X: () => {},
+      angle = -25;
+      len = len || height / 3;
     },
     after: () => {
       len = len / 2;
-    },
-    replace: {
-      X: "F+[[X]-X]-F[-FX]+X",
-      F: "FF",
     },
   },
   waterpest: {
@@ -458,15 +477,11 @@ const ruleSet = {
       background(50);
       angleMode(DEGREES);
       stroke(255);
+      angle = 90;
       len = 5;
     },
     after: () => {},
-    draw: {
-      F: drawForward,
-      G: drawForward,
-      "+": () => rotate(90),
-      "-": () => rotate(-90),
-    },
+    draw: drawRules,
   },
   kochKurve: {
     axiom: "F",
@@ -484,11 +499,7 @@ const ruleSet = {
       len = 2;
     },
     after: () => {},
-    draw: {
-      F: drawForward,
-      "+": () => rotate(angle),
-      "-": () => rotate(-angle),
-    },
+    draw: drawRules,
   },
   hilbert: {
     axiom: "A",
@@ -506,13 +517,7 @@ const ruleSet = {
       len = 5;
     },
     after: () => {},
-    draw: {
-      F: drawForward,
-      A: () => {},
-      B: () => {},
-      "+": () => rotate(angle),
-      "-": () => rotate(-angle),
-    },
+    draw: drawRules,
   },
   sierpinskiTriangle: {
     axiom: "F-G-G",
@@ -532,12 +537,7 @@ const ruleSet = {
     after: () => {
       len = len / 2;
     },
-    draw: {
-      F: drawForward,
-      G: drawForward,
-      "+": () => rotate(120),
-      "-": () => rotate(-120),
-    },
+    draw: drawRules,
   },
   sierpinskiArrowhead: {
     axiom: "A",
@@ -558,12 +558,7 @@ const ruleSet = {
       console.log(len);
       len = len / 2;
     },
-    draw: {
-      A: drawForward,
-      B: drawForward,
-      "+": () => rotate(60),
-      "-": () => rotate(-60),
-    },
+    draw: drawRules,
   },
 };
 

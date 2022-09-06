@@ -15,6 +15,7 @@ customElements.define(
       <a href="/fractal-tree/">Fractal Tree</a>
       <a href="/barnsley-fern/">Barnsley Fern</a>
       <a href="/mandelbrot/">Mandelbrot Set</a>
+      <a href="/l-system/">L-Systems</a>
       `;
 
       shadow.appendChild(navbar);
