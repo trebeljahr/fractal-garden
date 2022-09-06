@@ -1,6 +1,16 @@
 class Config {
   constructor() {
-    this.fractal = Object.keys(ruleSet)[0];
+    let fromUrl = new URL(window.location.href).searchParams.get("fractal");
+    fromUrl = fromUrl
+      ? fromUrl
+          .split("-")
+          .map(([first, ...rest]) => first.toUpperCase() + rest.join(""))
+          .join(" ")
+      : "";
+    console.log(fromUrl);
+    this.fractal = ruleSet[fromUrl] ? fromUrl : ruleNames[0];
+    this.maxIterations = 10;
+    this.iterations = 6;
   }
 }
 
@@ -16,557 +26,68 @@ let angleIncrement = 0;
 
 let rules;
 let sentence;
-let iterations = 0;
-let maxIterations = 20;
 let computing = false;
 
-const drawRules = {
-  V: () => {},
-  W: () => {},
-  X: () => {},
-  Y: () => {},
-  Z: () => {},
-  G: drawForward,
-  B: drawForward,
-  F: drawForward,
-  f: () => translate(0, -len),
-  "+": () => rotate(angle * rotationDirection),
-  "-": () => rotate(angle * -rotationDirection),
-  "|": () => rotate(180),
-  "[": () => push(),
-  "]": () => pop(),
-  "#": () => strokeWeight((weight += weightIncrement)),
-  "!": () => strokeWeight((weight -= weightIncrement)),
-  ">": () => (len *= scale),
-  "<": () => (len /= scale),
-  "&": () => (rotationDirection = -rotationDirection),
-  "(": () => (angle += angleIncrement),
-  ")": () => (angle -= angleIncrement),
-};
-
-function drawForward() {
-  line(0, 0, 0, -len);
-  translate(0, -len);
-}
+let ruleNames;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  const config = new Config();
+  ruleNames = Object.keys(ruleSet).sort();
+  config = new Config();
+
+  resetAndDraw();
+
   const gui = new dat.GUI();
   const o = gui.addFolder("Options");
-  const controller = o
-    .add(config, "fractal", {
-      ...Object.keys(ruleSet).reduce((agg, key) => {
-        return { ...agg, [key]: key };
-      }, {}),
-    })
-    .onChange(() => {
-      console.log(config);
-      resetMatrix();
-      background(50);
-      rules = ruleSet[config.fractal];
-      sentence = rules.axiom;
-      len = undefined;
-      iterations = 0;
-    });
-  o.open();
-  background(50);
-  rules = ruleSet[config.fractal];
-  sentence = rules.axiom;
-  const btn = createButton("Click");
-  btn.mousePressed(() => {
-    if (computing) return;
-    generateNextSentence();
+  const iterationController = o
+    .add(config, "iterations", 1, rules.maxIterations)
+    .step(1)
+    .onFinishChange(resetAndDraw);
+
+  const r = ruleNames.reduce((agg, key) => ({ ...agg, [key]: key }), {});
+  o.add(config, "fractal", r).onFinishChange(() => {
+    reset();
+    iterationController.max(rules.maxIterations);
+    config.iterations = rules.maxIterations - 1;
+    iterationController.updateDisplay();
+    generateFractal();
   });
+
+  o.open();
 }
 
-const ruleSet = {
-  levyCurve: {
-    axiom: "F",
-    draw: drawRules,
-    replace: {
-      F: "-F++F-",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = width * 0.4;
-      len = len || initialLength;
-      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 3);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      rotate(90);
-      angle = 45;
-    },
-    after: () => {
-      len /= Math.sqrt(2);
-    },
-  },
-  hexagonalGosper: {
-    axiom: "XF",
-    draw: drawRules,
-    replace: {
-      X: "X+YF++YF-FX--FXFX-YF+",
-      Y: "-FX+YFYF++YF+FX--FX-Y",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.3;
-      len = len || initialLength;
-      translate(width / 2 - len * 2, height / 2 - len * 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 60;
-    },
-    after: () => {
-      len /= 2.3;
-    },
-  },
-  rings: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "FF+F+F+F+F+F-F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.3;
-      translate(width / 2, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 3;
-    },
-  },
-  tiles: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "FF+F-F+F+FF",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.3;
-      translate(width / 2, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 2;
-    },
-  },
-  fern4: {
-    axiom: "VZFFF",
-    draw: drawRules,
-    replace: {
-      V: "[+++W][---W]YV",
-      W: "+X[-W]Z",
-      X: "-W[+X]Z",
-      Y: "YZ",
-      Z: "[-FFF][+FFF]F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.3;
-      translate(width / 2, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 20;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 1.3;
-    },
-  },
-  fern3: {
-    axiom: "Y",
-    draw: drawRules,
-    replace: {
-      X: "X[-FFF][+FFF]FX",
-      Y: "YFX[+Y][-Y]",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.5;
-      translate(width / 2, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 25.7;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 2.05;
-    },
-  },
-  fern2: {
-    axiom: "F",
-    draw: drawRules,
-    replace: {
-      F: "FF+[+F-F-F]-[-F+F+F]",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.5;
-      translate(width / 2, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 22.5;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 2.2;
-    },
-  },
-  fern1: {
-    axiom: "X",
-    draw: drawRules,
-    replace: {
-      X: "F+[[X]-X]-F[-FX]+X",
-      F: "FF",
-    },
-    setup: () => {
-      resetMatrix();
-      background(50);
-      angleMode(DEGREES);
-      translate(width / 2.5, height);
-      stroke(255);
-      rotate(20);
-      angle = -25;
-      len = len || height / 3;
-    },
-    after: () => {
-      len = len / 2;
-    },
-  },
-  waterpest: {
-    axiom: "F",
-    draw: drawRules,
-    replace: {
-      F: "F[+FF][-FF]F[-F][+F]F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = height * 0.8;
-      translate(width / 2, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 22.5;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 3;
-    },
-  },
-  weed: {
-    axiom: "F",
-    draw: drawRules,
-    replace: {
-      F: "FF-[XY]+[XY]",
-      X: "+FY",
-      Y: "-FX",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = width / 5;
-      translate(width / 2, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 22.5;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= 2;
-    },
-  },
-  triangle: {
-    axiom: "F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "F-F+F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = width / 5;
-      translate(width / 2, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 120;
-      len = len || initialLength;
-    },
-    after: () => {
-      len /= (1 + Math.sqrt(5)) / 2;
-    },
-  },
-  sierpinskiSquare: {
-    axiom: "F+XF+F+XF",
-    draw: drawRules,
-    replace: {
-      X: "XF-F+F-XF+F+XF-F+F-X",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = 10;
-      translate(0, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || initialLength;
-    },
-    after: () => {},
-  },
-  crystal: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "FF+F++F+F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = width / 3;
-      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || initialLength;
-    },
-    after: () => {
-      len = len / 3;
-    },
-  },
-  quadraticSnowflake: {
-    axiom: "FF+FF+FF+FF",
-    draw: drawRules,
-    replace: {
-      F: "F+F-F-F+F",
-    },
-    setup: () => {
-      resetMatrix();
-      let initialLength = width / 5;
-      translate(width / 2 - initialLength, height / 2 + initialLength);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || initialLength;
-    },
-    after: () => {
-      len = len / 3;
-    },
-  },
-  kochIsland: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "F+F-F-FFF+F+F-F",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(width / 2 - width / 4 / 2, height / 2 + width / 4 / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || width / 4;
-    },
-    after: () => {
-      len = len / 4.5;
-    },
-  },
-  board: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "FF+F+F+F+FF",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(width / 2 - width / 3 / 2, height / 2 + width / 3 / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || width / 3;
-    },
-    after: () => {
-      len = len / 3;
-    },
-  },
-  kochSnowflake: {
-    axiom: "F++F++F",
-    draw: drawRules,
-    replace: {
-      F: "F-F++F-F",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(width / 2 - width / 3 / 3, height / 2 + width / 3 / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 60;
-      len = len || width / 3;
-    },
-    after: () => {
-      len = len / 3;
-    },
-  },
+function resetAndDraw() {
+  reset();
+  generateFractal();
+}
 
-  cross: {
-    axiom: "F+F+F+F",
-    draw: drawRules,
-    replace: {
-      F: "F+F-F+F+F",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(width / 2, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = len || 200;
-    },
-    after: () => {
-      len = len / 2;
-    },
-  },
-  pentaflake: {
-    axiom: "F++F++F++F++F",
-    draw: drawRules,
-    replace: {
-      F: "F++F++F|F-F++F",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(0, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 36;
-      len = len || 200;
-    },
-    after: () => {
-      len = len / 2.5;
-    },
-  },
-  dragonKurve: {
-    axiom: "F",
-    replace: {
-      F: "F+G",
-      G: "F-G",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(width / 2, height / 2);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = 5;
-    },
-    after: () => {},
-    draw: drawRules,
-  },
-  kochKurve: {
-    axiom: "F",
-    replace: {
-      F: "F+F-F-F+F",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(0, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 60;
-      rotate(angle);
-      len = 2;
-    },
-    after: () => {},
-    draw: drawRules,
-  },
-  hilbert: {
-    axiom: "A",
-    replace: {
-      A: "+BF-AFA-FB+",
-      B: "-AF+BFB+FA-",
-    },
-    setup: () => {
-      resetMatrix();
-      translate(0, height);
-      background(50);
-      angleMode(DEGREES);
-      stroke(255);
-      angle = 90;
-      len = 5;
-    },
-    after: () => {},
-    draw: drawRules,
-  },
-  sierpinskiTriangle: {
-    axiom: "F-G-G",
-    replace: {
-      F: "F-G+F+G-F",
-      G: "GG",
-    },
-    setup: () => {
-      resetMatrix();
-      background(50);
-      translate(0, height);
-      angleMode(DEGREES);
-      rotate(90);
-      stroke(255);
-      len = len || Math.min(width, height);
-    },
-    after: () => {
-      len = len / 2;
-    },
-    draw: drawRules,
-  },
-  sierpinskiArrowhead: {
-    axiom: "A",
-    replace: {
-      A: "B-A-B",
-      B: "A+B+A",
-    },
-    setup: () => {
-      resetMatrix();
-      background(50);
-      translate(0, height);
-      angleMode(DEGREES);
-      rotate(90);
-      stroke(255);
-      len = len || Math.min(width, height);
-    },
-    after: () => {
-      console.log(len);
-      len = len / 2;
-    },
-    draw: drawRules,
-  },
-};
+function reset() {
+  resetMatrix();
+  background(50);
+  rules = ruleSet[config.fractal];
+  window.history.replaceState(
+    null,
+    null,
+    `?fractal=${config.fractal.replace(" ", "-").toLowerCase()}`
+  );
+  sentence = rules.axiom;
+  len = undefined;
+}
 
-function generateNextSentence() {
+function generateFractal() {
+  for (let i = 0; i < config.iterations; i++) {
+    generateNextIteration();
+  }
+
+  // for (let char of sentence) {
+  //   rules.draw[char]();
+  // }
+}
+
+function generateNextIteration() {
   let newSentence = "";
   computing = true;
   rules.setup();
-  if (iterations > maxIterations) return;
 
   for (let char of sentence) {
     newSentence += rules.replace[char] || char;
@@ -574,7 +95,6 @@ function generateNextSentence() {
   }
 
   rules.after();
-  iterations++;
 
   sentence = newSentence;
   computing = false;
