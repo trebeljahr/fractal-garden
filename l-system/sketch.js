@@ -7,7 +7,6 @@ class Config {
           .map(([first, ...rest]) => first.toUpperCase() + rest.join(""))
           .join(" ")
       : "";
-    console.log(fromUrl);
     this.fractal = ruleSet[fromUrl] ? fromUrl : ruleNames[0];
     this.maxIterations = 10;
     this.iterations = 6;
@@ -27,8 +26,10 @@ let angleIncrement = 0;
 let rules;
 let sentence;
 let computing = false;
+let currentIteration = 1;
 
 let ruleNames;
+let iterationController;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -39,7 +40,7 @@ function setup() {
 
   const gui = new dat.GUI();
   const o = gui.addFolder("Options");
-  const iterationController = o
+  iterationController = o
     .add(config, "iterations", 1, rules.maxIterations)
     .step(1)
     .onFinishChange(resetAndDraw);
@@ -61,6 +62,11 @@ function resetAndDraw() {
   generateFractal();
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  resetAndDraw();
+}
+
 function reset() {
   resetMatrix();
   background(50);
@@ -75,18 +81,39 @@ function reset() {
 }
 
 function generateFractal() {
+  if (computing) return;
+  computing = true;
+  currentIteration = 1;
+
   for (let i = 0; i < config.iterations; i++) {
     generateNextIteration();
+    currentIteration++;
   }
+  computing = false;
+}
 
-  // for (let char of sentence) {
-  //   rules.draw[char]();
-  // }
+function keyPressed() {
+  if (keyCode === LEFT_ARROW) {
+    config.iterations = constrain(
+      config.iterations - 1,
+      1,
+      rules.maxIterations
+    );
+    iterationController.updateDisplay();
+    resetAndDraw();
+  } else if (keyCode === RIGHT_ARROW) {
+    config.iterations = constrain(
+      config.iterations + 1,
+      1,
+      rules.maxIterations
+    );
+    iterationController.updateDisplay();
+    resetAndDraw();
+  }
 }
 
 function generateNextIteration() {
   let newSentence = "";
-  computing = true;
   rules.setup();
 
   for (let char of sentence) {
@@ -97,5 +124,4 @@ function generateNextIteration() {
   rules.after();
 
   sentence = newSentence;
-  computing = false;
 }
