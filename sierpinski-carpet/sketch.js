@@ -53,15 +53,19 @@ function drawSierpinskiCarpet() {
 }
 
 function SierpinskiCarpet(len, coordinates, iterations) {
+  if (iterations >= config.maxIterations) return;
+  fill(config.color);
   rect(coordinates.x, coordinates.y, len, len);
   for (let x = 0; x <= 2; x++) {
     for (let y = 0; y <= 2; y++) {
-      if ((x === 1 && y === 1) || iterations >= config.maxIterations) {
+      const newCoordinates = {
+        x: coordinates.x + x * (len / 3),
+        y: coordinates.y + y * (len / 3),
+      };
+      if (x === 1 && y === 1) {
+        fill(config.fillColor);
+        rect(newCoordinates.x, newCoordinates.y, len / 3, len / 3);
       } else {
-        const newCoordinates = {
-          x: coordinates.x + x * (len / 3),
-          y: coordinates.y + y * (len / 3),
-        };
         SierpinskiCarpet(len / 3, newCoordinates, iterations + 1);
       }
     }
