@@ -15,16 +15,20 @@ class Config {
 
     this.name = "img_name";
     this.save = () => {
+      drawToCanvas = false;
       let a3Paper = {
         width: 9920,
         height: 7016,
       };
-      const oldCanvas = cnv;
+      const oldCanvas = pg;
       const graphics = createGraphics(a3Paper.width, a3Paper.height);
-      cnv = graphics;
+      graphics.angleMode(DEGREES);
+      graphics.strokeWeight(3);
+      pg = graphics;
       resetAndDraw();
-      saveCanvas(cnv, this.name, "jpg");
-      cnv = oldCanvas;
+      saveCanvas(pg, this.name, "jpg");
+      pg = oldCanvas;
+      drawToCanvas = true;
     };
   }
 }
@@ -46,16 +50,15 @@ let currentIteration = 1;
 
 let ruleNames;
 let iterationController;
-let cnv;
+let pg;
+let drawToCanvas = true;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  cnv = createGraphics(windowWidth, windowHeight);
-  cnv.angleMode(DEGREES);
 
   ruleNames = Object.keys(ruleSet).sort();
   config = new Config();
-
+  newGraphics();
   resetAndDraw();
 
   const gui = new dat.GUI();
@@ -67,6 +70,7 @@ function setup() {
 
   const r = ruleNames.reduce((agg, key) => ({ ...agg, [key]: key }), {});
   o.add(config, "fractal", r).onFinishChange(() => {
+    newGraphics();
     reset();
     iterationController.max(rules.maxIterations);
     config.iterations = rules.maxIterations - 1;
@@ -86,17 +90,21 @@ function setup() {
 function resetAndDraw() {
   reset();
   generateFractal();
-  image(cnv, 0, 0);
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  newGraphics();
   resetAndDraw();
 }
 
+function newGraphics() {
+  if (pg) pg.elt.remove();
+  pg = createGraphics(windowWidth, windowHeight);
+  pg.angleMode(DEGREES);
+}
+
 function reset() {
-  cnv.resetMatrix();
-  cnv.background(50);
   rules = ruleSet[config.fractal];
   window.history.replaceState(
     null,
@@ -117,6 +125,7 @@ function generateFractal() {
     currentIteration++;
   }
   computing = false;
+  if (drawToCanvas) image(pg, 0, 0);
 }
 
 function keyPressed() {

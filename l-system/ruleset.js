@@ -1,15 +1,13 @@
 function drawForward() {
-  cnv.line(0, 0, 0, -len);
-  cnv.translate(0, -len);
+  // console.log("drawing");
+  pg.line(0, 0, 0, -len);
+  pg.translate(0, -len);
 }
 
 function commonSetup() {
-  console.log(cnv);
-
-  // angleMode(DEGREES);
-  cnv.resetMatrix();
-  cnv.background(config.backgroundColor);
-  cnv.stroke(config.fractalColor);
+  pg.resetMatrix();
+  pg.background(config.backgroundColor);
+  pg.stroke(config.fractalColor);
 }
 
 const drawRules = {
@@ -20,14 +18,14 @@ const drawRules = {
   Z: () => {},
   G: drawForward,
   F: drawForward,
-  f: () => cnv.translate(0, -len),
-  "+": () => cnv.rotate((PI / 180) * angle * rotationDirection),
-  "-": () => cnv.rotate((PI / 180) * angle * -rotationDirection),
-  "|": () => cnv.rotate((PI / 180) * 180),
-  "[": () => cnv.push(),
-  "]": () => cnv.pop(),
-  "#": () => cnv.strokeWeight((weight += weightIncrement)),
-  "!": () => cnv.strokeWeight((weight -= weightIncrement)),
+  f: () => pg.translate(0, -len),
+  "+": () => pg.rotate(angle * rotationDirection),
+  "-": () => pg.rotate(angle * -rotationDirection),
+  "|": () => pg.rotate(180),
+  "[": () => pg.push(),
+  "]": () => pg.pop(),
+  "#": () => pg.strokeWeight((weight += weightIncrement)),
+  "!": () => pg.strokeWeight((weight -= weightIncrement)),
   ">": () => (len *= scale),
   "<": () => (len /= scale),
   "&": () => (rotationDirection = -rotationDirection),
@@ -46,15 +44,15 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength =
-        Math.min(cnv.width, cnv.height) *
-        (cnv.width > cnv.height * 1.3 ? 0.7 : 0.45);
+        Math.min(pg.width, pg.height) *
+        (pg.width > pg.height * 1.3 ? 0.7 : 0.45);
       len = len || initialLength;
 
-      cnv.translate(
-        cnv.width / 2 - initialLength / 2,
-        cnv.height / 2 + initialLength / 2.6
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 + initialLength / 2.6
       );
-      cnv.rotate((PI / 180) * 90);
+      pg.rotate(90);
       angle = 45;
     },
     after: () => {
@@ -71,9 +69,9 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.3;
+      let initialLength = pg.height * 0.3;
       len = len || initialLength;
-      cnv.translate(width / 2 - len * 2, height / 2 - len * 2);
+      pg.translate(pg.width / 2 - len * 2, pg.height / 2 - len * 2);
 
       angle = 60;
     },
@@ -90,8 +88,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.3;
-      cnv.translate(width / 2, height / 2);
+      let initialLength = pg.height * 0.3;
+      pg.translate(pg.width / 2, pg.height / 2);
 
       angle = 90;
       len = len || initialLength;
@@ -109,8 +107,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.3;
-      cnv.translate(width / 2, height / 2);
+      let initialLength = pg.height * 0.3;
+      pg.translate(pg.width / 2, pg.height / 2);
 
       angle = 90;
       len = len || initialLength;
@@ -130,8 +128,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.5;
-      cnv.translate(width / 2, height);
+      let initialLength = pg.height * 0.5;
+      pg.translate(pg.width / 2, pg.height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -149,8 +147,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.9;
-      cnv.translate(width / 2, height);
+      let initialLength = pg.height * 0.9;
+      pg.translate(pg.width / 2, pg.height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -172,8 +170,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.38;
-      cnv.translate(width / 2, height);
+      let initialLength = pg.height * 0.38;
+      pg.translate(pg.width / 2, pg.height);
 
       angle = 20;
       len = len || initialLength;
@@ -192,8 +190,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.6;
-      cnv.translate(width / 2, height);
+      let initialLength = pg.height * 0.6;
+      pg.translate(pg.width / 2, pg.height);
 
       angle = 25.7;
       len = len || initialLength;
@@ -211,8 +209,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = height * 0.45;
-      cnv.translate(width / 2, height);
+      let initialLength = pg.height * 0.45;
+      pg.translate(pg.width / 2, pg.height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -235,10 +233,10 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      const initialLength = height * 0.37;
+      const initialLength = pg.height * 0.37;
       len = len || initialLength;
 
-      cnv.translate(width / 2, height);
+      pg.translate(pg.width / 2, pg.height);
       angle = -25;
     },
     after: () => {
@@ -254,8 +252,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = width / 5;
-      cnv.translate(width / 2, height / 2);
+      let initialLength = pg.width / 5;
+      pg.translate(pg.width / 2, pg.height / 2);
 
       angle = 120;
       len = len || initialLength;
@@ -273,8 +271,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = Math.min(width, height) * 0.25;
-      cnv.translate(width / 2 - initialLength * 1.6, height / 2);
+      let initialLength = Math.min(pg.width, pg.height) * 0.25;
+      pg.translate(pg.width / 2 - initialLength * 1.6, pg.height / 2);
 
       angle = 90;
       len = len || initialLength;
@@ -292,10 +290,10 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = Math.min(width, height) * 0.9;
-      cnv.translate(
-        width / 2 - initialLength / 2,
-        height / 2 + initialLength / 2
+      let initialLength = Math.min(pg.width, pg.height) * 0.9;
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 + initialLength / 2
       );
 
       angle = 90;
@@ -314,8 +312,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = width / 5;
-      cnv.translate(width / 2 - initialLength, height / 2 + initialLength);
+      let initialLength = pg.width / 4;
+      pg.translate(pg.width / 2 - initialLength, pg.height / 2 + initialLength);
 
       angle = 90;
       len = len || initialLength;
@@ -333,10 +331,13 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      cnv.translate(width / 2 - width / 4 / 2, height / 2 + width / 4 / 2);
+      pg.translate(
+        pg.width / 2 - pg.width / 4 / 2,
+        pg.height / 2 + pg.width / 4 / 2
+      );
 
       angle = 90;
-      len = len || width / 4;
+      len = len || pg.width / 4;
     },
     after: () => {
       len = len / 4.5;
@@ -352,11 +353,11 @@ const ruleSet = {
     setup: () => {
       commonSetup();
 
-      let initialLength = Math.min(width, height) * 0.9;
+      let initialLength = Math.min(pg.width, pg.height) * 0.9;
       len = len || initialLength;
-      cnv.translate(
-        width / 2 - initialLength / 2,
-        height / 2 + initialLength / 2
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 + initialLength / 2
       );
 
       angle = 90;
@@ -374,10 +375,13 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      cnv.translate(width / 2 - width / 3 / 3, height / 2 + width / 3 / 2);
+      pg.translate(
+        pg.width / 2 - pg.width / 3 / 3,
+        pg.height / 2 + pg.width / 3 / 2
+      );
 
       angle = 60;
-      len = len || width / 3;
+      len = len || pg.width / 3;
     },
     after: () => {
       len = len / 3;
@@ -392,12 +396,12 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      const initialLength = Math.min(width, height) * 0.25;
+      const initialLength = Math.min(pg.width, pg.height) * 0.25;
       len = len || initialLength;
 
-      cnv.translate(
-        width / 2 - (len * Math.pow(2, config.iterations) + 1) / 2,
-        height / 2 + (len * Math.pow(2, config.iterations) + 1) / 2
+      pg.translate(
+        pg.width / 2 - (len * Math.pow(2, config.iterations) + 1) / 2,
+        pg.height / 2 + (len * Math.pow(2, config.iterations) + 1) / 2
       );
 
       angle = 90;
@@ -415,8 +419,8 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      len = len || width / 3;
-      cnv.translate(width / 2 - len * 2, height / 2 - len * 2);
+      len = len || pg.width / 3;
+      pg.translate(pg.width / 2 - len * 2, pg.height / 2 - len * 2);
 
       angle = 36;
     },
@@ -433,7 +437,7 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      cnv.translate(width / 2, height / 2);
+      pg.translate(pg.width / 2, pg.height / 2);
 
       angle = 90;
       len = 5;
@@ -449,15 +453,15 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      const initialLength = Math.min(width, height);
+      const initialLength = Math.min(pg.width, pg.height);
       len = len || initialLength;
-      cnv.translate(
-        width / 2 - initialLength / 2,
-        height / 2 - initialLength / 4
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 - initialLength / 4
       );
 
       angle = 90;
-      cnv.rotate((PI / 180) * angle);
+      pg.rotate(angle);
     },
     after: () => {
       len /= 3;
@@ -474,14 +478,16 @@ const ruleSet = {
       commonSetup();
       angle = 60;
       const initialLength =
-        Math.min(width, height) *
-        (width > height ? map(width - height, 0, 2 * height, 1, 2.4) : 0.9);
+        Math.min(pg.width, pg.height) *
+        (pg.width > pg.height
+          ? map(pg.width - pg.height, 0, 2 * pg.height, 1, 2.4)
+          : 0.9);
       len = len || initialLength;
-      cnv.translate(
-        width / 2 - initialLength / 2,
-        height / 2 - initialLength / 6
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 - initialLength / 6
       );
-      cnv.rotate((PI / 180) * 90);
+      pg.rotate(90);
     },
     after: () => {
       len /= 4;
@@ -498,11 +504,11 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       angle = 90;
-      const initialLength = Math.min(width, height) * 0.9;
+      const initialLength = Math.min(pg.width, pg.height) * 0.9;
       len = len || initialLength;
-      cnv.translate(
-        width / 2 - initialLength / 2,
-        height / 2 + initialLength / 2
+      pg.translate(
+        pg.width / 2 - initialLength / 2,
+        pg.height / 2 + initialLength / 2
       );
     },
     after: () => {
@@ -520,12 +526,15 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       angle = 120;
-      const initialLength = Math.min(width, height);
+      const initialLength = Math.min(pg.width, pg.height);
       len = len || initialLength;
       const totalHeight = (initialLength * Math.sqrt(3)) / 2;
 
-      cnv.translate(initialLength / 2, height - (height - totalHeight) / 2);
-      cnv.rotate((PI / 180) * 90);
+      pg.translate(
+        initialLength / 2,
+        pg.height - (pg.height - totalHeight) / 2
+      );
+      pg.rotate(90);
     },
     after: () => {
       len = len / 2;
@@ -542,13 +551,16 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       angle = 60;
-      const initialLength = Math.min(width, height);
+      const initialLength = Math.min(pg.width, pg.height);
       len = len || initialLength;
       const totalHeight = (initialLength * Math.sqrt(3)) / 2;
 
-      cnv.translate(initialLength / 2, height - (height - totalHeight) / 2);
-      cnv.rotate((PI / 180) * 30);
-      if (config.iterations % 2 === 0) cnv.rotate((PI / 180) * 60);
+      pg.translate(
+        initialLength / 2,
+        pg.height - (pg.height - totalHeight) / 2
+      );
+      pg.rotate(30);
+      if (config.iterations % 2 === 0) pg.rotate(60);
     },
     after: () => {
       len = len / 2;
