@@ -11,15 +11,34 @@ let img;
 let d = 0;
 let factor = 2;
 
+let coordinateLengthInPixels = 0.005;
+
 let topLeftX = -2;
 let topLeftY = -2;
-
-let bottomRightX = 2;
-let bottomRightY = 2;
 
 function setup() {
   cnv = createCanvas(w, h);
   img = createImage(w, h);
+  drawMandelBrot();
+}
+
+function keyPressed() {
+  if (keyCode === RIGHT_ARROW) {
+    topLeftX += 10 * coordinateLengthInPixels;
+  }
+  if (keyCode === LEFT_ARROW) {
+    topLeftX -= 10 * coordinateLengthInPixels;
+  }
+  if (keyCode === UP_ARROW) {
+    topLeftY -= 10 * coordinateLengthInPixels;
+  }
+  if (keyCode === DOWN_ARROW) {
+    topLeftY += 10 * coordinateLengthInPixels;
+  }
+
+  if (keyCode === 32) {
+    coordinateLengthInPixels -= 0.0001;
+  }
   drawMandelBrot();
 }
 
@@ -31,8 +50,8 @@ function drawMandelBrot() {
   img.loadPixels();
   for (let i = 0; i <= w; i++) {
     for (let j = 0; j <= h; j++) {
-      const x = map(i, 0, w, topLeftX, bottomRightX);
-      const y = map(j, 0, h, topLeftY, bottomRightY);
+      const x = topLeftX + i * coordinateLengthInPixels;
+      const y = topLeftY + j * coordinateLengthInPixels;
       const [inMandelbrot, _, iterations] = isCoordinateInMandelbrot(x, y);
       if (inMandelbrot) {
         img.set(i, j, color(map(iterations, 0, 100, 0, 255)));
