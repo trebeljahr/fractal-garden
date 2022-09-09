@@ -117,6 +117,46 @@ const ruleSet = {
       len /= 2;
     },
   },
+  "Fern 8": {
+    maxIterations: 10,
+    axiom: "X",
+    draw: drawRules,
+    replace: {
+      X: "F[+X][-X]FX",
+      F: "FF",
+    },
+    setup: () => {
+      commonSetup();
+      let initialLength = pg.height * 0.48;
+      pg.translate(pg.width / 2, pg.height);
+
+      angle = 25.7;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2;
+    },
+  },
+  "Fern 7": {
+    maxIterations: 10,
+    axiom: "X",
+    draw: drawRules,
+    replace: {
+      X: "F[+X]F[-X]+X",
+      F: "FF",
+    },
+    setup: () => {
+      commonSetup();
+      let initialLength = pg.height * 0.5;
+      pg.translate(pg.width / 2, pg.height);
+
+      angle = 20;
+      len = len || initialLength;
+    },
+    after: () => {
+      len /= 2;
+    },
+  },
   "Fern 6": {
     maxIterations: 10,
     axiom: "F",
