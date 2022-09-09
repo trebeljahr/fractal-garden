@@ -5,13 +5,13 @@ class Configuration {
     this.background = "#252424";
     this.useBarnsley = true;
     this.name = "img_name";
-    this.save = () => saveCanvas(canvas, this.name, "jpg");
+    this.save = () => saveCanvas(cnv, this.name, "jpg");
   }
 }
 
 let config;
 let length;
-let canvas;
+let cnv;
 function setup() {
   config = new Configuration();
   reset();
@@ -33,7 +33,7 @@ function setup() {
 }
 
 function reset() {
-  canvas = createCanvas(window.innerWidth, window.innerHeight);
+  cnv = createCanvas(window.innerWidth, window.innerHeight);
   background(config.background);
   iterations = 1;
 }

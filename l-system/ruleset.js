@@ -1,13 +1,15 @@
 function drawForward() {
-  line(0, 0, 0, -len);
-  translate(0, -len);
+  cnv.line(0, 0, 0, -len);
+  cnv.translate(0, -len);
 }
 
 function commonSetup() {
-  resetMatrix();
-  background(50);
-  angleMode(DEGREES);
-  stroke(255);
+  console.log(cnv);
+
+  // angleMode(DEGREES);
+  cnv.resetMatrix();
+  cnv.background(config.backgroundColor);
+  cnv.stroke(config.fractalColor);
 }
 
 const drawRules = {
@@ -18,14 +20,14 @@ const drawRules = {
   Z: () => {},
   G: drawForward,
   F: drawForward,
-  f: () => translate(0, -len),
-  "+": () => rotate(angle * rotationDirection),
-  "-": () => rotate(angle * -rotationDirection),
-  "|": () => rotate(180),
-  "[": () => push(),
-  "]": () => pop(),
-  "#": () => strokeWeight((weight += weightIncrement)),
-  "!": () => strokeWeight((weight -= weightIncrement)),
+  f: () => cnv.translate(0, -len),
+  "+": () => cnv.rotate((PI / 180) * angle * rotationDirection),
+  "-": () => cnv.rotate((PI / 180) * angle * -rotationDirection),
+  "|": () => cnv.rotate((PI / 180) * 180),
+  "[": () => cnv.push(),
+  "]": () => cnv.pop(),
+  "#": () => cnv.strokeWeight((weight += weightIncrement)),
+  "!": () => cnv.strokeWeight((weight -= weightIncrement)),
   ">": () => (len *= scale),
   "<": () => (len /= scale),
   "&": () => (rotationDirection = -rotationDirection),
@@ -44,14 +46,15 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength =
-        Math.min(width, height) * (width > height * 1.3 ? 0.7 : 0.45);
+        Math.min(cnv.width, cnv.height) *
+        (cnv.width > cnv.height * 1.3 ? 0.7 : 0.45);
       len = len || initialLength;
 
-      translate(
-        width / 2 - initialLength / 2,
-        height / 2 + initialLength / 2.6
+      cnv.translate(
+        cnv.width / 2 - initialLength / 2,
+        cnv.height / 2 + initialLength / 2.6
       );
-      rotate(90);
+      cnv.rotate((PI / 180) * 90);
       angle = 45;
     },
     after: () => {
@@ -70,7 +73,7 @@ const ruleSet = {
       commonSetup();
       let initialLength = height * 0.3;
       len = len || initialLength;
-      translate(width / 2 - len * 2, height / 2 - len * 2);
+      cnv.translate(width / 2 - len * 2, height / 2 - len * 2);
 
       angle = 60;
     },
@@ -88,7 +91,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.3;
-      translate(width / 2, height / 2);
+      cnv.translate(width / 2, height / 2);
 
       angle = 90;
       len = len || initialLength;
@@ -107,7 +110,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.3;
-      translate(width / 2, height / 2);
+      cnv.translate(width / 2, height / 2);
 
       angle = 90;
       len = len || initialLength;
@@ -128,7 +131,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.5;
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -147,7 +150,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.9;
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -170,7 +173,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.38;
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
 
       angle = 20;
       len = len || initialLength;
@@ -190,7 +193,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.6;
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
 
       angle = 25.7;
       len = len || initialLength;
@@ -209,7 +212,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = height * 0.45;
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
 
       angle = 22.5;
       len = len || initialLength;
@@ -235,7 +238,7 @@ const ruleSet = {
       const initialLength = height * 0.37;
       len = len || initialLength;
 
-      translate(width / 2, height);
+      cnv.translate(width / 2, height);
       angle = -25;
     },
     after: () => {
@@ -252,7 +255,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = width / 5;
-      translate(width / 2, height / 2);
+      cnv.translate(width / 2, height / 2);
 
       angle = 120;
       len = len || initialLength;
@@ -262,7 +265,7 @@ const ruleSet = {
     },
   },
   "Sierpinski Square": {
-    maxIterations: 10,
+    maxIterations: 8,
     axiom: "F+XF+F+XF",
     draw: drawRules,
     replace: {
@@ -270,13 +273,15 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      let initialLength = 10;
-      translate(0, height / 2);
+      let initialLength = Math.min(width, height) * 0.25;
+      cnv.translate(width / 2 - initialLength * 1.6, height / 2);
 
       angle = 90;
       len = len || initialLength;
     },
-    after: () => {},
+    after: () => {
+      len /= 2.05;
+    },
   },
   Crystal: {
     maxIterations: 8,
@@ -288,7 +293,10 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = Math.min(width, height) * 0.9;
-      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 2);
+      cnv.translate(
+        width / 2 - initialLength / 2,
+        height / 2 + initialLength / 2
+      );
 
       angle = 90;
       len = len || initialLength;
@@ -307,7 +315,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       let initialLength = width / 5;
-      translate(width / 2 - initialLength, height / 2 + initialLength);
+      cnv.translate(width / 2 - initialLength, height / 2 + initialLength);
 
       angle = 90;
       len = len || initialLength;
@@ -325,7 +333,7 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      translate(width / 2 - width / 4 / 2, height / 2 + width / 4 / 2);
+      cnv.translate(width / 2 - width / 4 / 2, height / 2 + width / 4 / 2);
 
       angle = 90;
       len = len || width / 4;
@@ -346,7 +354,10 @@ const ruleSet = {
 
       let initialLength = Math.min(width, height) * 0.9;
       len = len || initialLength;
-      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 2);
+      cnv.translate(
+        width / 2 - initialLength / 2,
+        height / 2 + initialLength / 2
+      );
 
       angle = 90;
     },
@@ -363,7 +374,7 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      translate(width / 2 - width / 3 / 3, height / 2 + width / 3 / 2);
+      cnv.translate(width / 2 - width / 3 / 3, height / 2 + width / 3 / 2);
 
       angle = 60;
       len = len || width / 3;
@@ -384,7 +395,7 @@ const ruleSet = {
       const initialLength = Math.min(width, height) * 0.25;
       len = len || initialLength;
 
-      translate(
+      cnv.translate(
         width / 2 - (len * Math.pow(2, config.iterations) + 1) / 2,
         height / 2 + (len * Math.pow(2, config.iterations) + 1) / 2
       );
@@ -405,7 +416,7 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       len = len || width / 3;
-      translate(width / 2 - len * 2, height / 2 - len * 2);
+      cnv.translate(width / 2 - len * 2, height / 2 - len * 2);
 
       angle = 36;
     },
@@ -422,7 +433,7 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      translate(width / 2, height / 2);
+      cnv.translate(width / 2, height / 2);
 
       angle = 90;
       len = 5;
@@ -440,10 +451,13 @@ const ruleSet = {
       commonSetup();
       const initialLength = Math.min(width, height);
       len = len || initialLength;
-      translate(width / 2 - initialLength / 2, height / 2 - initialLength / 4);
+      cnv.translate(
+        width / 2 - initialLength / 2,
+        height / 2 - initialLength / 4
+      );
 
       angle = 90;
-      rotate(angle);
+      cnv.rotate((PI / 180) * angle);
     },
     after: () => {
       len /= 3;
@@ -463,8 +477,11 @@ const ruleSet = {
         Math.min(width, height) *
         (width > height ? map(width - height, 0, 2 * height, 1, 2.4) : 0.9);
       len = len || initialLength;
-      translate(width / 2 - initialLength / 2, height / 2 - initialLength / 6);
-      rotate(90);
+      cnv.translate(
+        width / 2 - initialLength / 2,
+        height / 2 - initialLength / 6
+      );
+      cnv.rotate((PI / 180) * 90);
     },
     after: () => {
       len /= 4;
@@ -483,7 +500,10 @@ const ruleSet = {
       angle = 90;
       const initialLength = Math.min(width, height) * 0.9;
       len = len || initialLength;
-      translate(width / 2 - initialLength / 2, height / 2 + initialLength / 2);
+      cnv.translate(
+        width / 2 - initialLength / 2,
+        height / 2 + initialLength / 2
+      );
     },
     after: () => {
       len /= 2;
@@ -500,10 +520,12 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       angle = 120;
-      len = len || Math.min(width, height);
+      const initialLength = Math.min(width, height);
+      len = len || initialLength;
+      const totalHeight = (initialLength * Math.sqrt(3)) / 2;
 
-      translate(0, height);
-      rotate(90);
+      cnv.translate(initialLength / 2, height - (height - totalHeight) / 2);
+      cnv.rotate((PI / 180) * 90);
     },
     after: () => {
       len = len / 2;
@@ -511,7 +533,7 @@ const ruleSet = {
     draw: drawRules,
   },
   "Sierpinski Arrowhead": {
-    maxIterations: 12,
+    maxIterations: 11,
     axiom: "YF",
     replace: {
       X: "YF+XF+Y",
@@ -520,11 +542,13 @@ const ruleSet = {
     setup: () => {
       commonSetup();
       angle = 60;
-      len = len || Math.min(width, height);
+      const initialLength = Math.min(width, height);
+      len = len || initialLength;
+      const totalHeight = (initialLength * Math.sqrt(3)) / 2;
 
-      translate(0, height);
-      rotate(30);
-      if (config.iterations % 2 === 0) rotate(60);
+      cnv.translate(initialLength / 2, height - (height - totalHeight) / 2);
+      cnv.rotate((PI / 180) * 30);
+      if (config.iterations % 2 === 0) cnv.rotate((PI / 180) * 60);
     },
     after: () => {
       len = len / 2;

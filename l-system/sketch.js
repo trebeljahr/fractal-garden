@@ -10,6 +10,22 @@ class Config {
     this.fractal = ruleSet[fromUrl] ? fromUrl : ruleNames[0];
     this.maxIterations = 10;
     this.iterations = 6;
+    this.fractalColor = "#23ff00";
+    this.backgroundColor = "#252424";
+
+    this.name = "img_name";
+    this.save = () => {
+      let a3Paper = {
+        width: 9920,
+        height: 7016,
+      };
+      const oldCanvas = cnv;
+      const graphics = createGraphics(a3Paper.width, a3Paper.height);
+      cnv = graphics;
+      resetAndDraw();
+      saveCanvas(cnv, this.name, "jpg");
+      cnv = oldCanvas;
+    };
   }
 }
 
@@ -30,9 +46,13 @@ let currentIteration = 1;
 
 let ruleNames;
 let iterationController;
+let cnv;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  cnv = createGraphics(windowWidth, windowHeight);
+  cnv.angleMode(DEGREES);
+
   ruleNames = Object.keys(ruleSet).sort();
   config = new Config();
 
@@ -54,12 +74,19 @@ function setup() {
     generateFractal();
   });
 
+  o.addColor(config, "fractalColor").onFinishChange(resetAndDraw);
+  o.addColor(config, "backgroundColor").onFinishChange(resetAndDraw);
+  const saving = gui.addFolder("Save File");
+  saving.add(config, "name");
+  saving.add(config, "save");
+
   o.open();
 }
 
 function resetAndDraw() {
   reset();
   generateFractal();
+  image(cnv, 0, 0);
 }
 
 function windowResized() {
@@ -68,8 +95,8 @@ function windowResized() {
 }
 
 function reset() {
-  resetMatrix();
-  background(50);
+  cnv.resetMatrix();
+  cnv.background(50);
   rules = ruleSet[config.fractal];
   window.history.replaceState(
     null,
