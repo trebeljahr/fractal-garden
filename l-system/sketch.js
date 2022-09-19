@@ -8,12 +8,12 @@ class Config {
           .join(" ")
       : "";
     this.fractal = ruleSet[fromUrl] ? fromUrl : ruleNames[0];
-    this.maxIterations = 10;
-    this.iterations = 6;
-    this.fractalColor = "#23ff00";
+    this.maxIterations = ruleSet[fromUrl].maxIterations;
+    this.iterations = ruleSet[fromUrl].maxIterations - 1;
+    this.fractalColor = ruleSet[fromUrl].color || "#23ff00";
     this.backgroundColor = "#252424";
 
-    this.name = "img_name";
+    this.name = this.fractal;
     this.save = () => {
       drawToCanvas = false;
       let a3Paper = {
@@ -74,7 +74,10 @@ function setup() {
     reset();
     iterationController.max(rules.maxIterations);
     config.iterations = rules.maxIterations - 1;
-    iterationController.updateDisplay();
+    config.fractalColor = rules.color || "#23ff00";
+    config.backgroundColor = "#252424";
+
+    o.updateDisplay();
     generateFractal();
   });
 

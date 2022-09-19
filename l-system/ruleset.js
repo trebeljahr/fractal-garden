@@ -35,6 +35,7 @@ const drawRules = {
 
 const ruleSet = {
   "Lévy Curve": {
+    color: "#54bffc",
     maxIterations: 18,
     axiom: "F",
     draw: drawRules,
@@ -384,6 +385,7 @@ const ruleSet = {
     },
   },
   Board: {
+    color: "#403acc",
     maxIterations: 7,
     axiom: "F+F+F+F",
     draw: drawRules,
@@ -557,7 +559,8 @@ const ruleSet = {
     draw: drawRules,
   },
   "Sierpinski Triangle": {
-    maxIterations: 10,
+    color: "#fc366b",
+    maxIterations: 11,
     axiom: "F-G-G",
     replace: {
       F: "F-G+F+G-F",

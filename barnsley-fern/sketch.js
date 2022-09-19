@@ -1,7 +1,7 @@
 class Configuration {
   constructor() {
     this.detail = 60;
-    this.color = "#23ff00";
+    this.color = "#96f78e";
     this.background = "#252424";
     this.useBarnsley = true;
     this.name = "img_name";
