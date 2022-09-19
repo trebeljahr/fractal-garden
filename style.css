@@ -4,28 +4,45 @@
   --yellow-white: #f4f1d0;
 }
 
+* {
+  box-sizing: inherit;
+}
+
 body,
 html {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
   width: 100%;
   background-color: var(--dark-grey);
 }
 
-.home-container {
+main {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 10vh;
+}
+
+.grid {
+  display: grid;
   width: 90vw;
-  margin: 0px auto;
+  grid-template-columns: repeat(auto-fill, calc(50% - 10px));
+  grid-gap: 20px;
+}
+
+.grid-item {
+  display: block;
 }
 
 .card {
-  margin: 20px;
   transition: all 0.2s;
   transition-property: border transform;
 
-  width: 45%;
+  height: 100%;
+
   position: relative;
+  border: 1px solid var(--dark-grey);
 }
 
 .card:hover {
