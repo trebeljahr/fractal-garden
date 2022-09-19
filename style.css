@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@300&family=Montserrat:wght@500&display=swap");
+
 :root {
   --medium-grey: #16171d;
   --dark-grey: #101014;
@@ -6,29 +8,54 @@
 
 * {
   box-sizing: inherit;
+  margin: 0;
+  padding: 0;
 }
 
 body,
 html {
+  font-size: 10px;
+  font-family: "Merriweather", serif;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   width: 100%;
   background-color: var(--dark-grey);
+  color: var(--yellow-white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Montserrat", sans-serif;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-top: 2rem;
+  letter-spacing: 0.3rem;
+  font-weight: 200;
+  border-bottom: 1px solid var(--yellow-white);
+}
+
+h2 {
+  font-size: 2rem;
+  letter-spacing: 0.1rem;
 }
 
 main {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100%;
   margin-bottom: 10vh;
 }
 
 .grid {
-  display: grid;
-  width: 90vw;
-  grid-template-columns: repeat(auto-fill, calc(50% - 10px));
-  grid-gap: 20px;
+  margin-top: 5vh;
 }
 
 .grid-item {
@@ -37,12 +64,13 @@ main {
 
 .card {
   transition: all 0.2s;
-  transition-property: border transform;
+  transition-property: border, transform;
 
   height: 100%;
 
   position: relative;
   border: 1px solid var(--dark-grey);
+  margin-bottom: 5vh;
 }
 
 .card:hover {
@@ -60,22 +88,67 @@ main {
 
 .card-content {
   background-color: var(--medium-grey);
-  padding: 20px;
+  padding-top: 30px;
+  padding-bottom: 20px;
   text-decoration: none;
 }
 
-.card-content > * {
-  margin: 0;
-  padding: 0;
+.card-content {
   color: var(--yellow-white);
   text-decoration: none !important;
   border-bottom: none;
+  text-align: center;
 }
 
 .square-image {
   display: block;
   width: 100%;
-  height: 40vw;
+  height: 90vw;
   object-fit: cover;
   object-position: center;
+}
+
+@media (min-width: 800px) {
+  html {
+    font-size: 12px;
+  }
+  h1 {
+    font-size: 5rem;
+    margin: 5rem 0;
+    margin-top: 10rem;
+  }
+
+  h2 {
+    letter-spacing: 0.1rem;
+  }
+  .card-content {
+    padding: 40px;
+  }
+  .card {
+    margin: 0;
+  }
+
+  .square-image {
+    width: 100%;
+    height: 40vw;
+  }
+
+  .grid {
+    display: grid;
+    width: 90vw;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 60px;
+  }
+}
+
+@media (min-width: 1250px) {
+  .square-image {
+    width: 100%;
+    height: 25vw;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 60px;
+  }
 }
