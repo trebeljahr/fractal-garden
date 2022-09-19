@@ -21,8 +21,16 @@ html {
 
 .card {
   margin: 20px;
+  transition: all 0.2s;
+  transition-property: border transform;
+
   width: 45%;
   position: relative;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  border: 1px solid var(--yellow-white);
 }
 
 .card-link {
