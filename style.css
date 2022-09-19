@@ -73,11 +73,6 @@ main {
   margin-bottom: 5vh;
 }
 
-.card:hover {
-  transform: scale(1.02);
-  border: 1px solid var(--yellow-white);
-}
-
 .card-link {
   position: absolute;
   top: 0;
@@ -112,6 +107,12 @@ main {
   html {
     font-size: 12px;
   }
+
+  .card:hover {
+    transform: scale(1.02);
+    border: 1px solid var(--yellow-white);
+  }
+
   h1 {
     font-size: 5rem;
     margin: 5rem 0;
