@@ -1,6 +1,6 @@
 let mandelBrot;
 function preload() {
-  mandelBrot = loadShader("mandel.vert", "continuous.frag");
+  mandelBrot = loadShader("mandel.vert", "mandel.frag");
 }
 
 const aspectRatio = 2 / 1;
