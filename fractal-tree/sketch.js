@@ -3,6 +3,7 @@ class Configuration {
     this.angle = 43;
     this.maxIterations = 8;
     this.branches = 3;
+    this.color = "#252424";
     this.rootLength = window.innerHeight / 2.5;
     this.lengthDecay = 0.6;
     this.widthDecay = 0.8;
@@ -15,9 +16,10 @@ class Configuration {
 let config;
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
-  background(51);
   angleMode(DEGREES);
   config = new Configuration();
+  background(config.color);
+
   drawTree();
   const gui = new dat.GUI();
   const o = gui.addFolder("Options");
@@ -48,7 +50,7 @@ function setup() {
 }
 
 function drawTree() {
-  background(51);
+  background(config.color);
   resetMatrix();
   translate(width / 2, height);
   branch(config.rootLength, config.rootWidth, 0);

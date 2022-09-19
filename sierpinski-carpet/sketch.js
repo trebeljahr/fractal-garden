@@ -3,7 +3,7 @@ class Config {
     this.maxIterations = 5;
     this.color = "#ffe100";
     this.fillColor = "#000000";
-    this.background = "#444444";
+    this.background = "#252424";
     this.name = "img_name";
     this.save = () => saveCanvas(canvas, this.name, "jpg");
   }
