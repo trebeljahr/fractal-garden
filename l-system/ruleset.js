@@ -60,7 +60,7 @@ const ruleSet = {
       len /= 1.417;
     },
   },
-  "Fern 7": {
+  "Fern 4": {
     color: "#ffe10b",
     maxIterations: 10,
     axiom: "X",
@@ -81,7 +81,7 @@ const ruleSet = {
       len /= 2;
     },
   },
-  "Fern 5": {
+  "Fern 3": {
     color: "#91fc8e",
     maxIterations: 6,
     axiom: "F",
@@ -101,7 +101,7 @@ const ruleSet = {
       len /= 3;
     },
   },
-  "Fern 3": {
+  "Fern 2": {
     color: "#3cf7d2",
     maxIterations: 10,
     axiom: "Y",
