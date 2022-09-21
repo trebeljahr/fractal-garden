@@ -1,9 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@300&family=Montserrat:wght@500&display=swap");
 
 :root {
-  --medium-grey: #16171d;
-  --dark-grey: #101014;
-  --yellow-white: #f4f1d0;
+  --bright-grey: #9aa1b4;
+  --medium-grey: #15161e;
+  --dark-grey: #091115;
+  --yellow-white: #f5f1d1;
 }
 
 * {
@@ -34,13 +35,13 @@ h5 {
 
 h1 {
   font-size: 3rem;
-  margin-top: 2rem;
+  margin-top: 5rem;
   letter-spacing: 0.3rem;
   font-weight: 200;
   border-bottom: 1px solid var(--yellow-white);
 }
 
-h2 {
+h3 {
   font-size: 2rem;
   letter-spacing: 0.1rem;
 }
@@ -54,6 +55,19 @@ main {
   margin-bottom: 10vh;
 }
 
+footer {
+  width: 100%;
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--bright-grey);
+}
+
+/* footer > p { */
+/* text-transform: uppercase; */
+/* } */
+
 .grid {
   margin-top: 5vh;
 }
@@ -63,9 +77,11 @@ main {
 }
 
 .card {
+  border-radius: 1%;
+  overflow: hidden;
   transition: all 0.2s;
   transition-property: border, transform;
-
+  padding: 0 5vw;
   height: 100%;
 
   position: relative;
@@ -98,12 +114,36 @@ main {
 .square-image {
   display: block;
   width: 100%;
-  height: 90vw;
+  height: 85vw;
   object-fit: cover;
   object-position: center;
 }
 
+#subtitle {
+  display: none;
+}
+
 @media (min-width: 800px) {
+  h1 {
+    font-size: 5rem;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+  }
+
+  #subtitle {
+    display: block;
+  }
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5rem;
+    letter-spacing: 0.3rem;
+    font-weight: 100;
+  }
+
+  h3 {
+    letter-spacing: 0.1rem;
+  }
+
   html {
     font-size: 12px;
   }
@@ -113,19 +153,13 @@ main {
     border: 1px solid var(--yellow-white);
   }
 
-  h1 {
-    font-size: 5rem;
-    margin: 5rem 0;
-    margin-top: 10rem;
-  }
-
-  h2 {
-    letter-spacing: 0.1rem;
-  }
   .card-content {
     padding: 40px;
   }
   .card {
+    padding: 0;
+
+    width: 100%;
     margin: 0;
   }
 
@@ -144,7 +178,6 @@ main {
 
 @media (min-width: 1250px) {
   .square-image {
-    width: 100%;
     height: 25vw;
   }
 
