@@ -30,34 +30,58 @@ customElements.define(
         parent.appendChild(iconElem);
       }
 
-      function createLink(href, parent = document.body) {
-        const linkElem = document.createElement("a");
-        linkElem.href = href;
+      function navigate(to) {
+        const fractalLinks = [
+          "/mandelbrot",
+          "/barnsley-fern",
+          "/sierpinski-carpet",
+          "/l-system/index.html?fractal=l%C3%A9vy-curve",
+          "/l-system/index.html?fractal=fern-1",
+          "/l-system/index.html?fractal=fern-2",
+          "/l-system/index.html?fractal=fern-3",
+          "/l-system/index.html?fractal=fern-4",
+          "/l-system/index.html?fractal=board",
+          "/l-system/index.html?fractal=sierpinski-triangle",
+          "/fractal-tree",
+          "/l-system/index.html?fractal=quadratic-snowflake",
+          "/l-system/index.html?fractal=koch-snowflake",
+          "/l-system/index.html?fractal=hilbert-curve",
+          "/l-system/index.html?fractal=sierpinski-square",
+          "/l-system/index.html?fractal=crystal",
+        ];
 
+        const i = fractalLinks.findIndex((link) => {
+          return window.location.href.includes(link);
+        });
+
+        if (i === -1) {
+          return;
+        }
+        if (to === "/prev") {
+          const newIndex = i - 1 >= 0 ? i - 1 : fractalLinks.length - 1;
+          return window.location.replace(fractalLinks[newIndex]);
+        }
+        if (to === "/next") {
+          const newIndex = i + 1 <= fractalLinks.length - 1 ? i + 1 : 0;
+          return window.location.replace(fractalLinks[newIndex]);
+        }
+        if (to === "/home") {
+          return window.location.replace("/");
+        }
+      }
+
+      function createLinkButtonTo(to, parent) {
+        const linkElem = document.createElement("button");
+        linkElem.style.border = "none";
+        linkElem.style.padding = 0;
         linkElem.style.textDecoration = "none";
+        linkElem.style.backgroundColor = "transparent";
+        linkElem.style.cursor = "pointer";
         linkElem.style.color = "#f5f1d1";
-
+        linkElem.addEventListener("click", () => navigate(to));
         parent.appendChild(linkElem);
         return linkElem;
       }
-
-      const fractalLinks = [
-        "/mandelbrot",
-        "/barnsley-fern",
-        "/sierpinski-carpet",
-        "/l-system/index.html?fractal=lévy-curve",
-        "/l-system/index.html?fractal=fern-1",
-        "/l-system/index.html?fractal=fern-2",
-        "/l-system/index.html?fractal=fern-3",
-        "/l-system/index.html?fractal=fern-4",
-        "/l-system/index.html?fractal=hilbert-kurve",
-        "/l-system/index.html?fractal=koch-snowflake",
-        "/l-system/index.html?fractal=quadratic-snowflake",
-        "/l-system/index.html?fractal=board",
-        "/l-system/index.html?fractal=sierpinski-triangle",
-        "/l-system/index.html?fractal=crystal",
-        "/fractal-tree",
-      ];
 
       console.log(window.location.pathname);
       console.log(window.location);
@@ -70,9 +94,9 @@ customElements.define(
         navElem.style.right = "20px";
         navElem.style.transform = "scale(1.5)";
 
-        createIcon(createLink("/barnsley-fern", navElem), "chevron_left");
-        createIcon(createLink("/", navElem), "home");
-        createIcon(createLink("/mandelbrot", navElem), "chevron_right");
+        createIcon(createLinkButtonTo("/prev", navElem), "chevron_left");
+        createIcon(createLinkButtonTo("/home", navElem), "home");
+        createIcon(createLinkButtonTo("/next", navElem), "chevron_right");
         document.body.appendChild(navElem);
       }
 
