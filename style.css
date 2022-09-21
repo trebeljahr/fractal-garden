@@ -60,13 +60,24 @@ footer {
   padding: 10px 0;
   display: flex;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.5rem;
   color: var(--bright-grey);
 }
 
-/* footer > p { */
-/* text-transform: uppercase; */
-/* } */
+footer a {
+  color: var(--yellow-white);
+  text-decoration: none;
+  border-bottom: 1px solid var(--yellow-white);
+}
+
+footer > * {
+  margin: 0px 5px;
+}
+
+.heart {
+  color: rgb(244, 94, 107);
+  font-size: 2rem;
+}
 
 .grid {
   margin-top: 5vh;
