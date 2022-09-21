@@ -293,7 +293,7 @@ const ruleSet = {
       const totalHeight = (initialLength * Math.sqrt(3)) / 2;
 
       pg.translate(
-        initialLength / 2,
+        window.width / 2 - initialLength / 2,
         pg.height - (pg.height - totalHeight) / 2
       );
       pg.rotate(90);

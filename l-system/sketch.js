@@ -86,8 +86,6 @@ function setup() {
   const saving = gui.addFolder("Save File");
   saving.add(config, "name");
   saving.add(config, "save");
-
-  o.open();
 }
 
 function resetAndDraw() {

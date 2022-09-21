@@ -46,7 +46,7 @@ h3 {
   letter-spacing: 0.1rem;
 }
 
-main {
+.main-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,7 +55,7 @@ main {
   margin-bottom: 10vh;
 }
 
-footer {
+.footer {
   width: 100%;
   padding: 10px 0;
   display: flex;
@@ -64,13 +64,13 @@ footer {
   color: var(--bright-grey);
 }
 
-footer a {
+.footer a {
   color: var(--yellow-white);
   text-decoration: none;
   border-bottom: 1px solid var(--yellow-white);
 }
 
-footer > * {
+.footer > * {
   margin: 0px 5px;
 }
 

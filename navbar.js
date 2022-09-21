@@ -11,21 +11,48 @@ customElements.define(
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
         <style>
+          main {
+            width: 100vw;
+            height: 100vh;
+          }
           .material-symbols-outlined {
-          font-variation-settings:
-          'FILL' 0,
-          'wght' 400,
-          'GRAD' 0,
-          'opsz' 48
-        }
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 48
+          }
+
+          .link-button {
+            border: none;
+            padding: 2px;
+            text-decoration: none;
+            background-color: transparent;
+            cursor: pointer;
+            color: #f5f1d1;
+            box-sizing: border-box;
+            border: 1px solid transparent;
+          }
+
+          .link-button:hover {
+            border: 1px solid #f5f1d1;
+          }
+
+          .navigation-element {
+            display: flex; 
+            justify-content: flex-end;
+            position: fixed;
+            z-index: 10;
+            top: 0px;
+            left: 0px;
+            transform: scale(1.5);
+          }
         </style>
       `;
 
       function createIcon(parent, icon) {
         const iconElem = document.createElement("span");
         iconElem.classList.add("material-symbols-outlined");
-        iconElem.classList.add("homeLink");
-
         iconElem.innerText = icon;
         parent.appendChild(iconElem);
       }
@@ -71,16 +98,11 @@ customElements.define(
       }
 
       function createLinkButtonTo(to, parent) {
-        const linkElem = document.createElement("button");
-        linkElem.style.border = "none";
-        linkElem.style.padding = 0;
-        linkElem.style.textDecoration = "none";
-        linkElem.style.backgroundColor = "transparent";
-        linkElem.style.cursor = "pointer";
-        linkElem.style.color = "#f5f1d1";
-        linkElem.addEventListener("click", () => navigate(to));
-        parent.appendChild(linkElem);
-        return linkElem;
+        const btnElem = document.createElement("button");
+        btnElem.classList.add("link-button");
+        btnElem.addEventListener("click", () => navigate(to));
+        parent.appendChild(btnElem);
+        return btnElem;
       }
 
       console.log(window.location.pathname);
@@ -88,11 +110,7 @@ customElements.define(
 
       function createNavigation() {
         const navElem = document.createElement("nav");
-        navElem.style.position = "absolute";
-
-        navElem.style.bottom = "20px";
-        navElem.style.right = "20px";
-        navElem.style.transform = "scale(1.5)";
+        navElem.classList.add("navigation-element");
 
         createIcon(createLinkButtonTo("/prev", navElem), "chevron_left");
         createIcon(createLinkButtonTo("/home", navElem), "home");
