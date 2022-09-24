@@ -1,9 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@300&family=Montserrat:wght@500&display=swap");
+
+:root {
+  --bright-grey: #9aa1b4;
+  --medium-grey: #15161e;
+  --dark-grey: #091115;
+  --yellow-white: #f5f1d1;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-size: 10px;
+  font-family: "Merriweather", serif;
+  box-sizing: border-box;
+
+  width: 100%;
+  background-color: var(--dark-grey);
+  color: var(--yellow-white);
 }
 
 a {
@@ -13,6 +27,52 @@ a {
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Montserrat", sans-serif;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-top: 5rem;
+  letter-spacing: 0.3rem;
+  font-weight: 200;
+  border-bottom: 1px solid var(--yellow-white);
+}
+
+h3 {
+  font-size: 2rem;
+  letter-spacing: 0.1rem;
+}
+
+@media (min-width: 800px) {
+  h1 {
+    font-size: 5rem;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5rem;
+    letter-spacing: 0.3rem;
+    font-weight: 100;
+  }
+
+  h3 {
+    letter-spacing: 0.1rem;
+  }
+
+  html {
+    font-size: 12px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

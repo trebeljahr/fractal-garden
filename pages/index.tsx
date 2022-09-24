@@ -1,7 +1,26 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import type { NextComponentType, NextPage } from "next";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+
+type FractalLinkProps = {
+  href: string;
+  imageSrc: string;
+  title: string;
+};
+
+const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
+  return (
+    <div className={styles.gridItem}>
+      <article className={styles.card}>
+        <a href={href} className={styles.cardLink}></a>
+        <img src={imageSrc} className={styles.squareImage} alt={title} />
+        <div className={styles.cardContent}>
+          <h3>{title}</h3>
+        </div>
+      </article>
+    </div>
+  );
+};
 
 const Home: NextPage = () => {
   return (
@@ -12,61 +31,160 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
+      <main className={styles.mainContent}>
+        <h1>Fractal Garden</h1>
+        <h2 id={styles.subtitle}>An Exhibition Of Mathematical Beauty</h2>
         <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+          <FractalLink
+            href="/mandelbrot"
+            title="Mandelbrot Set"
+            imageSrc="/assets/fractal-images/mandelbrot.png"
+          />
+          <FractalLink
+            href="/barnsley-fern"
+            title="Barnsley Fern"
+            imageSrc="/assets/fractal-images/barnsley-fern.png"
+          />
+          <FractalLink
+            href="/sierpinski-carpet"
+            title="Sierpinski Carpet"
+            imageSrc="/assets/fractal-images/sierpinski-carpet.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=lévy-curve"
+            title="Lévy Curve"
+            imageSrc="/assets/fractal-images/l-system-levy.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=fern-1"
+            title="L-System Fern 1"
+            imageSrc="/assets/fractal-images/l-system-fern-1.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=fern-2"
+            title="L-System Fern 2"
+            imageSrc="/assets/fractal-images/l-system-fern-2.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=fern-3"
+            title="L-System Fern 3"
+            imageSrc="/assets/fractal-images/l-system-fern-3.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=fern-4"
+            title="L-System Fern 4"
+            imageSrc="/assets/fractal-images/l-system-fern-4.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=board"
+            title="Board"
+            imageSrc="/assets/fractal-images/l-system-board.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=sierpinski-triangle"
+            title="Sierpinski Triangle"
+            imageSrc="/assets/fractal-images/l-system-sierpinski-triangle.png"
+          />
+          <FractalLink
+            href="/fractal-tree"
+            title="Fractal Tree"
+            imageSrc="/assets/fractal-images/fractal-tree.png"
+          />
+          <FractalLink
+            href="/l-system/index.html?fractal=quadratic-snowflake"
+            title="Quadratic Snowflake"
+            imageSrc="/assets/fractal-images/l-system-quadratic-snowflake.png"
+          />
+          {/*
+          
+          <div className="grid-item">
+            <article className="card">
+              <a
+                className="card-link"
+                href="/l-system/index.html?fractal=quadratic-snowflake"
+              ></a>
+              <img
+                src="/assets/fractal-images/l-system-quadratic-snowflake.png"
+                className="square-image"
+                alt="l-system-quadratic-snowflake"
+              />
+              <div className="card-content">
+                <h3>Quadratic Snowflake</h3>
+              </div>
+            </article>
+          </div>
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+          <div className="grid-item">
+            <article className="card">
+              <a
+                className="card-link"
+                href="/l-system/index.html?fractal=koch-snowflake"
+              ></a>
+              <img
+                src="/assets/fractal-images/l-system-koch-snowflake.png"
+                className="square-image"
+                alt="l-system-koch-snowflake"
+              />
+              <div className="card-content">
+                <h3>Koch Snowflake</h3>
+              </div>
+            </article>
+          </div>
 
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+          <div className="grid-item">
+            <article className="card">
+              <a
+                className="card-link"
+                href="/l-system/index.html?fractal=hilbert-curve"
+              ></a>
+              <img
+                src="/assets/fractal-images/l-system-hilbert-curve.png"
+                className="square-image"
+                alt="l-system-hilbert-curve"
+              />
+              <div className="card-content">
+                <h3>Hilbert Curve</h3>
+              </div>
+            </article>
+          </div>
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+          <div className="grid-item">
+            <article className="card">
+              <a
+                className="card-link"
+                href="/l-system/index.html?fractal=sierpinski-square"
+              ></a>
+              <img
+                src="/assets/fractal-images/l-system-sierpinski-square.png"
+                className="square-image"
+                alt="l-system-sierpinski-square"
+              />
+              <div className="card-content">
+                <h3>Sierpinski Square</h3>
+              </div>
+            </article>
+          </div>
+
+          <div className="grid-item">
+            <article className="card">
+              <a
+                className="card-link"
+                href="/l-system/index.html?fractal=crystal"
+              ></a>
+              <img
+                src="/assets/fractal-images/l-system-crystal.png"
+                className="square-image"
+                alt="l-system-crystal"
+              />
+              <div className="card-content">
+                <h3>Crystal</h3>
+              </div>
+            </article>
+  </div> */}
         </div>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
