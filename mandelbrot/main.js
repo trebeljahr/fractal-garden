@@ -27,7 +27,7 @@ document.body.addEventListener("mousedown", (event) => {
 });
 
 document.body.addEventListener("wheel", (event) => {
-  console.log(event);
+  // console.log(event);
   const zoom_factor = event.deltaY > 0 ? 1.01 : 0.99;
   zoom_size = constrain(zoom_size * zoom_factor, 0.00005, 4);
   drawMandelBrot();
@@ -40,8 +40,8 @@ document.body.addEventListener("mousemove", (event) => {
   const y_part = event.movementY / height;
   // console.log(x_part, y_part);
 
-  zoom_center[0] -= x_part * 6 * zoom_size;
-  zoom_center[1] += y_part * 6 * zoom_size;
+  zoom_center[0] -= x_part * 2.3 * zoom_size;
+  zoom_center[1] += y_part * 2.3 * zoom_size;
 
   // console.log(zoom_center);
 
