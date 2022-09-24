@@ -240,7 +240,7 @@ const ruleSet = {
     },
     setup: () => {
       commonSetup();
-      const initialLength = width * 0.7;
+      const initialLength = min(windowWidth, windowHeight) * 0.8;
       pg.translate(
         pg.width / 2 - initialLength / 3,
         pg.height / 2 + initialLength / 2

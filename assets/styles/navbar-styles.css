@@ -1,0 +1,44 @@
+body,
+html {
+  padding: 0px;
+  margin: 0px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.link-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  padding: 2px;
+  text-decoration: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #9aa1b4;
+  box-sizing: border-box;
+}
+
+.link-button:hover {
+  color: #f5f1d1;
+}
+
+.navigation-element {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  z-index: 10;
+  bottom: 20px;
+  right: 20px;
+}
+
+.navigation-element [class^="icon-"] {
+  font-size: 4rem;
+  padding: 10px;
+}
+
+@media screen and (min-width: 600px) {
+  .navigation-element [class^="icon-"] {
+    font-size: 2rem;
+  }
+}

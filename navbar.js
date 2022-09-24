@@ -6,54 +6,13 @@ customElements.define(
 
       document.getElementsByTagName("html")[0].style.overflowX = "hidden";
       document.head.innerHTML += `
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        />
-        <style>
-          main {
-            width: 100vw;
-            height: 100vh;
-          }
-          .material-symbols-outlined {
-            font-variation-settings:
-            'FILL' 0,
-            'wght' 400,
-            'GRAD' 0,
-            'opsz' 48
-          }
-
-          .link-button {
-            border: none;
-            padding: 2px;
-            text-decoration: none;
-            background-color: transparent;
-            cursor: pointer;
-            color: #f5f1d1;
-            box-sizing: border-box;
-            border: 1px solid transparent;
-          }
-
-          .link-button:hover {
-            border: 1px solid #f5f1d1;
-          }
-
-          .navigation-element {
-            display: flex; 
-            justify-content: flex-end;
-            position: fixed;
-            z-index: 10;
-            top: 0px;
-            left: 0px;
-            transform: scale(1.5);
-          }
-        </style>
+        <link rel="stylesheet" href="/assets/styles/icon-styles.css">
+        <link rel="stylesheet" href="/assets/styles/navbar-styles.css">
       `;
 
       function createIcon(parent, icon) {
         const iconElem = document.createElement("span");
-        iconElem.classList.add("material-symbols-outlined");
-        iconElem.innerText = icon;
+        iconElem.classList.add("icon-" + icon);
         parent.appendChild(iconElem);
       }
 
@@ -112,9 +71,9 @@ customElements.define(
         const navElem = document.createElement("nav");
         navElem.classList.add("navigation-element");
 
-        createIcon(createLinkButtonTo("/prev", navElem), "chevron_left");
-        createIcon(createLinkButtonTo("/home", navElem), "home");
-        createIcon(createLinkButtonTo("/next", navElem), "chevron_right");
+        createIcon(createLinkButtonTo("/prev", navElem), "arrow-left");
+        createIcon(createLinkButtonTo("/home", navElem), "home3");
+        createIcon(createLinkButtonTo("/next", navElem), "arrow-right");
         document.body.appendChild(navElem);
       }
 
