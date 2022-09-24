@@ -76,6 +76,7 @@
 
 .squareImage {
   display: block;
+  position: relative;
   width: 100%;
   height: 85vw;
   object-fit: cover;

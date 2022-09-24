@@ -1,5 +1,7 @@
 import type { NextComponentType, NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
 import styles from "../styles/Home.module.css";
 
 type FractalLinkProps = {
@@ -12,8 +14,13 @@ const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
-        <a href={href} className={styles.cardLink}></a>
-        <img src={imageSrc} className={styles.squareImage} alt={title} />
+        <Link as={href} href={href}>
+          <a className={styles.cardLink}></a>
+        </Link>
+        <div className={styles.squareImage}>
+          <Image src={imageSrc} alt={title} layout="fill" />
+        </div>
+
         <div className={styles.cardContent}>
           <h3>{title}</h3>
         </div>
