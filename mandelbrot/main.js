@@ -15,23 +15,44 @@ const target_zoom_center = [0.0, 0.0];
 
 let zoom_size = 1;
 let stop_zooming = true;
-let zoom_factor = 1.0;
 let max_iterations = 200;
 
-function mouseDragged(event) {
-  const x_part = event.offsetX / width;
-  const y_part = event.offsetY / height;
-  target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
-  target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - y_part * zoom_size;
+document.body.addEventListener("mousedown", (event) => {
+  // console.log(x_part, y_part);
+  // target_zoom_center[0] = -x_part;
+  // target_zoom_center[1] = -y_part;
 
-  zoom_factor = keyIsDown(CONTROL) ? 1.01 : 0.99;
+  // zoom_factor = keyIsDown(CONTROL) ? 1.01 : 0.99;
   stop_zooming = false;
-  return false;
-}
+});
 
-function mouseReleased() {
+document.body.addEventListener("wheel", (event) => {
+  console.log(event);
+  const zoom_factor = event.deltaY > 0 ? 1.01 : 0.99;
+  zoom_size = constrain(zoom_size * zoom_factor, 0.00005, 4);
+  drawMandelBrot();
+});
+
+document.body.addEventListener("mousemove", (event) => {
+  if (stop_zooming) return;
+
+  const x_part = event.movementX / width;
+  const y_part = event.movementY / height;
+  // console.log(x_part, y_part);
+
+  zoom_center[0] -= x_part * 6 * zoom_size;
+  zoom_center[1] += y_part * 6 * zoom_size;
+
+  // console.log(zoom_center);
+
+  if (zoom_size < 0.00005) return;
+
+  drawMandelBrot();
+});
+
+document.body.addEventListener("mouseup", () => {
   stop_zooming = true;
-}
+});
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -41,20 +62,17 @@ function setup() {
   }
 }
 
-function drawMandelBrot() {
-  zoom_size = constrain(zoom_size * zoom_factor, 0.00005, 4);
-  zoom_center[0] += 0.1 * (target_zoom_center[0] - zoom_center[0]);
-  zoom_center[1] += 0.1 * (target_zoom_center[1] - zoom_center[1]);
+function getIResolution() {
+  return [width * pixelDensity(), height * pixelDensity()];
+}
 
-  console.log(zoom_center);
-  console.log(zoom_size);
+function drawMandelBrot() {
+  // console.log(zoom_center);
+  // console.log(zoom_size);
 
   mandelBrot.setUniform("u_zoomCenter", zoom_center);
   mandelBrot.setUniform("u_zoomSize", zoom_size);
-  mandelBrot.setUniform("iResolution", [
-    width * pixelDensity(),
-    height * pixelDensity(),
-  ]);
+  mandelBrot.setUniform("iResolution", getIResolution());
 
   shader(mandelBrot);
   rect(0, 0, width, height);
@@ -62,7 +80,4 @@ function drawMandelBrot() {
 
 function draw() {
   if (stop_zooming) return;
-  if (zoom_size < 0.00005) return;
-
-  drawMandelBrot();
 }
