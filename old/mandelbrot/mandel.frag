@@ -33,7 +33,6 @@ void main() {
     uv *= 10.0 / min(3.0 * iResolution.x, 4.0 * iResolution.y);
     
     vec2 z = vec2(0.0);
-    // vec2 c = uv;
     vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
     int iteration;
     
@@ -49,8 +48,9 @@ void main() {
     float distance2 = dot(z, z);
     if (distance2 > escapeRadius2) {
         float nu = log2(log(distance2) / 2.0);
-        float fractionalIteration = clamp((float(iteration + 1) - nu) * invMaxIterations, 0.0, 1.0);
-        color = paletteColor(fractionalIteration);
+        float weighted = (float(iteration + 1) - nu) * invMaxIterations
+        float fraction = clamp(weighted, 0.0, 1.0);
+        color = paletteColor(fraction);
     }
     
     gl_FragColor = vec4(color, 1.0);

@@ -114,6 +114,8 @@ type Props = {
   content: string;
 };
 
+import glsl from "highlight.js/lib/languages/glsl";
+
 export const RenderMarkdown = ({ content }: Props) => {
   // useEffect(() => {
   //   if (typeof window !== "undefined") {
@@ -124,7 +126,11 @@ export const RenderMarkdown = ({ content }: Props) => {
   console.log(content);
   return (
     <ReactMarkdown
-      rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
+      rehypePlugins={[
+        rehypeRaw,
+        rehypeKatex,
+        [rehypeHighlight, { languages: { glsl } }],
+      ]}
       remarkPlugins={[remarkMath]}
       components={MarkdownRenderers}
     >

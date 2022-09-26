@@ -23,16 +23,29 @@
   display: none;
 }
 
+.openedDrawer h1 {
+  width: fit-content;
+  text-align: center;
+  border-bottom: 1px solid var(--yellow-white);
+  margin-bottom: 2rem;
+}
+
 .openedDrawer {
+  position: relative;
+  padding: 4vw;
   font-size: 1.5rem;
-  transition: all 1s;
-  position: absolute;
-  z-index: 20;
+  /* transition: all 1s; */
+  /* position: absolute; */
+  /* z-index: 20; */
   background-color: var(--medium-grey);
   color: var(--yellow-white);
-  top: 0;
-  left: 0;
-  width: 50vw;
-  height: 100vh;
+  /* top: 0;
+  left: 0; */
+  width: 100%;
   overflow: auto;
+}
+
+.drawerContent {
+  width: 80%;
+  margin: 0 auto;
 }

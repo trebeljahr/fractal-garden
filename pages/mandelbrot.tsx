@@ -5,8 +5,7 @@ import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { P5Instance } from "react-p5-wrapper";
 import { SideDrawer } from "../components/SideDrawer";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { getDescription } from "../utils/readFiles";
 
 const ReactP5Wrapper = dynamic(
   () => import("react-p5-wrapper").then((mod) => mod.ReactP5Wrapper),
@@ -15,8 +14,38 @@ const ReactP5Wrapper = dynamic(
   }
 );
 
-const listeners: Listener[] = [];
+type Props = {
+  description: string;
+};
+
+const Mandelbrot = ({ description }: Props) => {
+  useEffect(() => {
+    return () => removeResizeListeners();
+  }, []);
+
+  return (
+    <main className={styles.fullScreen}>
+      <ReactP5Wrapper sketch={sketch} />
+      <SideDrawer description={description} />
+      <NavElement />
+    </main>
+  );
+};
+
+export default Mandelbrot;
+
+export async function getStaticProps() {
+  const description = await getDescription("mandelbrot.md");
+  return {
+    props: {
+      description,
+    },
+  };
+}
+
+let listeners: Listener[] = [];
 type Listener = (event?: UIEvent) => void | boolean;
+
 function listenForResize(fn: Listener) {
   console.log("Adding listener!");
   listeners.push(fn);
@@ -26,9 +55,10 @@ function listenForResize(fn: Listener) {
 function removeResizeListeners() {
   console.log("Removing listeners!");
   listeners.forEach((fn) => window.removeEventListener("resize", fn));
+  listeners = [];
 }
 
-const sketch = (p5: P5Instance) => {
+function sketch(p5: P5Instance) {
   const aspectRatio = 2 / 1;
   const zoom_center = [0.5, 0.5];
   const target_zoom_center = [0.0, 0.0];
@@ -76,41 +106,5 @@ const sketch = (p5: P5Instance) => {
         console.log(err);
       }
     });
-  };
-};
-
-type Props = {
-  description: string;
-};
-
-const Mandelbrot = ({ description }: Props) => {
-  useEffect(() => {
-    return () => removeResizeListeners();
-  }, []);
-
-  return (
-    <main className={styles.fullScreen}>
-      <ReactP5Wrapper sketch={sketch} />
-      <SideDrawer description={description} />
-      <NavElement />
-    </main>
-  );
-};
-
-export default Mandelbrot;
-
-function getDescription(fileName: string) {
-  return readFile(
-    join(process.cwd(), "fractal-descriptions", fileName),
-    "utf-8"
-  );
-}
-
-export async function getStaticProps() {
-  const description = await getDescription("mandelbrot.md");
-  return {
-    props: {
-      description,
-    },
   };
 }

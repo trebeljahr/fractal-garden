@@ -56,6 +56,25 @@ a {
   padding: 0;
 }
 
+body {
+  --scrollbar-foreground: var(--yellow-white);
+  --scrollbar-background: var(--dark-grey);
+  /* Foreground, Background */
+  scrollbar-color: var(--scrollbar-foreground) var(--scrollbar-background);
+}
+body::-webkit-scrollbar {
+  width: 10px; /* Mostly for vertical scrollbars */
+  height: 10px; /* Mostly for horizontal scrollbars */
+}
+body::-webkit-scrollbar-thumb {
+  /* Foreground */
+  background: var(--scrollbar-foreground);
+}
+body::-webkit-scrollbar-track {
+  /* Background */
+  background: var(--scrollbar-background);
+}
+
 h1,
 h2,
 h3,
@@ -108,6 +127,10 @@ h5 {
 }
 .icon-linkedin:before {
   content: "\eac9";
+}
+
+.math.math-display {
+  width: fit-content;
 }
 
 /*!
