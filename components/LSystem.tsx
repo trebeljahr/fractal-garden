@@ -159,7 +159,7 @@ const rulesets: Record<string, Ruleset> = {
       F: "F+F-F-F+F",
     },
     setup: (p5: P5) => {
-      let initialLength = p5.width / 4;
+      let initialLength = Math.min(p5.width, p5.height) / 2.5;
       p5.translate(p5.width / 2 - initialLength, p5.height / 2 + initialLength);
 
       angle = 90;
