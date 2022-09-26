@@ -57,37 +57,37 @@ const Home: NextPage = () => {
             imageSrc="/assets/fractal-images/sierpinski-carpet.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=lévy-curve"
+            href="/l-system/levy-curve"
             title="Lévy Curve"
             imageSrc="/assets/fractal-images/l-system-levy.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=fern-1"
+            href="/l-system/fern-1"
             title="L-System Fern 1"
             imageSrc="/assets/fractal-images/l-system-fern-1.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=fern-2"
+            href="/l-system/fern-2"
             title="L-System Fern 2"
             imageSrc="/assets/fractal-images/l-system-fern-2.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=fern-3"
+            href="/l-system/fern-3"
             title="L-System Fern 3"
             imageSrc="/assets/fractal-images/l-system-fern-3.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=fern-4"
+            href="/l-system/fern-4"
             title="L-System Fern 4"
             imageSrc="/assets/fractal-images/l-system-fern-4.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=board"
+            href="/l-system/board"
             title="Board"
             imageSrc="/assets/fractal-images/l-system-board.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=sierpinski-triangle"
+            href="/l-system/sierpinski-triangle"
             title="Sierpinski Triangle"
             imageSrc="/assets/fractal-images/l-system-sierpinski-triangle.png"
           />
@@ -97,96 +97,30 @@ const Home: NextPage = () => {
             imageSrc="/assets/fractal-images/fractal-tree.png"
           />
           <FractalLink
-            href="/l-system/index.html?fractal=quadratic-snowflake"
+            href="/l-system/quadratic-snowflake"
             title="Quadratic Snowflake"
             imageSrc="/assets/fractal-images/l-system-quadratic-snowflake.png"
           />
-          {/*
-          
-          <div className="grid-item">
-            <article className="card">
-              <a
-                className="card-link"
-                href="/l-system/index.html?fractal=quadratic-snowflake"
-              ></a>
-              <img
-                src="/assets/fractal-images/l-system-quadratic-snowflake.png"
-                className="square-image"
-                alt="l-system-quadratic-snowflake"
-              />
-              <div className="card-content">
-                <h3>Quadratic Snowflake</h3>
-              </div>
-            </article>
-          </div>
-
-          <div className="grid-item">
-            <article className="card">
-              <a
-                className="card-link"
-                href="/l-system/index.html?fractal=koch-snowflake"
-              ></a>
-              <img
-                src="/assets/fractal-images/l-system-koch-snowflake.png"
-                className="square-image"
-                alt="l-system-koch-snowflake"
-              />
-              <div className="card-content">
-                <h3>Koch Snowflake</h3>
-              </div>
-            </article>
-          </div>
-
-          <div className="grid-item">
-            <article className="card">
-              <a
-                className="card-link"
-                href="/l-system/index.html?fractal=hilbert-curve"
-              ></a>
-              <img
-                src="/assets/fractal-images/l-system-hilbert-curve.png"
-                className="square-image"
-                alt="l-system-hilbert-curve"
-              />
-              <div className="card-content">
-                <h3>Hilbert Curve</h3>
-              </div>
-            </article>
-          </div>
-
-          <div className="grid-item">
-            <article className="card">
-              <a
-                className="card-link"
-                href="/l-system/index.html?fractal=sierpinski-square"
-              ></a>
-              <img
-                src="/assets/fractal-images/l-system-sierpinski-square.png"
-                className="square-image"
-                alt="l-system-sierpinski-square"
-              />
-              <div className="card-content">
-                <h3>Sierpinski Square</h3>
-              </div>
-            </article>
-          </div>
-
-          <div className="grid-item">
-            <article className="card">
-              <a
-                className="card-link"
-                href="/l-system/index.html?fractal=crystal"
-              ></a>
-              <img
-                src="/assets/fractal-images/l-system-crystal.png"
-                className="square-image"
-                alt="l-system-crystal"
-              />
-              <div className="card-content">
-                <h3>Crystal</h3>
-              </div>
-            </article>
-  </div> */}
+          <FractalLink
+            href="/l-system/koch-snowflake"
+            title="Koch Snowflake"
+            imageSrc="/assets/fractal-images/l-system-koch-snowflake.png"
+          />
+          <FractalLink
+            href="/l-system/hilbert-curve"
+            title="Hilbert Curve"
+            imageSrc="/assets/fractal-images/l-system-hilbert-curve.png"
+          />
+          <FractalLink
+            href="/l-system/sierpinski-curve"
+            title="Sierpinski Curve"
+            imageSrc="/assets/fractal-images/l-system-sierpinski-curve.png"
+          />
+          <FractalLink
+            href="/l-system/crystal"
+            title="Crystal"
+            imageSrc="/assets/fractal-images/l-system-crystal.png"
+          />
         </div>
       </main>
       <footer className={styles.footer}>
