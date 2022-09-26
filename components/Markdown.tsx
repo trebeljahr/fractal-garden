@@ -123,7 +123,6 @@ export const RenderMarkdown = ({ content }: Props) => {
   //   }
   // }, [content]);
 
-  console.log(content);
   return (
     <ReactMarkdown
       rehypePlugins={[

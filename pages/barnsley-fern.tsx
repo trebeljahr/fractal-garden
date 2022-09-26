@@ -140,7 +140,9 @@ const BarnsleyFern = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
-      <Sketch setup={setup} draw={draw} windowResized={windowResized} />
+      <div className={styles.fullScreen}>
+        <Sketch setup={setup} draw={draw} windowResized={windowResized} />
+      </div>
       <SideDrawer description={description} />
       <NavElement />
     </main>

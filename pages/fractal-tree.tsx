@@ -106,14 +106,16 @@ const FractalTree = ({ description }: Props) => {
   };
 
   const windowResized = (p5: P5) => {
-    console.log("Resizing fractal tree!");
     p5.resizeCanvas(window.innerWidth, window.innerHeight);
     drawTree(p5);
   };
 
   return (
     <main className={styles.fullScreen}>
+            <div className={styles.fullScreen}>
+
       <Sketch setup={setup} windowResized={windowResized} />
+      </div>
       <SideDrawer description={description} />
       <NavElement />
     </main>

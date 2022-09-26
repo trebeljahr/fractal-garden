@@ -1,7 +1,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { P5Instance } from "react-p5-wrapper";
-
+import styles from "../styles/Fullscreen.module.css";
 class Config {
   public maxIterations = 6;
   public iterations = this.maxIterations - 1;
@@ -394,7 +394,6 @@ function sketch(p5: P5Instance<Props>) {
   };
 
   p5.setup = () => {
-    console.log("running setup");
     p5.createCanvas(window.innerWidth, window.innerHeight);
   };
 
@@ -418,7 +417,11 @@ type Props = {
 };
 
 const LSystem = ({ fractal }: Props) => {
-  return <ReactP5Wrapper sketch={sketch} fractal={fractal} />;
+  return (
+    <div className={styles.fullScreen}>
+      <ReactP5Wrapper sketch={sketch} fractal={fractal} />
+    </div>
+  );
 };
 
 export default LSystem;

@@ -99,7 +99,9 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
-      <Sketch setup={setup} windowResized={windowResized} />
+      <div className={styles.fullScreen}>
+        <Sketch setup={setup} windowResized={windowResized} />
+      </div>
       <SideDrawer description={description} />
 
       <NavElement />

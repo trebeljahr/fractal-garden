@@ -3,6 +3,7 @@
 :root {
   --bright-grey: #9aa1b4;
   --medium-grey: #15161e;
+  --semi-dark-grey: #252424;
   --dark-grey: #091115;
   --yellow-white: #f5f1d1;
 }
@@ -57,7 +58,7 @@ a {
 }
 
 body {
-  --scrollbar-foreground: var(--yellow-white);
+  --scrollbar-foreground: var(--bright-grey);
   --scrollbar-background: var(--dark-grey);
   /* Foreground, Background */
   scrollbar-color: var(--scrollbar-foreground) var(--scrollbar-background);

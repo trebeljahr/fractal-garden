@@ -25,7 +25,9 @@ const Mandelbrot = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
-      <ReactP5Wrapper sketch={sketch} />
+      <div className={styles.fullScreen}>
+        <ReactP5Wrapper sketch={sketch} />
+      </div>
       <SideDrawer description={description} />
       <NavElement />
     </main>
@@ -47,13 +49,11 @@ let listeners: Listener[] = [];
 type Listener = (event?: UIEvent) => void | boolean;
 
 function listenForResize(fn: Listener) {
-  console.log("Adding listener!");
   listeners.push(fn);
   window.addEventListener("resize", fn);
 }
 
 function removeResizeListeners() {
-  console.log("Removing listeners!");
   listeners.forEach((fn) => window.removeEventListener("resize", fn));
   listeners = [];
 }
@@ -98,7 +98,6 @@ function sketch(p5: P5Instance) {
     }
 
     listenForResize(() => {
-      console.log("trying to draw mandelbrot shader");
       try {
         p5.resizeCanvas(window.innerWidth, window.innerHeight);
         drawMandelBrot();
