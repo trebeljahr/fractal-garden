@@ -3,6 +3,8 @@ import P5 from "p5";
 import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
+import { getDescription } from "../utils/readFiles";
+import { SideDrawer } from "../components/SideDrawer";
 
 class Config {
   public maxIterations = 5;
@@ -62,7 +64,10 @@ function SierpinskiCarpet(
   }
 }
 
-const SierpinskiCarpetComponent = () => {
+type Props = {
+  description: string;
+};
+const SierpinskiCarpetComponent = ({ description }: Props) => {
   const setup = (p5: P5, canvasParentRef: Element) => {
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
       canvasParentRef
@@ -95,6 +100,7 @@ const SierpinskiCarpetComponent = () => {
   return (
     <main className={styles.fullScreen}>
       <Sketch setup={setup} windowResized={windowResized} />
+      <SideDrawer description={description} />
 
       <NavElement />
     </main>
@@ -102,3 +108,12 @@ const SierpinskiCarpetComponent = () => {
 };
 
 export default SierpinskiCarpetComponent;
+
+export async function getStaticProps() {
+  const description = await getDescription("sierpinski-carpet.md");
+  return {
+    props: {
+      description,
+    },
+  };
+}

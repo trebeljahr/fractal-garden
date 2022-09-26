@@ -3,6 +3,8 @@ import P5 from "p5";
 import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
+import { getDescription } from "../utils/readFiles";
+import { SideDrawer } from "../components/SideDrawer";
 
 class Config {
   public angle = 43;
@@ -61,7 +63,11 @@ function branch(p5: P5, len: number, weight: number, iteration: number) {
 
 let config: Config;
 
-const FractalTree = () => {
+type Props = {
+  description: string;
+};
+
+const FractalTree = ({ description }: Props) => {
   const setup = (p5: P5, canvasParentRef: Element) => {
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
       canvasParentRef
@@ -105,15 +111,22 @@ const FractalTree = () => {
     drawTree(p5);
   };
 
-  const draw = (p5: P5) => {};
-
   return (
     <main className={styles.fullScreen}>
-      <Sketch setup={setup} draw={draw} windowResized={windowResized} />
-
+      <Sketch setup={setup} windowResized={windowResized} />
+      <SideDrawer description={description} />
       <NavElement />
     </main>
   );
 };
 
 export default FractalTree;
+
+export async function getStaticProps() {
+  const description = await getDescription("fractal-tree.md");
+  return {
+    props: {
+      description,
+    },
+  };
+}

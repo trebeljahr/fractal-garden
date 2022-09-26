@@ -3,6 +3,8 @@ import P5 from "p5";
 import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
+import { SideDrawer } from "../components/SideDrawer";
+import { getDescription } from "../utils/readFiles";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
@@ -83,7 +85,11 @@ const differentMatrices = [
   [-0.04, 0.2, 0.16, 0.04, 0.083, 0.12, 0.07],
 ];
 
-const BarnsleyFern = () => {
+type Props = {
+  description: string;
+};
+
+const BarnsleyFern = ({ description }: Props) => {
   const setup = (p5: P5, canvasParentRef: Element) => {
     config = new Configuration();
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
@@ -135,9 +141,19 @@ const BarnsleyFern = () => {
   return (
     <main className={styles.fullScreen}>
       <Sketch setup={setup} draw={draw} windowResized={windowResized} />
+      <SideDrawer description={description} />
       <NavElement />
     </main>
   );
 };
 
 export default BarnsleyFern;
+
+export async function getStaticProps() {
+  const description = await getDescription("barnsley-fern.md");
+  return {
+    props: {
+      description,
+    },
+  };
+}
