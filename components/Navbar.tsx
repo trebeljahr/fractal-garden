@@ -1,8 +1,10 @@
 import styles from "../styles/Navbar.module.css";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
-function createLinkFor(to: "next" | "prev" | "home") {
+function useLinks() {
+  const router = useRouter();
   const fractalLinks = [
     "/mandelbrot",
     "/barnsley-fern",
@@ -23,34 +25,26 @@ function createLinkFor(to: "next" | "prev" | "home") {
   ];
 
   const i = fractalLinks.findIndex((link) => {
-    return window.location.href.includes(link);
+    return router.pathname.includes(link);
   });
 
-  if (i === -1) {
-    return "/";
-  }
-  if (to === "prev") {
-    const newIndex = i - 1 >= 0 ? i - 1 : fractalLinks.length - 1;
-    return fractalLinks[newIndex];
-  }
-  if (to === "next") {
-    const newIndex = i + 1 <= fractalLinks.length - 1 ? i + 1 : 0;
-    return fractalLinks[newIndex];
-  }
-  if (to === "home") {
-    return "/";
-  }
-  return "/";
+  if (i === -1) return ["/", "/", "/"];
+
+  const prevIndex = i - 1 >= 0 ? i - 1 : fractalLinks.length - 1;
+  const prev = fractalLinks[prevIndex];
+
+  const nextIndex = i + 1 <= fractalLinks.length - 1 ? i + 1 : 0;
+  const next = fractalLinks[nextIndex];
+
+  return [prev, "/", next];
 }
 
 export const NavElement = () => {
-  const nextFractal = createLinkFor("next");
-  const prevFractal = createLinkFor("prev");
-  const home = createLinkFor("home");
+  const [prev, home, next] = useLinks();
 
   return (
     <nav className={styles.navigationElement}>
-      <Link as={prevFractal} href={prevFractal}>
+      <Link as={prev} href={prev}>
         <a>
           <span className="icon-arrow-left"></span>
         </a>
@@ -60,7 +54,7 @@ export const NavElement = () => {
           <span className="icon-home3"></span>
         </a>
       </Link>
-      <Link as={nextFractal} href={nextFractal}>
+      <Link as={next} href={next}>
         <a>
           <span className="icon-arrow-right"></span>
         </a>

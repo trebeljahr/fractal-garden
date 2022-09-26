@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 
-// Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
 });
@@ -16,4 +15,5 @@ const SierpinskiCarpet = () => {
     </main>
   );
 };
+
 export default SierpinskiCarpet;
