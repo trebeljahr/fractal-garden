@@ -1,7 +1,6 @@
 import "../styles/_globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { SideDrawer } from "../components/SideDrawer";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -25,21 +24,11 @@ function MyApp({ Component, pageProps }: AppProps) {
           href="/assets/favicon/favicon-16x16.png"
         />
         <link rel="manifest" href="/assets/favicon/site.webmanifest" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.15.0/dist/katex.min.css"
+        />
       </Head>
-      <SideDrawer
-        description={`
-This is a side drawer... 
-# Hello world
-
-## This works
-
-> yes?
-
-1. uh oh
-1. superb
-1. wonderful!
-      `}
-      />
       <Component {...pageProps} />
     </>
   );

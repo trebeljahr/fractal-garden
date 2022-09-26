@@ -24,6 +24,7 @@
 }
 
 .openedDrawer {
+  font-size: 1.5rem;
   transition: all 1s;
   position: absolute;
   z-index: 20;

@@ -1,12 +1,15 @@
 import ReactMarkdown from "react-markdown";
-import Prism from "prismjs";
-import "prismjs/plugins/toolbar/prism-toolbar";
-import "prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard";
+// import Prism from "prismjs";
+// import "prismjs/plugins/toolbar/prism-toolbar";
+// import "prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard";
 
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import rehypeRaw from "rehype-raw";
+import rehypeKatex from "rehype-katex";
+import rehypeHighlight from "rehype-highlight";
+import remarkMath from "remark-math";
 
 type HeadingResolverProps = {
   level: number;
@@ -112,15 +115,19 @@ type Props = {
 };
 
 export const RenderMarkdown = ({ content }: Props) => {
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setTimeout(Prism.highlightAll, 1000);
-    }
-  }, [content]);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     setTimeout(Prism.highlightAll, 1000);
+  //   }
+  // }, [content]);
 
   console.log(content);
   return (
-    <ReactMarkdown rehypePlugins={[rehypeRaw]} components={MarkdownRenderers}>
+    <ReactMarkdown
+      rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
+      remarkPlugins={[remarkMath]}
+      components={MarkdownRenderers}
+    >
       {content}
     </ReactMarkdown>
   );

@@ -1,5 +1,6 @@
 import LSystem from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
+import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
 
 const Board = () => {

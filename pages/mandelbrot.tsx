@@ -4,6 +4,9 @@ import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { P5Instance } from "react-p5-wrapper";
+import { SideDrawer } from "../components/SideDrawer";
+import { readFile } from "fs/promises";
+import { join } from "path";
 
 const ReactP5Wrapper = dynamic(
   () => import("react-p5-wrapper").then((mod) => mod.ReactP5Wrapper),
@@ -76,18 +79,38 @@ const sketch = (p5: P5Instance) => {
   };
 };
 
-const Mandelbrot = () => {
+type Props = {
+  description: string;
+};
+
+const Mandelbrot = ({ description }: Props) => {
   useEffect(() => {
     return () => removeResizeListeners();
   }, []);
 
   return (
     <main className={styles.fullScreen}>
-      <ReactP5Wrapper sketch={sketch} />;
-      {/* <Sketch setup={setup} preload={preload} windowResized={windowResized} /> */}
+      <ReactP5Wrapper sketch={sketch} />
+      <SideDrawer description={description} />
       <NavElement />
     </main>
   );
 };
 
 export default Mandelbrot;
+
+function getDescription(fileName: string) {
+  return readFile(
+    join(process.cwd(), "fractal-descriptions", fileName),
+    "utf-8"
+  );
+}
+
+export async function getStaticProps() {
+  const description = await getDescription("mandelbrot.md");
+  return {
+    props: {
+      description,
+    },
+  };
+}
