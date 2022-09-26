@@ -1,21 +1,6 @@
-let mandelBrot;
-function preload() {
-  mandelBrot = loadShader("mandel.vert", "mandel.frag");
-}
+function preload() {}
 
-const aspectRatio = 2 / 1;
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  drawMandelBrot();
-}
-
-const zoom_center = [0.5, 0.5];
-const target_zoom_center = [0.0, 0.0];
-
-let zoom_size = 1;
-let stop_zooming = true;
-let max_iterations = 200;
+function windowResized() {}
 
 document.body.addEventListener("mousedown", (event) => {
   // console.log(x_part, y_part);
@@ -53,31 +38,3 @@ document.body.addEventListener("mousemove", (event) => {
 document.body.addEventListener("mouseup", () => {
   stop_zooming = true;
 });
-
-function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
-
-  for (let i = 0; i < 2; i++) {
-    drawMandelBrot();
-  }
-}
-
-function getIResolution() {
-  return [width * pixelDensity(), height * pixelDensity()];
-}
-
-function drawMandelBrot() {
-  // console.log(zoom_center);
-  // console.log(zoom_size);
-
-  mandelBrot.setUniform("u_zoomCenter", zoom_center);
-  mandelBrot.setUniform("u_zoomSize", zoom_size);
-  mandelBrot.setUniform("iResolution", getIResolution());
-
-  shader(mandelBrot);
-  rect(0, 0, width, height);
-}
-
-function draw() {
-  if (stop_zooming) return;
-}
