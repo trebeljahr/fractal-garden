@@ -100,6 +100,7 @@ const FractalTree = () => {
   };
 
   const windowResized = (p5: P5) => {
+    console.log("Resizing fractal tree!");
     p5.resizeCanvas(window.innerWidth, window.innerHeight);
     drawTree(p5);
   };
