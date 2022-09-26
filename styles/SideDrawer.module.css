@@ -46,6 +46,7 @@
 }
 
 .drawerContent {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
+  max-width: 900px;
 }
