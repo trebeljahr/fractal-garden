@@ -16,7 +16,7 @@ function useLinks() {
     // "/l-system/index.html?fractal=fern-4",
     // "/l-system/index.html?fractal=board",
     // "/l-system/index.html?fractal=sierpinski-triangle",
-    // "/fractal-tree",
+    "/fractal-tree",
     // "/l-system/index.html?fractal=quadratic-snowflake",
     // "/l-system/index.html?fractal=koch-snowflake",
     // "/l-system/index.html?fractal=hilbert-curve",
