@@ -1,0 +1,36 @@
+.linkButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  padding: 2px;
+  text-decoration: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #9aa1b4;
+  box-sizing: border-box;
+}
+
+.linkButton:hover {
+  color: #f5f1d1;
+}
+
+.navigationElement {
+  display: flex;
+  justify-content: flex-end;
+  position: fixed;
+  z-index: 10;
+  bottom: 20px;
+  right: 20px;
+}
+
+.navigationElement [class^="icon-"] {
+  font-size: 3rem;
+  padding: 0.3rem;
+}
+
+@media screen and (min-width: 600px) {
+  .navigationElement [class^="icon-"] {
+    font-size: 2rem;
+  }
+}
