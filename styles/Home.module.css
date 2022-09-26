@@ -33,6 +33,7 @@
 
 .grid {
   margin-top: 5vh;
+  width: 100%;
 }
 
 .gridItem {
@@ -84,12 +85,22 @@
   object-position: center;
 }
 
-#subtitle {
+.subtitle {
   display: none;
+  font-size: 2rem;
+  letter-spacing: 0.1rem;
+}
+
+.heading {
+  font-size: 3rem;
+  margin-top: 5rem;
+  letter-spacing: 0.3rem;
+  font-weight: 200;
+  border-bottom: 1px solid var(--yellow-white);
 }
 
 @media (min-width: 800px) {
-  #subtitle {
+  .subtitle {
     display: block;
   }
 
@@ -115,9 +126,26 @@
 
   .grid {
     display: grid;
-    width: 90vw;
+    width: 90%;
     grid-template-columns: 1fr 1fr;
     grid-gap: 60px;
+  }
+
+  .heading {
+    font-size: 5rem;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+  }
+
+  .cardHeading {
+    font-size: 1.8rem;
+    margin-bottom: 5rem;
+    letter-spacing: 0.3rem;
+    font-weight: 100;
+  }
+
+  .subHeading {
+    letter-spacing: 0.1rem;
   }
 }
 

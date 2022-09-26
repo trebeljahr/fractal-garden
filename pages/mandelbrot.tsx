@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import P5 from "p5";
 import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
@@ -37,6 +37,7 @@ const Mandelbrot = () => {
   };
 
   const windowResized = (p5: P5) => {
+    console.log("trying to draw mandelbrot shader");
     p5.resizeCanvas(window.innerWidth, window.innerHeight);
     drawMandelBrot(p5);
   };
@@ -50,6 +51,8 @@ const Mandelbrot = () => {
 };
 
 function drawMandelBrot(p5: P5) {
+  if (!mandelBrot) return;
+
   mandelBrot.setUniform("u_zoomCenter", zoom_center);
   mandelBrot.setUniform("u_zoomSize", zoom_size);
   mandelBrot.setUniform("iResolution", getIResolution(p5));

@@ -1,3 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@300&family=Montserrat:wght@500&display=swap");
+
+:root {
+  --bright-grey: #9aa1b4;
+  --medium-grey: #15161e;
+  --dark-grey: #091115;
+  --yellow-white: #f5f1d1;
+}
+
 @font-face {
   font-family: "icomoon";
   src: url("/assets/fonts/icomoon.eot?y0ry6o");
@@ -21,6 +30,38 @@
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-size: 10px;
+  font-family: "Merriweather", serif;
+  box-sizing: border-box;
+
+  width: 100%;
+  background-color: var(--dark-grey);
+  color: var(--yellow-white);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Montserrat", sans-serif;
 }
 
 .icon-home:before {
@@ -67,4 +108,20 @@
 }
 .icon-linkedin:before {
   content: "\eac9";
+}
+
+@media (min-width: 800px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    color: white;
+    background: black;
+  }
 }

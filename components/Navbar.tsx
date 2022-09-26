@@ -45,17 +45,17 @@ export const NavElement = () => {
   return (
     <nav className={styles.navigationElement}>
       <Link as={prev} href={prev}>
-        <a>
+        <a className={styles.linkButton}>
           <span className="icon-arrow-left"></span>
         </a>
       </Link>
       <Link as={home} href={home}>
-        <a>
+        <a className={styles.linkButton}>
           <span className="icon-home3"></span>
         </a>
       </Link>
       <Link as={next} href={next}>
-        <a>
+        <a className={styles.linkButton}>
           <span className="icon-arrow-right"></span>
         </a>
       </Link>

@@ -1,0 +1,37 @@
+.openDrawerBtn {
+  border: none;
+  background-color: var(--yellow-white);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  padding: 1rem;
+}
+
+.closeDrawerBtn {
+  border: none;
+  background-color: transparent;
+  color: red;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 2rem;
+}
+
+.hidden {
+  width: 0;
+  display: none;
+}
+
+.openedDrawer {
+  transition: all 1s;
+  position: absolute;
+  z-index: 20;
+  background-color: var(--medium-grey);
+  color: var(--yellow-white);
+  top: 0;
+  left: 0;
+  width: 50vw;
+  height: 100vh;
+  overflow: auto;
+}
