@@ -84,7 +84,7 @@ function draw() {
 <br/>
 
 
-One can play around with and change the numbers going into the algorithm and thereby create different fractal shapes. Interestingly, one of those shapes is very similar to the [Fractal Tree](/fractal-tree).
+One can play around with and change the numbers going into the algorithm and thereby create different fractal shapes. Interestingly, one of those shapes is very similar to the [Fractal Canopy](/fractal-canopy).
 
 For more explanations on the mathematics of the Barnsley Fern have a look at 
 [this article from the Algorithms Archive](https://www.algorithm-archive.org/contents/barnsley/barnsley.html) and the [Wikipedia Page for the Barnsley Fern](https://en.wikipedia.org/wiki/Barnsley_fern)

@@ -112,9 +112,8 @@ const FractalTree = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
-            <div className={styles.fullScreen}>
-
-      <Sketch setup={setup} windowResized={windowResized} />
+      <div className={styles.fullScreen}>
+        <Sketch setup={setup} windowResized={windowResized} />
       </div>
       <SideDrawer description={description} />
       <NavElement />
@@ -125,7 +124,7 @@ const FractalTree = ({ description }: Props) => {
 export default FractalTree;
 
 export async function getStaticProps() {
-  const description = await getDescription("fractal-tree.md");
+  const description = await getDescription("fractal-canopy.md");
   return {
     props: {
       description,

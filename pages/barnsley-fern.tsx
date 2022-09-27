@@ -21,7 +21,7 @@ type Transformation = {
 };
 
 type Fern =
-  | "tree"
+  | "canopy"
   | "fishbone"
   | "culcita"
   | "modifiedBarnsley"
@@ -89,7 +89,7 @@ const fishbone = {
   scaleFactor: 2,
 };
 
-const tree = {
+const canopy = {
   matrix: [
     [0, 0, 0, 0.5, 0, 0, 0.05],
     [0.42, -0.42, 0.42, 0.42, 0, 0.2, 0.4],
@@ -99,7 +99,7 @@ const tree = {
   scaleFactor: 24,
 };
 const matrices: Record<string, Transformation> = {
-  tree,
+  canopy,
   fishbone,
   culcita,
   cyclosorus,

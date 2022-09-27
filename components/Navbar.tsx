@@ -16,7 +16,7 @@ function useLinks() {
     "/l-system/fern-4",
     "/l-system/board",
     "/l-system/sierpinski-triangle",
-    "/fractal-tree",
+    "/fractal-canopy",
     "/l-system/quadratic-snowflake",
     "/l-system/koch-snowflake",
     "/l-system/hilbert-curve",

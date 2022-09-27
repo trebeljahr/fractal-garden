@@ -96,9 +96,9 @@ const Home: NextPage = () => {
             imageSrc="/assets/fractal-images/l-system-sierpinski-triangle.png"
           />
           <FractalLink
-            href="/fractal-tree"
-            title="Fractal Tree"
-            imageSrc="/assets/fractal-images/fractal-tree.png"
+            href="/fractal-canopy"
+            title="Fractal Canopy"
+            imageSrc="/assets/fractal-images/fractal-canopy.png"
           />
           <FractalLink
             href="/l-system/quadratic-snowflake"
