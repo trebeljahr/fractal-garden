@@ -163,7 +163,7 @@ type Props = {
 const LSystem = ({ ruleset }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: ruleset.maxIterations - 1,
-    animateIterations: false,
+    animateIterations: true,
     background: "#252424",
     ruleset: ruleset,
   });
