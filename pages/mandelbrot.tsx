@@ -6,13 +6,7 @@ import styles from "../styles/Fullscreen.module.css";
 import { P5Instance } from "react-p5-wrapper";
 import { SideDrawer } from "../components/SideDrawer";
 import { getDescription } from "../utils/readFiles";
-
-const ReactP5Wrapper = dynamic(
-  () => import("react-p5-wrapper").then((mod) => mod.ReactP5Wrapper),
-  {
-    ssr: false,
-  }
-);
+import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
 
 type Props = {
   description: string;
@@ -26,7 +20,7 @@ const Mandelbrot = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <div className={styles.fullScreen}>
-        <ReactP5Wrapper sketch={sketch} />
+        <DynamicReactP5Wrapper sketch={sketch} />
       </div>
       <SideDrawer description={description} />
       <NavElement />
