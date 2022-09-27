@@ -134,125 +134,99 @@ h5 {
   width: fit-content;
 }
 
-/*!
-  Theme: Solarized Dark
-  Author: Ethan Schoonover (modified by aramisgithub)
-  License: ~ MIT (or more permissive) [via base16-schemes-source]
-  Maintainer: @highlightjs/core-team
-  Version: 2021.09.0
-*/
 pre code.hljs {
   display: block;
   overflow-x: auto;
   padding: 1em;
 }
-
 code.hljs {
   padding: 3px 5px;
 }
-
 .hljs {
-  color: #93a1a1;
-  background: #002b36;
+  color: #abb2bf;
+  background: #282c34;
 }
-
-.hljs ::selection,
-.hljs::selection {
-  background-color: #586e75;
-  color: #93a1a1;
-}
-
-.hljs-comment {
-  color: #657b83;
-}
-
-.hljs-tag {
-  color: #839496;
-}
-
-.hljs-operator,
-.hljs-punctuation,
-.hljs-subst {
-  color: #93a1a1;
-}
-
-.hljs-operator {
-  opacity: 0.7;
-}
-
-.hljs-bullet,
-.hljs-deletion,
-.hljs-name,
-.hljs-selector-tag,
-.hljs-template-variable,
-.hljs-variable {
-  color: #dc322f;
-}
-
-.hljs-attr,
-.hljs-link,
-.hljs-literal,
-.hljs-number,
-.hljs-symbol,
-.hljs-variable.constant_ {
-  color: #cb4b16;
-}
-
-.hljs-class .hljs-title,
-.hljs-title,
-.hljs-title.class_ {
-  color: #b58900;
-}
-
-.hljs-strong {
-  font-weight: 700;
-  color: #b58900;
-}
-
-.hljs-addition,
-.hljs-code,
-.hljs-string,
-.hljs-title.class_.inherited__ {
-  color: #859900;
-}
-
-.hljs-built_in,
-.hljs-doctag,
-.hljs-keyword.hljs-atrule,
-.hljs-quote,
-.hljs-regexp {
-  color: #2aa198;
-}
-
-.hljs-attribute,
-.hljs-function .hljs-title,
-.hljs-section,
-.hljs-title.function_,
-.ruby .hljs-property {
-  color: #268bd2;
-}
-
-.diff .hljs-meta,
 .hljs-keyword,
-.hljs-template-tag,
-.hljs-type {
-  color: #6c71c4;
+.hljs-operator,
+.hljs-pattern-match {
+  color: #f92672;
 }
-
-.hljs-emphasis {
-  color: #6c71c4;
+.hljs-function,
+.hljs-pattern-match .hljs-constructor {
+  color: #61aeee;
+}
+.hljs-function .hljs-params {
+  color: #a6e22e;
+}
+.hljs-function .hljs-params .hljs-typing {
+  color: #fd971f;
+}
+.hljs-module-access .hljs-module {
+  color: #7e57c2;
+}
+.hljs-constructor {
+  color: #e2b93d;
+}
+.hljs-constructor .hljs-string {
+  color: #9ccc65;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #b18eb1;
   font-style: italic;
 }
-
-.hljs-meta,
-.hljs-meta .hljs-keyword,
-.hljs-meta .hljs-string {
-  color: #d33682;
+.hljs-doctag,
+.hljs-formula {
+  color: #c678dd;
 }
-
-.hljs-meta .hljs-keyword,
-.hljs-meta-keyword {
+.hljs-deletion,
+.hljs-name,
+.hljs-section,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #e06c75;
+}
+.hljs-literal {
+  color: #56b6c2;
+}
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string,
+.hljs-regexp,
+.hljs-string {
+  color: #98c379;
+}
+.hljs-built_in,
+.hljs-class .hljs-title,
+.hljs-title.class_ {
+  color: #e6c07b;
+}
+.hljs-attr,
+.hljs-number,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-pseudo,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable {
+  color: #d19a66;
+}
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-symbol,
+.hljs-title {
+  color: #61aeee;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
   font-weight: 700;
+}
+.hljs-link {
+  text-decoration: underline;
 }
 
 @media (min-width: 800px) {
