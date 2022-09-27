@@ -140,7 +140,6 @@ function sketch(p5: P5Instance<{ config: Config }>) {
   }
 
   p5.setup = () => {
-    console.log("Running setup with config", config);
     p5.createCanvas(window.innerWidth, window.innerHeight);
   };
 

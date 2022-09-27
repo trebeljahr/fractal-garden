@@ -1,4 +1,4 @@
-import LSystem from "../../components/LSystem";
+import LSystem, { Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
@@ -17,9 +17,23 @@ type Props = {
 };
 
 const Fern2 = ({ description }: Props) => {
+  const fern2: Ruleset = {
+    color: "#3cf7d2",
+    minIterations: 1,
+    maxIterations: 9,
+    axiom: "Y",
+    replace: {
+      X: "X[-FFF][+FFF]FX",
+      Y: "YFX[+Y][-Y]",
+    },
+    angle: 25.7,
+    initLength: (p5) => p5.height * 0.6,
+    initTranslation: (p5) => [p5.width / 2, p5.height],
+    divideFactor: 2.05,
+  };
   return (
     <main className={styles.fullScreen}>
-      <LSystem fractal="Fern 2" />
+      <LSystem ruleset={fern2} />
       <SideDrawer description={description} />
 
       <NavElement />

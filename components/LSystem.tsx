@@ -17,206 +17,7 @@ type Config = {
   ruleset: Ruleset;
 };
 
-const rulesets: Record<string, Ruleset> = {
-  "Fern 4": {
-    color: "#ffe10b",
-    minIterations: 1,
-    maxIterations: 9,
-    axiom: "X",
-    replace: {
-      X: "F[+X]F[-X]+X",
-      F: "FF",
-    },
-    divideFactor: 2,
-    initLength(p5) {
-      return p5.height * 0.4;
-    },
-    angle: 20,
-    initTranslation(p5) {
-      return [p5.width / 2, p5.height];
-    },
-  },
-  "Fern 3": {
-    color: "#91fc8e",
-    minIterations: 1,
-    maxIterations: 5,
-    axiom: "F",
-    replace: {
-      F: "F[+FF][-FF]F[-F][+F]F",
-    },
-    angle: 22.5,
-    initLength: (p5) => p5.height * 0.9,
-    initTranslation: (p5) => [p5.width / 2, p5.height],
-    divideFactor: 3,
-  },
-  "Fern 2": {
-    color: "#3cf7d2",
-    minIterations: 1,
-    maxIterations: 9,
-    axiom: "Y",
-    replace: {
-      X: "X[-FFF][+FFF]FX",
-      Y: "YFX[+Y][-Y]",
-    },
-    angle: 25.7,
-    initLength: (p5) => p5.height * 0.6,
-    initTranslation: (p5) => [p5.width / 2, p5.height],
-    divideFactor: 2.05,
-  },
-  "Fern 1": {
-    color: "#adff00",
-    minIterations: 1,
-    maxIterations: 8,
-    axiom: "X",
-    replace: {
-      X: "F+[[X]-X]-F[-FX]+X",
-      F: "FF",
-    },
-    angle: -25,
-    initLength: (p5) => p5.height * 0.37,
-    initTranslation: (p5) => [p5.width / 2, p5.height],
-    divideFactor: 2,
-  },
-  "Sierpinski Curve": {
-    color: "#f7ad1c",
-    minIterations: 1,
-    maxIterations: 7,
-    axiom: "F+XF+F+XF",
-    replace: {
-      X: "XF-F+F-XF+F+XF-F+F-X",
-    },
-    angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.25,
-    initTranslation(p5, initialLength) {
-      return [p5.width / 2 - initialLength * 1.6, p5.height / 2];
-    },
-    divideFactor: 2.05,
-  },
-  Crystal: {
-    color: "#18fce0",
-    minIterations: 1,
-    maxIterations: 7,
-    axiom: "F+F+F+F",
-    replace: {
-      F: "FF+F++F+F",
-    },
-    angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.7,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2,
-    ],
-    divideFactor: 3,
-  },
-  "Quadratic Snowflake": {
-    color: "#80b8f9",
-    minIterations: 1,
-    maxIterations: 7,
-    axiom: "FF+FF+FF+FF",
-    replace: {
-      F: "F+F-F-F+F",
-    },
-    angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) / 2.5,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength,
-      p5.height / 2 + initialLength,
-    ],
-    divideFactor: 3,
-  },
-  Board: {
-    color: "#339ffc",
-    minIterations: 1,
-    maxIterations: 6,
-    axiom: "F+F+F+F",
-    replace: {
-      F: "FF+F+F+F+FF",
-    },
-    angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.7,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2,
-    ],
-    divideFactor: 3,
-  },
-  "Koch Snowflake": {
-    color: "#b1e5e8",
-    minIterations: 1,
-    maxIterations: 7,
-    axiom: "F++F++F",
-    replace: {
-      F: "F-F++F-F",
-    },
-    angle: 60,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.8,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 3,
-      p5.height / 2 + initialLength / 2,
-    ],
-    divideFactor: 3,
-  },
-
-  "Hilbert Curve": {
-    color: "#fc79ff",
-    minIterations: 1,
-    maxIterations: 9,
-    axiom: "W",
-    replace: {
-      V: "-WF+VFV+FW-",
-      W: "+VF-WFW-FV+",
-    },
-    angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.7,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2,
-    ],
-    divideFactor: 2,
-  },
-  "Sierpinski Triangle": {
-    color: "#fc366b",
-    minIterations: 1,
-    maxIterations: 10,
-    axiom: "F-G-G",
-    replace: {
-      F: "F-G+F+G-F",
-      G: "GG",
-    },
-    angle: 120,
-    initLength: (p5) => Math.min(p5.width, p5.height),
-    initTranslation: (p5, initialLength) => {
-      const totalHeight = (initialLength * Math.sqrt(3)) / 2;
-      return [
-        p5.width / 2 - initialLength / 2,
-        p5.height - (p5.height - totalHeight) / 2,
-      ];
-    },
-    initRotation: (p5) => p5.rotate(90),
-    divideFactor: 2,
-  },
-  "Lévy Curve": {
-    color: "#54bffc",
-    minIterations: 1,
-    maxIterations: 17,
-    axiom: "F",
-
-    replace: {
-      F: "-F++F-",
-    },
-    angle: 45,
-    initLength: (p5) =>
-      Math.min(p5.width, p5.height) * (p5.width > p5.height * 1.3 ? 0.7 : 0.45),
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2.6,
-    ],
-    initRotation: (p5) => p5.rotate(90),
-    divideFactor: 1.417,
-  },
-};
-
-interface Ruleset {
+export interface Ruleset {
   color: string;
   minIterations: number;
   maxIterations: number;
@@ -254,8 +55,6 @@ function sketch(p5: P5) {
     len = len || initialLength;
 
     const [xOff, yOff] = config.ruleset.initTranslation(p5, initialLength);
-
-    console.log(xOff, yOff);
     p5.translate(xOff, yOff);
     config.ruleset.initRotation && config.ruleset.initRotation(p5);
   }
@@ -303,9 +102,6 @@ function sketch(p5: P5) {
   function generateNextIteration() {
     let newSentence = "";
     commonSetup();
-
-    console.log(len);
-    console.log(angle);
 
     for (let char of sentence) {
       newSentence += config.ruleset.replace[char] || char;
@@ -361,15 +157,15 @@ function sketch(p5: P5) {
 }
 
 type Props = {
-  fractal: string;
+  ruleset: Ruleset;
 };
 
-const LSystem = ({ fractal }: Props) => {
+const LSystem = ({ ruleset }: Props) => {
   const [config, setConfig] = useState<Config>({
-    iterations: rulesets[fractal].maxIterations - 1,
+    iterations: ruleset.maxIterations - 1,
     animateIterations: false,
     background: "#252424",
-    ruleset: rulesets[fractal],
+    ruleset: ruleset,
   });
 
   useEffect(() => {
