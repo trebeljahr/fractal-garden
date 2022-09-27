@@ -13,7 +13,7 @@ type Transformation = {
 };
 
 type Fern =
-  | "canopy"
+  | "tree"
   | "fishbone"
   | "culcita"
   | "modifiedBarnsley"
@@ -81,7 +81,7 @@ const fishbone = {
   scaleFactor: 2,
 };
 
-const canopy = {
+const tree = {
   matrix: [
     [0, 0, 0, 0.5, 0, 0, 0.05],
     [0.42, -0.42, 0.42, 0.42, 0, 0.2, 0.4],
@@ -91,7 +91,7 @@ const canopy = {
   scaleFactor: 24,
 };
 const matrices: Record<string, Transformation> = {
-  canopy,
+  tree,
   fishbone,
   culcita,
   cyclosorus,
@@ -173,9 +173,6 @@ const BarnsleyFern = ({ description }: Props) => {
     background: "#252424",
     fernToUse: "barnsley",
   });
-  useEffect(() => {
-    console.log(config);
-  }, [config]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
