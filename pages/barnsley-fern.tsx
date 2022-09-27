@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from "react";
-import P5 from "p5";
-import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { SideDrawer } from "../components/SideDrawer";
 import { getDescription } from "../utils/readFiles";
 import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
 import { P5Instance } from "react-p5-wrapper";
-
-const ReactP5Wrapper = dynamic(
-  () => import("react-p5-wrapper").then((mod) => mod.ReactP5Wrapper),
-  {
-    ssr: false,
-  }
-);
+import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
 
 type Transformation = {
   matrix: number[][];
@@ -203,7 +195,7 @@ const BarnsleyFern = ({ description }: Props) => {
         </DatFolder>
       </DatGui>
       <div className={styles.fullScreen}>
-        <ReactP5Wrapper sketch={sketch} config={config} />
+        <DynamicReactP5Wrapper sketch={sketch} config={config} />
       </div>
       <SideDrawer description={description} />
       <NavElement />

@@ -50,3 +50,12 @@
   margin: 0 auto;
   max-width: 900px;
 }
+
+.drawerContent > * {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.drawerContent a {
+  color: var(--bright-grey);
+}
