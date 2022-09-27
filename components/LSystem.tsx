@@ -402,6 +402,8 @@ const LSystem = ({ fractal }: Props) => {
       <DatGui data={config} onUpdate={handleUpdate}>
         <DatFolder closed={true} title="Options">
           <DatColor path="background" label="background" />
+          <DatColor path="ruleset.color" label="color" />
+
           <DatNumber
             path="iterations"
             label="iterations"
@@ -410,7 +412,6 @@ const LSystem = ({ fractal }: Props) => {
             step={1}
           />
           <DatBoolean path="animateIterations" label="animate iterations?" />
-          <DatColor path="ruleset.color" label="color" />
         </DatFolder>
       </DatGui>
 
