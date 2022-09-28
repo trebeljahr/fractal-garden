@@ -28,8 +28,8 @@ const Fern1 = ({ description }: Props) => {
       F: "FF",
     },
     angle: -25,
-    initLength: (p5) => p5.height * 0.37,
-    initTranslation: (p5) => [p5.width / 2, p5.height],
+    initLength: (sizes) => sizes.height * 0.37,
+    initTranslation: (sizes) => [sizes.width / 2, sizes.height],
     divideFactor: 2,
   };
   return (

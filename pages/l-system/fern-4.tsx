@@ -27,12 +27,12 @@ const Fern4 = ({ description }: Props) => {
       F: "FF",
     },
     divideFactor: 2,
-    initLength(p5) {
-      return p5.height * 0.4;
+    initLength(sizes) {
+      return sizes.height * 0.4;
     },
     angle: 20,
-    initTranslation(p5) {
-      return [p5.width / 2, p5.height];
+    initTranslation(sizes) {
+      return [sizes.width / 2, sizes.height];
     },
   };
   return (

@@ -26,10 +26,10 @@ const KochSnowflake = ({ description }: Props) => {
       F: "F-F++F-F",
     },
     angle: 60,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.8,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 3,
-      p5.height / 2 + initialLength / 2,
+    initLength: (sizes) => Math.min(sizes.width, sizes.height) * 0.8,
+    initTranslation: (sizes, initialLength) => [
+      sizes.width / 2 - initialLength / 3,
+      sizes.height / 2 + initialLength / 2,
     ],
     divideFactor: 3,
   };

@@ -12,6 +12,7 @@ import DatGui, {
 } from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { radians, remap, rgb } from "../utils/ctxHelpers";
 
 const defaultTree = {
   angle: 43,
@@ -109,18 +110,6 @@ type Config = {
 type Props = {
   description: string;
 };
-
-function radians(angle: number) {
-  return (angle * Math.PI) / 180;
-}
-
-function remap(value: number, l1: number, h1: number, l2: number, h2: number) {
-  return l2 + ((h2 - l2) * (value - l1)) / (h1 - l1);
-}
-
-function rgb(r: number, g: number, b: number) {
-  return `rgb(${r}, ${g}, ${b})`;
-}
 
 const FractalTree = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(defaultTree);
@@ -255,9 +244,7 @@ const FractalTree = ({ description }: Props) => {
         </DatFolder>
       </DatGui>
       <div className={styles.fullScreen}>
-        {width && height && (
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        )}
+        <Canvas setCtx={setCtx} width={width} height={height} />
       </div>
       <SideDrawer description={description} />
       <NavElement />

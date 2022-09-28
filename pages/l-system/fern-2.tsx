@@ -27,8 +27,8 @@ const Fern2 = ({ description }: Props) => {
       Y: "YFX[+Y][-Y]",
     },
     angle: 25.7,
-    initLength: (p5) => p5.height * 0.6,
-    initTranslation: (p5) => [p5.width / 2, p5.height],
+    initLength: (ctx) => ctx.height * 0.6,
+    initTranslation: (ctx) => [ctx.width / 2, ctx.height],
     divideFactor: 2.05,
   };
   return (

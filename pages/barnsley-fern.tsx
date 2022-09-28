@@ -4,8 +4,8 @@ import styles from "../styles/Fullscreen.module.css";
 import { SideDrawer } from "../components/SideDrawer";
 import { getDescription } from "../utils/readFiles";
 import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
-import { P5Instance } from "react-p5-wrapper";
-import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
+import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { Canvas } from "../components/Canvas";
 
 type Transformation = {
   matrix: number[][];
@@ -98,73 +98,6 @@ const matrices: Record<string, Transformation> = {
   barnsley,
 };
 
-function sketch(p5: P5Instance<{ config: Config }>) {
-  let x = 0;
-  let y = 0;
-  let config: Config;
-
-  p5.updateWithProps = (props) => {
-    if (props.config) {
-      config = props.config;
-      p5.background(config.background);
-    }
-  };
-
-  function applyMatrixValues(matrix: number[]) {
-    return {
-      x: matrix[0] * x + matrix[1] * y + matrix[4],
-      y: matrix[2] * x + matrix[3] * y + matrix[5],
-    };
-  }
-
-  function generateNewCoords() {
-    const r = Math.random();
-    const matrix = matrices[config.fernToUse].matrix;
-    const prob1 = matrix[1][6];
-    const prob2 = matrix[2][6];
-    const prob3 = matrix[3][6];
-    const prob4 = matrix[0][6];
-    if (r <= prob1) {
-      return applyMatrixValues(matrix[1]);
-    } else if (r <= prob1 + prob2) {
-      return applyMatrixValues(matrix[2]);
-    } else if (r <= prob1 + prob2 + prob3) {
-      return applyMatrixValues(matrix[3]);
-    } else if (r <= prob1 + prob2 + prob3 + prob4) {
-      return applyMatrixValues(matrix[0]);
-    }
-    return {
-      x: 0,
-      y: 0,
-    };
-  }
-
-  p5.setup = () => {
-    p5.createCanvas(window.innerWidth, window.innerHeight);
-  };
-
-  p5.draw = () => {
-    for (let i = 0; i < 1000; i++) {
-      p5.stroke(config.color);
-      const fernHeight = p5.height * matrices[config.fernToUse].scaleFactor;
-      const fernWidth = fernHeight / 1.5;
-
-      let plotX = fernWidth * ((x + 3) / 6) + p5.width / 2 - fernWidth / 2;
-      let plotY = p5.height - (fernHeight * y) / 14;
-
-      p5.strokeWeight(0.1);
-      p5.point(plotX, plotY);
-
-      ({ x, y } = generateNewCoords());
-    }
-  };
-
-  p5.windowResized = () => {
-    p5.resizeCanvas(window.innerWidth, window.innerHeight);
-    p5.background(config.background);
-  };
-}
-
 const BarnsleyFern = ({ description }: Props) => {
   const [config, setConfig] = useState({
     detail: 60,
@@ -172,6 +105,66 @@ const BarnsleyFern = ({ description }: Props) => {
     background: "#252424",
     fernToUse: "barnsley",
   });
+  const { width, height } = useWindowSize();
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+
+  useEffect(() => {
+    if (!ctx || !width || !height) return;
+
+    let x = 0;
+    let y = 0;
+
+    const applyMatrixValues = (matrix: number[]) => {
+      return {
+        x: matrix[0] * x + matrix[1] * y + matrix[4],
+        y: matrix[2] * x + matrix[3] * y + matrix[5],
+      };
+    };
+
+    const generateNewCoords = () => {
+      const r = Math.random();
+      const matrix = matrices[config.fernToUse].matrix;
+      const prob1 = matrix[1][6];
+      const prob2 = matrix[2][6];
+      const prob3 = matrix[3][6];
+      const prob4 = matrix[0][6];
+      if (r <= prob1) {
+        return applyMatrixValues(matrix[1]);
+      } else if (r <= prob1 + prob2) {
+        return applyMatrixValues(matrix[2]);
+      } else if (r <= prob1 + prob2 + prob3) {
+        return applyMatrixValues(matrix[3]);
+      } else if (r <= prob1 + prob2 + prob3 + prob4) {
+        return applyMatrixValues(matrix[0]);
+      }
+      return {
+        x: 0,
+        y: 0,
+      };
+    };
+    const point = (x: number, y: number) => {
+      ctx.fillRect(x, y, 1, 1);
+    };
+
+    const draw = () => {
+      for (let i = 0; i < 5000; i++) {
+        ctx.fillStyle = config.color;
+        const fernHeight = height * matrices[config.fernToUse].scaleFactor;
+        const fernWidth = fernHeight / 1.5;
+
+        let plotX = fernWidth * ((x + 3) / 6) + width / 2 - fernWidth / 2;
+        let plotY = height - (fernHeight * y) / 14;
+
+        ctx.lineWidth = 0.1;
+        point(plotX, plotY);
+
+        ({ x, y } = generateNewCoords());
+      }
+    };
+
+    const id = setInterval(draw, 100);
+    return () => clearInterval(id);
+  }, [config, ctx, width, height]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -191,7 +184,7 @@ const BarnsleyFern = ({ description }: Props) => {
         </DatFolder>
       </DatGui>
       <div className={styles.fullScreen}>
-        <DynamicReactP5Wrapper sketch={sketch} config={config} />
+        <Canvas setCtx={setCtx} width={width} height={height} />
       </div>
       <SideDrawer description={description} />
       <NavElement />

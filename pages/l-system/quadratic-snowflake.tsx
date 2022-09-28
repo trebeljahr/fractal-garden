@@ -26,10 +26,10 @@ const QuadraticSnowflake = ({ description }: Props) => {
       F: "F+F-F-F+F",
     },
     angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) / 2.5,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength,
-      p5.height / 2 + initialLength,
+    initLength: (sizes) => Math.min(sizes.width, sizes.height) / 2.5,
+    initTranslation: (sizes, initialLength) => [
+      sizes.width / 2 - initialLength,
+      sizes.height / 2 + initialLength,
     ],
     divideFactor: 3,
   };

@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-import P5 from "p5";
-import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { P5Instance } from "react-p5-wrapper";
@@ -57,7 +55,7 @@ function sketch(p5: P5Instance) {
   const zoom_center = [0.5, 0.5];
   const target_zoom_center = [0.0, 0.0];
 
-  let mandelBrot: P5.Shader;
+  let mandelBrot: any;
 
   let zoom_size = 1;
   let stop_zooming = true;

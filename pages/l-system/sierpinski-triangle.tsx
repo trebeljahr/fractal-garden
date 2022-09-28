@@ -3,6 +3,7 @@ import { NavElement } from "../../components/Navbar";
 import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
 import { getDescription } from "../../utils/readFiles";
+import { radians } from "../../utils/ctxHelpers";
 
 export async function getStaticProps() {
   const description = await getDescription("sierpinski-triangle.md");
@@ -27,15 +28,15 @@ const SierpinskiTriangle = ({ description }: Props) => {
       G: "GG",
     },
     angle: 120,
-    initLength: (p5) => Math.min(p5.width, p5.height),
-    initTranslation: (p5, initialLength) => {
+    initLength: (sizes) => Math.min(sizes.width, sizes.height),
+    initTranslation: (sizes, initialLength) => {
       const totalHeight = (initialLength * Math.sqrt(3)) / 2;
       return [
-        p5.width / 2 - initialLength / 2,
-        p5.height - (p5.height - totalHeight) / 2,
+        sizes.width / 2 - initialLength / 2,
+        sizes.height - (sizes.height - totalHeight) / 2,
       ];
     },
-    initRotation: (p5) => p5.rotate(90),
+    initRotation: (ctx) => ctx.rotate(radians(90)),
     divideFactor: 2,
   };
   return (

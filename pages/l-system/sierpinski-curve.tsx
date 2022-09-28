@@ -26,9 +26,9 @@ const SierpinskiCurve = ({ description }: Props) => {
       X: "XF-F+F-XF+F+XF-F+F-X",
     },
     angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.25,
-    initTranslation(p5, initialLength) {
-      return [p5.width / 2 - initialLength * 1.6, p5.height / 2];
+    initLength: (sizes) => Math.min(sizes.width, sizes.height) * 0.25,
+    initTranslation(sizes, initialLength) {
+      return [sizes.width / 2 - initialLength * 1.6, sizes.height / 2];
     },
     divideFactor: 2.05,
   };

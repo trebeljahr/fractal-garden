@@ -27,10 +27,10 @@ const Crystal = ({ description }: Props) => {
       F: "FF+F++F+F",
     },
     angle: 90,
-    initLength: (p5) => Math.min(p5.width, p5.height) * 0.7,
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2,
+    initLength: (sizes) => Math.min(sizes.width, sizes.height) * 0.7,
+    initTranslation: (sizes, initialLength) => [
+      sizes.width / 2 - initialLength / 2,
+      sizes.height / 2 + initialLength / 2,
     ],
     divideFactor: 3,
   };

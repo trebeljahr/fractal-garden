@@ -3,6 +3,7 @@ import { NavElement } from "../../components/Navbar";
 import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
 import { getDescription } from "../../utils/readFiles";
+import { radians } from "../../utils/ctxHelpers";
 
 export async function getStaticProps() {
   const description = await getDescription("levy-curve.md");
@@ -27,13 +28,14 @@ const LévyCurve = ({ description }: Props) => {
       F: "-F++F-",
     },
     angle: 45,
-    initLength: (p5) =>
-      Math.min(p5.width, p5.height) * (p5.width > p5.height * 1.3 ? 0.7 : 0.45),
-    initTranslation: (p5, initialLength) => [
-      p5.width / 2 - initialLength / 2,
-      p5.height / 2 + initialLength / 2.6,
+    initLength: (sizes) =>
+      Math.min(sizes.width, sizes.height) *
+      (sizes.width > sizes.height * 1.3 ? 0.7 : 0.45),
+    initTranslation: (sizes, initialLength) => [
+      sizes.width / 2 - initialLength / 2,
+      sizes.height / 2 + initialLength / 2.6,
     ],
-    initRotation: (p5) => p5.rotate(90),
+    initRotation: (ctx) => ctx.rotate(radians(90)),
     divideFactor: 1.417,
   };
   return (

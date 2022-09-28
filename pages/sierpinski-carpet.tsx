@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
-import P5 from "p5";
-import dynamic from "next/dynamic";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { SideDrawer } from "../components/SideDrawer";
-import { P5Instance } from "react-p5-wrapper";
 import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
 import DatGui, {
   DatBoolean,
@@ -13,64 +10,9 @@ import DatGui, {
   DatFolder,
   DatNumber,
 } from "react-dat-gui";
+import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { Canvas } from "../components/Canvas";
 
-function sketch(p5: P5Instance<{ config: Config }>) {
-  let config: Config;
-  let length: number;
-  p5.updateWithProps = (props) => {
-    if (props.config) {
-      config = props.config;
-      p5.background(config.background);
-      drawSierpinskiCarpet();
-    }
-  };
-
-  p5.setup = () => {
-    p5.createCanvas(window.innerWidth, window.innerHeight);
-  };
-
-  p5.windowResized = () => {
-    p5.resizeCanvas(window.innerWidth, window.innerHeight);
-    drawSierpinskiCarpet();
-  };
-
-  function drawSierpinskiCarpet() {
-    length = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-    p5.fill(config.holeColor);
-    p5.stroke(config.color);
-    p5.background(config.background);
-    p5.resetMatrix();
-    p5.translate(
-      (window.innerWidth - length) / 2,
-      (window.innerHeight - length) / 2
-    );
-    sierpinskiCarpet(length, { x: 0, y: 0 }, 0);
-  }
-
-  function sierpinskiCarpet(
-    len: number,
-    coordinates: { x: number; y: number },
-    iterations: number
-  ) {
-    if (iterations >= config.maxIterations) return;
-    p5.fill(config.color);
-    p5.rect(coordinates.x, coordinates.y, len, len);
-    for (let x = 0; x <= 2; x++) {
-      for (let y = 0; y <= 2; y++) {
-        const newCoordinates = {
-          x: coordinates.x + x * (len / 3),
-          y: coordinates.y + y * (len / 3),
-        };
-        if (x === 1 && y === 1) {
-          p5.fill(config.holeColor);
-          p5.rect(newCoordinates.x, newCoordinates.y, len / 3, len / 3);
-        } else {
-          sierpinskiCarpet(len / 3, newCoordinates, iterations + 1);
-        }
-      }
-    }
-  }
-}
 type Config = {
   maxIterations: number;
   animateIterations: boolean;
@@ -90,6 +32,8 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
     background: "#252424",
     holeColor: "#000000",
   });
+  const { width, height } = useWindowSize();
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     if (!config.animateIterations) return;
@@ -100,6 +44,52 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
     }, 2000);
     return () => clearInterval(id);
   }, [config.animateIterations]);
+
+  useEffect(() => {
+    if (!ctx || !width || !height) return;
+
+    let length: number;
+
+    const drawSierpinskiCarpet = () => {
+      length = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+      ctx.fillStyle = config.holeColor;
+      ctx.strokeStyle = config.color;
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.resetTransform();
+      ctx.translate(
+        (window.innerWidth - length) / 2,
+        (window.innerHeight - length) / 2
+      );
+      sierpinskiCarpet(length, { x: 0, y: 0 }, 0);
+    };
+
+    const sierpinskiCarpet = (
+      len: number,
+      coordinates: { x: number; y: number },
+      iterations: number
+    ) => {
+      if (iterations >= config.maxIterations) return;
+      ctx.fillStyle = config.color;
+      ctx.fillRect(coordinates.x, coordinates.y, len, len);
+      for (let x = 0; x <= 2; x++) {
+        for (let y = 0; y <= 2; y++) {
+          const newCoordinates = {
+            x: coordinates.x + x * (len / 3),
+            y: coordinates.y + y * (len / 3),
+          };
+          if (x === 1 && y === 1) {
+            ctx.fillStyle = config.holeColor;
+            ctx.fillRect(newCoordinates.x, newCoordinates.y, len / 3, len / 3);
+          } else {
+            sierpinskiCarpet(len / 3, newCoordinates, iterations + 1);
+          }
+        }
+      }
+    };
+
+    drawSierpinskiCarpet();
+  }, [config, ctx, width, height, config.animateIterations]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -124,7 +114,7 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
         </DatFolder>
       </DatGui>
       <div className={styles.fullScreen}>
-        <DynamicReactP5Wrapper sketch={sketch} config={config} />
+        <Canvas setCtx={setCtx} width={width} height={height} />
       </div>
       <SideDrawer description={description} />
 

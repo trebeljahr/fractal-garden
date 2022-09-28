@@ -13,12 +13,12 @@ const fern4: Ruleset = {
       F: "FF",
     },
     divideFactor: 2,
-    initLength(p5) {
-      return p5.height * 0.4;
+    initLength(ctx) {
+      return ctx.height * 0.4;
     },
     angle: 20,
-    initTranslation(p5) {
-      return [p5.width / 2, p5.height];
+    initTranslation(ctx) {
+      return [ctx.width / 2, ctx.height];
     },
 };
 ```
@@ -40,14 +40,14 @@ const drawRules: Record<string, () => void> = {
     Z: () => {},
     G: drawForward,
     F: drawForward,
-    f: () => p5.translate(0, -len),
-    "+": () => p5.rotate(angle * rotationDirection),
-    "-": () => p5.rotate(angle * -rotationDirection),
-    "|": () => p5.rotate(180),
-    "[": () => p5.push(),
-    "]": () => p5.pop(),
-    "#": () => p5.strokeWeight((weight += weightIncrement)),
-    "!": () => p5.strokeWeight((weight -= weightIncrement)),
+    f: () => ctx.translate(0, -len),
+    "+": () => ctx.rotate(angle * rotationDirection),
+    "-": () => ctx.rotate(angle * -rotationDirection),
+    "|": () => ctx.rotate(180),
+    "[": () => ctx.push(),
+    "]": () => ctx.pop(),
+    "#": () => ctx.strokeWeight((weight += weightIncrement)),
+    "!": () => ctx.strokeWeight((weight -= weightIncrement)),
     ">": () => (len *= scale),
     "<": () => (len /= scale),
     "&": () => (rotationDirection = -rotationDirection),

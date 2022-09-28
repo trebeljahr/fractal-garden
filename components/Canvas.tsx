@@ -1,12 +1,12 @@
 import { useRef, useEffect, Dispatch, SetStateAction } from "react";
 
-type Props = {
+type CleanedProps = {
   width: number;
   height: number;
   setCtx: Dispatch<SetStateAction<CanvasRenderingContext2D | null>>;
 };
 
-export const Canvas = ({ setCtx, width, height }: Props) => {
+export const _Canvas = ({ setCtx, width, height }: CleanedProps) => {
   const canvasRef = useRef<null | HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -19,4 +19,20 @@ export const Canvas = ({ setCtx, width, height }: Props) => {
   }, []);
 
   return <canvas ref={canvasRef} width={width} height={height} />;
+};
+
+type Props = {
+  width: number | null;
+  height: number | null;
+  setCtx: Dispatch<SetStateAction<CanvasRenderingContext2D | null>>;
+};
+
+export const Canvas = ({ setCtx, width, height }: Props) => {
+  return (
+    <>
+      {width && height && (
+        <_Canvas setCtx={setCtx} width={width} height={height} />
+      )}
+    </>
+  );
 };
