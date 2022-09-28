@@ -15,7 +15,7 @@ import { useWindowSize } from "../utils/hooks/useWindowResize";
 
 const defaultTree = {
   angle: 43,
-  animateAngle: false,
+  animateAngle: true,
   maxIterations: 7,
   branches: 3,
   background: "#252424",
