@@ -1,14 +1,13 @@
 precision highp float;
 
-uniform vec2 iResolution;
+uniform vec2 u_resolution;
+uniform vec2 u_zoomCenter;
+uniform float u_zoomSize;
 
 const float escapeRadius = 4.0;
 const float escapeRadius2 = escapeRadius * escapeRadius;
 const int maxIterations = 40;
 const float invMaxIterations = 1.0 / float(maxIterations);
-
-uniform vec2 u_zoomCenter;
-uniform float u_zoomSize;
 
 vec2 ipow2(vec2 v) {
     return vec2(v.x * v.x - v.y * v.y, v.x * v.y * 2.0);
@@ -29,8 +28,8 @@ vec3 paletteColor(float t) {
 }
 
 void main() {
-    vec2 uv = gl_FragCoord.xy - iResolution.xy * vec2(1.0 / 1.5, 1.0 / 2.0);
-    uv *= 10.0 / min(3.0 * iResolution.x, 4.0 * iResolution.y);
+    vec2 uv = gl_FragCoord.xy - u_resolution.xy * vec2(1.0 / 1.5, 1.0 / 2.0);
+    uv *= 10.0 / min(3.0 * u_resolution.x, 4.0 * u_resolution.y);
     
     vec2 z = vec2(0.0);
     // vec2 c = uv;

@@ -24,7 +24,7 @@ Which of the transformations is picked depends on the last value of the arrays f
 
 When painting the point transformed with the above transformations on a screen over and over again, this *iteration* of the function slowly starts to paint a picture. A shape – the Barnsley Fern – emerges.
 
-The iterated function code for the Barnsley Fern in P5:
+The iterated function code for the Barnsley Fern:
 
 <br/>
 
@@ -60,7 +60,7 @@ function generateNewCoords(xValue: number, yValue: number) {
   };
 }
 
-// this is repeatedly called by P5.js -> roughly 60 times per second.
+// this is repeatedly called by a setInterval. this is the iterated function!
 function draw() {
     for (let i = 0; i < 1000; i++) {
         const fernHeight = height;

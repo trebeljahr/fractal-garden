@@ -1,24 +1,68 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
-import { P5Instance } from "react-p5-wrapper";
 import { SideDrawer } from "../components/SideDrawer";
 import { getDescription } from "../utils/readFiles";
-import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
+import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { WebGLCanvas } from "../components/Canvas";
+import vertexShader from "../utils/shaders/mandelbrot/vert.glsl";
+import fragmentShader from "../utils/shaders/mandelbrot/frag.glsl";
+import { createShaderProgram } from "../utils/shaders/compileShader";
 
 type Props = {
   description: string;
 };
 
 const Mandelbrot = ({ description }: Props) => {
+  const { width, height } = useWindowSize();
+  const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
+
   useEffect(() => {
-    return () => removeResizeListeners();
-  }, []);
+    if (!gl || !width || !height) return;
+
+    const output = createShaderProgram(gl, vertexShader, fragmentShader);
+    if (!output) return;
+    const { program, vert, frag } = output;
+
+    const aPositionLocation = gl.getAttribLocation(program, "aPosition");
+
+    const colorLocation = gl.getUniformLocation(program, "u_zoomCenter");
+    const matrixLocation = gl.getUniformLocation(program, "u_zoomSize");
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const aspectRatio = 2 / 1;
+    const zoom_center = [0.5, 0.5];
+    const target_zoom_center = [0.0, 0.0];
+
+    let mandelBrot: any;
+
+    let zoom_size = 1;
+    let stop_zooming = true;
+    let max_iterations = 200;
+
+    const drawMandelBrot = () => {
+      if (!mandelBrot) return;
+
+      // mandelBrot.setUniform("u_zoomCenter", zoom_center);
+      // mandelBrot.setUniform("u_zoomSize", zoom_size);
+      // mandelBrot.setUniform("iResolution", getIResolution());
+
+      // ctx.shader(mandelBrot);
+      // ctx.rect(0, 0, ctx.width, ctx.height);
+    };
+
+    const getIResolution = () => {
+      // return [width * ctx.pixelDensity(), height * ctx.pixelDensity()];
+    };
+  }, [gl, width, height]);
 
   return (
     <main className={styles.fullScreen}>
       <div className={styles.fullScreen}>
-        <DynamicReactP5Wrapper sketch={sketch} />
+        <WebGLCanvas setGl={setGl} width={width} height={height} />
       </div>
       <SideDrawer description={description} />
       <NavElement />
@@ -34,68 +78,5 @@ export async function getStaticProps() {
     props: {
       description,
     },
-  };
-}
-
-let listeners: Listener[] = [];
-type Listener = (event?: UIEvent) => void | boolean;
-
-function listenForResize(fn: Listener) {
-  listeners.push(fn);
-  window.addEventListener("resize", fn);
-}
-
-function removeResizeListeners() {
-  listeners.forEach((fn) => window.removeEventListener("resize", fn));
-  listeners = [];
-}
-
-function sketch(p5: P5Instance) {
-  const aspectRatio = 2 / 1;
-  const zoom_center = [0.5, 0.5];
-  const target_zoom_center = [0.0, 0.0];
-
-  let mandelBrot: any;
-
-  let zoom_size = 1;
-  let stop_zooming = true;
-  let max_iterations = 200;
-
-  function drawMandelBrot() {
-    if (!mandelBrot) return;
-
-    mandelBrot.setUniform("u_zoomCenter", zoom_center);
-    mandelBrot.setUniform("u_zoomSize", zoom_size);
-    mandelBrot.setUniform("iResolution", getIResolution());
-
-    p5.shader(mandelBrot);
-    p5.rect(0, 0, p5.width, p5.height);
-  }
-
-  function getIResolution() {
-    return [p5.width * p5.pixelDensity(), p5.height * p5.pixelDensity()];
-  }
-
-  p5.preload = () => {
-    mandelBrot = p5.loadShader(
-      "/assets/shaders/mandel.vert",
-      "/assets/shaders/mandel.frag"
-    );
-  };
-
-  p5.setup = () => {
-    p5.createCanvas(window.innerWidth, window.innerHeight, p5.WEBGL);
-    for (let i = 0; i < 2; i++) {
-      drawMandelBrot();
-    }
-
-    listenForResize(() => {
-      try {
-        p5.resizeCanvas(window.innerWidth, window.innerHeight);
-        drawMandelBrot();
-      } catch (err) {
-        console.log(err);
-      }
-    });
   };
 }

@@ -3,7 +3,6 @@ import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { SideDrawer } from "../components/SideDrawer";
-import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
 import DatGui, {
   DatBoolean,
   DatColor,
