@@ -14,7 +14,24 @@ export const _Canvas = ({ setCtx, width, height }: CleanedProps) => {
     if (!canvas) return;
 
     const context = canvas.getContext("2d");
+    const ratio = Math.ceil(window.devicePixelRatio);
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
     if (!context) return;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }, [width, height]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
     setCtx(context);
   }, []);
 
