@@ -152,6 +152,9 @@ const BarnsleyFern = ({ description }: Props) => {
       }
     };
 
+    ctx.fillStyle = config.background;
+    ctx.fillRect(0, 0, width, height);
+
     const id = setInterval(draw, 100);
     return () => clearInterval(id);
   }, [config, ctx, width, height]);
