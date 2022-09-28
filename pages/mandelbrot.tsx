@@ -28,13 +28,6 @@ const Mandelbrot = ({ description }: Props) => {
     const zoom_center = [0.5, 0.5];
     let zoom_size = 1;
 
-    const getPixelDensity = () => {
-      return Math.ceil(window.devicePixelRatio) || 1;
-    };
-    const getIResolution = () => {
-      return [width * getPixelDensity(), height * getPixelDensity()];
-    };
-
     const drawMandelBrot = () => {
       const output = createShaderProgram(gl, vertexShader, fragmentShader);
       if (!output) return;
@@ -60,8 +53,7 @@ const Mandelbrot = ({ description }: Props) => {
 
       gl.uniform2f(zoomCenterLocation, zoom_center[0], zoom_center[1]);
       gl.uniform1f(zoomSizeLocation, zoom_size);
-      const resolution = getIResolution();
-      gl.uniform2f(resolutionLocation, resolution[0], resolution[1]);
+      gl.uniform2f(resolutionLocation, width, height);
 
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
