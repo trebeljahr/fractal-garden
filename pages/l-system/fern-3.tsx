@@ -21,7 +21,7 @@ const Fern3 = ({ description }: Props) => {
   const fern3: Ruleset = {
     color: "#91fc8e",
     minIterations: 1,
-    maxIterations: 5,
+    maxIterations: 6,
     axiom: "F",
     replace: {
       F: "F[+FF][-FF]F[-F][+F]F",

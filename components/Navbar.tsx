@@ -22,6 +22,7 @@ function useLinks() {
     "/l-system/hilbert-curve",
     "/l-system/sierpinski-curve",
     "/l-system/crystal",
+    "/l-system/sierpinski-arrowhead",
   ];
 
   const i = fractalLinks.findIndex((link) => {

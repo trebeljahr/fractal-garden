@@ -31,7 +31,7 @@ export interface Ruleset {
   replace: Record<string, string>;
   initLength: (sizes: Sizes) => number;
   initTranslation: (sizes: Sizes, initialLength: number) => [number, number];
-  initRotation?: (ctx: CanvasRenderingContext2D) => void;
+  initRotation?: (ctx: CanvasRenderingContext2D, config?: Config) => void;
   divideFactor: number;
   angle: number;
 }
@@ -51,23 +51,6 @@ const LSystem = ({ ruleset }: Props) => {
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
-    if (!config.animateIterations) return;
-    const id = setInterval(() => {
-      setConfig((old) => {
-        const newIterations = old.iterations + 1;
-        return {
-          ...old,
-          iterations:
-            newIterations > config.ruleset.maxIterations
-              ? config.ruleset.minIterations
-              : newIterations,
-        };
-      });
-    }, 2000);
-    return () => clearInterval(id);
-  }, [config.animateIterations]);
-
-  useEffect(() => {
     if (!ctx || !width || !height) return;
 
     let rotationDirection = 1;
@@ -77,10 +60,8 @@ const LSystem = ({ ruleset }: Props) => {
     let angleIncrement = 0;
     let len = 0;
     let angle = 0;
-
     let sentence = "";
-    let computing = false;
-    let currentIteration = 1;
+    let id: NodeJS.Timeout;
 
     const commonSetup = () => {
       ctx.resetTransform();
@@ -99,7 +80,7 @@ const LSystem = ({ ruleset }: Props) => {
         initialLength
       );
       ctx.translate(xOff, yOff);
-      config.ruleset.initRotation && config.ruleset.initRotation(ctx);
+      config.ruleset.initRotation && config.ruleset.initRotation(ctx, config);
     };
 
     const commonAfter = () => {
@@ -163,18 +144,29 @@ const LSystem = ({ ruleset }: Props) => {
     }
 
     function generateFractal() {
-      if (computing) return;
-      computing = true;
-      currentIteration = 1;
-
-      for (let i = 0; i <= config.iterations; i++) {
+      for (let i = 0; i < config.iterations; i++) {
         generateNextIteration();
-        currentIteration++;
       }
-      computing = false;
+
+      if (!config.animateIterations) return;
+
+      id = setTimeout(() => {
+        setConfig((old) => {
+          const newIterations = old.iterations + 1;
+          return {
+            ...old,
+            iterations:
+              newIterations > config.ruleset.maxIterations
+                ? config.ruleset.minIterations
+                : newIterations,
+          };
+        });
+      }, 1000);
     }
 
     resetAndDraw();
+
+    return () => clearTimeout(id);
   }, [config, ctx, width, height, config.animateIterations]);
 
   const handleUpdate = (newData: Config) => {

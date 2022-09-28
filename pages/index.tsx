@@ -125,6 +125,11 @@ const Home: NextPage = () => {
             title="Crystal"
             imageSrc="/assets/fractal-images/l-system-crystal.png"
           />
+          <FractalLink
+            href="/l-system/sierpinski-arrowhead"
+            title="Sierpinski Arrowhead"
+            imageSrc="/assets/fractal-images/sierpinski-arrowhead.png"
+          />
         </div>
       </main>
       <footer className={styles.footer}>
