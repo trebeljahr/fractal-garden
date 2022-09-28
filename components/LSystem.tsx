@@ -84,6 +84,8 @@ const LSystem = ({ ruleset }: Props) => {
 
     const commonSetup = () => {
       ctx.resetTransform();
+      const ratio = Math.ceil(window.devicePixelRatio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       ctx.fillStyle = config.background;
       ctx.fillRect(0, 0, width, height);
       ctx.strokeStyle = config.ruleset.color;
@@ -138,6 +140,9 @@ const LSystem = ({ ruleset }: Props) => {
 
     const resetAndDraw = () => {
       ctx.resetTransform();
+      const ratio = Math.ceil(window.devicePixelRatio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
       sentence = config.ruleset.axiom;
       len = 0;
       generateFractal();

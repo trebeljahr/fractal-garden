@@ -56,6 +56,9 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
       ctx.fillStyle = config.background;
       ctx.fillRect(0, 0, width, height);
       ctx.resetTransform();
+      const ratio = Math.ceil(window.devicePixelRatio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
       ctx.translate(
         (window.innerWidth - length) / 2,
         (window.innerHeight - length) / 2

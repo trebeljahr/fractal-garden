@@ -176,6 +176,9 @@ const FractalTree = ({ description }: Props) => {
 
     const drawTree = () => {
       ctx.resetTransform();
+      const ratio = Math.ceil(window.devicePixelRatio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
       ctx.fillStyle = config.background;
       ctx.fillRect(0, 0, width, height);
       ctx.translate(width / 2, height);
