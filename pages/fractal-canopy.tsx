@@ -137,13 +137,13 @@ const FractalTree = ({ description }: Props) => {
     return () => clearInterval(id);
   }, [config.animateAngle]);
 
+  const angle = radians(
+    config.angle *
+      (config.branches % 2 === 0
+        ? Math.floor(config.branches / 2) - 0.5
+        : Math.floor(config.branches / 2))
+  );
   const configAngle = radians(-config.angle);
-  const angle =
-    configAngle *
-    (config.branches % 2 === 0
-      ? Math.floor(config.branches / 2) - 0.5
-      : Math.floor(config.branches / 2));
-
   const strokeStyles = [...new Array(config.maxIterations)].map(
     (_, iteration) => {
       return rgb(
