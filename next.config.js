@@ -2,10 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  webpack: (config, options) => {
+  webpack: (config) => {
     config.module.rules.push({
-      test: /\.(glsl|vs|fs|vert|frag)$/,
-      use: ["raw-loader", "glslify-loader"],
+      test: /\.(frag|vert)$/,
+      type: "asset/source",
     });
     return config;
   },
