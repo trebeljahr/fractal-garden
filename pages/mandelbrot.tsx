@@ -60,13 +60,6 @@ const Mandelbrot = ({ description }: Props) => {
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-      // mandelBrot.setUniform("u_zoomCenter", zoom_center);
-      // mandelBrot.setUniform("u_zoomSize", zoom_size);
-      // mandelBrot.setUniform("iResolution", getIResolution());
-
-      // ctx.shader(mandelBrot);
-      // ctx.rect(0, 0, ctx.width, ctx.height);
     };
 
     drawMandelBrot();
