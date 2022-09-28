@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import P5 from "p5";
 import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { SideDrawer } from "../components/SideDrawer";
-import { P5Instance } from "react-p5-wrapper";
 import DatGui, {
   DatBoolean,
   DatColor,
@@ -12,11 +10,12 @@ import DatGui, {
   DatNumber,
   DatSelect,
 } from "react-dat-gui";
-import { DynamicReactP5Wrapper } from "../utils/DynamicP5Wrapper";
+import { Canvas } from "../components/Canvas";
+import { useWindowSize } from "../utils/hooks/useWindowResize";
 
 const defaultTree = {
   angle: 43,
-  animateAngle: true,
+  animateAngle: false,
   maxIterations: 7,
   branches: 3,
   background: "#252424",
@@ -107,69 +106,26 @@ type Config = {
   option?: string;
 };
 
-function sketch(p5: P5Instance<{ config: Config }>) {
-  let config: Config;
-  p5.updateWithProps = (props) => {
-    if (props.config) {
-      config = props.config;
-      drawTree();
-    }
-  };
-
-  function drawTree() {
-    p5.background(config.background);
-    p5.resetMatrix();
-    p5.translate(p5.width / 2, p5.height);
-    branch(window.innerHeight / config.rootLength, config.rootWidth, 0);
-  }
-
-  function branch(len: number, weight: number, iteration: number) {
-    if (iteration > config.maxIterations) {
-      return;
-    }
-    p5.strokeWeight(weight);
-    p5.stroke(
-      p5.map(iteration, 0, 10, 100, 150),
-      p5.map(iteration, 0, 10, 100, 255),
-      100
-    );
-    p5.line(0, 0, 0, -len);
-    p5.translate(0, -len);
-    p5.rotate(
-      config.angle *
-        (config.branches % 2 === 0
-          ? Math.floor(config.branches / 2) - 0.5
-          : Math.floor(config.branches / 2))
-    );
-    for (let i = 0; i < config.branches; i++) {
-      p5.push();
-      p5.rotate(-config.angle * i);
-      branch(
-        len * config.lengthFactor,
-        weight * config.widthFactor,
-        iteration + 1
-      );
-      p5.pop();
-    }
-  }
-
-  p5.setup = () => {
-    p5.createCanvas(window.innerWidth, window.innerHeight);
-    p5.angleMode(p5.DEGREES);
-  };
-
-  p5.windowResized = () => {
-    p5.resizeCanvas(window.innerWidth, window.innerHeight);
-    drawTree();
-  };
-}
-
 type Props = {
   description: string;
 };
 
+function radians(angle: number) {
+  return (angle * Math.PI) / 180;
+}
+
+function remap(value: number, l1: number, h1: number, l2: number, h2: number) {
+  return l2 + ((h2 - l2) * (value - l1)) / (h1 - l1);
+}
+
+function rgb(r: number, g: number, b: number) {
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 const FractalTree = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(defaultTree);
+  const { width, height } = useWindowSize();
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     if (!config.animateAngle) return;
@@ -180,6 +136,65 @@ const FractalTree = ({ description }: Props) => {
     }, 100);
     return () => clearInterval(id);
   }, [config.animateAngle]);
+
+  const angle = radians(
+    config.angle *
+      (config.branches % 2 === 0
+        ? Math.floor(config.branches / 2) - 0.5
+        : Math.floor(config.branches / 2))
+  );
+  const configAngle = radians(-config.angle);
+  const strokeStyles = [...new Array(config.maxIterations)].map(
+    (_, iteration) => {
+      return rgb(
+        remap(iteration, 0, 10, 100, 150),
+        remap(iteration, 0, 10, 100, 255),
+        100
+      );
+    }
+  );
+
+  useEffect(() => {
+    if (!ctx || !width || !height) return;
+
+    const branch = (len: number, weight: number, iteration: number) => {
+      if (iteration > config.maxIterations) {
+        return;
+      }
+
+      ctx.lineWidth = weight;
+      ctx.strokeStyle = strokeStyles[iteration];
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -len);
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.translate(0, -len);
+
+      ctx.rotate(angle);
+      for (let i = 0; i < config.branches; i++) {
+        ctx.save();
+        ctx.rotate(configAngle * i);
+        branch(
+          len * config.lengthFactor,
+          weight * config.widthFactor,
+          iteration + 1
+        );
+        ctx.restore();
+      }
+    };
+
+    const drawTree = () => {
+      ctx.resetTransform();
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.translate(width / 2, height);
+      branch(height / config.rootLength, config.rootWidth, 0);
+    };
+
+    drawTree();
+  }, [config, ctx, width, height, config.animateAngle]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => {
@@ -240,7 +255,9 @@ const FractalTree = ({ description }: Props) => {
         </DatFolder>
       </DatGui>
       <div className={styles.fullScreen}>
-        <DynamicReactP5Wrapper sketch={sketch} config={config} />
+        {width && height && (
+          <Canvas setCtx={setCtx} width={width} height={height} />
+        )}
       </div>
       <SideDrawer description={description} />
       <NavElement />
