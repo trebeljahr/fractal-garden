@@ -112,7 +112,6 @@ function sketch(p5: P5Instance<{ config: Config }>) {
   p5.updateWithProps = (props) => {
     if (props.config) {
       config = props.config;
-      p5.background(config.background);
       drawTree();
     }
   };
