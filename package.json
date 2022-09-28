@@ -15,7 +15,6 @@
     "react-dat-gui": "^4.1.1",
     "react-dom": "18.2.0",
     "react-markdown": "^8.0.3",
-    "react-p5-wrapper": "^3.3.0",
     "rehype-highlight": "^5.0.2",
     "rehype-katex": "^6.0.2",
     "rehype-raw": "^6.1.1",
