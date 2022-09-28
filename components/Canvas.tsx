@@ -71,6 +71,16 @@ export const _WebGLCanvas = ({ setCtx, width, height }: WebGLCleanedProps) => {
     setCtx(context);
   }, []);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ratio = Math.ceil(window.devicePixelRatio);
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+  }, [width, height]);
+
   return <canvas ref={canvasRef} width={width} height={height} />;
 };
 
