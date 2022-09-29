@@ -1,0 +1,165 @@
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 10vh;
+}
+
+.footer {
+  width: 100%;
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--bright-grey);
+}
+
+.footer a {
+  color: var(--yellow-white);
+  text-decoration: none;
+  border-bottom: 1px solid var(--yellow-white);
+}
+
+.footer > * {
+  margin: 0px 5px;
+}
+
+.heart {
+  color: rgb(244, 94, 107);
+  font-size: 2rem;
+}
+
+.grid {
+  margin-top: 5vh;
+  width: 100%;
+}
+
+.gridItem {
+  display: block;
+}
+
+.card {
+  border-radius: 1%;
+  overflow: hidden;
+  transition: all 0.2s;
+  transition-property: border, transform;
+  padding: 0 5vw;
+  height: 100%;
+
+  position: relative;
+  border: 1px solid var(--dark-grey);
+  margin-bottom: 5vh;
+}
+
+.cardLink {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cardContent {
+  background-color: var(--medium-grey);
+  padding-top: 30px;
+  padding-bottom: 20px;
+  text-decoration: none;
+}
+
+.cardContent {
+  color: var(--yellow-white);
+  text-decoration: none !important;
+  border-bottom: none;
+  text-align: center;
+}
+
+.squareImage {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 85vw;
+  object-fit: cover;
+  object-position: center;
+}
+
+.subtitle {
+  display: none;
+  font-size: 2rem;
+  letter-spacing: 0.1rem;
+}
+
+.cardHeading {
+  font-size: 2rem;
+}
+
+.heading {
+  font-size: 3rem;
+  margin-top: 5rem;
+  letter-spacing: 0.3rem;
+  font-weight: 200;
+  border-bottom: 1px solid var(--yellow-white);
+}
+
+@media (min-width: 900px) {
+  .subtitle {
+    display: block;
+  }
+
+  .card:hover {
+    transform: scale(1.02);
+    border: 1px solid var(--yellow-white);
+  }
+
+  .cardContent {
+    padding: 40px;
+  }
+  .card {
+    padding: 0;
+
+    width: 100%;
+    margin: 0;
+  }
+
+  .squareImage {
+    width: 100%;
+    height: 40vw;
+  }
+
+  .grid {
+    display: grid;
+    width: 90%;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 60px;
+  }
+
+  .heading {
+    font-size: 5rem;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.8rem;
+    margin-bottom: 5rem;
+    letter-spacing: 0.3rem;
+    font-weight: 100;
+  }
+
+  .subHeading {
+    letter-spacing: 0.1rem;
+  }
+}
+
+@media (min-width: 1350px) {
+  .squareImage {
+    height: 25vw;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 60px;
+  }
+}
