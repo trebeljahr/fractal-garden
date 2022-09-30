@@ -3,6 +3,7 @@ import { NavElement } from "../../components/Navbar";
 import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
 import { getDescription } from "../../utils/readFiles";
+import Head from "next/head";
 
 export async function getStaticProps() {
   const description = await getDescription("fern-1.md");
@@ -33,11 +34,20 @@ const Fern1 = ({ description }: Props) => {
     divideFactor: 2,
   };
   return (
-    <main className={styles.fullScreen}>
-      <LSystem ruleset={fern1} />
-      <SideDrawer description={description} />
-      <NavElement />
-    </main>
+    <>
+      <Head>
+        <title>L-System Fern-1</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation of a L-System Fern. You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <LSystem ruleset={fern1} />
+        <SideDrawer description={description} />
+        <NavElement />
+      </main>
+    </>
   );
 };
 

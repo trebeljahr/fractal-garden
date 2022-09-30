@@ -8,6 +8,7 @@ import { WebGLCanvas } from "../components/Canvas";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbrot.frag";
 import { createShaderProgram } from "../utils/shaders/compileShader";
+import Head from "next/head";
 
 type Props = {
   description: string;
@@ -75,13 +76,22 @@ const Mandelbrot = ({ description }: Props) => {
   }, [gl, width, height]);
 
   return (
-    <main className={styles.fullScreen}>
-      <div className={styles.fullScreen}>
-        <WebGLCanvas setGl={setGl} width={width} height={height} />
-      </div>
-      <SideDrawer description={description} />
-      <NavElement />
-    </main>
+    <>
+      <Head>
+        <title>Mandelbrot Set</title>
+        <meta
+          name="description"
+          content={`An interactive WebGL implementation of the most famous fractal – The Mandelbrot Set. You can zoom in and out and move around to explore this beautiful fractal.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <div className={styles.fullScreen}>
+          <WebGLCanvas setGl={setGl} width={width} height={height} />
+        </div>
+        <SideDrawer description={description} />
+        <NavElement />
+      </main>
+    </>
   );
 };
 

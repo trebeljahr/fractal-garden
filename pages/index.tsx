@@ -5,7 +5,7 @@ import styles from "../styles/Home.module.css";
 
 const Home: NextPage = () => {
   return (
-    <div className={styles.container}>
+    <>
       <Head>
         <title>Fractal Garden</title>
         <meta
@@ -106,7 +106,7 @@ const Home: NextPage = () => {
           />
         </div>
       </main>
-    </div>
+    </>
   );
 };
 

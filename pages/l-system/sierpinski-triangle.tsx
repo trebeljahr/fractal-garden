@@ -4,6 +4,7 @@ import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
 import { getDescription } from "../../utils/readFiles";
 import { radians } from "../../utils/ctxHelpers";
+import Head from "next/head";
 
 export async function getStaticProps() {
   const description = await getDescription("sierpinski-triangle.md");
@@ -40,12 +41,21 @@ const SierpinskiTriangle = ({ description }: Props) => {
     divideFactor: 2,
   };
   return (
-    <main className={styles.fullScreen}>
-      <LSystem ruleset={sierpinskiTriangle} />
-      <SideDrawer description={description} />
+    <>
+      <Head>
+        <title>L-System Sierpinski Triangle</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation of the famous Sierpinski Triangle as an L-System. You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <LSystem ruleset={sierpinskiTriangle} />
+        <SideDrawer description={description} />
 
-      <NavElement />
-    </main>
+        <NavElement />
+      </main>
+    </>
   );
 };
 

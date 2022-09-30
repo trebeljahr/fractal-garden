@@ -6,6 +6,7 @@ import { getDescription } from "../utils/readFiles";
 import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { Canvas } from "../components/Canvas";
+import Head from "next/head";
 
 type Transformation = {
   matrix: number[][];
@@ -164,24 +165,33 @@ const BarnsleyFern = ({ description }: Props) => {
   };
 
   return (
-    <main className={styles.fullScreen}>
-      <DatGui data={config} onUpdate={handleUpdate}>
-        <DatFolder closed={true} title="Options">
-          <DatSelect
-            path="fernToUse"
-            label="Fern"
-            options={Object.keys(matrices)}
-          />
-          <DatColor path="background" label="background" />
-          <DatColor path="color" label="color" />
-        </DatFolder>
-      </DatGui>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
-      <SideDrawer description={description} />
-      <NavElement />
-    </main>
+    <>
+      <Head>
+        <title>Barnsley Fern</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation of a Barnsley Fern. There are multiple different fern "types" you can play around with.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <DatGui data={config} onUpdate={handleUpdate}>
+          <DatFolder closed={true} title="Options">
+            <DatSelect
+              path="fernToUse"
+              label="Fern"
+              options={Object.keys(matrices)}
+            />
+            <DatColor path="background" label="background" />
+            <DatColor path="color" label="color" />
+          </DatFolder>
+        </DatGui>
+        <div className={styles.fullScreen}>
+          <Canvas setCtx={setCtx} width={width} height={height} />
+        </div>
+        <SideDrawer description={description} />
+        <NavElement />
+      </main>
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ import { NavElement } from "../../components/Navbar";
 import styles from "../../styles/Fullscreen.module.css";
 import { SideDrawer } from "../../components/SideDrawer";
 import { getDescription } from "../../utils/readFiles";
+import Head from "next/head";
 
 export async function getStaticProps() {
   const description = await getDescription("sierpinski-curve.md");
@@ -33,12 +34,21 @@ const SierpinskiCurve = ({ description }: Props) => {
     divideFactor: 2.05,
   };
   return (
-    <main className={styles.fullScreen}>
-      <LSystem ruleset={sierpinskiCurve} />
-      <SideDrawer description={description} />
+    <>
+      <Head>
+        <title>L-System Sierpinski Curve</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation of a space filling Sierpinski Curve as an L-System. You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <LSystem ruleset={sierpinskiCurve} />
+        <SideDrawer description={description} />
 
-      <NavElement />
-    </main>
+        <NavElement />
+      </main>
+    </>
   );
 };
 

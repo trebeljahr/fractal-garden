@@ -13,6 +13,7 @@ import DatGui, {
 import { Canvas } from "../components/Canvas";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { radians, remap, rgb } from "../utils/ctxHelpers";
+import Head from "next/head";
 
 const defaultTree = {
   angle: 43,
@@ -198,60 +199,70 @@ const FractalTree = ({ description }: Props) => {
   };
 
   return (
-    <main className={styles.fullScreen}>
-      <DatGui data={config} onUpdate={handleUpdate}>
-        <DatFolder closed={true} title="Options">
-          <DatColor path="background" label="background" />
-          <DatSelect
-            path="option"
-            label="option"
-            options={Object.keys(configs)}
-          />
-          <DatNumber path="angle" label="angle" min={0} max={360} step={1} />
-          <DatBoolean path="animateAngle" label="animate angle?" />
-          <DatNumber
-            path="maxIterations"
-            label="maxIterations"
-            min={1}
-            max={9}
-            step={1}
-          />
-          <DatNumber
-            path="branches"
-            label="branches"
-            min={2}
-            max={6}
-            step={1}
-          />
-          <DatNumber
-            path="lengthFactor"
-            label="lengthFactor"
-            min={0}
-            max={1}
-            step={0.01}
-          />
-          <DatNumber
-            path="widthFactor"
-            label="widthFactor"
-            min={0}
-            max={2}
-            step={0.1}
-          />
-          <DatNumber
-            path="rootWidth"
-            label="rootWidth"
-            min={1}
-            max={60}
-            step={0.5}
-          />
-        </DatFolder>
-      </DatGui>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
-      <SideDrawer description={description} />
-      <NavElement />
-    </main>
+    <>
+      <Head>
+        <title>Fractal Canopy</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation of a Fractal Canopy, also known as a Fractal Tree. A fractal canopy is a fractal generated, by sequentially splitting and branching lines from existing lines. At the end of each line, draw n new lines at certain angles.`}
+        />
+      </Head>
+
+      <main className={styles.fullScreen}>
+        <DatGui data={config} onUpdate={handleUpdate}>
+          <DatFolder closed={true} title="Options">
+            <DatColor path="background" label="background" />
+            <DatSelect
+              path="option"
+              label="option"
+              options={Object.keys(configs)}
+            />
+            <DatNumber path="angle" label="angle" min={0} max={360} step={1} />
+            <DatBoolean path="animateAngle" label="animate angle?" />
+            <DatNumber
+              path="maxIterations"
+              label="maxIterations"
+              min={1}
+              max={9}
+              step={1}
+            />
+            <DatNumber
+              path="branches"
+              label="branches"
+              min={2}
+              max={6}
+              step={1}
+            />
+            <DatNumber
+              path="lengthFactor"
+              label="lengthFactor"
+              min={0}
+              max={1}
+              step={0.01}
+            />
+            <DatNumber
+              path="widthFactor"
+              label="widthFactor"
+              min={0}
+              max={2}
+              step={0.1}
+            />
+            <DatNumber
+              path="rootWidth"
+              label="rootWidth"
+              min={1}
+              max={60}
+              step={0.5}
+            />
+          </DatFolder>
+        </DatGui>
+        <div className={styles.fullScreen}>
+          <Canvas setCtx={setCtx} width={width} height={height} />
+        </div>
+        <SideDrawer description={description} />
+        <NavElement />
+      </main>
+    </>
   );
 };
 

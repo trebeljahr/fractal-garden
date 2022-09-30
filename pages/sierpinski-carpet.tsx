@@ -11,6 +11,7 @@ import DatGui, {
 } from "react-dat-gui";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { Canvas } from "../components/Canvas";
+import Head from "next/head";
 
 type Config = {
   maxIterations: number;
@@ -98,30 +99,39 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
   };
 
   return (
-    <main className={styles.fullScreen}>
-      <DatGui data={config} onUpdate={handleUpdate}>
-        <DatFolder closed={true} title="Options">
-          <DatColor path="background" label="background" />
-          <DatNumber
-            path="maxIterations"
-            label="maxIterations"
-            min={1}
-            max={5}
-            step={1}
-          />
-          <DatBoolean path="animateIterations" label="animate iterations?" />
-          <DatColor path="color" label="color" />
-          <DatColor path="holeColor" label="holeColor" />
-          <DatColor path="background" label="background" />
-        </DatFolder>
-      </DatGui>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
-      <SideDrawer description={description} />
+    <>
+      <Head>
+        <title>Sierpinski Carpet</title>
+        <meta
+          name="description"
+          content={`An interactive fractal implementation the Sierpinski Carpet, a fractal shape with 0 area.`}
+        />
+      </Head>
+      <main className={styles.fullScreen}>
+        <DatGui data={config} onUpdate={handleUpdate}>
+          <DatFolder closed={true} title="Options">
+            <DatColor path="background" label="background" />
+            <DatNumber
+              path="maxIterations"
+              label="maxIterations"
+              min={1}
+              max={5}
+              step={1}
+            />
+            <DatBoolean path="animateIterations" label="animate iterations?" />
+            <DatColor path="color" label="color" />
+            <DatColor path="holeColor" label="holeColor" />
+            <DatColor path="background" label="background" />
+          </DatFolder>
+        </DatGui>
+        <div className={styles.fullScreen}>
+          <Canvas setCtx={setCtx} width={width} height={height} />
+        </div>
+        <SideDrawer description={description} />
 
-      <NavElement />
-    </main>
+        <NavElement />
+      </main>
+    </>
   );
 };
 
