@@ -1,33 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
-import Link from "next/link";
+import { FractalLink } from "../components/FractalLink";
 import styles from "../styles/Home.module.css";
-
-type FractalLinkProps = {
-  href: string;
-  imageSrc: string;
-  title: string;
-};
-
-const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
-  return (
-    <div className={styles.gridItem}>
-      <article className={styles.card}>
-        <Link as={href} href={href}>
-          <a className={styles.cardLink}></a>
-        </Link>
-        <div className={styles.squareImage}>
-          <Image src={imageSrc} alt={title} layout="fill" />
-        </div>
-
-        <div className={styles.cardContent}>
-          <h3 className={styles.cardHeading}>{title}</h3>
-        </div>
-      </article>
-    </div>
-  );
-};
 
 const Home: NextPage = () => {
   return (
@@ -48,96 +22,90 @@ const Home: NextPage = () => {
           <FractalLink
             href="/mandelbrot"
             title="Mandelbrot Set"
-            imageSrc="/assets/fractal-images/mandelbrot.png"
+            imageSrc="/assets/fractal-images/mandelbrot.jpg"
           />
           <FractalLink
             href="/barnsley-fern"
             title="Barnsley Fern"
-            imageSrc="/assets/fractal-images/barnsley-fern.png"
+            imageSrc="/assets/fractal-images/barnsley-fern.jpg"
           />
           <FractalLink
             href="/sierpinski-carpet"
             title="Sierpinski Carpet"
-            imageSrc="/assets/fractal-images/sierpinski-carpet.png"
+            imageSrc="/assets/fractal-images/sierpinski-carpet.jpg"
           />
           <FractalLink
             href="/l-system/levy-curve"
             title="Lévy Curve"
-            imageSrc="/assets/fractal-images/l-system-levy.png"
+            imageSrc="/assets/fractal-images/l-system-levy.jpg"
           />
           <FractalLink
             href="/l-system/fern-1"
             title="L-System Fern 1"
-            imageSrc="/assets/fractal-images/l-system-fern-1.png"
+            imageSrc="/assets/fractal-images/l-system-fern-1.jpg"
           />
           <FractalLink
             href="/l-system/fern-2"
             title="L-System Fern 2"
-            imageSrc="/assets/fractal-images/l-system-fern-2.png"
+            imageSrc="/assets/fractal-images/l-system-fern-2.jpg"
           />
           <FractalLink
             href="/l-system/fern-3"
             title="L-System Fern 3"
-            imageSrc="/assets/fractal-images/l-system-fern-3.png"
+            imageSrc="/assets/fractal-images/l-system-fern-3.jpg"
           />
           <FractalLink
             href="/l-system/fern-4"
             title="L-System Fern 4"
-            imageSrc="/assets/fractal-images/l-system-fern-4.png"
+            imageSrc="/assets/fractal-images/l-system-fern-4.jpg"
           />
           <FractalLink
             href="/l-system/board"
             title="Board"
-            imageSrc="/assets/fractal-images/l-system-board.png"
+            imageSrc="/assets/fractal-images/l-system-board.jpg"
           />
           <FractalLink
             href="/l-system/sierpinski-triangle"
             title="Sierpinski Triangle"
-            imageSrc="/assets/fractal-images/l-system-sierpinski-triangle.png"
+            imageSrc="/assets/fractal-images/l-system-sierpinski-triangle.jpg"
           />
           <FractalLink
             href="/fractal-canopy"
             title="Fractal Canopy"
-            imageSrc="/assets/fractal-images/fractal-canopy.png"
+            imageSrc="/assets/fractal-images/fractal-canopy.jpg"
           />
           <FractalLink
             href="/l-system/quadratic-snowflake"
             title="Quadratic Snowflake"
-            imageSrc="/assets/fractal-images/l-system-quadratic-snowflake.png"
+            imageSrc="/assets/fractal-images/l-system-quadratic-snowflake.jpg"
           />
           <FractalLink
             href="/l-system/koch-snowflake"
             title="Koch Snowflake"
-            imageSrc="/assets/fractal-images/l-system-koch-snowflake.png"
+            imageSrc="/assets/fractal-images/l-system-koch-snowflake.jpg"
           />
           <FractalLink
             href="/l-system/hilbert-curve"
             title="Hilbert Curve"
-            imageSrc="/assets/fractal-images/l-system-hilbert-curve.png"
+            imageSrc="/assets/fractal-images/l-system-hilbert-curve.jpg"
           />
           <FractalLink
             href="/l-system/sierpinski-curve"
             title="Sierpinski Curve"
-            imageSrc="/assets/fractal-images/l-system-sierpinski-curve.png"
+            imageSrc="/assets/fractal-images/l-system-sierpinski-curve.jpg"
           />
           <FractalLink
             href="/l-system/crystal"
             title="Crystal"
-            imageSrc="/assets/fractal-images/l-system-crystal.png"
+            imageSrc="/assets/fractal-images/l-system-crystal.jpg"
           />
           <FractalLink
             href="/l-system/sierpinski-arrowhead"
             title="Sierpinski Arrowhead"
-            imageSrc="/assets/fractal-images/sierpinski-arrowhead.png"
+            imageSrc="/assets/fractal-images/sierpinski-arrowhead.jpg"
           />
         </div>
       </main>
-      <footer className={styles.footer}>
-        <p>
-          Made with <span className={styles.heart}>♥</span> by{" "}
-          <a href="https://trebeljahr.com">Rico Trebeljahr</a>
-        </p>
-      </footer>
     </div>
   );
 };
