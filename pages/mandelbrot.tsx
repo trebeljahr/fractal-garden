@@ -9,6 +9,7 @@ import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbrot.frag";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import Head from "next/head";
+import { constrain, remap } from "../utils/ctxHelpers";
 
 type Props = {
   description: string;
@@ -17,41 +18,45 @@ type Props = {
 const Mandelbrot = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
+  const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    if (!gl || !width || !height) return;
-
+    if (!gl || !width || !height || !cnv) return;
+    console.log("Running use effect... again");
     const aspectRatio = 2 / 1;
     const target_zoom_center = [0.0, 0.0];
     let stop_zooming = true;
     let max_iterations = 200;
 
-    const zoom_center = [0.5, 0.5];
-    let zoom_size = 1;
+    const zoomCenter = [0.5, 0.5];
+    let zoomSize = 1;
+    let zooming = false;
+    let zoomFactor = 1;
+
+    const output = createShaderProgram(gl, vertexShader, fragmentShader);
+    if (!output) return;
+
+    const { program } = output;
+
+    gl.useProgram(program);
+
+    const vertBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 3, -1, -1, 3]),
+      gl.STATIC_DRAW
+    );
+
+    const aPositionLocation = gl.getAttribLocation(program, "aPosition");
+    gl.enableVertexAttribArray(aPositionLocation);
+    gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    const zoomCenterLocation = gl.getUniformLocation(program, "u_zoomCenter");
+    const zoomSizeLocation = gl.getUniformLocation(program, "u_zoomSize");
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
 
     const drawMandelBrot = () => {
-      const output = createShaderProgram(gl, vertexShader, fragmentShader);
-      if (!output) return;
-      const { program } = output;
-
-      gl.useProgram(program);
-
-      const vertBuf = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf);
-      gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array([-1, -1, 3, -1, -1, 3]),
-        gl.STATIC_DRAW
-      );
-
-      const aPositionLocation = gl.getAttribLocation(program, "aPosition");
-      gl.enableVertexAttribArray(aPositionLocation);
-      gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
-
-      const zoomCenterLocation = gl.getUniformLocation(program, "u_zoomCenter");
-      const zoomSizeLocation = gl.getUniformLocation(program, "u_zoomSize");
-      const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-
       const getPixelDensity = () => {
         return Math.ceil(window.devicePixelRatio) || 1;
       };
@@ -61,8 +66,8 @@ const Mandelbrot = ({ description }: Props) => {
 
       const resolution = getIResolution();
 
-      gl.uniform2f(zoomCenterLocation, zoom_center[0], zoom_center[1]);
-      gl.uniform1f(zoomSizeLocation, zoom_size);
+      gl.uniform2f(zoomCenterLocation, zoomCenter[0], zoomCenter[1]);
+      gl.uniform1f(zoomSizeLocation, zoomSize);
       gl.uniform2f(resolutionLocation, resolution[0], resolution[1]);
 
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -72,8 +77,57 @@ const Mandelbrot = ({ description }: Props) => {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
+    let zoomAcceleration = 0;
+    // let id: NodeJS.Timer;
+    const clickHandler = (event: MouseEvent) => {
+      console.log("Clicked!", event);
+      console.log(zoomSize);
+      console.log(zoomSize);
+
+      zooming = true;
+      zoomFactor = event.ctrlKey ? 1.01 : 0.99;
+      zoomAcceleration = event.ctrlKey ? 0.00007 : -0.00007;
+      requestAnimationFrame(zoom);
+    };
+
+    const clickReleaseHandler = () => {
+      console.log("Click released!");
+      zooming = false;
+    };
+    let x: number = 0;
+    let y: number = 0;
+
+    const zoom = () => {
+      if (!zooming) return;
+      zoomFactor += zoomAcceleration;
+      zoomSize = constrain(zoomSize * zoomFactor, 0.00005, 4);
+      zoomCenter[0] += (x * Math.min(1, zoomSize)) / 10;
+      zoomCenter[1] -= (y * Math.min(1, zoomSize)) / 10;
+      drawMandelBrot();
+      requestAnimationFrame(zoom);
+    };
+
+    const updateMousePosition = (event: MouseEvent) => {
+      if (!zooming) return;
+
+      x = remap(event.clientX, 0, width, -1, 1);
+      y = remap(event.clientY, 0, height, -1, 1);
+      console.log(x, y);
+      // console.log(event);
+    };
+
     drawMandelBrot();
-  }, [gl, width, height]);
+
+    cnv.addEventListener("mousemove", updateMousePosition);
+
+    cnv.addEventListener("mousedown", clickHandler);
+    cnv.addEventListener("mouseup", clickReleaseHandler);
+    return () => {
+      cnv.removeEventListener("mousedown", clickHandler);
+      cnv.removeEventListener("mouseup", clickReleaseHandler);
+      cnv.removeEventListener("mousemove", updateMousePosition);
+    };
+  }, [gl, width, height, cnv]);
 
   return (
     <>
@@ -86,7 +140,12 @@ const Mandelbrot = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <div className={styles.fullScreen}>
-          <WebGLCanvas setGl={setGl} width={width} height={height} />
+          <WebGLCanvas
+            setGl={setGl}
+            width={width}
+            height={height}
+            setCnv={setCnv}
+          />
         </div>
         <SideDrawer description={description} />
         <NavElement />
