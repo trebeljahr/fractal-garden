@@ -51,7 +51,25 @@
   object-position: center;
 }
 
+.bigIcon {
+  font-size: 40rem;
+}
+
+.centerIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerIcon > svg {
+  width: 70%;
+}
+
 @media (min-width: 900px) {
+  .bigIcon {
+    font-size: 20rem;
+  }
+
   .card:hover {
     transform: scale(1.02);
     border: 1px solid var(--yellow-white);

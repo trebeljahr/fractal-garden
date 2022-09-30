@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { FractalLink } from "../components/FractalLink";
+import { AddMoreLink, FractalLink } from "../components/FractalLink";
 import styles from "../styles/Home.module.css";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
 import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg";
@@ -19,6 +19,7 @@ import hilbertCurveImage from "../public/assets/fractal-images/l-system-hilbert-
 import sierpinskiCurveImage from "../public/assets/fractal-images/l-system-sierpinski-curve.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
+import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
   return (
@@ -124,8 +125,10 @@ const Home: NextPage = () => {
             title="Sierpinski Arrowhead"
             imageSrc={sierpinskiArrowheadImage}
           />
+          <AddMoreLink />
         </div>
       </main>
+      <Footer />
     </>
   );
 };
