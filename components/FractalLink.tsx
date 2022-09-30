@@ -13,7 +13,11 @@ export const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
     <div className={styles.gridItem}>
       <article className={styles.card}>
         <Link as={href} href={href}>
-          <a className={styles.cardLink}></a>
+          <a className={styles.cardLink}>
+            <span className="screen-reader-only">
+              Link to the {title} fractal page.
+            </span>
+          </a>
         </Link>
         <div className={styles.squareImage}>
           <Image src={imageSrc} alt={title} layout="fill" />
