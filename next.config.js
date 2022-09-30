@@ -9,6 +9,10 @@ const nextConfig = {
     });
     return config;
   },
+  i18n: {
+    locales: ["en"],
+    defaultLocale: "en",
+  },
 };
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
