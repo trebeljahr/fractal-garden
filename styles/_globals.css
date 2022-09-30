@@ -33,6 +33,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.screen-reader-only {
+  height: 1px;
+  width: 1px;
+  clip: rect(1px, 1px, 1px, 1px);
+  overflow: hidden;
+  position: absolute;
+}
+
 html,
 body {
   padding: 0;
@@ -143,9 +151,9 @@ code.hljs {
   padding: 3px 5px;
 }
 .hljs {
-  color: #abb2bf;
-  background: #282c34;
+  background: #071126;
 }
+
 .hljs-keyword,
 .hljs-operator,
 .hljs-pattern-match {
