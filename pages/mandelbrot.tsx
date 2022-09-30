@@ -22,7 +22,6 @@ const Mandelbrot = ({ description }: Props) => {
 
   useEffect(() => {
     if (!gl || !width || !height || !cnv) return;
-    console.log("Running use effect... again");
     const aspectRatio = 2 / 1;
     const target_zoom_center = [0.0, 0.0];
     let stop_zooming = true;
@@ -80,10 +79,6 @@ const Mandelbrot = ({ description }: Props) => {
     let zoomAcceleration = 0;
     // let id: NodeJS.Timer;
     const clickHandler = (event: MouseEvent) => {
-      console.log("Clicked!", event);
-      console.log(zoomSize);
-      console.log(zoomSize);
-
       zooming = true;
       zoomFactor = event.ctrlKey ? 1.01 : 0.99;
       zoomAcceleration = event.ctrlKey ? 0.00007 : -0.00007;
@@ -91,7 +86,6 @@ const Mandelbrot = ({ description }: Props) => {
     };
 
     const clickReleaseHandler = () => {
-      console.log("Click released!");
       zooming = false;
     };
     let x: number = 0;
@@ -112,8 +106,6 @@ const Mandelbrot = ({ description }: Props) => {
 
       x = remap(event.clientX, 0, width, -1, 1);
       y = remap(event.clientY, 0, height, -1, 1);
-      console.log(x, y);
-      // console.log(event);
     };
 
     drawMandelBrot();
