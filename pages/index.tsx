@@ -23,11 +23,13 @@ const Home: NextPage = () => {
             href="/mandelbrot"
             title="Mandelbrot Set"
             imageSrc="/assets/fractal-images/mandelbrot.jpg"
+            prio={true}
           />
           <FractalLink
             href="/barnsley-fern"
             title="Barnsley Fern"
             imageSrc="/assets/fractal-images/barnsley-fern.jpg"
+            prio={true}
           />
           <FractalLink
             href="/sierpinski-carpet"

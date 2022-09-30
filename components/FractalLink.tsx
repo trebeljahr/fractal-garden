@@ -6,9 +6,15 @@ type FractalLinkProps = {
   href: string;
   imageSrc: string;
   title: string;
+  prio?: boolean;
 };
 
-export const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
+export const FractalLink = ({
+  href,
+  imageSrc,
+  title,
+  prio = false,
+}: FractalLinkProps) => {
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
@@ -20,7 +26,7 @@ export const FractalLink = ({ href, imageSrc, title }: FractalLinkProps) => {
           </a>
         </Link>
         <div className={styles.squareImage}>
-          <Image src={imageSrc} alt={title} layout="fill" />
+          <Image src={imageSrc} alt={title} layout="fill" priority={prio} />
         </div>
 
         <div className={styles.cardContent}>
