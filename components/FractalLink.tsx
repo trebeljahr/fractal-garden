@@ -1,10 +1,11 @@
-import Image from "next/image";
+import Image, { StaticImageData } from "next/future/image";
 import Link from "next/link";
 import styles from "../styles/FractalLink.module.css";
+import useDimensions from "react-cool-dimensions";
 
 type FractalLinkProps = {
   href: string;
-  imageSrc: string;
+  imageSrc: StaticImageData;
   title: string;
   prio?: boolean;
 };
@@ -15,6 +16,8 @@ export const FractalLink = ({
   title,
   prio = false,
 }: FractalLinkProps) => {
+  const { observe, width, height } = useDimensions<HTMLDivElement | null>();
+
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
@@ -25,8 +28,16 @@ export const FractalLink = ({
             </span>
           </a>
         </Link>
-        <div className={styles.squareImage}>
-          <Image src={imageSrc} alt={title} layout="fill" priority={prio} />
+        <div className={styles.squareImage} ref={observe}>
+          <Image
+            src={imageSrc}
+            alt={title}
+            placeholder="blur"
+            width={width}
+            height={height}
+            className={styles.squareImage}
+            priority={prio}
+          />
         </div>
 
         <div className={styles.cardContent}>
