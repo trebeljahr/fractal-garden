@@ -69,4 +69,4 @@ Happy "growing"! 🌱
 
 ## 🌌 Plug 🌌
 
-The Fractal Garden originated as one of my [1-month projects](trebeljahr.com/now). I hope to tackle more cool projects like it in the future, the idea is to limit the amount of work that I put into each one of them to exactly 1 month and see/document how far I can get. 
+The Fractal Garden originated as one of my [1-month projects](https://www.trebeljahr.com/1-month-projects). I hope to tackle more cool projects like it in the future, the idea is to limit the amount of work that I put into each one of them to exactly 1 month and see/document how far I can get. 
