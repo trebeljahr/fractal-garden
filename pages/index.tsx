@@ -19,6 +19,7 @@ import hilbertCurveImage from "../public/assets/fractal-images/l-system-hilbert-
 import sierpinskiCurveImage from "../public/assets/fractal-images/l-system-sierpinski-curve.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
+import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg"
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -124,6 +125,11 @@ const Home: NextPage = () => {
             href="/l-system/sierpinski-arrowhead"
             title="Sierpinski Arrowhead"
             imageSrc={sierpinskiArrowheadImage}
+          />
+          <FractalLink
+            href="http://nebula.scottandmichelle.net/nebula/index.html"
+            title="Buddhabrot"
+            imageSrc={buddhabrotImage}
           />
           <AddMoreLink />
         </div>
