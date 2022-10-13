@@ -165,21 +165,22 @@ const BarnsleyFern = ({ description }: Props) => {
     const [xMin, xMax] = range.x;
     const [yMin, yMax] = range.y;
 
-    const padding = 100;
+    const padding = 0.025; // 2.5% padding applied to both borders
+    const paddingFactor = 1 - 2 * padding;
 
     const determineLimits = (limitByWidth: boolean): [number, number] => {
       if (!limitByWidth) {
         // limit fern by screen height
-        const heightLimit = height - 2 * padding;
+        const heightLimit = height * paddingFactor;
         const widthLimit = heightLimit * ratio;
-        const exceeding = widthLimit > width - 2 * padding;
+        const exceeding = widthLimit > width * paddingFactor;
         return exceeding ? determineLimits(!isWide) : [widthLimit, heightLimit];
       }
 
       // limit by screen width
-      const widthLimit = width - 2 * padding;
+      const widthLimit = width * paddingFactor;
       const heightLimit = widthLimit / ratio;
-      const exceeding = heightLimit > height - 2 * padding;
+      const exceeding = heightLimit > height * paddingFactor;
       return exceeding ? determineLimits(!isWide) : [widthLimit, heightLimit];
     };
 
@@ -199,8 +200,8 @@ const BarnsleyFern = ({ description }: Props) => {
       for (let i = 0; i < 5000; i++) {
         ctx.fillStyle = config.color;
 
-        const plotX = remapX(x) + width / 2;
-        const plotY = remapY(y) * -1 + height - padding;
+        const plotX = remapX(x) + (width - drawWidth) / 2;
+        const plotY = remapY(y) * -1 + height * (1 - padding);
 
         ctx.lineWidth = 0.1;
         point(plotX, plotY);
