@@ -190,7 +190,8 @@ const BarnsleyFern = ({ description }: Props) => {
     // remap to full scale
     const remapper =
       (pMin: number, pMax: number, tMin: number, tMax: number) => (p: number) =>
-        ((tMax - tMin) / (pMax - pMin)) * p;
+        ((tMax - tMin) / (pMax - pMin)) * (p - pMin) + tMin;
+
     const remapX = remapper(xMin, xMax, 0, drawWidth);
     const remapY = remapper(yMin, yMax, 0, drawHeight);
 
