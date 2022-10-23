@@ -9,7 +9,8 @@ import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbrot.frag";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import Head from "next/head";
-import { constrain, remap } from "../utils/ctxHelpers";
+import { constrain } from "../utils/ctxHelpers";
+import { remapper } from "../utils/scaling";
 
 type Props = {
   description: string;
@@ -101,11 +102,13 @@ const Mandelbrot = ({ description }: Props) => {
       requestAnimationFrame(zoom);
     };
 
-    const updateMousePosition = (event: MouseEvent) => {
+    const remapX = remapper([0, width], [-1, 1]);
+    const remapY = remapper([0, height], [-1, 1]);
+    const updateMousePosition = ({ clientX, clientY }: MouseEvent) => {
       if (!zooming) return;
 
-      x = remap(event.clientX, 0, width, -1, 1);
-      y = remap(event.clientY, 0, height, -1, 1);
+      x = remapX(clientX);
+      y = remapY(clientY);
     };
 
     drawMandelBrot();
