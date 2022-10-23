@@ -23,10 +23,6 @@ const Mandelbrot = ({ description }: Props) => {
 
   useEffect(() => {
     if (!gl || !width || !height || !cnv) return;
-    const aspectRatio = 2 / 1;
-    const target_zoom_center = [0.0, 0.0];
-    let stop_zooming = true;
-    let max_iterations = 200;
 
     const zoomCenter = [0.5, 0.5];
     let zoomSize = 1;
