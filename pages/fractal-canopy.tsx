@@ -12,8 +12,9 @@ import DatGui, {
 } from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { radians, remap, rgb } from "../utils/ctxHelpers";
+import { radians, rgb } from "../utils/ctxHelpers";
 import Head from "next/head";
+import { remapper } from "../utils/scaling";
 
 const defaultTree = {
   angle: 43,
@@ -134,13 +135,12 @@ const FractalTree = ({ description }: Props) => {
         : Math.floor(config.branches / 2))
   );
   const configAngle = radians(-config.angle);
+
+  const remapR = remapper([0, 10], [100, 150]);
+  const remapG = remapper([0, 10], [100, 255]);
   const strokeStyles = [...new Array(config.maxIterations)].map(
     (_, iteration) => {
-      return rgb(
-        remap(iteration, 0, 10, 100, 150),
-        remap(iteration, 0, 10, 100, 255),
-        100
-      );
+      return rgb(remapR(iteration), remapG(iteration), 100);
     }
   );
 

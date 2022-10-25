@@ -7,18 +7,11 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
+import { limiter, remapper, Scalable } from "../utils/scaling";
 
-type Pair = [number, number];
-
-type Range = {
-  x: Pair;
-  y: Pair;
-};
-
-type Transformation = {
+interface Transformation extends Scalable {
   matrix: number[][];
-  range: Range;
-};
+}
 
 type Fern =
   | "tree"
@@ -46,7 +39,7 @@ const barnsley: Transformation = {
     [0.2, -0.26, 0.23, 0.22, 0, 1.6, 0.07],
     [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07],
   ],
-  range: {
+  ranges: {
     x: [-2.1818903790071125, 2.6557747667552816],
     y: [0.02608982485507005, 9.998262444483984],
   },
@@ -59,7 +52,7 @@ const cyclosorus: Transformation = {
     [0.035, -0.2, 0.16, 0.04, -0.09, 0.02, 0.07],
     [-0.04, 0.2, 0.16, 0.04, 0.083, 0.12, 0.07],
   ],
-  range: {
+  ranges: {
     x: [-1.481437310172126, 1.4688031414475642],
     y: [-0.5242181479502903, 7.065303969358817],
   },
@@ -72,7 +65,7 @@ const culcita: Transformation = {
     [0.09, -0.28, 0.3, 0.11, 0, 0.6, 0.07],
     [-0.09, 0.28, 0.3, 0.09, 0, 0.7, 0.07],
   ],
-  range: {
+  ranges: {
     x: [-1.554095416084085, 1.5541284149808385],
     y: [-0.16359863938121072, 5.792318591578755],
   },
@@ -85,7 +78,7 @@ const fishbone: Transformation = {
     [0.035, -0.11, 0.27, 0.01, -0.05, 0.005, 0.07],
     [-0.04, 0.11, 0.27, 0.01, 0.047, 0.06, 0.07],
   ],
-  range: {
+  ranges: {
     x: [-0.824774321794105, 0.8201509587996155],
     y: [-0.5253577299921368, 7.115950148147405],
   },
@@ -98,7 +91,7 @@ const tree: Transformation = {
     [0.42, 0.42, -0.42, 0.42, 0, 0.2, 0.4],
     [0.1, 0, 0, 0.1, 0, 0.2, 0.15],
   ],
-  range: {
+  ranges: {
     x: [-0.23881114077953836, 0.23881256075834323],
     y: [0.014764991641483417, 0.43881111326061006],
   },
@@ -160,41 +153,17 @@ const BarnsleyFern = ({ description }: Props) => {
       ctx.fillRect(x, y, 1, 1);
     };
 
-    // scaling the fern
-    const { range } = matrices[config.fernToUse];
-    const [xMin, xMax] = range.x;
-    const [yMin, yMax] = range.y;
+    // -- scaling the fern
+    const { ranges } = matrices[config.fernToUse];
 
+    // determine drawing boundaries
     const padding = 0.025; // 2.5% padding applied to both borders
-    const paddingFactor = 1 - 2 * padding;
-
-    const determineLimits = (limitByWidth: boolean): [number, number] => {
-      if (!limitByWidth) {
-        // limit fern by screen height
-        const heightLimit = height * paddingFactor;
-        const widthLimit = heightLimit * ratio;
-        const exceeding = widthLimit > width * paddingFactor;
-        return exceeding ? determineLimits(!isWide) : [widthLimit, heightLimit];
-      }
-
-      // limit by screen width
-      const widthLimit = width * paddingFactor;
-      const heightLimit = widthLimit / ratio;
-      const exceeding = heightLimit > height * paddingFactor;
-      return exceeding ? determineLimits(!isWide) : [widthLimit, heightLimit];
-    };
-
-    const ratio = (xMax - xMin) / (yMax - yMin);
-    const isWide = ratio > 1;
-    const [drawWidth, drawHeight] = determineLimits(isWide);
+    const determineLimits = limiter(ranges, padding);
+    const [drawWidth, drawHeight] = determineLimits([width, height]);
 
     // remap to full scale
-    const remapper =
-      (pMin: number, pMax: number, tMin: number, tMax: number) => (p: number) =>
-        ((tMax - tMin) / (pMax - pMin)) * (p - pMin) + tMin;
-
-    const remapX = remapper(xMin, xMax, 0, drawWidth);
-    const remapY = remapper(yMin, yMax, 0, drawHeight);
+    const remapX = remapper(ranges.x, [0, drawWidth]);
+    const remapY = remapper(ranges.y, [0, drawHeight]);
 
     const draw = () => {
       for (let i = 0; i < 5000; i++) {
