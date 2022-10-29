@@ -44,6 +44,12 @@ const Home: NextPage = () => {
             prio={true}
           />
           <FractalLink
+            href="/pythagoras-tree"
+            title="Pythagoras Tree"
+            imageSrc={barnsleyFernImage}
+            prio={true}
+          />
+          <FractalLink
             href="/barnsley-fern"
             title="Barnsley Fern"
             imageSrc={barnsleyFernImage}
