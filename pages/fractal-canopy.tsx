@@ -22,7 +22,6 @@ const defaultTree = {
   maxIterations: 7,
   branches: 3,
   background: "#252424",
-  rootLength: 2.5,
   lengthFactor: 0.6,
   widthFactor: 0.8,
   rootWidth: 16,
@@ -34,7 +33,6 @@ const hTree = {
   maxIterations: 9,
   branches: 2,
   background: "#252424",
-  rootLength: 2,
   lengthFactor: 0.7,
   widthFactor: 0.8,
   rootWidth: 20,
@@ -46,7 +44,6 @@ const sierpinski = {
   maxIterations: 8,
   branches: 3,
   background: "#252424",
-  rootLength: 2.5,
   lengthFactor: 0.5,
   widthFactor: 0.8,
   rootWidth: 17,
@@ -58,7 +55,6 @@ const snowflake = {
   maxIterations: 5,
   branches: 5,
   background: "#252424",
-  rootLength: 2.5,
   lengthFactor: 0.4,
   widthFactor: 0.8,
   rootWidth: 17,
@@ -70,18 +66,17 @@ const sixFold = {
   maxIterations: 5,
   branches: 6,
   background: "#252424",
-  rootLength: 2.5,
   lengthFactor: 0.4,
   widthFactor: 0.7,
   rootWidth: 10.5,
 };
+
 const broccoli = {
   angle: 52,
   animateAngle: false,
   maxIterations: 6,
   branches: 4,
   background: "#252424",
-  rootLength: 2.5,
   lengthFactor: 0.54,
   widthFactor: 0.9,
   rootWidth: 47.5,
@@ -102,7 +97,6 @@ type Config = {
   maxIterations: number;
   branches: number;
   background: string;
-  rootLength: number;
   lengthFactor: number;
   widthFactor: number;
   rootWidth: number;
@@ -175,6 +169,23 @@ const FractalTree = ({ description }: Props) => {
       }
     };
 
+    // factor by which the tree grows to the max
+    const lenFactor = new Array(config.maxIterations)
+      .fill(0)
+      .reduce((acc, _, i) => acc + Math.pow(config.lengthFactor, i + 1), 0);
+
+    // pad height and width separately
+    const padding = 0.05;
+    const paddedHeight = height * (1 - padding);
+    const paddedWidth = width * (1 - 2 * padding);
+
+    // max possible base size of the trunk in both directions
+    const baseHigh = paddedHeight / (1 + lenFactor);
+    const baseWide = paddedWidth / (2 * lenFactor);
+
+    // determine which base fits assuming max growth
+    const base = baseHigh * (2 * lenFactor) < paddedWidth ? baseHigh : baseWide;
+
     const drawTree = () => {
       ctx.resetTransform();
       const ratio = Math.ceil(window.devicePixelRatio);
@@ -183,7 +194,8 @@ const FractalTree = ({ description }: Props) => {
       ctx.fillStyle = config.background;
       ctx.fillRect(0, 0, width, height);
       ctx.translate(width / 2, height);
-      branch(height / config.rootLength, config.rootWidth, 0);
+
+      branch(base, config.rootWidth, 0);
     };
 
     drawTree();
