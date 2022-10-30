@@ -184,7 +184,7 @@ const PythagorasTreeComponent = ({ description }: Props) => {
 export default PythagorasTreeComponent;
 
 export async function getStaticProps() {
-  const description = await getDescription("sierpinski-carpet.md");
+  const description = await getDescription("pythagoras-tree.md");
   return {
     props: {
       description,
