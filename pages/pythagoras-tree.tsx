@@ -75,15 +75,17 @@ const PythagorasTreeComponent = ({ description }: Props) => {
   useEffect(() => {
     if (!config.animateIterations) return;
 
+    const delay = config.iterations === MAX_ITERATIONS ? 2000 : 600;
+
     const interval = setInterval(() => {
       setConfig((config) => {
         const iterations = (config.iterations + 1) % (MAX_ITERATIONS + 1);
         return { ...config, iterations };
       });
-    }, 600);
+    }, delay);
 
     return () => clearInterval(interval);
-  }, [config.animateIterations]);
+  }, [config.animateIterations, config.iterations]);
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
