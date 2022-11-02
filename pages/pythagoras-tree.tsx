@@ -13,13 +13,13 @@ import styles from "../styles/Fullscreen.module.css";
 import { radians } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
+import { remapper } from "../utils/scaling";
 import { Matrix2D, Vec2D, Vector } from "../utils/vectors";
 
 type Config = {
   iterations: number;
   animateIterations: boolean;
   angle: number;
-  color: string;
   background: string;
   fillTriangles: boolean;
 };
@@ -54,12 +54,15 @@ function determineTriangleTip(angle: number): (p1: Vec2D, p2: Vec2D) => Vec2D {
   };
 }
 
+const remapH = remapper([0, MAX_ITERATIONS], [23, 88]);
+const hsvGradient = (iteration: number) =>
+  `hsl(${remapH(iteration)}, 96%, 30%)`;
+
 const PythagorasTreeComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 0,
     animateIterations: true,
     angle: 45,
-    color: "#16a121",
     background: "#252424",
     fillTriangles: true,
   });
@@ -107,12 +110,14 @@ const PythagorasTreeComponent = ({ description }: Props) => {
 
       const p3 = Vector.sub(p2, d);
       const p4 = Vector.sub(p1, d);
-      drawPoly([p1, p2, p3, p4], config.color);
+
+      const color = hsvGradient(depth);
+      drawPoly([p1, p2, p3, p4], color);
 
       if (depth === config.iterations) return;
 
       const p5 = thirdPoint(p3, p4);
-      if (config.fillTriangles) drawPoly([p3, p4, p5], config.color);
+      if (config.fillTriangles) drawPoly([p3, p4, p5], color);
 
       drawBranch(p4, p5, depth + 1);
       drawBranch(p5, p3, depth + 1);
@@ -155,7 +160,6 @@ const PythagorasTreeComponent = ({ description }: Props) => {
         <DatGui data={config} onUpdate={handleUpdate}>
           <DatFolder closed={true} title="Options">
             <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
             <DatNumber path="angle" label="angle" min={30} max={60} step={1} />
             <DatNumber
               path="iterations"
