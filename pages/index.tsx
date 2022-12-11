@@ -4,6 +4,7 @@ import { AddMoreLink, FractalLink } from "../components/FractalLink";
 import styles from "../styles/Home.module.css";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
 import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg";
+import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
 import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
 import fern1Image from "../public/assets/fractal-images/l-system-fern-1.jpg";
@@ -41,6 +42,12 @@ const Home: NextPage = () => {
             href="/mandelbrot"
             title="Mandelbrot Set"
             imageSrc={mandelbrotImage}
+            prio={true}
+          />
+          <FractalLink
+            href="/pythagoras-tree"
+            title="Pythagoras Tree"
+            imageSrc={pythagorasTreeImage}
             prio={true}
           />
           <FractalLink

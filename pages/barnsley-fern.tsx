@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { NavElement } from "../components/Navbar";
-import styles from "../styles/Fullscreen.module.css";
-import { SideDrawer } from "../components/SideDrawer";
-import { getDescription } from "../utils/readFiles";
-import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { Canvas } from "../components/Canvas";
 import Head from "next/head";
+import { useEffect, useState } from "react";
+import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
+import { Canvas } from "../components/Canvas";
+import { NavElement } from "../components/Navbar";
+import { SideDrawer } from "../components/SideDrawer";
+import styles from "../styles/Fullscreen.module.css";
+import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { getDescription } from "../utils/readFiles";
+import { limiter, remapper, Scalable } from "../utils/scaling";
 
-type Transformation = {
+interface Transformation extends Scalable {
   matrix: number[][];
-  scaleFactor: number;
-};
+}
 
 type Fern =
   | "tree"
@@ -32,55 +32,71 @@ type Props = {
   description: string;
 };
 
-const barnsley = {
+const barnsley: Transformation = {
   matrix: [
     [0, 0, 0, 0.16, 0, 0, 0.01],
     [0.85, 0.04, -0.04, 0.85, 0, 1.6, 0.85],
     [0.2, -0.26, 0.23, 0.22, 0, 1.6, 0.07],
     [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07],
   ],
-  scaleFactor: 1.2,
+  ranges: {
+    x: [-2.1818903790071125, 2.6557747667552816],
+    y: [0.02608982485507005, 9.998262444483984],
+  },
 };
 
-const cyclosorus = {
+const cyclosorus: Transformation = {
   matrix: [
     [0, 0, 0, 0.25, 0, -0.4, 0.02],
     [0.95, 0.005, -0.005, 0.93, -0.002, 0.5, 0.84],
     [0.035, -0.2, 0.16, 0.04, -0.09, 0.02, 0.07],
     [-0.04, 0.2, 0.16, 0.04, 0.083, 0.12, 0.07],
   ],
-  scaleFactor: 2,
+  ranges: {
+    x: [-1.481437310172126, 1.4688031414475642],
+    y: [-0.5242181479502903, 7.065303969358817],
+  },
 };
 
-const culcita = {
+const culcita: Transformation = {
   matrix: [
     [0, 0, 0, 0.25, 0, -0.14, 0.02],
     [0.85, 0.02, -0.02, 0.83, 0, 1, 0.84],
     [0.09, -0.28, 0.3, 0.11, 0, 0.6, 0.07],
     [-0.09, 0.28, 0.3, 0.09, 0, 0.7, 0.07],
   ],
-  scaleFactor: 2,
+  ranges: {
+    x: [-1.554095416084085, 1.5541284149808385],
+    y: [-0.16359863938121072, 5.792318591578755],
+  },
 };
 
-const fishbone = {
+const fishbone: Transformation = {
   matrix: [
     [0, 0, 0, 0.25, 0, -0.4, 0.02],
     [0.95, 0.002, -0.002, 0.93, -0.002, 0.5, 0.84],
     [0.035, -0.11, 0.27, 0.01, -0.05, 0.005, 0.07],
     [-0.04, 0.11, 0.27, 0.01, 0.047, 0.06, 0.07],
   ],
-  scaleFactor: 2,
+  ranges: {
+    x: [-0.824774321794105, 0.8201509587996155],
+    y: [-0.5253577299921368, 7.115950148147405],
+  },
 };
 
-const tree = {
+const tree: Transformation = {
   matrix: [
     [0, 0, 0, 0.5, 0, 0, 0.05],
     [0.42, -0.42, 0.42, 0.42, 0, 0.2, 0.4],
     [0.42, 0.42, -0.42, 0.42, 0, 0.2, 0.4],
     [0.1, 0, 0, 0.1, 0, 0.2, 0.15],
   ],
-  scaleFactor: 24,
+  ranges: {
+    x: [-0.23881114077953836, 0.23881256075834323],
+    y: [0.014764991641483417, 0.43881111326061006],
+  },
 };
+
 const matrices: Record<string, Transformation> = {
   tree,
   fishbone,
@@ -101,7 +117,6 @@ const BarnsleyFern = ({ description }: Props) => {
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
-
     let x = 0;
     let y = 0;
 
@@ -133,18 +148,29 @@ const BarnsleyFern = ({ description }: Props) => {
         y: 0,
       };
     };
+
     const point = (x: number, y: number) => {
       ctx.fillRect(x, y, 1, 1);
     };
 
+    // -- scaling the fern
+    const { ranges } = matrices[config.fernToUse];
+
+    // determine drawing boundaries
+    const padding = 0.025; // 2.5% padding applied to both borders
+    const determineLimits = limiter(ranges, padding);
+    const [drawWidth, drawHeight] = determineLimits([width, height]);
+
+    // remap to full scale
+    const remapX = remapper(ranges.x, [0, drawWidth]);
+    const remapY = remapper(ranges.y, [0, drawHeight]);
+
     const draw = () => {
       for (let i = 0; i < 5000; i++) {
         ctx.fillStyle = config.color;
-        const fernHeight = height * matrices[config.fernToUse].scaleFactor;
-        const fernWidth = fernHeight / 1.5;
 
-        let plotX = fernWidth * ((x + 3) / 6) + width / 2 - fernWidth / 2;
-        let plotY = height - (fernHeight * y) / 14;
+        const plotX = remapX(x) + (width - drawWidth) / 2;
+        const plotY = remapY(y) * -1 + height * (1 - padding);
 
         ctx.lineWidth = 0.1;
         point(plotX, plotY);
