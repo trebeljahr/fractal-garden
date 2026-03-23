@@ -7,7 +7,7 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
-import { limiter, remapper, Scalable } from "../utils/scaling";
+import { Scalable } from "../utils/scaling";
 
 interface Transformation extends Scalable {
   matrix: number[][];
@@ -119,7 +119,8 @@ const BarnsleyFern = ({ description }: Props) => {
     if (!ctx || !width || !height) return;
     let x = 0;
     let y = 0;
-    const ratio = Math.ceil(window.devicePixelRatio) || 1;
+    const ratio = window.devicePixelRatio || 1;
+    const { matrix, ranges } = matrices[config.fernToUse];
 
     const applyMatrixValues = (matrix: number[]) => {
       return {
@@ -130,7 +131,6 @@ const BarnsleyFern = ({ description }: Props) => {
 
     const generateNewCoords = () => {
       const r = Math.random();
-      const matrix = matrices[config.fernToUse].matrix;
       const prob1 = matrix[1][6];
       const prob2 = matrix[2][6];
       const prob3 = matrix[3][6];
@@ -154,26 +154,56 @@ const BarnsleyFern = ({ description }: Props) => {
       ctx.fillRect(x, y, 1, 1);
     };
 
-    // -- scaling the fern
-    const { ranges } = matrices[config.fernToUse];
-
-    // determine drawing boundaries
     const padding = 0.025; // 2.5% padding applied to both borders
-    const determineLimits = limiter(ranges, padding);
-    const [drawWidth, drawHeight] = determineLimits([width, height]);
+    const warmupIterations = 80;
+    const boundsSamples = 12000;
+
+    for (let i = 0; i < warmupIterations; i++) {
+      ({ x, y } = generateNewCoords());
+    }
+
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (let i = 0; i < boundsSamples; i++) {
+      ({ x, y } = generateNewCoords());
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+
+    if (
+      !Number.isFinite(minX) ||
+      !Number.isFinite(maxX) ||
+      !Number.isFinite(minY) ||
+      !Number.isFinite(maxY) ||
+      maxX <= minX ||
+      maxY <= minY
+    ) {
+      [minX, maxX] = ranges.x;
+      [minY, maxY] = ranges.y;
+    }
+
+    const availableWidth = width * (1 - 2 * padding);
+    const availableHeight = height * (1 - 2 * padding);
+    const scale = Math.min(
+      availableWidth / (maxX - minX),
+      availableHeight / (maxY - minY)
+    );
+    const drawWidth = (maxX - minX) * scale;
+    const drawHeight = (maxY - minY) * scale;
     const xOffset = (width - drawWidth) / 2;
     const yOffset = (height - drawHeight) / 2;
-
-    // remap to full scale
-    const remapX = remapper(ranges.x, [0, drawWidth]);
-    const remapY = remapper(ranges.y, [0, drawHeight]);
 
     const draw = () => {
       for (let i = 0; i < 5000; i++) {
         ctx.fillStyle = config.color;
 
-        const plotX = remapX(x) + xOffset;
-        const plotY = yOffset + (drawHeight - remapY(y));
+        const plotX = xOffset + (x - minX) * scale;
+        const plotY = yOffset + (maxY - y) * scale;
 
         ctx.lineWidth = 0.1;
         point(plotX, plotY);

@@ -81,7 +81,7 @@ const VicsekFractal2D = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const size = Math.min(width, height) * (1 - 2 * PADDING);
     const originX = (width - size) / 2;
     const originY = (height - size) / 2;

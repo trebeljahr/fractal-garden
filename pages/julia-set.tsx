@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DatGui, {
   DatColor,
   DatFolder,
@@ -15,7 +15,7 @@ import { WebGLCanvas } from "../components/Canvas";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/julia.frag";
 import { createShaderProgram } from "../utils/shaders/compileShader";
-import { constrain } from "../utils/ctxHelpers";
+import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 
 type Props = {
   description: string;
@@ -44,6 +44,11 @@ const JuliaSet = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
+  const viewportRef = useRef({
+    center: [...INITIAL_CENTER] as [number, number],
+    zoomSize: INITIAL_ZOOM_SIZE,
+  });
+  const renderRef = useRef<(() => void) | null>(null);
   const [config, setConfig] = useState<Config>({
     preset: "Rabbit",
     cReal: presets.Rabbit.cReal,
@@ -51,16 +56,16 @@ const JuliaSet = ({ description }: Props) => {
     background: "#090b14",
   });
 
+  useShaderViewportControls({
+    canvas: cnv,
+    viewportRef,
+    minZoomSize: MIN_ZOOM_SIZE,
+    maxZoomSize: MAX_ZOOM_SIZE,
+    onViewportChange: () => renderRef.current?.(),
+  });
+
   useEffect(() => {
     if (!gl || !width || !height || !cnv) return;
-
-    let center: [number, number] = [...INITIAL_CENTER];
-    let zoomSize = INITIAL_ZOOM_SIZE;
-    let zooming = false;
-    let zoomFactor = 1;
-    let zoomAcceleration = 0;
-    let mouse: [number, number] = [0, 0];
-    let animationId = 0;
 
     const output = createShaderProgram(gl, vertexShader, fragmentShader);
     if (!output) return;
@@ -109,13 +114,14 @@ const JuliaSet = ({ description }: Props) => {
     };
 
     const getResolution = () => {
-      const ratio = Math.ceil(window.devicePixelRatio) || 1;
+      const ratio = window.devicePixelRatio || 1;
       return [width * ratio, height * ratio] as const;
     };
 
     const drawJulia = () => {
       const [resolutionX, resolutionY] = getResolution();
       const [bgR, bgG, bgB] = parseHexColor(config.background);
+      const { center, zoomSize } = viewportRef.current;
 
       gl.uniform2f(centerLocation, center[0], center[1]);
       gl.uniform1f(zoomSizeLocation, zoomSize);
@@ -128,69 +134,12 @@ const JuliaSet = ({ description }: Props) => {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
-
-    const updateMousePosition = ({ clientX, clientY }: MouseEvent) => {
-      const rect = cnv.getBoundingClientRect();
-      const shortestSide = Math.min(rect.width, rect.height);
-      if (!shortestSide) return;
-
-      const px = clientX - rect.left;
-      const py = clientY - rect.top;
-
-      mouse = [
-        (2 * px - rect.width) / shortestSide,
-        (rect.height - 2 * py) / shortestSide,
-      ];
-    };
-
-    const zoom = () => {
-      if (!zooming) return;
-
-      zoomFactor += zoomAcceleration;
-      const nextZoomSize = constrain(
-        zoomSize * zoomFactor,
-        MIN_ZOOM_SIZE,
-        MAX_ZOOM_SIZE
-      );
-      const zoomDelta = zoomSize - nextZoomSize;
-
-      center = [
-        center[0] + mouse[0] * zoomDelta,
-        center[1] + mouse[1] * zoomDelta,
-      ];
-      zoomSize = nextZoomSize;
-
-      drawJulia();
-      animationId = requestAnimationFrame(zoom);
-    };
-
-    const clickHandler = (event: MouseEvent) => {
-      event.preventDefault();
-      updateMousePosition(event);
-      zooming = true;
-      zoomFactor = event.ctrlKey ? 1.01 : 0.99;
-      zoomAcceleration = event.ctrlKey ? 0.00007 : -0.00007;
-      animationId = requestAnimationFrame(zoom);
-    };
-
-    const clickReleaseHandler = () => {
-      zooming = false;
-      cancelAnimationFrame(animationId);
-    };
+    renderRef.current = drawJulia;
 
     drawJulia();
 
-    cnv.addEventListener("mousemove", updateMousePosition);
-    cnv.addEventListener("mousedown", clickHandler);
-    cnv.addEventListener("mouseleave", clickReleaseHandler);
-    window.addEventListener("mouseup", clickReleaseHandler);
-
     return () => {
-      cancelAnimationFrame(animationId);
-      cnv.removeEventListener("mousemove", updateMousePosition);
-      cnv.removeEventListener("mousedown", clickHandler);
-      cnv.removeEventListener("mouseleave", clickReleaseHandler);
-      window.removeEventListener("mouseup", clickReleaseHandler);
+      renderRef.current = null;
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -219,7 +168,7 @@ const JuliaSet = ({ description }: Props) => {
         <title>Julia Set</title>
         <meta
           name="description"
-          content="An interactive Julia Set renderer with zooming and a few preset constants. Explore how changing the complex parameter reshapes the entire fractal."
+          content="An interactive Julia Set renderer with drag-to-pan, focal-point zoom, and preset constants. Explore how changing the complex parameter reshapes the fractal."
         />
       </Head>
       <main className={styles.fullScreen}>

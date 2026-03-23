@@ -28,12 +28,9 @@ vec3 paletteColor(float t) {
 }
 
 void main() {
-    vec2 uv = gl_FragCoord.xy - u_resolution.xy * vec2(1.0 / 1.5, 1.0 / 2.0);
-    uv *= 10.0 / min(3.0 * u_resolution.x, 4.0 * u_resolution.y);
-    
     vec2 z = vec2(0.0);
-    // vec2 c = uv;
-    vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
+    vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 c = u_zoomCenter + uv * u_zoomSize;
     int iteration;
     
     for(int i = 0; i < maxIterations; i ++ ) {

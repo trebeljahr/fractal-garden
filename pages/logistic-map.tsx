@@ -191,16 +191,19 @@ const LogisticMap = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const renderWidth = Math.max(1, ctx.canvas.width);
+    const renderHeight = Math.max(1, ctx.canvas.height);
+    const ratio = renderWidth / width || 1;
     const xRange = Math.max(view.rMax - view.rMin, MIN_RANGE);
     const yRange = Math.max(view.xMax - view.xMin, MIN_RANGE);
-    const columns = Math.max(config.columns, 1);
+    const columns = Math.max(Math.round(config.columns * ratio), 1);
+    const pointSize = Math.max(1, config.pointSize * ratio);
 
     ctx.resetTransform();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, renderWidth, renderHeight);
 
     ctx.fillStyle = config.color;
     ctx.globalAlpha = config.pointAlpha;
@@ -208,7 +211,7 @@ const LogisticMap = ({ description }: Props) => {
     for (let column = 0; column < columns; column++) {
       const t = columns === 1 ? 0 : column / (columns - 1);
       const r = view.rMin + t * xRange;
-      const px = t * width;
+      const px = t * Math.max(renderWidth - pointSize, 0);
       let x = 0.5;
 
       for (let i = 0; i < config.settleIterations; i++) {
@@ -222,8 +225,8 @@ const LogisticMap = ({ description }: Props) => {
           continue;
         }
 
-        const py = ((view.xMax - x) / yRange) * height;
-        ctx.fillRect(px, py, config.pointSize, config.pointSize);
+        const py = ((view.xMax - x) / yRange) * Math.max(renderHeight - pointSize, 0);
+        ctx.fillRect(px, py, pointSize, pointSize);
       }
     }
 

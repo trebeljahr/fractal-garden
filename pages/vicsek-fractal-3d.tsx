@@ -42,8 +42,8 @@ type Config = {
 const MAX_ITERATIONS = 4;
 
 const INITIAL_CONFIG: Config = {
-  iterations: 3,
-  animateIterations: false,
+  iterations: 0,
+  animateIterations: true,
   autoRotate: true,
   rotationX: 26,
   rotationY: 30,
@@ -87,7 +87,7 @@ const VicsekFractal3D = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const cubes = generateVicsekFractal3D(config.iterations);
     let animationId = 0;
     let rotationOffset = 0;
@@ -139,7 +139,7 @@ const VicsekFractal3D = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="fillColor" label="fillColor" />
             <DatColor path="strokeColor" label="strokeColor" />
@@ -189,8 +189,7 @@ const VicsekFractal3D = ({ description }: Props) => {
           <ViewportOverlay
             title="3D View"
             lines={[
-              "Drag to orbit around the fractal and use the scroll wheel to zoom without opening the controls.",
-              "Turn on animation to step through the Vicsek construction the same way the 2D fractals do.",
+              "Drag to orbit around the fractal and use the scroll wheel to dolly in or back out.",
             ]}
             actions={[
               {

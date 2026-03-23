@@ -155,7 +155,7 @@ const GosperCurve = ({ description }: Props) => {
     const { scale, offsetX, offsetY } = getTransform(bounds, width, height);
 
     ctx.resetTransform();
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     ctx.fillStyle = config.background;

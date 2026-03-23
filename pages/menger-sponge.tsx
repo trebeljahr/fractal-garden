@@ -42,8 +42,8 @@ type Config = {
 const MAX_ITERATIONS = 3;
 
 const INITIAL_CONFIG: Config = {
-  iterations: 2,
-  animateIterations: false,
+  iterations: 0,
+  animateIterations: true,
   autoRotate: true,
   rotationX: 24,
   rotationY: 28,
@@ -87,7 +87,7 @@ const MengerSponge = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const cubes = generateMengerSponge(config.iterations);
     let animationId = 0;
     let rotationOffset = 0;
@@ -139,7 +139,7 @@ const MengerSponge = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="fillColor" label="fillColor" />
             <DatColor path="strokeColor" label="strokeColor" />
@@ -189,8 +189,7 @@ const MengerSponge = ({ description }: Props) => {
           <ViewportOverlay
             title="3D View"
             lines={[
-              "Drag to rotate the sponge and use the scroll wheel to move closer or farther away.",
-              "Animation now steps through the recursive construction so you can watch the voids open up over time.",
+              "Drag to rotate the sponge and use the scroll wheel to dolly closer or farther away.",
             ]}
             actions={[
               {

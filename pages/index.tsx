@@ -61,6 +61,37 @@ const Home: NextPage = () => {
             prio={true}
           />
           <FractalLink
+            href="/julia-set"
+            title="Julia Set"
+            imageSrc={juliaSetImage}
+          />
+          <FractalLink
+            href="/burning-ship"
+            title="Burning Ship"
+            imageSrc={burningShipImage}
+            prio={true}
+          />
+          <FractalLink
+            href="/mosely-snowflake"
+            title="Mosely Snowflake"
+            imageSrc={moselySnowflakeImage}
+          />
+          <FractalLink
+            href="/vicsek-fractal-3d"
+            title="3D Vicsek Fractal"
+            imageSrc={vicsekFractal3DImage}
+          />
+          <FractalLink
+            href="/menger-sponge"
+            title="Menger Sponge"
+            imageSrc={mengerSpongeImage}
+          />
+          <FractalLink
+            href="/mandelbulb"
+            title="Mandelbulb"
+            imageSrc={mandelbulbImage}
+          />
+          <FractalLink
             href="/buddhabrot"
             title="Buddhabrot"
             imageSrc={buddhabrotImage}
@@ -70,12 +101,6 @@ const Home: NextPage = () => {
             href="/newton-fractal"
             title="Newton Fractal"
             imageSrc={newtonFractalImage}
-          />
-          <FractalLink
-            href="/burning-ship"
-            title="Burning Ship"
-            imageSrc={burningShipImage}
-            prio={true}
           />
           <FractalLink
             href="/pythagoras-tree"
@@ -185,16 +210,7 @@ const Home: NextPage = () => {
             title="T-Square Fractal"
             imageSrc={tSquareFractalImage}
           />
-          <FractalLink
-            href="/julia-set"
-            title="Julia Set"
-            imageSrc={juliaSetImage}
-          />
-          <FractalLink
-            href="/n-flake"
-            title="N-Flake"
-            imageSrc={nFlakeImage}
-          />
+          <FractalLink href="/n-flake" title="N-Flake" imageSrc={nFlakeImage} />
           <FractalLink
             href="/vicsek-fractal-2d"
             title="2D Vicsek Fractal"
@@ -210,26 +226,7 @@ const Home: NextPage = () => {
             title="Logistic Map"
             imageSrc={logisticMapImage}
           />
-          <FractalLink
-            href="/mosely-snowflake"
-            title="Mosely Snowflake"
-            imageSrc={moselySnowflakeImage}
-          />
-          <FractalLink
-            href="/vicsek-fractal-3d"
-            title="3D Vicsek Fractal"
-            imageSrc={vicsekFractal3DImage}
-          />
-          <FractalLink
-            href="/menger-sponge"
-            title="Menger Sponge"
-            imageSrc={mengerSpongeImage}
-          />
-          <FractalLink
-            href="/mandelbulb"
-            title="Mandelbulb"
-            imageSrc={mandelbulbImage}
-          />
+
           <AddMoreLink />
         </div>
       </main>

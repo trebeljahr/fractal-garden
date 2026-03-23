@@ -36,6 +36,8 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
     canvas.style.cursor = "grab";
 
     const handleMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+
       setConfig((old) => {
         dragState = {
           clientX: event.clientX,
@@ -48,19 +50,20 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (!dragState) return;
+      const currentDragState = dragState;
+      if (!currentDragState) return;
 
       const rect = canvas.getBoundingClientRect();
-      const deltaX = (event.clientX - dragState.clientX) / rect.width;
-      const deltaY = (event.clientY - dragState.clientY) / rect.height;
+      const deltaX = (event.clientX - currentDragState.clientX) / rect.width;
+      const deltaY = (event.clientY - currentDragState.clientY) / rect.height;
 
       setConfig((old) => ({
         ...old,
         autoRotate:
           typeof old.autoRotate === "boolean" ? false : old.autoRotate,
-        rotationY: dragState!.config.rotationY + deltaX * 180,
+        rotationY: currentDragState.config.rotationY + deltaX * 180,
         rotationX: constrain(
-          dragState!.config.rotationX + deltaY * 120,
+          currentDragState.config.rotationX + deltaY * 120,
           -rotationLimit,
           rotationLimit
         ),
@@ -88,15 +91,19 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
     };
 
     canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mouseleave", handleMouseUp);
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleMouseUp);
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mouseleave", handleMouseUp);
       canvas.removeEventListener("wheel", handleWheel);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleMouseUp);
     };
   }, [canvas, maxDistance, minDistance, rotationLimit, setConfig]);
 }

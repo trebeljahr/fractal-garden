@@ -150,7 +150,7 @@ const ApollonianGasket = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const scale = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
     const circles = buildGasket(config.iterations);
 

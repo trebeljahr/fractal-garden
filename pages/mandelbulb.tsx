@@ -127,7 +127,7 @@ const Mandelbulb = ({ description }: Props) => {
       ] as const;
     };
 
-    const ratio = Math.ceil(window.devicePixelRatio) || 1;
+    const ratio = window.devicePixelRatio || 1;
     const startTime = performance.now();
     let animationId = 0;
 
@@ -174,22 +174,19 @@ const Mandelbulb = ({ description }: Props) => {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (!dragRef.current) return;
+      const dragState = dragRef.current;
+      if (!dragState) return;
 
       const rect = cnv.getBoundingClientRect();
-      const deltaX = (event.clientX - dragRef.current.clientX) / rect.width;
-      const deltaY = (event.clientY - dragRef.current.clientY) / rect.height;
+      const deltaX = (event.clientX - dragState.clientX) / rect.width;
+      const deltaY = (event.clientY - dragState.clientY) / rect.height;
 
-      if (dragRef.current.mode === "orbit") {
+      if (dragState.mode === "orbit") {
         setConfig((old) => ({
           ...old,
           autoRotate: false,
-          rotationY: dragRef.current!.rotationY + deltaX * 180,
-          rotationX: constrain(
-            dragRef.current!.rotationX + deltaY * 120,
-            -85,
-            85
-          ),
+          rotationY: dragState.rotationY + deltaX * 180,
+          rotationX: constrain(dragState.rotationX + deltaY * 120, -85, 85),
         }));
         return;
       }
@@ -197,8 +194,8 @@ const Mandelbulb = ({ description }: Props) => {
       setConfig((old) => ({
         ...old,
         autoRotate: false,
-        offsetX: dragRef.current!.offsetX - deltaX * old.cameraDistance * 1.8,
-        offsetY: dragRef.current!.offsetY + deltaY * old.cameraDistance * 1.8,
+        offsetX: dragState.offsetX - deltaX * old.cameraDistance * 1.8,
+        offsetY: dragState.offsetY + deltaY * old.cameraDistance * 1.8,
       }));
     };
 
@@ -224,16 +221,20 @@ const Mandelbulb = ({ description }: Props) => {
     cnv.addEventListener("mousedown", handleMouseDown);
     cnv.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("mousemove", handleMouseMove);
+    cnv.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleMouseUp);
 
     render();
 
     return () => {
       cancelAnimationFrame(animationId);
       cnv.removeEventListener("mousedown", handleMouseDown);
+      cnv.removeEventListener("mouseleave", handleMouseUp);
       cnv.removeEventListener("wheel", handleWheel);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleMouseUp);
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -259,7 +260,7 @@ const Mandelbulb = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="color" label="color" />
             <DatNumber path="power" label="power" min={2} max={12} step={0.1} />

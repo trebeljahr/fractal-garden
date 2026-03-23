@@ -31,6 +31,49 @@ type Config = {
 const MAX_ITERATIONS = 9;
 const PADDING = 0.08;
 
+type Bounds = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
+function measureTSquareBounds(iterations: number, ratio: number): Bounds {
+  const bounds: Bounds = {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+  };
+
+  const measure = (
+    centerX: number,
+    centerY: number,
+    size: number,
+    depth: number
+  ) => {
+    const half = size / 2;
+    bounds.minX = Math.min(bounds.minX, centerX - half);
+    bounds.maxX = Math.max(bounds.maxX, centerX + half);
+    bounds.minY = Math.min(bounds.minY, centerY - half);
+    bounds.maxY = Math.max(bounds.maxY, centerY + half);
+
+    if (depth >= iterations) return;
+
+    const nextSize = size * ratio;
+    const offset = size / 2;
+
+    measure(centerX - offset, centerY - offset, nextSize, depth + 1);
+    measure(centerX + offset, centerY - offset, nextSize, depth + 1);
+    measure(centerX - offset, centerY + offset, nextSize, depth + 1);
+    measure(centerX + offset, centerY + offset, nextSize, depth + 1);
+  };
+
+  measure(0, 0, 1, 0);
+
+  return bounds;
+}
+
 const TSquareFractal = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
@@ -38,11 +81,11 @@ const TSquareFractal = ({ description }: Props) => {
     iterations: 6,
     animateIterations: true,
     ratio: 0.5,
-    background: "#14131f",
-    color: "#8de0ff",
+    background: "#ffffff",
+    color: "#111111",
     fillSquares: true,
-    strokeSquares: true,
-    lineWidth: 1,
+    strokeSquares: false,
+    lineWidth: 0.8,
   });
 
   useEffect(() => {
@@ -66,17 +109,26 @@ const TSquareFractal = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const totalScale = [...new Array(config.iterations + 1)].reduce(
-      (sum, _, index) => sum + Math.pow(config.ratio, index),
-      0
+    const bounds = measureTSquareBounds(config.iterations, config.ratio);
+    const drawWidth = bounds.maxX - bounds.minX;
+    const drawHeight = bounds.maxY - bounds.minY;
+    const scale = Math.min(
+      (width * (1 - 2 * PADDING)) / drawWidth,
+      (height * (1 - 2 * PADDING)) / drawHeight
     );
-    const rootSize =
-      (Math.min(width, height) * (1 - 2 * PADDING)) / Math.max(totalScale, 1);
+    const xOffset = (width - drawWidth * scale) / 2 - bounds.minX * scale;
+    const yOffset = (height - drawHeight * scale) / 2 - bounds.minY * scale;
 
     const drawSquare = (centerX: number, centerY: number, size: number) => {
-      const half = size / 2;
+      const scaledSize = size * scale;
+      const half = scaledSize / 2;
       ctx.beginPath();
-      ctx.rect(centerX - half, centerY - half, size, size);
+      ctx.rect(
+        xOffset + centerX * scale - half,
+        yOffset + centerY * scale - half,
+        scaledSize,
+        scaledSize
+      );
       if (config.fillSquares) {
         ctx.fill();
       }
@@ -106,17 +158,19 @@ const TSquareFractal = ({ description }: Props) => {
     };
 
     ctx.resetTransform();
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    ctx.fillStyle = config.color;
+    ctx.fillStyle = config.background;
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = config.background;
-    ctx.strokeStyle = config.background;
+    ctx.fillStyle = config.color;
+    ctx.strokeStyle = config.color;
     ctx.lineWidth = config.lineWidth;
+    ctx.lineJoin = "miter";
+    ctx.lineCap = "square";
 
-    drawTSquare(width / 2, height / 2, rootSize, 0);
+    drawTSquare(0, 0, 1, 0);
   }, [config, ctx, width, height]);
 
   const handleUpdate = (newData: Config) => {
@@ -134,7 +188,7 @@ const TSquareFractal = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="color" label="color" />
             <DatNumber

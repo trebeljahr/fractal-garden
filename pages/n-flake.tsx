@@ -151,7 +151,7 @@ const NFlake = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const scaleFactor = getScaleFactor(config.sides);
     const rootRadius = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
     const rotation = radians(
