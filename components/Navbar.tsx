@@ -33,6 +33,7 @@ function useLinks() {
     "/n-flake",
     "/vicsek-fractal-2d",
     "/apollonian-gasket",
+    "/logistic-map",
   ];
 
   const i = fractalLinks.findIndex((link) => {

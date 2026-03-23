@@ -11,11 +11,12 @@ This file tracks the remaining open `new-fractal` work and carries forward throu
 - [x] `#10` N-Flake
 - [x] `#8` 2D Vicsek Fractal
 - [x] `#4` Apollonian Gasket
+- [x] `#3` Logistic Map
 - [x] `#2` Julia Set
 
 ## Next Up
 
-- [ ] `#3` Logistic Map
+All remaining open `new-fractal` issues need 3D support first.
 
 ## Needs 3D Support First
 
