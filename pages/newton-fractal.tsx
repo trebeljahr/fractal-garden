@@ -127,8 +127,8 @@ const NewtonFractal = ({ description }: Props) => {
       event.preventDefault();
       updateMousePosition(event);
       zooming = true;
-      zoomFactor = event.ctrlKey ? 1.01 : 0.99;
-      zoomAcceleration = event.ctrlKey ? 0.00007 : -0.00007;
+      zoomFactor = event.ctrlKey ? 1.015 : 0.985;
+      zoomAcceleration = event.ctrlKey ? 0.00009 : -0.00009;
       animationId = requestAnimationFrame(zoom);
     };
 

@@ -109,11 +109,11 @@ const TSquareFractal = ({ description }: Props) => {
     const ratio = Math.ceil(window.devicePixelRatio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    ctx.fillStyle = config.background;
+    ctx.fillStyle = config.color;
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = config.color;
-    ctx.strokeStyle = config.color;
+    ctx.fillStyle = config.background;
+    ctx.strokeStyle = config.background;
     ctx.lineWidth = config.lineWidth;
 
     drawTSquare(width / 2, height / 2, rootSize, 0);

@@ -8,7 +8,11 @@ interface Props {
 
 export const SideDrawer = ({ description }: Props) => {
   return (
-    <div className={styles.openedDrawer}>
+    <div
+      className={styles.openedDrawer}
+      id="fractal-description"
+      data-fractal-description={true}
+    >
       <div className={styles.drawerContent}>
         <RenderMarkdown content={description} />
       </div>

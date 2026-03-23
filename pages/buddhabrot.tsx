@@ -74,22 +74,25 @@ const Buddhabrot = ({ description }: Props) => {
     let renderedSamples = 0;
     let maxVisits = 1;
     const ratio = Math.ceil(window.devicePixelRatio) || 1;
-    const renderWidth = width * ratio;
-    const renderHeight = height * ratio;
+    const renderWidth = Math.max(1, Math.floor(width * ratio));
+    const renderHeight = Math.max(1, Math.floor(height * ratio));
+    const renderSize = Math.max(1, Math.min(renderWidth, renderHeight));
+    const renderOffsetX = Math.floor((renderWidth - renderSize) / 2);
+    const renderOffsetY = Math.floor((renderHeight - renderSize) / 2);
 
-    const histogram = new Float32Array(renderWidth * renderHeight);
-    const image = ctx.createImageData(renderWidth, renderHeight);
+    const histogram = new Float32Array(renderSize * renderSize);
+    const image = ctx.createImageData(renderSize, renderSize);
     const background = parseHexColor(config.background);
     const foreground = parseHexColor(config.color);
 
     const mapToPixel = (x: number, y: number) => {
       const px = Math.floor(
         ((x - VIEWPORT.minX) / (VIEWPORT.maxX - VIEWPORT.minX)) *
-          (renderWidth - 1)
+          (renderSize - 1)
       );
       const py = Math.floor(
         ((VIEWPORT.maxY - y) / (VIEWPORT.maxY - VIEWPORT.minY)) *
-          (renderHeight - 1)
+          (renderSize - 1)
       );
 
       return [px, py] as const;
@@ -119,12 +122,18 @@ const Buddhabrot = ({ description }: Props) => {
         data[idx + 3] = 255;
       }
 
-      ctx.putImageData(image, 0, 0);
       ctx.resetTransform();
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.putImageData(image, renderOffsetX, renderOffsetY);
       ctx.font = "14px monospace";
       ctx.fillStyle = config.color;
-      ctx.fillText(`Samples: ${renderedSamples.toLocaleString()}`, 18, 28);
+      ctx.fillText(
+        `Samples: ${renderedSamples.toLocaleString()}`,
+        renderOffsetX / ratio + 18,
+        renderOffsetY / ratio + 28
+      );
     };
 
     const drawOrbit = (orbit: [number, number][]) => {
@@ -141,7 +150,7 @@ const Buddhabrot = ({ description }: Props) => {
         }
 
         const [px, py] = mapToPixel(x, y);
-        const index = py * renderWidth + px;
+        const index = py * renderSize + px;
         const next = histogram[index] + 1;
         histogram[index] = next;
         maxVisits = Math.max(maxVisits, next);
@@ -150,7 +159,7 @@ const Buddhabrot = ({ description }: Props) => {
         if (mirroredY < VIEWPORT.minY || mirroredY > VIEWPORT.maxY) continue;
 
         const [mx, my] = mapToPixel(x, mirroredY);
-        const mirroredIndex = my * renderWidth + mx;
+        const mirroredIndex = my * renderSize + mx;
         const mirroredNext = histogram[mirroredIndex] + 1;
         histogram[mirroredIndex] = mirroredNext;
         maxVisits = Math.max(maxVisits, mirroredNext);

@@ -9,10 +9,12 @@ import DatGui, {
 import { WebGLCanvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain, radians } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
@@ -44,22 +46,24 @@ type DragState = {
   mode: "orbit" | "pan";
 };
 
+const INITIAL_CONFIG: Config = {
+  power: 8,
+  detail: 14,
+  cameraDistance: 3.8,
+  rotationX: 18,
+  rotationY: 32,
+  offsetX: 0,
+  offsetY: 0,
+  background: "#090d16",
+  color: "#f3b561",
+  autoRotate: true,
+};
+
 const Mandelbulb = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
-  const [config, setConfig] = useState<Config>({
-    power: 8,
-    detail: 14,
-    cameraDistance: 3.8,
-    rotationX: 18,
-    rotationY: 32,
-    offsetX: 0,
-    offsetY: 0,
-    background: "#090d16",
-    color: "#f3b561",
-    autoRotate: true,
-  });
+  const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
   const configRef = useRef(config);
   const dragRef = useRef<DragState | null>(null);
 
@@ -292,6 +296,23 @@ const Mandelbulb = ({ description }: Props) => {
             width={width}
             height={height}
             setCnv={setCnv}
+          />
+          <ViewportOverlay
+            title="Interactive View"
+            lines={[
+              "Drag to orbit, hold Shift while dragging to pan, and use the scroll wheel to zoom.",
+              "Use the button below whenever you want to jump straight down to the explanation.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () => setConfig(INITIAL_CONFIG),
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
           />
         </div>
         <SideDrawer description={description} />

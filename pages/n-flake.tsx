@@ -47,7 +47,7 @@ function getScaleFactor(sides: number) {
 }
 
 function canUseCenteredVariant(sides: number) {
-  return sides === 5 || sides === 6;
+  return sides === 4 || sides === 5 || sides === 6;
 }
 
 function usesCenterPolygon(sides: number, includeCenter: boolean) {
@@ -154,7 +154,9 @@ const NFlake = ({ description }: Props) => {
     const ratio = Math.ceil(window.devicePixelRatio);
     const scaleFactor = getScaleFactor(config.sides);
     const rootRadius = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
-    const rotation = radians(config.rotation);
+    const rotation = radians(
+      config.rotation + (config.sides === 4 ? 45 : 0)
+    );
 
     const drawFlake = (
       centerX: number,

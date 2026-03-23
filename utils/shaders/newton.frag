@@ -43,9 +43,9 @@ vec2 cPow3(vec2 z) {
 }
 
 vec3 rootColor(int rootIndex) {
-    if (rootIndex == 0) return vec3(0.99, 0.78, 0.28);
-    if (rootIndex == 1) return vec3(0.29, 0.91, 0.95);
-    return vec3(0.55, 0.47, 0.98);
+    if (rootIndex == 0) return vec3(1.00, 0.74, 0.26);
+    if (rootIndex == 1) return vec3(0.24, 0.95, 0.84);
+    return vec3(0.98, 0.42, 0.92);
 }
 
 void main() {
@@ -84,11 +84,13 @@ void main() {
     }
 
     float shade = 1.0 - float(iteration) / float(maxIterations);
-    shade = 0.2 + 0.8 * shade;
+    shade = 0.35 + 0.9 * pow(shade, 0.85);
     vec3 color = rootColor(closestRoot) * shade;
+    float boundaryGlow = exp(-48.0 * bestDistance);
+    color += boundaryGlow * vec3(0.95, 0.97, 1.0) * 0.45;
 
     if (bestDistance > 0.05) {
-        color *= 0.35;
+        color *= 0.55;
     }
 
     gl_FragColor = vec4(color, 1.0);

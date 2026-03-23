@@ -10,13 +10,16 @@ import DatGui, {
 import { Canvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
+import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import {
   drawVoxelScene,
   generateMoselySnowflake,
 } from "../utils/voxelFractals";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 
 type Props = {
   description: string;
@@ -25,6 +28,7 @@ type Props = {
 type Config = {
   variant: "lighter" | "heavier";
   iterations: number;
+  animateIterations: boolean;
   autoRotate: boolean;
   rotationX: number;
   rotationY: number;
@@ -39,23 +43,49 @@ type Config = {
 
 const MAX_ITERATIONS = 3;
 
+const INITIAL_CONFIG: Config = {
+  variant: "lighter",
+  iterations: 2,
+  animateIterations: false,
+  autoRotate: true,
+  rotationX: 28,
+  rotationY: 32,
+  cameraDistance: 6,
+  background: "#10111a",
+  fillColor: "#8fb0ff",
+  strokeColor: "#dce9ff",
+  showFaces: true,
+  showWireframe: true,
+  lineWidth: 0.7,
+};
+
 const MoselySnowflake = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [config, setConfig] = useState<Config>({
-    variant: "lighter",
-    iterations: 2,
-    autoRotate: true,
-    rotationX: 28,
-    rotationY: 32,
-    cameraDistance: 6,
-    background: "#10111a",
-    fillColor: "#8fb0ff",
-    strokeColor: "#dce9ff",
-    showFaces: true,
-    showWireframe: true,
-    lineWidth: 0.7,
+  const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
+  const canvas = ctx?.canvas ?? null;
+
+  useOrbitZoomControls({
+    canvas,
+    setConfig,
+    minDistance: 3,
+    maxDistance: 10,
   });
+
+  useEffect(() => {
+    if (!config.animateIterations) return;
+
+    const delay = config.iterations >= MAX_ITERATIONS ? 1800 : 950;
+    const id = window.setTimeout(() => {
+      setConfig((old) => ({
+        ...old,
+        iterations:
+          old.iterations >= MAX_ITERATIONS ? 0 : old.iterations + 1,
+      }));
+    }, delay);
+
+    return () => window.clearTimeout(id);
+  }, [config.animateIterations, config.iterations]);
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
@@ -128,6 +158,7 @@ const MoselySnowflake = ({ description }: Props) => {
               max={MAX_ITERATIONS}
               step={1}
             />
+            <DatBoolean path="animateIterations" label="animate" />
             <DatBoolean path="autoRotate" label="autoRotate" />
             <DatNumber
               path="rotationX"
@@ -163,6 +194,30 @@ const MoselySnowflake = ({ description }: Props) => {
         </DatGui>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
+          <ViewportOverlay
+            title="3D View"
+            lines={[
+              "Drag to rotate the snowflake and use the scroll wheel to zoom in closer.",
+              "You can also autoplay the iteration count to watch the solid build itself layer by layer.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () =>
+                  setConfig((old) => ({
+                    ...old,
+                    autoRotate: INITIAL_CONFIG.autoRotate,
+                    rotationX: INITIAL_CONFIG.rotationX,
+                    rotationY: INITIAL_CONFIG.rotationY,
+                    cameraDistance: INITIAL_CONFIG.cameraDistance,
+                  })),
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
+          />
         </div>
         <SideDrawer description={description} />
         <NavElement />

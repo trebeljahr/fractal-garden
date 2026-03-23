@@ -119,6 +119,7 @@ const BarnsleyFern = ({ description }: Props) => {
     if (!ctx || !width || !height) return;
     let x = 0;
     let y = 0;
+    const ratio = Math.ceil(window.devicePixelRatio) || 1;
 
     const applyMatrixValues = (matrix: number[]) => {
       return {
@@ -160,6 +161,8 @@ const BarnsleyFern = ({ description }: Props) => {
     const padding = 0.025; // 2.5% padding applied to both borders
     const determineLimits = limiter(ranges, padding);
     const [drawWidth, drawHeight] = determineLimits([width, height]);
+    const xOffset = (width - drawWidth) / 2;
+    const yOffset = (height - drawHeight) / 2;
 
     // remap to full scale
     const remapX = remapper(ranges.x, [0, drawWidth]);
@@ -169,8 +172,8 @@ const BarnsleyFern = ({ description }: Props) => {
       for (let i = 0; i < 5000; i++) {
         ctx.fillStyle = config.color;
 
-        const plotX = remapX(x) + (width - drawWidth) / 2;
-        const plotY = remapY(y) * -1 + height * (1 - padding);
+        const plotX = remapX(x) + xOffset;
+        const plotY = yOffset + (drawHeight - remapY(y));
 
         ctx.lineWidth = 0.1;
         point(plotX, plotY);
@@ -179,6 +182,8 @@ const BarnsleyFern = ({ description }: Props) => {
       }
     };
 
+    ctx.resetTransform();
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.fillStyle = config.background;
     ctx.fillRect(0, 0, width, height);
 
