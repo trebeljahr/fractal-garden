@@ -228,6 +228,16 @@ export function generateVicsekFractal3D(iterations: number) {
   );
 }
 
+export function generateMengerSponge(iterations: number) {
+  return generateVoxelFractal(iterations, (x, y, z) => {
+    let zeros = 0;
+    if (x === 0) zeros += 1;
+    if (y === 0) zeros += 1;
+    if (z === 0) zeros += 1;
+    return zeros <= 1;
+  });
+}
+
 export function drawVoxelScene(
   ctx: CanvasRenderingContext2D,
   width: number,

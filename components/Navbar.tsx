@@ -36,6 +36,7 @@ function useLinks() {
     "/logistic-map",
     "/mosely-snowflake",
     "/vicsek-fractal-3d",
+    "/menger-sponge",
   ];
 
   const i = fractalLinks.findIndex((link) => {
