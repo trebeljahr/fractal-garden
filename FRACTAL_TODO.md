@@ -16,11 +16,11 @@ This file tracks the remaining open `new-fractal` work and carries forward throu
 
 ## Next Up
 
-All remaining open `new-fractal` issues need 3D support first.
+All currently tracked open `new-fractal` issues are implemented in this stacked branch set.
 
-## Needs 3D Support First
+## 3D Work
 
 - [x] `#9` Mosely Snowflake
 - [x] `#7` 3D Vicsek Fractal
 - [x] `#6` Menger Sponge
-- [ ] `#5` Mandelbulb
+- [x] `#5` Mandelbulb

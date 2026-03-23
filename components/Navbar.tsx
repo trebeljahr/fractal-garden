@@ -37,6 +37,7 @@ function useLinks() {
     "/mosely-snowflake",
     "/vicsek-fractal-3d",
     "/menger-sponge",
+    "/mandelbulb",
   ];
 
   const i = fractalLinks.findIndex((link) => {
