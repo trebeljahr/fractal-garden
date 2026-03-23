@@ -34,6 +34,7 @@ import apollonianGasketImage from "../public/assets/fractal-images/apollonian-ga
 import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
 import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowflake.jpg";
 import vicsekFractal3DImage from "../public/assets/fractal-images/vicsek-fractal-3d.jpg";
+import mengerSpongeImage from "../public/assets/fractal-images/menger-sponge.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -217,6 +218,11 @@ const Home: NextPage = () => {
             href="/vicsek-fractal-3d"
             title="3D Vicsek Fractal"
             imageSrc={vicsekFractal3DImage}
+          />
+          <FractalLink
+            href="/menger-sponge"
+            title="Menger Sponge"
+            imageSrc={mengerSpongeImage}
           />
           <AddMoreLink />
         </div>
