@@ -35,6 +35,7 @@ import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
 import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowflake.jpg";
 import vicsekFractal3DImage from "../public/assets/fractal-images/vicsek-fractal-3d.jpg";
 import mengerSpongeImage from "../public/assets/fractal-images/menger-sponge.jpg";
+import mandelbulbImage from "../public/assets/fractal-images/mandelbulb.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -223,6 +224,11 @@ const Home: NextPage = () => {
             href="/menger-sponge"
             title="Menger Sponge"
             imageSrc={mengerSpongeImage}
+          />
+          <FractalLink
+            href="/mandelbulb"
+            title="Mandelbulb"
+            imageSrc={mandelbulbImage}
           />
           <AddMoreLink />
         </div>
