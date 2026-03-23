@@ -221,6 +221,13 @@ export function generateMoselySnowflake(
   });
 }
 
+export function generateVicsekFractal3D(iterations: number) {
+  return generateVoxelFractal(
+    iterations,
+    (x, y, z) => Math.abs(x) + Math.abs(y) + Math.abs(z) <= 1
+  );
+}
+
 export function drawVoxelScene(
   ctx: CanvasRenderingContext2D,
   width: number,
