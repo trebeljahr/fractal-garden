@@ -35,6 +35,7 @@ function useLinks() {
     "/apollonian-gasket",
     "/logistic-map",
     "/mosely-snowflake",
+    "/vicsek-fractal-3d",
   ];
 
   const i = fractalLinks.findIndex((link) => {
