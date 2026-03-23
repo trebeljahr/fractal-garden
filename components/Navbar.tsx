@@ -6,6 +6,7 @@ function useLinks() {
   const router = useRouter();
   const fractalLinks = [
     "/mandelbrot",
+    "/burning-ship",
     "/barnsley-fern",
     "/sierpinski-carpet",
     "/l-system/levy-curve",
