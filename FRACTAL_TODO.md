@@ -20,7 +20,7 @@ All remaining open `new-fractal` issues need 3D support first.
 
 ## Needs 3D Support First
 
-- [ ] `#9` Mosely Snowflake
+- [x] `#9` Mosely Snowflake
 - [ ] `#7` 3D Vicsek Fractal
 - [ ] `#6` Menger Sponge
 - [ ] `#5` Mandelbulb

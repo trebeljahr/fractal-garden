@@ -32,6 +32,7 @@ import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
 import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
 import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
+import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowflake.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -205,6 +206,11 @@ const Home: NextPage = () => {
             href="/logistic-map"
             title="Logistic Map"
             imageSrc={logisticMapImage}
+          />
+          <FractalLink
+            href="/mosely-snowflake"
+            title="Mosely Snowflake"
+            imageSrc={moselySnowflakeImage}
           />
           <AddMoreLink />
         </div>
