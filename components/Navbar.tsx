@@ -28,6 +28,7 @@ function useLinks() {
     "/l-system/crystal",
     "/l-system/sierpinski-arrowhead",
     "/l-system/fibonacci-word-fractal",
+    "/t-square-fractal",
   ];
 
   const i = fractalLinks.findIndex((link) => {

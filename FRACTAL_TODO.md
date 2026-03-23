@@ -7,10 +7,10 @@ This file tracks the remaining open `new-fractal` work and carries forward throu
 - [x] `#25` Burning Ship Fractal
 - [x] `#14` Newton Fractal
 - [x] `#12` Fibonacci Word Fractal
+- [x] `#11` T-Square Fractal
 
 ## Next Up
 
-- [ ] `#11` T-Square Fractal
 - [ ] `#10` N-Flake
 - [ ] `#8` 2D Vicsek Fractal
 - [ ] `#4` Apollonian Gasket
