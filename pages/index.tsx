@@ -27,6 +27,7 @@ import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import fibonacciWordFractalImage from "../public/assets/fractal-images/l-system-fibonacci-word-fractal.jpg";
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
+import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -175,6 +176,11 @@ const Home: NextPage = () => {
             href="/t-square-fractal"
             title="T-Square Fractal"
             imageSrc={tSquareFractalImage}
+          />
+          <FractalLink
+            href="/julia-set"
+            title="Julia Set"
+            imageSrc={juliaSetImage}
           />
           <AddMoreLink />
         </div>

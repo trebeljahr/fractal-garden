@@ -29,6 +29,7 @@ function useLinks() {
     "/l-system/sierpinski-arrowhead",
     "/l-system/fibonacci-word-fractal",
     "/t-square-fractal",
+    "/julia-set",
   ];
 
   const i = fractalLinks.findIndex((link) => {
