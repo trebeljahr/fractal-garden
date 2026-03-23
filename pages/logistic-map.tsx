@@ -9,10 +9,12 @@ import DatGui, {
 import { Canvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 
 type Props = {
   description: string;
@@ -69,10 +71,14 @@ type DragState = {
   clientX: number;
   clientY: number;
   view: View;
+  mode: "pan" | "zoom";
+  focusX: number;
+  focusY: number;
 };
 
 const MIN_RANGE = 0.000001;
 const MAX_RANGE = 10;
+const INITIAL_VIEW: View = { ...PRESETS.Full };
 
 function logistic(r: number, x: number) {
   return r * x * (1 - x);
@@ -81,9 +87,9 @@ function logistic(r: number, x: number) {
 const LogisticMap = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [view, setView] = useState<View>(PRESETS.Full);
+  const [view, setView] = useState<View>(INITIAL_VIEW);
   const dragRef = useRef<DragState | null>(null);
-  const viewRef = useRef<View>(PRESETS.Full);
+  const viewRef = useRef<View>(INITIAL_VIEW);
   const [config, setConfig] = useState<Config>({
     preset: "Full",
     settleIterations: 300,
@@ -91,7 +97,7 @@ const LogisticMap = ({ description }: Props) => {
     columns: 1400,
     pointAlpha: 0.12,
     pointSize: 1,
-    background: "#0f1016",
+    background: "#252424",
     color: "#f0d66d",
   });
 
@@ -106,26 +112,58 @@ const LogisticMap = ({ description }: Props) => {
     canvas.style.cursor = "grab";
 
     const handleMouseDown = (event: MouseEvent) => {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
       dragRef.current = {
         clientX: event.clientX,
         clientY: event.clientY,
         view: { ...viewRef.current },
+        mode: event.shiftKey ? "zoom" : "pan",
+        focusX: constrain((event.clientX - rect.left) / rect.width, 0, 1),
+        focusY: constrain((event.clientY - rect.top) / rect.height, 0, 1),
       };
-      canvas.style.cursor = "grabbing";
+      canvas.style.cursor = event.shiftKey ? "ns-resize" : "grabbing";
     };
 
     const handleMouseMove = (event: MouseEvent) => {
       if (!dragRef.current) return;
 
       const rect = canvas.getBoundingClientRect();
-      const xRange = dragRef.current.view.rMax - dragRef.current.view.rMin;
-      const yRange = dragRef.current.view.xMax - dragRef.current.view.xMin;
-      const deltaX = ((event.clientX - dragRef.current.clientX) / rect.width) * xRange;
-      const deltaY = ((event.clientY - dragRef.current.clientY) / rect.height) * yRange;
-
       setConfig((old) =>
         old.preset === "Custom" ? old : { ...old, preset: "Custom" }
       );
+      if (dragRef.current.mode === "zoom") {
+        const xRange = dragRef.current.view.rMax - dragRef.current.view.rMin;
+        const yRange = dragRef.current.view.xMax - dragRef.current.view.xMin;
+        const deltaY = (event.clientY - dragRef.current.clientY) / rect.height;
+        const zoomFactor = Math.exp(deltaY * 2.2);
+        const nextXRange = constrain(xRange * zoomFactor, MIN_RANGE, MAX_RANGE);
+        const nextYRange = constrain(yRange * zoomFactor, MIN_RANGE, MAX_RANGE);
+        const focusR =
+          dragRef.current.view.rMin + dragRef.current.focusX * xRange;
+        const focusX =
+          dragRef.current.view.xMax - dragRef.current.focusY * yRange;
+        const rMin = focusR - dragRef.current.focusX * nextXRange;
+        const rMax = rMin + nextXRange;
+        const xMax = focusX + dragRef.current.focusY * nextYRange;
+        const xMin = xMax - nextYRange;
+
+        setView({
+          rMin,
+          rMax,
+          xMin,
+          xMax,
+        });
+        return;
+      }
+
+      const xRange = dragRef.current.view.rMax - dragRef.current.view.rMin;
+      const yRange = dragRef.current.view.xMax - dragRef.current.view.xMin;
+      const deltaX =
+        ((event.clientX - dragRef.current.clientX) / rect.width) * xRange;
+      const deltaY =
+        ((event.clientY - dragRef.current.clientY) / rect.height) * yRange;
+
       setView({
         rMin: dragRef.current.view.rMin - deltaX,
         rMax: dragRef.current.view.rMax - deltaX,
@@ -139,46 +177,12 @@ const LogisticMap = ({ description }: Props) => {
       canvas.style.cursor = "grab";
     };
 
-    const handleWheel = (event: WheelEvent) => {
-      event.preventDefault();
-
-      const rect = canvas.getBoundingClientRect();
-      const px = (event.clientX - rect.left) / rect.width;
-      const py = (event.clientY - rect.top) / rect.height;
-      const zoomFactor = event.deltaY > 0 ? 1.14 : 0.86;
-
-      setConfig((old) =>
-        old.preset === "Custom" ? old : { ...old, preset: "Custom" }
-      );
-      setView((old) => {
-        const xRange = old.rMax - old.rMin;
-        const yRange = old.xMax - old.xMin;
-        const nextXRange = constrain(xRange * zoomFactor, MIN_RANGE, MAX_RANGE);
-        const nextYRange = constrain(yRange * zoomFactor, MIN_RANGE, MAX_RANGE);
-        const focusR = old.rMin + px * xRange;
-        const focusX = old.xMax - py * yRange;
-        const rMin = focusR - px * nextXRange;
-        const rMax = rMin + nextXRange;
-        const xMax = focusX + py * nextYRange;
-        const xMin = xMax - nextYRange;
-
-        return {
-          rMin,
-          rMax,
-          xMin,
-          xMax,
-        };
-      });
-    };
-
     canvas.addEventListener("mousedown", handleMouseDown);
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
-      canvas.removeEventListener("wheel", handleWheel);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
@@ -187,16 +191,19 @@ const LogisticMap = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const renderWidth = Math.max(1, ctx.canvas.width);
+    const renderHeight = Math.max(1, ctx.canvas.height);
+    const ratio = renderWidth / width || 1;
     const xRange = Math.max(view.rMax - view.rMin, MIN_RANGE);
     const yRange = Math.max(view.xMax - view.xMin, MIN_RANGE);
-    const columns = Math.max(config.columns, 1);
+    const columns = Math.max(Math.round(config.columns * ratio), 1);
+    const pointSize = Math.max(1, config.pointSize * ratio);
 
     ctx.resetTransform();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, renderWidth, renderHeight);
 
     ctx.fillStyle = config.color;
     ctx.globalAlpha = config.pointAlpha;
@@ -204,7 +211,7 @@ const LogisticMap = ({ description }: Props) => {
     for (let column = 0; column < columns; column++) {
       const t = columns === 1 ? 0 : column / (columns - 1);
       const r = view.rMin + t * xRange;
-      const px = t * width;
+      const px = t * Math.max(renderWidth - pointSize, 0);
       let x = 0.5;
 
       for (let i = 0; i < config.settleIterations; i++) {
@@ -218,8 +225,8 @@ const LogisticMap = ({ description }: Props) => {
           continue;
         }
 
-        const py = ((view.xMax - x) / yRange) * height;
-        ctx.fillRect(px, py, config.pointSize, config.pointSize);
+        const py = ((view.xMax - x) / yRange) * Math.max(renderHeight - pointSize, 0);
+        ctx.fillRect(px, py, pointSize, pointSize);
       }
     }
 
@@ -236,6 +243,14 @@ const LogisticMap = ({ description }: Props) => {
       setView(PRESETS[newData.preset]);
     }
     setConfig(merged);
+  };
+
+  const resetView = () => {
+    setConfig((old) => ({
+      ...old,
+      preset: "Full",
+    }));
+    setView({ ...PRESETS.Full });
   };
 
   return (
@@ -296,6 +311,23 @@ const LogisticMap = ({ description }: Props) => {
         </DatGui>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
+          <ViewportOverlay
+            title="Interactive View"
+            lines={[
+              "Drag to pan across the bifurcation diagram.",
+              "Hold Shift while dragging up or down to zoom, and use the button below to jump to the write-up.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: resetView,
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
+          />
         </div>
         <SideDrawer description={description} />
         <NavElement />

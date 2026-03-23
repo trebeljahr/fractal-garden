@@ -57,7 +57,7 @@ const VicsekFractal2D = ({ description }: Props) => {
     iterations: 4,
     animateIterations: true,
     variant: "saltire",
-    background: "#131119",
+    background: "#252424",
     color: "#f2efde",
     fillSquares: true,
     strokeSquares: false,
@@ -81,7 +81,7 @@ const VicsekFractal2D = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const size = Math.min(width, height) * (1 - 2 * PADDING);
     const originX = (width - size) / 2;
     const originY = (height - size) / 2;

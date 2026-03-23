@@ -1,15 +1,17 @@
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { WebGLCanvas } from "../components/Canvas";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/newton.frag";
 import { createShaderProgram } from "../utils/shaders/compileShader";
-import { constrain } from "../utils/ctxHelpers";
+import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 
 type Props = {
   description: string;
@@ -24,17 +26,22 @@ const NewtonFractal = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
+  const viewportRef = useRef({
+    center: [...INITIAL_CENTER] as [number, number],
+    zoomSize: INITIAL_ZOOM_SIZE,
+  });
+  const renderRef = useRef<(() => void) | null>(null);
+
+  useShaderViewportControls({
+    canvas: cnv,
+    viewportRef,
+    minZoomSize: MIN_ZOOM_SIZE,
+    maxZoomSize: MAX_ZOOM_SIZE,
+    onViewportChange: () => renderRef.current?.(),
+  });
 
   useEffect(() => {
     if (!gl || !width || !height || !cnv) return;
-
-    let center: [number, number] = [...INITIAL_CENTER];
-    let zoomSize = INITIAL_ZOOM_SIZE;
-    let zooming = false;
-    let zoomFactor = 1;
-    let zoomAcceleration = 0;
-    let mouse: [number, number] = [0, 0];
-    let animationId = 0;
 
     const output = createShaderProgram(gl, vertexShader, fragmentShader);
     if (!output) return;
@@ -70,12 +77,13 @@ const NewtonFractal = ({ description }: Props) => {
     }
 
     const getResolution = () => {
-      const ratio = Math.ceil(window.devicePixelRatio) || 1;
+      const ratio = window.devicePixelRatio || 1;
       return [width * ratio, height * ratio] as const;
     };
 
     const drawNewton = () => {
       const [resolutionX, resolutionY] = getResolution();
+      const { center, zoomSize } = viewportRef.current;
 
       gl.uniform2f(centerLocation, center[0], center[1]);
       gl.uniform1f(zoomSizeLocation, zoomSize);
@@ -86,70 +94,12 @@ const NewtonFractal = ({ description }: Props) => {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
-
-    const updateMousePosition = ({ clientX, clientY }: MouseEvent) => {
-      const rect = cnv.getBoundingClientRect();
-      const shortestSide = Math.min(rect.width, rect.height);
-      if (!shortestSide) return;
-
-      const px = clientX - rect.left;
-      const py = clientY - rect.top;
-
-      mouse = [
-        (2 * px - rect.width) / shortestSide,
-        (rect.height - 2 * py) / shortestSide,
-      ];
-    };
-
-    const zoom = () => {
-      if (!zooming) return;
-
-      zoomFactor += zoomAcceleration;
-
-      const nextZoomSize = constrain(
-        zoomSize * zoomFactor,
-        MIN_ZOOM_SIZE,
-        MAX_ZOOM_SIZE
-      );
-      const zoomDelta = zoomSize - nextZoomSize;
-
-      center = [
-        center[0] + mouse[0] * zoomDelta,
-        center[1] + mouse[1] * zoomDelta,
-      ];
-      zoomSize = nextZoomSize;
-
-      drawNewton();
-      animationId = requestAnimationFrame(zoom);
-    };
-
-    const clickHandler = (event: MouseEvent) => {
-      event.preventDefault();
-      updateMousePosition(event);
-      zooming = true;
-      zoomFactor = event.ctrlKey ? 1.01 : 0.99;
-      zoomAcceleration = event.ctrlKey ? 0.00007 : -0.00007;
-      animationId = requestAnimationFrame(zoom);
-    };
-
-    const clickReleaseHandler = () => {
-      zooming = false;
-      cancelAnimationFrame(animationId);
-    };
+    renderRef.current = drawNewton;
 
     drawNewton();
 
-    cnv.addEventListener("mousemove", updateMousePosition);
-    cnv.addEventListener("mousedown", clickHandler);
-    cnv.addEventListener("mouseleave", clickReleaseHandler);
-    window.addEventListener("mouseup", clickReleaseHandler);
-
     return () => {
-      cancelAnimationFrame(animationId);
-      cnv.removeEventListener("mousemove", updateMousePosition);
-      cnv.removeEventListener("mousedown", clickHandler);
-      cnv.removeEventListener("mouseleave", clickReleaseHandler);
-      window.removeEventListener("mouseup", clickReleaseHandler);
+      renderRef.current = null;
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -163,7 +113,7 @@ const NewtonFractal = ({ description }: Props) => {
         <title>Newton Fractal</title>
         <meta
           name="description"
-          content="An interactive Newton fractal for z^3 - 1. Each region shows which root Newton's method converges to, with the boundaries turning into a fractal web."
+          content="An interactive Newton fractal for z^3 - 1 with drag-to-pan and focal-point zoom controls across mouse, trackpad, and touch."
         />
       </Head>
       <main className={styles.fullScreen}>
@@ -173,6 +123,29 @@ const NewtonFractal = ({ description }: Props) => {
             width={width}
             height={height}
             setCnv={setCnv}
+          />
+          <ViewportOverlay
+            title="Interactive View"
+            lines={[
+              "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the basins.",
+              "Use the button below whenever you want to jump straight down to the explanation.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () => {
+                  viewportRef.current = {
+                    center: [...INITIAL_CENTER] as [number, number],
+                    zoomSize: INITIAL_ZOOM_SIZE,
+                  };
+                  renderRef.current?.();
+                },
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
           />
         </div>
         <SideDrawer description={description} />

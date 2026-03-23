@@ -42,6 +42,8 @@ export type VoxelDrawOptions = {
   showWireframe: boolean;
 };
 
+const PROJECTION_FOCAL_LENGTH = 6;
+
 const FACE_DEFS = [
   {
     direction: [0, 0, 1] as const,
@@ -115,7 +117,8 @@ function projectPoint(
   scale: number,
   cameraDistance: number
 ) {
-  const perspective = cameraDistance / Math.max(cameraDistance - point.z, 0.2);
+  const perspective =
+    PROJECTION_FOCAL_LENGTH / Math.max(cameraDistance - point.z, 0.2);
 
   return {
     x: width / 2 + point.x * scale * perspective,

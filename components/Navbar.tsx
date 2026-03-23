@@ -6,9 +6,15 @@ function useLinks() {
   const router = useRouter();
   const fractalLinks = [
     "/mandelbrot",
+    "/julia-set",
+    "/burning-ship",
+    "/mosely-snowflake",
+    "/vicsek-fractal-3d",
+    "/menger-sponge",
+    "/mandelbulb",
     "/buddhabrot",
     "/newton-fractal",
-    "/burning-ship",
+    "/pythagoras-tree",
     "/barnsley-fern",
     "/sierpinski-carpet",
     "/l-system/levy-curve",
@@ -29,15 +35,10 @@ function useLinks() {
     "/l-system/sierpinski-arrowhead",
     "/l-system/fibonacci-word-fractal",
     "/t-square-fractal",
-    "/julia-set",
     "/n-flake",
     "/vicsek-fractal-2d",
     "/apollonian-gasket",
     "/logistic-map",
-    "/mosely-snowflake",
-    "/vicsek-fractal-3d",
-    "/menger-sponge",
-    "/mandelbulb",
   ];
 
   const i = fractalLinks.findIndex((link) => {

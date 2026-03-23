@@ -125,7 +125,7 @@ const ApollonianGasket = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 5,
     animateIterations: true,
-    background: "#120f17",
+    background: "#252424",
     color: "#efdfb6",
     fillCircles: false,
     strokeCircles: true,
@@ -150,7 +150,7 @@ const ApollonianGasket = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const scale = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
     const circles = buildGasket(config.iterations);
 

@@ -111,7 +111,7 @@ const FibonacciWordFractal = ({ description }: Props) => {
     iterations: 14,
     animateIterations: true,
     angle: 90,
-    background: "#14131f",
+    background: "#252424",
     color: "#f3d26d",
     lineWidth: 1.2,
   });
@@ -142,7 +142,7 @@ const FibonacciWordFractal = ({ description }: Props) => {
     const { scale, offsetX, offsetY } = getTransform(bounds, width, height);
 
     ctx.resetTransform();
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     ctx.fillStyle = config.background;

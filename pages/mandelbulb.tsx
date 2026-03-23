@@ -9,10 +9,12 @@ import DatGui, {
 import { WebGLCanvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain, radians } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
@@ -44,22 +46,24 @@ type DragState = {
   mode: "orbit" | "pan";
 };
 
+const INITIAL_CONFIG: Config = {
+  power: 8,
+  detail: 14,
+  cameraDistance: 3.8,
+  rotationX: 18,
+  rotationY: 32,
+  offsetX: 0,
+  offsetY: 0,
+  background: "#252424",
+  color: "#f3b561",
+  autoRotate: true,
+};
+
 const Mandelbulb = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
-  const [config, setConfig] = useState<Config>({
-    power: 8,
-    detail: 14,
-    cameraDistance: 3.8,
-    rotationX: 18,
-    rotationY: 32,
-    offsetX: 0,
-    offsetY: 0,
-    background: "#090d16",
-    color: "#f3b561",
-    autoRotate: true,
-  });
+  const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
   const configRef = useRef(config);
   const dragRef = useRef<DragState | null>(null);
 
@@ -123,7 +127,7 @@ const Mandelbulb = ({ description }: Props) => {
       ] as const;
     };
 
-    const ratio = Math.ceil(window.devicePixelRatio) || 1;
+    const ratio = window.devicePixelRatio || 1;
     const startTime = performance.now();
     let animationId = 0;
 
@@ -170,22 +174,19 @@ const Mandelbulb = ({ description }: Props) => {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (!dragRef.current) return;
+      const dragState = dragRef.current;
+      if (!dragState) return;
 
       const rect = cnv.getBoundingClientRect();
-      const deltaX = (event.clientX - dragRef.current.clientX) / rect.width;
-      const deltaY = (event.clientY - dragRef.current.clientY) / rect.height;
+      const deltaX = (event.clientX - dragState.clientX) / rect.width;
+      const deltaY = (event.clientY - dragState.clientY) / rect.height;
 
-      if (dragRef.current.mode === "orbit") {
+      if (dragState.mode === "orbit") {
         setConfig((old) => ({
           ...old,
           autoRotate: false,
-          rotationY: dragRef.current!.rotationY + deltaX * 180,
-          rotationX: constrain(
-            dragRef.current!.rotationX + deltaY * 120,
-            -85,
-            85
-          ),
+          rotationY: dragState.rotationY + deltaX * 180,
+          rotationX: constrain(dragState.rotationX + deltaY * 120, -85, 85),
         }));
         return;
       }
@@ -193,8 +194,8 @@ const Mandelbulb = ({ description }: Props) => {
       setConfig((old) => ({
         ...old,
         autoRotate: false,
-        offsetX: dragRef.current!.offsetX - deltaX * old.cameraDistance * 1.8,
-        offsetY: dragRef.current!.offsetY + deltaY * old.cameraDistance * 1.8,
+        offsetX: dragState.offsetX - deltaX * old.cameraDistance * 1.8,
+        offsetY: dragState.offsetY + deltaY * old.cameraDistance * 1.8,
       }));
     };
 
@@ -220,16 +221,20 @@ const Mandelbulb = ({ description }: Props) => {
     cnv.addEventListener("mousedown", handleMouseDown);
     cnv.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("mousemove", handleMouseMove);
+    cnv.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleMouseUp);
 
     render();
 
     return () => {
       cancelAnimationFrame(animationId);
       cnv.removeEventListener("mousedown", handleMouseDown);
+      cnv.removeEventListener("mouseleave", handleMouseUp);
       cnv.removeEventListener("wheel", handleWheel);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleMouseUp);
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -255,7 +260,7 @@ const Mandelbulb = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="color" label="color" />
             <DatNumber path="power" label="power" min={2} max={12} step={0.1} />
@@ -292,6 +297,23 @@ const Mandelbulb = ({ description }: Props) => {
             width={width}
             height={height}
             setCnv={setCnv}
+          />
+          <ViewportOverlay
+            title="Interactive View"
+            lines={[
+              "Drag to orbit, hold Shift while dragging to pan, and use the scroll wheel to zoom.",
+              "Use the button below whenever you want to jump straight down to the explanation.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () => setConfig(INITIAL_CONFIG),
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
           />
         </div>
         <SideDrawer description={description} />

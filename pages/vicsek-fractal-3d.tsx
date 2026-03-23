@@ -9,13 +9,16 @@ import DatGui, {
 import { Canvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
+import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import {
   drawVoxelScene,
   generateVicsekFractal3D,
 } from "../utils/voxelFractals";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 
 type Props = {
   description: string;
@@ -23,6 +26,7 @@ type Props = {
 
 type Config = {
   iterations: number;
+  animateIterations: boolean;
   autoRotate: boolean;
   rotationX: number;
   rotationY: number;
@@ -37,27 +41,53 @@ type Config = {
 
 const MAX_ITERATIONS = 4;
 
+const INITIAL_CONFIG: Config = {
+  iterations: 0,
+  animateIterations: true,
+  autoRotate: true,
+  rotationX: 26,
+  rotationY: 30,
+  cameraDistance: 6,
+  background: "#252424",
+  fillColor: "#f5b86d",
+  strokeColor: "#ffe8c5",
+  showFaces: true,
+  showWireframe: true,
+  lineWidth: 0.8,
+};
+
 const VicsekFractal3D = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [config, setConfig] = useState<Config>({
-    iterations: 3,
-    autoRotate: true,
-    rotationX: 26,
-    rotationY: 30,
-    cameraDistance: 6,
-    background: "#101218",
-    fillColor: "#f5b86d",
-    strokeColor: "#ffe8c5",
-    showFaces: true,
-    showWireframe: true,
-    lineWidth: 0.8,
+  const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
+  const canvas = ctx?.canvas ?? null;
+
+  useOrbitZoomControls({
+    canvas,
+    setConfig,
+    minDistance: 3,
+    maxDistance: 10,
   });
+
+  useEffect(() => {
+    if (!config.animateIterations) return;
+
+    const delay = config.iterations >= MAX_ITERATIONS ? 1800 : 950;
+    const id = window.setTimeout(() => {
+      setConfig((old) => ({
+        ...old,
+        iterations:
+          old.iterations >= MAX_ITERATIONS ? 0 : old.iterations + 1,
+      }));
+    }, delay);
+
+    return () => window.clearTimeout(id);
+  }, [config.animateIterations, config.iterations]);
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = Math.ceil(window.devicePixelRatio);
+    const ratio = window.devicePixelRatio || 1;
     const cubes = generateVicsekFractal3D(config.iterations);
     let animationId = 0;
     let rotationOffset = 0;
@@ -109,7 +139,7 @@ const VicsekFractal3D = ({ description }: Props) => {
       </Head>
       <main className={styles.fullScreen}>
         <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
+          <DatFolder closed={false} title="Options">
             <DatColor path="background" label="background" />
             <DatColor path="fillColor" label="fillColor" />
             <DatColor path="strokeColor" label="strokeColor" />
@@ -120,6 +150,7 @@ const VicsekFractal3D = ({ description }: Props) => {
               max={MAX_ITERATIONS}
               step={1}
             />
+            <DatBoolean path="animateIterations" label="animate" />
             <DatBoolean path="autoRotate" label="autoRotate" />
             <DatNumber
               path="rotationX"
@@ -155,6 +186,29 @@ const VicsekFractal3D = ({ description }: Props) => {
         </DatGui>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
+          <ViewportOverlay
+            title="3D View"
+            lines={[
+              "Drag to orbit around the fractal and use the scroll wheel to dolly in or back out.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () =>
+                  setConfig((old) => ({
+                    ...old,
+                    autoRotate: INITIAL_CONFIG.autoRotate,
+                    rotationX: INITIAL_CONFIG.rotationX,
+                    rotationY: INITIAL_CONFIG.rotationY,
+                    cameraDistance: INITIAL_CONFIG.cameraDistance,
+                  })),
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
+          />
         </div>
         <SideDrawer description={description} />
         <NavElement />

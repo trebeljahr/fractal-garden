@@ -40,13 +40,45 @@ type Props = {
   ruleset: Ruleset;
 };
 
+function expandSentence(sentence: string, replace: Record<string, string>) {
+  let nextSentence = "";
+
+  for (let char of sentence) {
+    nextSentence += replace[char] || char;
+  }
+
+  return nextSentence;
+}
+
+function hasDrawableSegment(sentence: string) {
+  return sentence.includes("F") || sentence.includes("G");
+}
+
+function getFirstVisibleIteration(ruleset: Ruleset) {
+  let sentence = ruleset.axiom;
+
+  for (let iteration = 1; iteration <= ruleset.maxIterations; iteration++) {
+    if (hasDrawableSegment(sentence)) {
+      return iteration;
+    }
+
+    sentence = expandSentence(sentence, ruleset.replace);
+  }
+
+  return ruleset.minIterations;
+}
+
 const LSystem = ({ ruleset }: Props) => {
-  const [config, setConfig] = useState<Config>({
-    iterations: ruleset.maxIterations - 1,
+  const minVisibleIteration = Math.max(
+    ruleset.minIterations,
+    getFirstVisibleIteration(ruleset)
+  );
+  const [config, setConfig] = useState<Config>(() => ({
+    iterations: Math.max(minVisibleIteration, ruleset.maxIterations - 1),
     animateIterations: true,
     background: "#252424",
     ruleset: ruleset,
-  });
+  }));
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
@@ -65,7 +97,7 @@ const LSystem = ({ ruleset }: Props) => {
 
     const commonSetup = () => {
       ctx.resetTransform();
-      const ratio = Math.ceil(window.devicePixelRatio);
+      const ratio = window.devicePixelRatio || 1;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       ctx.fillStyle = config.background;
       ctx.fillRect(0, 0, width, height);
@@ -121,7 +153,7 @@ const LSystem = ({ ruleset }: Props) => {
 
     const resetAndDraw = () => {
       ctx.resetTransform();
-      const ratio = Math.ceil(window.devicePixelRatio);
+      const ratio = window.devicePixelRatio || 1;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       sentence = config.ruleset.axiom;
@@ -157,7 +189,7 @@ const LSystem = ({ ruleset }: Props) => {
             ...old,
             iterations:
               newIterations > config.ruleset.maxIterations
-                ? config.ruleset.minIterations
+                ? minVisibleIteration
                 : newIterations,
           };
         });
@@ -167,7 +199,7 @@ const LSystem = ({ ruleset }: Props) => {
     resetAndDraw();
 
     return () => clearTimeout(id);
-  }, [config, ctx, width, height, config.animateIterations]);
+  }, [config, ctx, width, height, config.animateIterations, minVisibleIteration]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({
@@ -187,7 +219,7 @@ const LSystem = ({ ruleset }: Props) => {
           <DatNumber
             path="iterations"
             label="iterations"
-            min={config.ruleset.minIterations}
+            min={minVisibleIteration}
             max={config.ruleset.maxIterations}
             step={1}
           />

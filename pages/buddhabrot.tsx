@@ -34,12 +34,35 @@ const VIEWPORT = {
   maxY: 1.5,
 };
 
+function getViewportForAspect(aspect: number) {
+  const centerX = (VIEWPORT.minX + VIEWPORT.maxX) / 2;
+  const centerY = (VIEWPORT.minY + VIEWPORT.maxY) / 2;
+  const baseWidth = VIEWPORT.maxX - VIEWPORT.minX;
+  const baseHeight = VIEWPORT.maxY - VIEWPORT.minY;
+
+  let viewportWidth = baseWidth;
+  let viewportHeight = baseHeight;
+
+  if (aspect > baseWidth / baseHeight) {
+    viewportWidth = viewportHeight * aspect;
+  } else {
+    viewportHeight = viewportWidth / aspect;
+  }
+
+  return {
+    minX: centerX - viewportWidth / 2,
+    maxX: centerX + viewportWidth / 2,
+    minY: centerY - viewportHeight / 2,
+    maxY: centerY + viewportHeight / 2,
+  };
+}
+
 const INITIAL_CONFIG: Config = {
   maxIterations: 160,
   minOrbitLength: 25,
   samplesPerFrame: 450,
   exposure: 0.9,
-  background: "#090b14",
+  background: "#252424",
   color: "#b8f4ff",
   animate: true,
 };
@@ -73,9 +96,11 @@ const Buddhabrot = ({ description }: Props) => {
     let shouldStop = false;
     let renderedSamples = 0;
     let maxVisits = 1;
-    const ratio = Math.ceil(window.devicePixelRatio) || 1;
-    const renderWidth = width * ratio;
-    const renderHeight = height * ratio;
+    const renderWidth = Math.max(1, ctx.canvas.width);
+    const renderHeight = Math.max(1, ctx.canvas.height);
+    const scaleX = renderWidth / width || 1;
+    const scaleY = renderHeight / height || 1;
+    const viewport = getViewportForAspect(renderWidth / renderHeight);
 
     const histogram = new Float32Array(renderWidth * renderHeight);
     const image = ctx.createImageData(renderWidth, renderHeight);
@@ -84,11 +109,11 @@ const Buddhabrot = ({ description }: Props) => {
 
     const mapToPixel = (x: number, y: number) => {
       const px = Math.floor(
-        ((x - VIEWPORT.minX) / (VIEWPORT.maxX - VIEWPORT.minX)) *
+        ((x - viewport.minX) / (viewport.maxX - viewport.minX)) *
           (renderWidth - 1)
       );
       const py = Math.floor(
-        ((VIEWPORT.maxY - y) / (VIEWPORT.maxY - VIEWPORT.minY)) *
+        ((viewport.maxY - y) / (viewport.maxY - viewport.minY)) *
           (renderHeight - 1)
       );
 
@@ -119,12 +144,17 @@ const Buddhabrot = ({ description }: Props) => {
         data[idx + 3] = 255;
       }
 
-      ctx.putImageData(image, 0, 0);
       ctx.resetTransform();
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, renderWidth, renderHeight);
+      ctx.putImageData(image, 0, 0);
+      ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
       ctx.font = "14px monospace";
       ctx.fillStyle = config.color;
-      ctx.fillText(`Samples: ${renderedSamples.toLocaleString()}`, 18, 28);
+      const label = `Samples: ${renderedSamples.toLocaleString()}`;
+      const labelWidth = ctx.measureText(label).width;
+      ctx.fillText(label, width - labelWidth - 18, 28);
     };
 
     const drawOrbit = (orbit: [number, number][]) => {
@@ -132,10 +162,10 @@ const Buddhabrot = ({ description }: Props) => {
         const [x, y] = orbit[i];
 
         if (
-          x < VIEWPORT.minX ||
-          x > VIEWPORT.maxX ||
-          y < VIEWPORT.minY ||
-          y > VIEWPORT.maxY
+          x < viewport.minX ||
+          x > viewport.maxX ||
+          y < viewport.minY ||
+          y > viewport.maxY
         ) {
           continue;
         }
@@ -147,7 +177,7 @@ const Buddhabrot = ({ description }: Props) => {
         maxVisits = Math.max(maxVisits, next);
 
         const mirroredY = -y;
-        if (mirroredY < VIEWPORT.minY || mirroredY > VIEWPORT.maxY) continue;
+        if (mirroredY < viewport.minY || mirroredY > viewport.maxY) continue;
 
         const [mx, my] = mapToPixel(x, mirroredY);
         const mirroredIndex = my * renderWidth + mx;
@@ -158,8 +188,8 @@ const Buddhabrot = ({ description }: Props) => {
     };
 
     const sampleOrbit = () => {
-      const cx = VIEWPORT.minX + Math.random() * (VIEWPORT.maxX - VIEWPORT.minX);
-      const cy = Math.random() * VIEWPORT.maxY;
+      const cx = viewport.minX + Math.random() * (viewport.maxX - viewport.minX);
+      const cy = Math.random() * viewport.maxY;
 
       if (isInsideCardioidOrBulb(cx, cy)) return;
 
@@ -203,9 +233,9 @@ const Buddhabrot = ({ description }: Props) => {
     };
 
     ctx.resetTransform();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, renderWidth, renderHeight);
 
     frameId = requestAnimationFrame(tick);
 

@@ -1,8 +1,11 @@
 .react-dat-gui {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 18px;
+  top: 18px;
+  z-index: 25;
   width: 280px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
   font-size: 12px;
   font-family: Lucida Grande, sans-serif;
   box-sizing: border-box;
@@ -20,6 +23,10 @@
   padding: 0;
   color: #eee;
   overflow: hidden;
+}
+.react-dat-gui .dg.main {
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
 }
 .react-dat-gui .dg ul {
   list-style: none;
@@ -217,6 +224,19 @@
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+@media screen and (max-width: 700px) {
+  .react-dat-gui {
+    left: 14px;
+    top: 14px;
+    width: min(280px, calc(100vw - 28px));
+    max-height: calc(100vh - 28px);
+  }
+
+  .react-dat-gui .dg.main {
+    max-height: calc(100vh - 28px);
+  }
 }
 .react-dat-gui .cr.color .picker {
   background: #fff;
