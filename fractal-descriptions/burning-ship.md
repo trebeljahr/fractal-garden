@@ -19,4 +19,4 @@ Just like the Mandelbrot Set, points that never escape belong to the fractal, wh
 
 Hold the mouse button to zoom in. Hold `Ctrl` while clicking to zoom back out.
 
-Because it is built from the same escape-time idea, this fractal sits in the same family as the [Mandelbrot Set](/mandelbrot), the requested Buddhabrot, and Julia-style quadratic fractals.
+Because it is built from the same escape-time idea, this fractal sits in the same family as the [Mandelbrot Set](/mandelbrot).
