@@ -30,6 +30,7 @@ function useLinks() {
     "/l-system/fibonacci-word-fractal",
     "/t-square-fractal",
     "/julia-set",
+    "/n-flake",
   ];
 
   const i = fractalLinks.findIndex((link) => {
