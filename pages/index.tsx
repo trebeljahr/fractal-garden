@@ -31,6 +31,7 @@ import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
 import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
+import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -199,6 +200,11 @@ const Home: NextPage = () => {
             href="/apollonian-gasket"
             title="Apollonian Gasket"
             imageSrc={apollonianGasketImage}
+          />
+          <FractalLink
+            href="/logistic-map"
+            title="Logistic Map"
+            imageSrc={logisticMapImage}
           />
           <AddMoreLink />
         </div>
