@@ -84,14 +84,14 @@ void main() {
     }
 
     float shade = 1.0 - float(iteration) / float(maxIterations);
-    shade = 0.35 + 0.9 * pow(shade, 0.85);
-    vec3 color = rootColor(closestRoot) * shade;
-    float boundaryGlow = exp(-48.0 * bestDistance);
-    color += boundaryGlow * vec3(0.95, 0.97, 1.0) * 0.45;
+    shade = 0.62 + 0.58 * pow(shade, 0.82);
 
-    if (bestDistance > 0.05) {
-        color *= 0.55;
-    }
+    vec3 color = rootColor(closestRoot) * shade;
+    float boundaryGlow = exp(-30.0 * bestDistance);
+    float convergence = 1.0 - smoothstep(0.02, 0.16, bestDistance);
+
+    color *= 0.82 + 0.18 * convergence;
+    color += boundaryGlow * vec3(0.95, 0.97, 1.0) * 0.35;
 
     gl_FragColor = vec4(color, 1.0);
 }
