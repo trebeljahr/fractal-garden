@@ -3,6 +3,7 @@ import Head from "next/head";
 import { AddMoreLink, FractalLink } from "../components/FractalLink";
 import styles from "../styles/Home.module.css";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
+import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg";
 import burningShipImage from "../public/assets/fractal-images/burning-ship.jpg";
 import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
@@ -45,6 +46,12 @@ const Home: NextPage = () => {
             href="/mandelbrot"
             title="Mandelbrot Set"
             imageSrc={mandelbrotImage}
+            prio={true}
+          />
+          <FractalLink
+            href="/buddhabrot"
+            title="Buddhabrot"
+            imageSrc={buddhabrotImage}
             prio={true}
           />
           <FractalLink
