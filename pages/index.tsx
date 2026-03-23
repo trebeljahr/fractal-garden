@@ -29,6 +29,7 @@ import fibonacciWordFractalImage from "../public/assets/fractal-images/l-system-
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
+import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -187,6 +188,11 @@ const Home: NextPage = () => {
             href="/n-flake"
             title="N-Flake"
             imageSrc={nFlakeImage}
+          />
+          <FractalLink
+            href="/vicsek-fractal-2d"
+            title="2D Vicsek Fractal"
+            imageSrc={vicsekFractal2DImage}
           />
           <AddMoreLink />
         </div>

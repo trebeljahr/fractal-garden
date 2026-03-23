@@ -31,6 +31,7 @@ function useLinks() {
     "/t-square-fractal",
     "/julia-set",
     "/n-flake",
+    "/vicsek-fractal-2d",
   ];
 
   const i = fractalLinks.findIndex((link) => {
