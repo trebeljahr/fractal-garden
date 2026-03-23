@@ -126,7 +126,7 @@ const GosperCurve = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 4,
     animateIterations: true,
-    background: "#111522",
+    background: "#252424",
     color: "#89f7d1",
     lineWidth: 1.3,
   });

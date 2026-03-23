@@ -97,7 +97,7 @@ const LogisticMap = ({ description }: Props) => {
     columns: 1400,
     pointAlpha: 0.12,
     pointSize: 1,
-    background: "#0f1016",
+    background: "#252424",
     color: "#f0d66d",
   });
 

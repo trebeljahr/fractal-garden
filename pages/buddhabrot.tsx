@@ -62,7 +62,7 @@ const INITIAL_CONFIG: Config = {
   minOrbitLength: 25,
   samplesPerFrame: 450,
   exposure: 0.9,
-  background: "#090b14",
+  background: "#252424",
   color: "#b8f4ff",
   animate: true,
 };

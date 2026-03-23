@@ -2,8 +2,10 @@ import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
+import { scrollToDescription } from "../utils/scrollToDescription";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { WebGLCanvas } from "../components/Canvas";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
@@ -121,6 +123,29 @@ const NewtonFractal = ({ description }: Props) => {
             width={width}
             height={height}
             setCnv={setCnv}
+          />
+          <ViewportOverlay
+            title="Interactive View"
+            lines={[
+              "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the basins.",
+              "Use the button below whenever you want to jump straight down to the explanation.",
+            ]}
+            actions={[
+              {
+                label: "Reset view",
+                onClick: () => {
+                  viewportRef.current = {
+                    center: [...INITIAL_CENTER] as [number, number],
+                    zoomSize: INITIAL_ZOOM_SIZE,
+                  };
+                  renderRef.current?.();
+                },
+              },
+              {
+                label: "About this fractal",
+                onClick: scrollToDescription,
+              },
+            ]}
           />
         </div>
         <SideDrawer description={description} />

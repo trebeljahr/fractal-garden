@@ -54,7 +54,7 @@ const INITIAL_CONFIG: Config = {
   rotationY: 32,
   offsetX: 0,
   offsetY: 0,
-  background: "#090d16",
+  background: "#252424",
   color: "#f3b561",
   autoRotate: true,
 };

@@ -111,7 +111,7 @@ const FibonacciWordFractal = ({ description }: Props) => {
     iterations: 14,
     animateIterations: true,
     angle: 90,
-    background: "#14131f",
+    background: "#252424",
     color: "#f3d26d",
     lineWidth: 1.2,
   });

@@ -57,7 +57,7 @@ const VicsekFractal2D = ({ description }: Props) => {
     iterations: 4,
     animateIterations: true,
     variant: "saltire",
-    background: "#131119",
+    background: "#252424",
     color: "#f2efde",
     fillSquares: true,
     strokeSquares: false,

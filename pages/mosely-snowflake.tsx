@@ -51,7 +51,7 @@ const INITIAL_CONFIG: Config = {
   rotationX: 28,
   rotationY: 32,
   cameraDistance: 6,
-  background: "#10111a",
+  background: "#252424",
   fillColor: "#8fb0ff",
   strokeColor: "#dce9ff",
   showFaces: true,

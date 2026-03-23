@@ -114,7 +114,7 @@ const NFlake = ({ description }: Props) => {
     animateIterations: true,
     includeCenter: true,
     rotation: 0,
-    background: "#120f1a",
+    background: "#252424",
     color: "#94f0d7",
     fillPolygons: true,
     strokePolygons: true,

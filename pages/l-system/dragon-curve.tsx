@@ -127,7 +127,7 @@ const DragonCurve = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 12,
     animateIterations: true,
-    background: "#0c1021",
+    background: "#252424",
     color: "#9af4ff",
     lineWidth: 1.5,
   });
