@@ -10,6 +10,7 @@ function useLinks() {
     "/barnsley-fern",
     "/sierpinski-carpet",
     "/l-system/levy-curve",
+    "/l-system/dragon-curve",
     "/l-system/fern-1",
     "/l-system/fern-2",
     "/l-system/fern-3",

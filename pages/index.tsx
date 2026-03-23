@@ -8,6 +8,7 @@ import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
 import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
+import dragonCurveImage from "../public/assets/fractal-images/l-system-dragon-curve.jpg";
 import fern1Image from "../public/assets/fractal-images/l-system-fern-1.jpg";
 import fern2Image from "../public/assets/fractal-images/l-system-fern-2.jpg";
 import fern3Image from "../public/assets/fractal-images/l-system-fern-3.jpg";
@@ -73,6 +74,11 @@ const Home: NextPage = () => {
             href="/l-system/levy-curve"
             title="Lévy Curve"
             imageSrc={levyCurveImage}
+          />
+          <FractalLink
+            href="/l-system/dragon-curve"
+            title="Dragon Curve"
+            imageSrc={dragonCurveImage}
           />
           <FractalLink
             href="/l-system/fern-1"
