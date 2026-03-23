@@ -12,6 +12,4 @@ but the picture is built from the path of each escaping orbit rather than from t
 
 If a sampled point stays bounded, it does not contribute anything to the image. If it escapes, every intermediate value in its orbit is plotted into a histogram. After collecting many thousands of those paths, brighter regions appear where many different orbits pass through the same area.
 
-This makes the Buddhabrot feel a bit like an x-ray of the Mandelbrot Set. It shows the flow around the set rather than just its boundary. Because it is built from the same quadratic map, it also sits very naturally next to the [Julia Set](/julia-set) and even to the [Logistic Map](/logistic-map), which can be transformed into a related quadratic iteration.
-
-The version here is drawn progressively. As more samples are collected, the shape becomes clearer and more detailed.
+This makes the Buddhabrot feel a bit like an x-ray of the Mandelbrot Set. It shows the flow around the set rather than just its boundary.
