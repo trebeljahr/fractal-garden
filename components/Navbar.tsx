@@ -7,6 +7,7 @@ function useLinks() {
   const fractalLinks = [
     "/mandelbrot",
     "/buddhabrot",
+    "/newton-fractal",
     "/burning-ship",
     "/barnsley-fern",
     "/sierpinski-carpet",
