@@ -32,6 +32,7 @@ function useLinks() {
     "/julia-set",
     "/n-flake",
     "/vicsek-fractal-2d",
+    "/apollonian-gasket",
   ];
 
   const i = fractalLinks.findIndex((link) => {

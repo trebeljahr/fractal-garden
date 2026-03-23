@@ -30,6 +30,7 @@ import tSquareFractalImage from "../public/assets/fractal-images/t-square-fracta
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
+import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
 import { Footer } from "../components/Footer";
 
 const Home: NextPage = () => {
@@ -193,6 +194,11 @@ const Home: NextPage = () => {
             href="/vicsek-fractal-2d"
             title="2D Vicsek Fractal"
             imageSrc={vicsekFractal2DImage}
+          />
+          <FractalLink
+            href="/apollonian-gasket"
+            title="Apollonian Gasket"
+            imageSrc={apollonianGasketImage}
           />
           <AddMoreLink />
         </div>
