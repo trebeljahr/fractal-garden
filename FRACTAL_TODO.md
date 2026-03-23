@@ -8,6 +8,7 @@ This file tracks the remaining open `new-fractal` work and carries forward throu
 - [x] `#14` Newton Fractal
 - [x] `#12` Fibonacci Word Fractal
 - [x] `#11` T-Square Fractal
+- [x] `#2` Julia Set
 
 ## Next Up
 
@@ -15,7 +16,6 @@ This file tracks the remaining open `new-fractal` work and carries forward throu
 - [ ] `#8` 2D Vicsek Fractal
 - [ ] `#4` Apollonian Gasket
 - [ ] `#3` Logistic Map
-- [ ] `#2` Julia Set
 
 ## Needs 3D Support First
 
