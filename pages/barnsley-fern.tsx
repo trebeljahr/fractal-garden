@@ -1,7 +1,8 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, { DatColor, DatFolder, DatSelect } from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import { PanelColor, PanelSelect } from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -105,8 +106,18 @@ const matrices: Record<string, Transformation> = {
   barnsley,
 };
 
+const fernOptions = Object.keys(matrices) as Fern[];
+const fernLabels: Record<Fern, string> = {
+  tree: "Tree fern",
+  fishbone: "Fishbone fern",
+  culcita: "Culcita",
+  modifiedBarnsley: "Modified Barnsley",
+  cyclosorus: "Cyclosorus",
+  barnsley: "Classic Barnsley",
+};
+
 const BarnsleyFern = ({ description }: Props) => {
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<Config>({
     detail: 60,
     color: "#96f78e",
     background: "#252424",
@@ -235,17 +246,22 @@ const BarnsleyFern = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatSelect
-              path="fernToUse"
-              label="Fern"
-              options={Object.keys(matrices)}
-            />
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Swap fern families, then settle on the palette you like best."
+          controlsTitle="Fern Studio"
+          data={config}
+          mode="pattern"
+          onUpdate={handleUpdate}
+        >
+          <PanelSelect
+            path="fernToUse"
+            label="Fern style"
+            optionLabels={fernOptions.map((option) => fernLabels[option])}
+            options={fernOptions}
+          />
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

@@ -1,13 +1,13 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-  DatSelect,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+  PanelSelect,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -50,11 +50,17 @@ const OFFSETS: Record<Variant, [number, number][]> = {
   ],
 };
 
+const variantOptions = Object.keys(OFFSETS) as Variant[];
+const variantLabels: Record<Variant, string> = {
+  saltire: "Diagonal cross",
+  cross: "Greek cross",
+};
+
 const VicsekFractal2D = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>({
-    iterations: 4,
+    iterations: MAX_ITERATIONS,
     animateIterations: true,
     variant: "saltire",
     background: "#252424",
@@ -146,34 +152,26 @@ const VicsekFractal2D = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-            <DatSelect
-              path="variant"
-              label="variant"
-              options={Object.keys(OFFSETS)}
-            />
-            <DatNumber
-              path="iterations"
-              label="iterations"
-              min={0}
-              max={MAX_ITERATIONS}
-              step={1}
-            />
-            <DatBoolean path="animateIterations" label="animate" />
-            <DatNumber
-              path="lineWidth"
-              label="lineWidth"
-              min={0.2}
-              max={3}
-              step={0.1}
-            />
-            <DatBoolean path="fillSquares" label="fill" />
-            <DatBoolean path="strokeSquares" label="stroke" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+          <PanelSelect
+            path="variant"
+            label="Layout"
+            optionLabels={variantOptions.map((option) => variantLabels[option])}
+            options={variantOptions}
+          />
+          <PanelNumber
+            path="iterations"
+            min={0}
+            max={MAX_ITERATIONS}
+            step={1}
+          />
+          <PanelBoolean path="animateIterations" />
+          <PanelNumber path="lineWidth" min={0.2} max={3} step={0.1} />
+          <PanelBoolean path="fillSquares" />
+          <PanelBoolean path="strokeSquares" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

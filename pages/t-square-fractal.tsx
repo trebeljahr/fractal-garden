@@ -1,12 +1,12 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -78,7 +78,7 @@ const TSquareFractal = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>({
-    iterations: 6,
+    iterations: MAX_ITERATIONS,
     animateIterations: true,
     ratio: 0.5,
     background: "#252424",
@@ -187,36 +187,25 @@ const TSquareFractal = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={false} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-            <DatNumber
-              path="iterations"
-              label="iterations"
-              min={0}
-              max={MAX_ITERATIONS}
-              step={1}
-            />
-            <DatNumber
-              path="ratio"
-              label="ratio"
-              min={0.25}
-              max={0.75}
-              step={0.01}
-            />
-            <DatNumber
-              path="lineWidth"
-              label="lineWidth"
-              min={0.5}
-              max={4}
-              step={0.1}
-            />
-            <DatBoolean path="animateIterations" label="animate" />
-            <DatBoolean path="fillSquares" label="fill" />
-            <DatBoolean path="strokeSquares" label="stroke" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          data={config}
+          mode="pattern"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+          <PanelNumber
+            path="iterations"
+            min={0}
+            max={MAX_ITERATIONS}
+            step={1}
+          />
+          <PanelNumber path="ratio" min={0.25} max={0.75} step={0.01} />
+          <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
+          <PanelBoolean path="animateIterations" />
+          <PanelBoolean path="fillSquares" />
+          <PanelBoolean path="strokeSquares" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

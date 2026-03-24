@@ -1,4 +1,4 @@
-import Image, { StaticImageData } from "next/future/image";
+import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import styles from "../styles/FractalLink.module.css";
 import useDimensions from "react-cool-dimensions";

@@ -1,15 +1,14 @@
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
-import DatGui, {
-  DatColor,
-  DatFolder,
-  DatNumber,
-  DatSelect,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelColor,
+  PanelNumber,
+  PanelSelect,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
-import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
@@ -46,6 +45,16 @@ const PRESETS = {
     xMax: 0.92,
   },
 } as const;
+
+const presetOptions = Object.keys(PRESETS) as Array<keyof typeof PRESETS>;
+const logisticPresetOptions: Preset[] = ["Custom", ...presetOptions];
+const presetLabels: Record<Preset, string> = {
+  Custom: "Custom view",
+  Full: "Whole cascade",
+  "Period Doubling": "Early bifurcations",
+  "Chaotic Bands": "Chaotic bands",
+  Feigenbaum: "Feigenbaum window",
+};
 
 type Preset = keyof typeof PRESETS | "Custom";
 
@@ -263,71 +272,36 @@ const LogisticMap = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-            <DatSelect
-              path="preset"
-              label="preset"
-              options={["Custom", ...Object.keys(PRESETS)]}
-            />
-            <DatNumber
-              path="settleIterations"
-              label="settle"
-              min={50}
-              max={1000}
-              step={10}
-            />
-            <DatNumber
-              path="plotIterations"
-              label="plot"
-              min={20}
-              max={400}
-              step={10}
-            />
-            <DatNumber
-              path="columns"
-              label="columns"
-              min={200}
-              max={2400}
-              step={100}
-            />
-            <DatNumber
-              path="pointAlpha"
-              label="alpha"
-              min={0.02}
-              max={1}
-              step={0.01}
-            />
-            <DatNumber
-              path="pointSize"
-              label="pointSize"
-              min={0.5}
-              max={2.5}
-              step={0.1}
-            />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Views, density, and plotting depth for tracing the route into chaos."
+          controlsTitle="Bifurcation Studio"
+          data={config}
+          introTitle="Logistic Map"
+          lines={[
+            "Drag to pan across the bifurcation diagram.",
+            "Hold Shift while dragging up or down to zoom.",
+          ]}
+          mode="formula"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+          <PanelSelect
+            path="preset"
+            label="Starting view"
+            optionLabels={logisticPresetOptions.map(
+              (option) => presetLabels[option]
+            )}
+            options={logisticPresetOptions}
+          />
+          <PanelNumber path="settleIterations" min={50} max={1000} step={10} />
+          <PanelNumber path="plotIterations" min={20} max={400} step={10} />
+          <PanelNumber path="columns" min={200} max={2400} step={100} />
+          <PanelNumber path="pointAlpha" min={0.02} max={1} step={0.01} />
+          <PanelNumber path="pointSize" min={0.5} max={2.5} step={0.1} />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
-          <ViewportOverlay
-            title="Interactive View"
-            lines={[
-              "Drag to pan across the bifurcation diagram.",
-              "Hold Shift while dragging up or down to zoom, and use the button below to jump to the write-up.",
-            ]}
-            actions={[
-              {
-                label: "Reset view",
-                onClick: resetView,
-              },
-              {
-                label: "About this fractal",
-                onClick: scrollToDescription,
-              },
-            ]}
-          />
         </div>
         <SideDrawer description={description} />
         <NavElement />

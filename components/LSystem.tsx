@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { Canvas } from "../components/Canvas";
 import { radians } from "../utils/ctxHelpers";
+import { ExplorerPanel } from "./ExplorerPanel";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "./ExplorerControls";
 
 type Config = {
   iterations: number;
@@ -74,7 +74,7 @@ const LSystem = ({ ruleset }: Props) => {
     getFirstVisibleIteration(ruleset)
   );
   const [config, setConfig] = useState<Config>(() => ({
-    iterations: Math.max(minVisibleIteration, ruleset.maxIterations - 1),
+    iterations: ruleset.maxIterations,
     animateIterations: true,
     background: "#252424",
     ruleset: ruleset,
@@ -211,21 +211,23 @@ const LSystem = ({ ruleset }: Props) => {
 
   return (
     <>
-      <DatGui data={config} onUpdate={handleUpdate}>
-        <DatFolder closed={true} title="Options">
-          <DatColor path="background" label="background" />
-          <DatColor path="ruleset.color" label="color" />
-
-          <DatNumber
-            path="iterations"
-            label="iterations"
-            min={minVisibleIteration}
-            max={config.ruleset.maxIterations}
-            step={1}
-          />
-          <DatBoolean path="animateIterations" label="animate iterations?" />
-        </DatFolder>
-      </DatGui>
+      <ExplorerPanel
+        controlsHint="Iterations, palette, and the automatic growth loop."
+        controlsTitle="L-System Studio"
+        data={config}
+        mode="pattern"
+        onUpdate={handleUpdate}
+      >
+        <PanelColor path="background" />
+        <PanelColor path="ruleset.color" />
+        <PanelNumber
+          path="iterations"
+          min={minVisibleIteration}
+          max={config.ruleset.maxIterations}
+          step={1}
+        />
+        <PanelBoolean path="animateIterations" />
+      </ExplorerPanel>
 
       <div className={styles.fullScreen}>
         <Canvas setCtx={setCtx} width={width} height={height} />

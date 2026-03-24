@@ -125,26 +125,9 @@ const NewtonFractal = ({ description }: Props) => {
             setCnv={setCnv}
           />
           <ViewportOverlay
-            title="Interactive View"
+            title="Newton Fractal"
             lines={[
               "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the basins.",
-              "Use the button below whenever you want to jump straight down to the explanation.",
-            ]}
-            actions={[
-              {
-                label: "Reset view",
-                onClick: () => {
-                  viewportRef.current = {
-                    center: [...INITIAL_CENTER] as [number, number],
-                    zoomSize: INITIAL_ZOOM_SIZE,
-                  };
-                  renderRef.current?.();
-                },
-              },
-              {
-                label: "About this fractal",
-                onClick: scrollToDescription,
-              },
             ]}
           />
         </div>

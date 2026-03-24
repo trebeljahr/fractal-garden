@@ -1,12 +1,11 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -24,7 +23,6 @@ type Config = {
   exposure: number;
   background: string;
   color: string;
-  animate: boolean;
 };
 
 const VIEWPORT = {
@@ -64,7 +62,6 @@ const INITIAL_CONFIG: Config = {
   exposure: 0.9,
   background: "#252424",
   color: "#b8f4ff",
-  animate: true,
 };
 
 function isInsideCardioidOrBulb(cx: number, cy: number) {
@@ -216,16 +213,14 @@ const Buddhabrot = ({ description }: Props) => {
     const tick = () => {
       if (shouldStop) return;
 
-      if (config.animate) {
-        for (let i = 0; i < config.samplesPerFrame; i++) {
-          sampleOrbit();
-        }
-
-        renderedSamples += config.samplesPerFrame;
-        frameCount++;
+      for (let i = 0; i < config.samplesPerFrame; i++) {
+        sampleOrbit();
       }
 
-      if (frameCount % 2 === 0 || !config.animate) {
+      renderedSamples += config.samplesPerFrame;
+      frameCount++;
+
+      if (frameCount % 2 === 0) {
         drawHistogram();
       }
 
@@ -259,41 +254,20 @@ const Buddhabrot = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-            <DatNumber
-              path="maxIterations"
-              label="maxIterations"
-              min={40}
-              max={400}
-              step={10}
-            />
-            <DatNumber
-              path="minOrbitLength"
-              label="minOrbitLength"
-              min={0}
-              max={100}
-              step={5}
-            />
-            <DatNumber
-              path="samplesPerFrame"
-              label="samples/frame"
-              min={50}
-              max={2000}
-              step={50}
-            />
-            <DatNumber
-              path="exposure"
-              label="exposure"
-              min={0.1}
-              max={3}
-              step={0.1}
-            />
-            <DatBoolean path="animate" label="animate" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Sampling, exposure, and color for the glowing orbit trails."
+          controlsTitle="Orbit Studio"
+          data={config}
+          mode="pattern"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+          <PanelNumber path="maxIterations" min={40} max={400} step={10} />
+          <PanelNumber path="minOrbitLength" min={0} max={100} step={5} />
+          <PanelNumber path="samplesPerFrame" min={50} max={2000} step={50} />
+          <PanelNumber path="exposure" min={0.1} max={3} step={0.1} />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

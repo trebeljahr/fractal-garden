@@ -1,15 +1,14 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
-import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
@@ -42,7 +41,7 @@ type Config = {
 const MAX_ITERATIONS = 3;
 
 const INITIAL_CONFIG: Config = {
-  iterations: 0,
+  iterations: MAX_ITERATIONS,
   animateIterations: true,
   autoRotate: true,
   rotationX: 24,
@@ -138,77 +137,37 @@ const MengerSponge = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={false} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="fillColor" label="fillColor" />
-            <DatColor path="strokeColor" label="strokeColor" />
-            <DatNumber
-              path="iterations"
-              label="iterations"
-              min={0}
-              max={MAX_ITERATIONS}
-              step={1}
-            />
-            <DatBoolean path="animateIterations" label="animate" />
-            <DatBoolean path="autoRotate" label="autoRotate" />
-            <DatNumber
-              path="rotationX"
-              label="rotationX"
-              min={-180}
-              max={180}
-              step={1}
-            />
-            <DatNumber
-              path="rotationY"
-              label="rotationY"
-              min={-180}
-              max={180}
-              step={1}
-            />
-            <DatNumber
-              path="cameraDistance"
-              label="camera"
-              min={3}
-              max={10}
-              step={0.1}
-            />
-            <DatNumber
-              path="lineWidth"
-              label="lineWidth"
-              min={0.2}
-              max={2}
-              step={0.1}
-            />
-            <DatBoolean path="showFaces" label="faces" />
-            <DatBoolean path="showWireframe" label="wireframe" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Growth, orbit, and rendering layers for the sponge."
+          controlsTitle="Scene Studio"
+          data={config}
+          introTitle="Menger Sponge"
+          lines={[
+            "Drag to rotate the sponge and use the scroll wheel to dolly closer or farther away.",
+          ]}
+          mode="scene"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelColor path="fillColor" />
+          <PanelColor path="strokeColor" />
+          <PanelNumber
+            path="iterations"
+            min={0}
+            max={MAX_ITERATIONS}
+            step={1}
+          />
+          <PanelBoolean path="animateIterations" />
+          <PanelBoolean path="autoRotate" />
+          <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+          <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+          <PanelNumber path="cameraDistance" min={3} max={10} step={0.1} />
+          <PanelNumber path="lineWidth" min={0.2} max={2} step={0.1} />
+          <PanelBoolean path="showFaces" />
+          <PanelBoolean path="showWireframe" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
-          <ViewportOverlay
-            title="3D View"
-            lines={[
-              "Drag to rotate the sponge and use the scroll wheel to dolly closer or farther away.",
-            ]}
-            actions={[
-              {
-                label: "Reset view",
-                onClick: () =>
-                  setConfig((old) => ({
-                    ...old,
-                    autoRotate: INITIAL_CONFIG.autoRotate,
-                    rotationX: INITIAL_CONFIG.rotationX,
-                    rotationY: INITIAL_CONFIG.rotationY,
-                    cameraDistance: INITIAL_CONFIG.cameraDistance,
-                  })),
-              },
-              {
-                label: "About this fractal",
-                onClick: scrollToDescription,
-              },
-            ]}
-          />
         </div>
         <SideDrawer description={description} />
         <NavElement />

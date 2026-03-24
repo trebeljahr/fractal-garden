@@ -1,12 +1,12 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -61,7 +61,7 @@ const hsvGradient = (iteration: number) =>
 
 const PythagorasTreeComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
-    iterations: 0,
+    iterations: MAX_ITERATIONS,
     animateIterations: true,
     angle: 45,
     background: "#252424",
@@ -161,22 +161,19 @@ const PythagorasTreeComponent = ({ description }: Props) => {
       </Head>
 
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatNumber path="angle" label="angle" min={30} max={60} step={1} />
-            <DatNumber
-              path="iterations"
-              label="iterations"
-              min={0}
-              max={MAX_ITERATIONS}
-              step={1}
-            />
-            <DatBoolean path="animateIterations" label="animate" />
-            <DatBoolean path="fillTriangles" label="fill triangles" />
-            <DatBoolean path="fillSquares" label="fill squares" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+          <PanelColor path="background" />
+          <PanelNumber path="angle" min={30} max={60} step={1} />
+          <PanelNumber
+            path="iterations"
+            min={0}
+            max={MAX_ITERATIONS}
+            step={1}
+          />
+          <PanelBoolean path="animateIterations" />
+          <PanelBoolean path="fillTriangles" />
+          <PanelBoolean path="fillSquares" />
+        </ExplorerPanel>
 
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />

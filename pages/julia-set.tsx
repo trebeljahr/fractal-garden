@@ -1,14 +1,13 @@
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
-import DatGui, {
-  DatColor,
-  DatFolder,
-  DatNumber,
-  DatSelect,
-} from "react-dat-gui";
+import {
+  PanelColor,
+  PanelNumber,
+  PanelSelect,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
-import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { scrollToDescription } from "../utils/scrollToDescription";
@@ -35,6 +34,14 @@ const presets: Record<string, { cReal: number; cImag: number }> = {
   Spiral: { cReal: -0.8, cImag: 0.156 },
   Dendrite: { cReal: 0.285, cImag: 0.01 },
   Cauliflower: { cReal: -0.4, cImag: 0.6 },
+};
+
+const presetOptions = Object.keys(presets);
+const presetLabels: Record<string, string> = {
+  Rabbit: "Rabbit spiral",
+  Spiral: "Sea spiral",
+  Dendrite: "Electric dendrite",
+  Cauliflower: "Cauliflower bloom",
 };
 
 const INITIAL_CENTER: [number, number] = [0, 0];
@@ -174,47 +181,34 @@ const JuliaSet = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatSelect
-              path="preset"
-              label="preset"
-              options={Object.keys(presets)}
-            />
-            <DatNumber path="cReal" label="c real" min={-1} max={1} step={0.001} />
-            <DatNumber path="cImag" label="c imag" min={-1} max={1} step={0.001} />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Start from a preset, then nudge c to discover your own family members."
+          controlsTitle="Complex Constant"
+          data={config}
+          introTitle="Julia Set"
+          lines={[
+            "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set.",
+            "Open the studio to explore presets and reshape the family.",
+          ]}
+          mode="formula"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelSelect
+            path="preset"
+            label="Starting point"
+            optionLabels={presetOptions.map((option) => presetLabels[option])}
+            options={presetOptions}
+          />
+          <PanelNumber path="cReal" min={-1} max={1} step={0.001} />
+          <PanelNumber path="cImag" min={-1} max={1} step={0.001} />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <WebGLCanvas
             setGl={setGl}
             width={width}
             height={height}
             setCnv={setCnv}
-          />
-          <ViewportOverlay
-            title="Interactive View"
-            lines={[
-              "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set.",
-              "Use the button below whenever you want to jump straight down to the explanation.",
-            ]}
-            actions={[
-              {
-                label: "Reset view",
-                onClick: () => {
-                  viewportRef.current = {
-                    center: [...INITIAL_CENTER] as [number, number],
-                    zoomSize: INITIAL_ZOOM_SIZE,
-                  };
-                  renderRef.current?.();
-                },
-              },
-              {
-                label: "About this fractal",
-                onClick: scrollToDescription,
-              },
-            ]}
           />
         </div>
         <SideDrawer description={description} />

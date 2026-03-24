@@ -1,15 +1,14 @@
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { WebGLCanvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
-import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain, radians } from "../utils/ctxHelpers";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
@@ -259,61 +258,35 @@ const Mandelbulb = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={false} title="Options">
-            <DatColor path="background" label="background" />
-            <DatColor path="color" label="color" />
-            <DatNumber path="power" label="power" min={2} max={12} step={0.1} />
-            <DatNumber path="detail" label="detail" min={6} max={20} step={1} />
-            <DatNumber
-              path="cameraDistance"
-              label="camera"
-              min={1.5}
-              max={8}
-              step={0.05}
-            />
-            <DatNumber
-              path="rotationX"
-              label="rotationX"
-              min={-85}
-              max={85}
-              step={1}
-            />
-            <DatNumber
-              path="rotationY"
-              label="rotationY"
-              min={-180}
-              max={180}
-              step={1}
-            />
-            <DatNumber path="offsetX" label="offsetX" min={-2} max={2} step={0.01} />
-            <DatNumber path="offsetY" label="offsetY" min={-2} max={2} step={0.01} />
-            <DatBoolean path="autoRotate" label="autoRotate" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Power, detail, orbit, and framing for finding the best silhouettes."
+          controlsTitle="Mandelbulb Studio"
+          data={config}
+          introTitle="Mandelbulb"
+          lines={[
+            "Drag to orbit, hold Shift while dragging to pan, and use the scroll wheel to zoom.",
+            "Open the studio to change the shape and shading.",
+          ]}
+          mode="scene"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelColor path="color" />
+          <PanelNumber path="power" min={2} max={12} step={0.1} />
+          <PanelNumber path="detail" min={6} max={20} step={1} />
+          <PanelNumber path="cameraDistance" min={1.5} max={8} step={0.05} />
+          <PanelNumber path="rotationX" min={-85} max={85} step={1} />
+          <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+          <PanelNumber path="offsetX" min={-2} max={2} step={0.01} />
+          <PanelNumber path="offsetY" min={-2} max={2} step={0.01} />
+          <PanelBoolean path="autoRotate" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <WebGLCanvas
             setGl={setGl}
             width={width}
             height={height}
             setCnv={setCnv}
-          />
-          <ViewportOverlay
-            title="Interactive View"
-            lines={[
-              "Drag to orbit, hold Shift while dragging to pan, and use the scroll wheel to zoom.",
-              "Use the button below whenever you want to jump straight down to the explanation.",
-            ]}
-            actions={[
-              {
-                label: "Reset view",
-                onClick: () => setConfig(INITIAL_CONFIG),
-              },
-              {
-                label: "About this fractal",
-                onClick: scrollToDescription,
-              },
-            ]}
           />
         </div>
         <SideDrawer description={description} />

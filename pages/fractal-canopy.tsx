@@ -3,14 +3,14 @@ import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { SideDrawer } from "../components/SideDrawer";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-  DatSelect,
-} from "react-dat-gui";
 import { Canvas } from "../components/Canvas";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+  PanelSelect,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { radians, rgb } from "../utils/ctxHelpers";
 import Head from "next/head";
@@ -89,6 +89,16 @@ const configs: Record<string, Config> = {
   snowflake,
   sixFold,
   hTree,
+};
+
+const canopyOptions = Object.keys(configs) as Array<keyof typeof configs>;
+const canopyLabels: Record<keyof typeof configs, string> = {
+  defaultTree: "Classic canopy",
+  broccoli: "Broccoli bloom",
+  sierpinski: "Triangle tower",
+  snowflake: "Snowflake burst",
+  sixFold: "Sixfold lantern",
+  hTree: "H-Tree",
 };
 
 type Config = {
@@ -221,53 +231,28 @@ const FractalTree = ({ description }: Props) => {
       </Head>
 
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatSelect
-              path="option"
-              label="option"
-              options={Object.keys(configs)}
-            />
-            <DatNumber path="angle" label="angle" min={0} max={360} step={1} />
-            <DatBoolean path="animateAngle" label="animate angle?" />
-            <DatNumber
-              path="maxIterations"
-              label="maxIterations"
-              min={1}
-              max={9}
-              step={1}
-            />
-            <DatNumber
-              path="branches"
-              label="branches"
-              min={2}
-              max={6}
-              step={1}
-            />
-            <DatNumber
-              path="lengthFactor"
-              label="lengthFactor"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-            <DatNumber
-              path="widthFactor"
-              label="widthFactor"
-              min={0}
-              max={2}
-              step={0.1}
-            />
-            <DatNumber
-              path="rootWidth"
-              label="rootWidth"
-              min={1}
-              max={60}
-              step={0.5}
-            />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel
+          controlsHint="Start with a canopy idea, then steer the branches into your own version."
+          controlsTitle="Branch Studio"
+          data={config}
+          mode="pattern"
+          onUpdate={handleUpdate}
+        >
+          <PanelColor path="background" />
+          <PanelSelect
+            path="option"
+            label="Starting shape"
+            optionLabels={canopyOptions.map((option) => canopyLabels[option])}
+            options={canopyOptions}
+          />
+          <PanelNumber path="angle" min={0} max={360} step={1} />
+          <PanelBoolean path="animateAngle" />
+          <PanelNumber path="maxIterations" min={1} max={9} step={1} />
+          <PanelNumber path="branches" min={2} max={6} step={1} />
+          <PanelNumber path="lengthFactor" min={0} max={1} step={0.01} />
+          <PanelNumber path="widthFactor" min={0} max={2} step={0.1} />
+          <PanelNumber path="rootWidth" min={1} max={60} step={0.5} />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

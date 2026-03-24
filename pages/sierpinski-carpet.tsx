@@ -3,15 +3,15 @@ import { NavElement } from "../components/Navbar";
 import styles from "../styles/Fullscreen.module.css";
 import { getDescription } from "../utils/readFiles";
 import { SideDrawer } from "../components/SideDrawer";
-import DatGui, {
-  DatBoolean,
-  DatColor,
-  DatFolder,
-  DatNumber,
-} from "react-dat-gui";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { Canvas } from "../components/Canvas";
 import Head from "next/head";
+import {
+  PanelBoolean,
+  PanelColor,
+  PanelNumber,
+} from "../components/ExplorerControls";
+import { ExplorerPanel } from "../components/ExplorerPanel";
 
 type Config = {
   maxIterations: number;
@@ -108,22 +108,13 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
         />
       </Head>
       <main className={styles.fullScreen}>
-        <DatGui data={config} onUpdate={handleUpdate}>
-          <DatFolder closed={true} title="Options">
-            <DatColor path="background" label="background" />
-            <DatNumber
-              path="maxIterations"
-              label="maxIterations"
-              min={1}
-              max={5}
-              step={1}
-            />
-            <DatBoolean path="animateIterations" label="animate iterations?" />
-            <DatColor path="color" label="color" />
-            <DatColor path="holeColor" label="holeColor" />
-            <DatColor path="background" label="background" />
-          </DatFolder>
-        </DatGui>
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+          <PanelColor path="background" />
+          <PanelNumber path="maxIterations" min={1} max={5} step={1} />
+          <PanelBoolean path="animateIterations" />
+          <PanelColor path="color" />
+          <PanelColor path="holeColor" />
+        </ExplorerPanel>
         <div className={styles.fullScreen}>
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>

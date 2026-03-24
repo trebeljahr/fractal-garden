@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/ViewportOverlay.module.css";
+import { scrollToDescription } from "../utils/scrollToDescription";
 
 type Action = {
   label: string;
@@ -7,15 +8,18 @@ type Action = {
 };
 
 type Props = {
-  title: string;
+  title?: string;
   lines: string[];
-  actions: Action[];
+  actions?: Action[];
 };
 
-export const ViewportOverlay = ({ title, lines, actions }: Props) => {
+export const ViewportOverlay = ({ title, lines, actions = [] }: Props) => {
   const [visible, setVisible] = useState(true);
+  const [pageTitle, setPageTitle] = useState("");
 
   useEffect(() => {
+    setPageTitle(document.title);
+
     const handleScroll = () => {
       setVisible(window.scrollY <= 24);
     };
@@ -28,18 +32,34 @@ export const ViewportOverlay = ({ title, lines, actions }: Props) => {
     };
   }, []);
 
+  const overlayActions = useMemo(() => {
+    const combined = [
+      ...actions,
+      {
+        label: "About this fractal",
+        onClick: scrollToDescription,
+      },
+    ];
+
+    return combined.filter(
+      (action, index) =>
+        combined.findIndex((candidate) => candidate.label === action.label) ===
+        index
+    );
+  }, [actions]);
+
   return (
     <div
       className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()}
     >
-      <div className={styles.title}>{title}</div>
+      <div className={styles.title}>{title || pageTitle || "Fractal"}</div>
       <div className={styles.copy}>
         {lines.map((line) => (
           <p key={line}>{line}</p>
         ))}
       </div>
       <div className={styles.actions}>
-        {actions.map((action) => (
+        {overlayActions.map((action) => (
           <button
             className={styles.button}
             key={action.label}
