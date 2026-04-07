@@ -1,2 +1,6 @@
 node_modules
 .next
+
+# claude code
+.claude/settings.local.json
+.claude/worktrees/
