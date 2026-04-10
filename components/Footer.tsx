@@ -11,7 +11,7 @@ export const Footer = () => {
       <span className={styles.separator} aria-hidden="true">
         |
       </span>
-      <p className={styles.imprint}>
+      <p>
         <Link href="/imprint">Imprint</Link>
       </p>
     </footer>

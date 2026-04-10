@@ -8,10 +8,10 @@ const Imprint: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Legal Notice – Fractal Garden</title>
+        <title>Imprint – Fractal Garden</title>
         <meta
           name="description"
-          content="Legal notice (Impressum) for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr."
+          content="Imprint for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr."
         />
       </Head>
       <main className={styles.container}>
@@ -20,7 +20,7 @@ const Imprint: NextPage = () => {
             <a className={styles.link}>&larr; Back to Fractal Garden</a>
           </Link>
         </p>
-        <h1 className={styles.heading}>Legal Notice</h1>
+        <h1 className={styles.heading}>Imprint</h1>
 
         <p className={styles.intro}>
           Information pursuant to § 5 DDG (German Digital Services Act) and
