@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "../styles/Footer.module.css";
 
 export const Footer = () => {
@@ -6,6 +7,12 @@ export const Footer = () => {
       <p>
         Made with <span className={styles.heart}>♥</span> by{" "}
         <a href="https://trebeljahr.com">Rico Trebeljahr</a>
+      </p>
+      <span className={styles.separator} aria-hidden="true">
+        |
+      </span>
+      <p className={styles.imprint}>
+        <Link href="/imprint">Imprint</Link>
       </p>
     </footer>
   );

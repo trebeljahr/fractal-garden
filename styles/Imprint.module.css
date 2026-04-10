@@ -1,0 +1,55 @@
+.container {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 6rem 2rem 4rem;
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--yellow-white);
+}
+
+.heading {
+  font-size: 3.6rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  letter-spacing: 0.2rem;
+  font-weight: 200;
+  border-bottom: 1px solid var(--yellow-white);
+  padding-bottom: 1.2rem;
+  text-align: center;
+}
+
+.subheading {
+  font-size: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.08rem;
+  font-weight: 500;
+  color: var(--yellow-white);
+}
+
+.intro {
+  color: var(--bright-grey);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.address {
+  color: var(--yellow-white);
+  margin-bottom: 1rem;
+}
+
+.paragraph {
+  color: var(--bright-grey);
+  margin-bottom: 1.5rem;
+}
+
+.link {
+  color: var(--yellow-white);
+  border-bottom: 1px solid var(--yellow-white);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--bright-grey);
+  border-color: var(--bright-grey);
+}
