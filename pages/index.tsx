@@ -64,6 +64,7 @@ const Home: NextPage = () => {
             href="/julia-set"
             title="Julia Set"
             imageSrc={juliaSetImage}
+            prio={true}
           />
           <FractalLink
             href="/burning-ship"
@@ -95,7 +96,6 @@ const Home: NextPage = () => {
             href="/buddhabrot"
             title="Buddhabrot"
             imageSrc={buddhabrotImage}
-            prio={true}
           />
           <FractalLink
             href="/newton-fractal"
@@ -106,13 +106,11 @@ const Home: NextPage = () => {
             href="/pythagoras-tree"
             title="Pythagoras Tree"
             imageSrc={pythagorasTreeImage}
-            prio={true}
           />
           <FractalLink
             href="/barnsley-fern"
             title="Barnsley Fern"
             imageSrc={barnsleyFernImage}
-            prio={true}
           />
           <FractalLink
             href="/sierpinski-carpet"
