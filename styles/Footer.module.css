@@ -1,13 +1,12 @@
 .footer {
   width: 100%;
-  max-width: 75rem;
   margin: 0 auto;
-  padding: 2.5rem 2rem 3.5rem;
+  padding: 2.5rem 2rem 3rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem 2rem;
-  border-top: 1px solid rgba(245, 241, 209, 0.16);
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
   font-size: 1.3rem;
   line-height: 1.5;
   color: var(--bright-grey);
@@ -33,12 +32,17 @@
   align-items: center;
   gap: 0.6rem;
   margin: 0;
-  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
 .links {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+}
+
+.separator {
+  color: var(--bright-grey);
+  opacity: 0.5;
 }
 
 .heart {
@@ -75,9 +79,7 @@
 
 @media (max-width: 520px) {
   .footer {
-    align-items: flex-start;
-    flex-direction: column;
-    padding-bottom: 3rem;
+    padding-bottom: 2.4rem;
   }
 }
 

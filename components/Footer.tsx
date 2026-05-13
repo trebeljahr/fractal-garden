@@ -5,11 +5,12 @@ export const Footer = () => {
   return (
     <footer className={styles.footer}>
       <p className={styles.byline}>
-        Made with <span className="screen-reader-only">love</span>
+        Made with{" "}
         <svg
-          aria-hidden="true"
+          aria-label="love"
           className={styles.heart}
           xmlns="http://www.w3.org/2000/svg"
+          role="img"
           viewBox="0 0 24 24"
           fill="currentColor"
         >
@@ -17,6 +18,9 @@ export const Footer = () => {
         </svg>{" "}
         by <a href="https://trebeljahr.com">Rico Trebeljahr</a>
       </p>
+      <span className={styles.separator} aria-hidden="true">
+        |
+      </span>
       <nav className={styles.links} aria-label="Legal">
         <Link href="/imprint" passHref>
           <a href="/imprint">Imprint</a>
