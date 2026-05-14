@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import Head from "next/head";
 import { Footer } from "../components/Footer";
 import { AddMoreLink, FractalLink } from "../components/FractalLink";
 import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
@@ -41,13 +40,6 @@ import styles from "../styles/Home.module.css";
 const Home: NextPage = () => {
   return (
     <>
-      <Head>
-        <title>Fractal Garden</title>
-        <meta
-          name="description"
-          content="Fractal Garden - An Exhibition Of Mathematical Beauty: A page to collect fractal renderings, and teach people about the awesome connections between different fractals and how they are drawn. Also, they look pretty."
-        />
-      </Head>
       <main className={styles.mainContent}>
         <h1 className={styles.heading}>Fractal Garden</h1>
         <h2 className={styles.subtitle}>An Exhibition Of Mathematical Beauty</h2>

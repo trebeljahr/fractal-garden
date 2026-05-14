@@ -104,6 +104,12 @@ const PAGE_SEO: Record<string, SeoEntry> = {
       "Build a Pythagoras Tree from nested right triangles and squares in an interactive recursive branching fractal.",
     imagePath: "/assets/fractal-images/pythagoras-tree.jpg",
   },
+  "/imprint": {
+    title: "Imprint",
+    description:
+      "Imprint for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr.",
+    imagePath: "/assets/fractal-images/mandelbrot.jpg",
+  },
   "/t-square-fractal": {
     title: "T-Square Fractal",
     description:

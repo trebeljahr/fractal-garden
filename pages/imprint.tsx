@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import Head from "next/head";
 import Link from "next/link";
 import { Footer } from "../components/Footer";
 import styles from "../styles/Imprint.module.css";
@@ -7,13 +6,6 @@ import styles from "../styles/Imprint.module.css";
 const Imprint: NextPage = () => {
   return (
     <>
-      <Head>
-        <title>Imprint – Fractal Garden</title>
-        <meta
-          name="description"
-          content="Imprint for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr."
-        />
-      </Head>
       <main className={styles.container}>
         <p className={styles.backLink}>
           <Link href="/" passHref>

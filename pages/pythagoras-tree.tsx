@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -150,11 +149,6 @@ const PythagorasTreeComponent = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Pythagoras Tree</title>
-        <meta name="description" content={`tree tree tree`} />
-      </Head>
-
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
