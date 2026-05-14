@@ -21,9 +21,12 @@ export const PageSeo = () => {
       <meta key="og:description" property="og:description" content={seo.description} />
       <meta key="og:url" property="og:url" content={seo.url} />
       <meta key="og:image" property="og:image" content={seo.imageUrl} />
+      <meta key="og:image:secure_url" property="og:image:secure_url" content={seo.imageUrl} />
+      <meta key="og:image:type" property="og:image:type" content="image/jpeg" />
       <meta key="og:image:alt" property="og:image:alt" content={`${seo.title} preview image`} />
 
       <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
+      <meta key="twitter:site" name="twitter:site" content="@trebeljahr" />
       <meta key="twitter:title" name="twitter:title" content={seo.title} />
       <meta key="twitter:description" name="twitter:description" content={seo.description} />
       <meta key="twitter:image" name="twitter:image" content={seo.imageUrl} />

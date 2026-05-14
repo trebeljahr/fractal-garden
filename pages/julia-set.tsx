@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
@@ -165,13 +164,6 @@ const JuliaSet = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Julia Set</title>
-        <meta
-          name="description"
-          content="An interactive Julia Set renderer with drag-to-pan, focal-point zoom, and preset constants. Explore how changing the complex parameter reshapes the fractal."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Start from a preset, then nudge c to discover your own family members."

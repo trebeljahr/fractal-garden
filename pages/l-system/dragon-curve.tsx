@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
@@ -182,13 +181,6 @@ const DragonCurve = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>L-System Dragon Curve</title>
-        <meta
-          name="description"
-          content="An interactive Dragon Curve implementation. Explore the classic Heighway Dragon, generated from a simple L-system and fitted to the screen at every iteration."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

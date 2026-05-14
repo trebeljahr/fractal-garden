@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -231,13 +230,6 @@ const Mandelbulb = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Mandelbulb</title>
-        <meta
-          name="description"
-          content="An interactive Mandelbulb raymarcher with orbit, zoom, and pan controls. Explore one of the best-known 3D relatives of the Mandelbrot Set."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Power, detail, orbit, and framing for finding the best silhouettes."

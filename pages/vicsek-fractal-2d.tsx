@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
@@ -134,13 +133,6 @@ const VicsekFractal2D = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>2D Vicsek Fractal</title>
-        <meta
-          name="description"
-          content="An interactive 2D Vicsek fractal renderer with both saltire and cross variants. Explore the square-based cousin of the Sierpinski Carpet."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
@@ -181,13 +180,6 @@ const GosperCurve = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>L-System Gosper Curve</title>
-        <meta
-          name="description"
-          content="An interactive Gosper Curve implementation. This flowing L-system curve is fitted to the viewport at each iteration so it stays readable as it grows."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

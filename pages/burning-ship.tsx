@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
@@ -103,13 +102,6 @@ const BurningShip = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Burning Ship Fractal</title>
-        <meta
-          name="description"
-          content="An interactive WebGL implementation of the Burning Ship fractal with drag-to-pan and focal-point zoom controls across mouse, trackpad, and touch."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <div className={styles.fullScreen}>
           <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />

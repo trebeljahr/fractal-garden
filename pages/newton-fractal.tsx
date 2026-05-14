@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
@@ -101,13 +100,6 @@ const NewtonFractal = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Newton Fractal</title>
-        <meta
-          name="description"
-          content="An interactive Newton fractal for z^3 - 1 with drag-to-pan and focal-point zoom controls across mouse, trackpad, and touch."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <div className={styles.fullScreen}>
           <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />

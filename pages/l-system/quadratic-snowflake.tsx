@@ -1,4 +1,3 @@
-import Head from "next/head";
 import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
@@ -36,13 +35,6 @@ const QuadraticSnowflake = ({ description }: Props) => {
   };
   return (
     <>
-      <Head>
-        <title>L-System Quadratic Snowflake</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation of a Quadratic Snowflake as an L-System. You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <LSystem ruleset={quadraticSnowflake} />
         <SideDrawer description={description} />

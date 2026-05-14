@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
@@ -249,13 +248,6 @@ const LogisticMap = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Logistic Map</title>
-        <meta
-          name="description"
-          content="An interactive Logistic Map bifurcation diagram with zooming and panning. Explore the route from stable fixed points into period doubling and chaos."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Views, density, and plotting depth for tracing the route into chaos."

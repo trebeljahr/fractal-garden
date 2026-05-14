@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -179,13 +178,6 @@ const ApollonianGasket = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Apollonian Gasket</title>
-        <meta
-          name="description"
-          content="An interactive Apollonian Gasket renderer. Starting from four tangent circles, it recursively fills every curved triangular gap with another tangent circle."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

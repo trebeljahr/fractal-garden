@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -228,13 +227,6 @@ const Buddhabrot = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Buddhabrot Fractal</title>
-        <meta
-          name="description"
-          content="A progressive Buddhabrot renderer that draws the escaping orbits of Mandelbrot points and accumulates them into a glowing density image."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Sampling, exposure, and color for the glowing orbit trails."

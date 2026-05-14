@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
@@ -166,13 +165,6 @@ const FibonacciWordFractal = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Fibonacci Word Fractal</title>
-        <meta
-          name="description"
-          content="An interactive Fibonacci Word fractal with the classic odd-even drawing rule. Explore the familiar 90 degree version or vary the turning angle."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

@@ -1,4 +1,3 @@
-import Head from "next/head";
 import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
@@ -36,13 +35,6 @@ const KochSnowflake = ({ description }: Props) => {
   };
   return (
     <>
-      <Head>
-        <title>L-System Koch Snowflake</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation of the Koch Snowflake as an L-System. You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <LSystem ruleset={kochSnowflake} />
         <SideDrawer description={description} />

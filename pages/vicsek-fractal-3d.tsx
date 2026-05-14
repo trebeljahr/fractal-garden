@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -120,13 +119,6 @@ const VicsekFractal3D = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>3D Vicsek Fractal</title>
-        <meta
-          name="description"
-          content="A rotating 3D Vicsek fractal renderer. This cube-based cross fractal extends the 2D Vicsek idea into three dimensions."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Growth, framing, and rendering layers for the cubic cross."

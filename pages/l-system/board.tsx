@@ -1,4 +1,3 @@
-import Head from "next/head";
 import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
@@ -28,13 +27,6 @@ const Board = ({ description }: Props) => {
   };
   return (
     <>
-      <Head>
-        <title>L-System Board</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation of a L-System "Board". You can specify the colors, and play around with the iterations as well as loop through and animate them.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <LSystem ruleset={board} />
         <SideDrawer description={description} />

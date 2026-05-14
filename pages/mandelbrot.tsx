@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { NavElement } from "../components/Navbar";
@@ -97,13 +96,6 @@ const Mandelbrot = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Mandelbrot Set</title>
-        <meta
-          name="description"
-          content={`An interactive WebGL implementation of the most famous fractal – The Mandelbrot Set. You can zoom in and out and move around to explore this beautiful fractal.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <div className={styles.fullScreen}>
           <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />

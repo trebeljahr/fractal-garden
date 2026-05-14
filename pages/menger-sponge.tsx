@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -120,13 +119,6 @@ const MengerSponge = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Menger Sponge</title>
-        <meta
-          name="description"
-          content="A rotating Menger Sponge renderer. This 3D fractal extends the Sierpinski Carpet idea into space by removing the center cube and face-center cubes at every step."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Growth, orbit, and rendering layers for the sponge."

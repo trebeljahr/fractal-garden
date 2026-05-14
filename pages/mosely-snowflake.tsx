@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
@@ -128,13 +127,6 @@ const MoselySnowflake = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Mosely Snowflake</title>
-        <meta
-          name="description"
-          content="A rotating 3D Mosely Snowflake renderer with lighter and heavier variants. Explore this cube-based snowflake as a projected recursive solid."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Choose a lattice style, then tune orbit, growth, and linework."

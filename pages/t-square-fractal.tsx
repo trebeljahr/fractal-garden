@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -163,13 +162,6 @@ const TSquareFractal = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>T-Square Fractal</title>
-        <meta
-          name="description"
-          content="An interactive T-Square fractal with adjustable scaling between iterations. Explore the classic recursive square construction and its family resemblance to Sierpinski-style patterns."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

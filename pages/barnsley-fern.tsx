@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelColor, PanelSelect } from "../components/ExplorerControls";
@@ -229,13 +228,6 @@ const BarnsleyFern = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Barnsley Fern</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation of a Barnsley Fern. There are multiple different fern "types" you can play around with.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Swap fern families, then settle on the palette you like best."

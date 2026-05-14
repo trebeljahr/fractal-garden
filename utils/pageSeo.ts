@@ -7,7 +7,7 @@ type SeoEntry = {
 const SITE_NAME = "Fractal Garden";
 const DEFAULT_SITE_URL = "https://fractal.garden";
 
-const PAGE_SEO: Record<string, SeoEntry> = {
+export const PAGE_SEO: Record<string, SeoEntry> = {
   "/": {
     title: "Fractal Garden",
     description:

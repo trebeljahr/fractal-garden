@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
@@ -211,14 +210,6 @@ const FractalTree = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Fractal Canopy</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation of a Fractal Canopy, also known as a Fractal Tree. A fractal canopy is a fractal generated, by sequentially splitting and branching lines from existing lines. At the end of each line, draw n new lines at certain angles.`}
-        />
-      </Head>
-
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Start with a canopy idea, then steer the branches into your own version."

@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -208,13 +207,6 @@ const NFlake = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>N-Flake</title>
-        <meta
-          name="description"
-          content="An interactive N-Flake fractal explorer. Change the number of polygon sides and grow the polyflake family from triangular to decagonal forms."
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />

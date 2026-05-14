@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
@@ -93,13 +92,6 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
 
   return (
     <>
-      <Head>
-        <title>Sierpinski Carpet</title>
-        <meta
-          name="description"
-          content={`An interactive fractal implementation the Sierpinski Carpet, a fractal shape with 0 area.`}
-        />
-      </Head>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
