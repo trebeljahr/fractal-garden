@@ -34,3 +34,4 @@ venv/
 .env.test
 .envrc.local
 .vercel/
+/out/

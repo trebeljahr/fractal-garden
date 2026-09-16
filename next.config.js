@@ -9,9 +9,9 @@ const nextConfig = {
     });
     return config;
   },
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+  // Static export (Cloudflare) has no image optimization server.
+  images: {
+    unoptimized: true,
   },
 };
 

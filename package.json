@@ -10,6 +10,7 @@
     "dev": "next dev -p 1111",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "next build",
+    "export": "pnpm build && next export",
     "start": "next start -p 1111",
     "lint": "next lint",
     "analyze": "cross-env ANALYZE=true next build",
