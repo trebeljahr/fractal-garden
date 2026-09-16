@@ -16,7 +16,7 @@ export const FractalLink = ({ href, imageSrc, title, prio = false }: FractalLink
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
-        <Link as={href} href={href}>
+        <Link as={href} href={href} prefetch={false}>
           <a className={styles.cardLink}>
             <span className="screen-reader-only">Link to the {title} fractal page.</span>
           </a>
