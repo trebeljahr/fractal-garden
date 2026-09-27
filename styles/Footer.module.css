@@ -27,12 +27,20 @@
   border-color: rgba(154, 161, 180, 0.65);
 }
 
+/* Plain inline text, not flex, so the sentence copies as "Made with love by …".
+   Merriweather's space is 0.237em; margins top each space up to a 0.6rem gap.
+   The half-pixel padding centers the text against the link's 1px border and
+   the link's negative margins keep it level with the Imprint link. */
 .byline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
   margin: 0;
+  padding-block: 0.5px;
   white-space: nowrap;
+}
+
+.byline a {
+  display: inline-block;
+  vertical-align: top;
+  margin: -0.5px 0 -0.5px calc(0.6rem - 0.237em);
 }
 
 .links {
@@ -47,8 +55,10 @@
 
 .heart {
   display: inline-block;
+  vertical-align: top;
   width: 1.5rem;
   height: 1.5rem;
+  margin: calc((1.5em - 1.5rem) / 2) calc(0.6rem - 0.237em) 0;
   color: #e8839b;
   transform-origin: center;
   animation: heartbeat 2s ease-in-out infinite;
