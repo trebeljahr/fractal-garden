@@ -3,12 +3,24 @@ import "../styles/react-dat-gui.css";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import Script from "next/script";
+import { useEffect } from "react";
 import { PageSeo } from "../components/PageSeo";
+import { consumeSupportedParam } from "../utils/donation";
 
 const plausibleEnabled = process.env.NODE_ENV === "production";
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
+  // Static pages with a query string are hydrated, then Next.js replaces the
+  // URL to fill in router.query. Waiting for isReady keeps that replace from
+  // writing ?supported=1 back after we remove it.
+  useEffect(() => {
+    if (router.isReady) consumeSupportedParam();
+  }, [router.isReady]);
+
   return (
     <>
       <Head>

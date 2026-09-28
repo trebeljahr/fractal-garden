@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../styles/Footer.module.css";
+import { DONATE_URL } from "../utils/donation";
 
 export const Footer = () => {
   return (
@@ -21,7 +22,11 @@ export const Footer = () => {
       <span className={styles.separator} aria-hidden="true">
         |
       </span>
-      <nav className={styles.links} aria-label="Legal">
+      <nav className={styles.links} aria-label="Footer">
+        <a href={DONATE_URL}>Donate</a>
+        <span className={styles.separator} aria-hidden="true">
+          |
+        </span>
         <Link href="/imprint" passHref>
           <a href="/imprint">Imprint</a>
         </Link>
