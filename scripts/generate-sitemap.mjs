@@ -1,5 +1,28 @@
+import { execFile } from "node:child_process";
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { promisify } from "node:util";
+
+const run = promisify(execFile);
+
+// File mtimes are the checkout time on a fresh clone, so every CI build used to
+// stamp every URL with the build date. The last commit that touched the file is
+// stable across clones and is what lastmod is supposed to mean.
+async function lastModifiedOf(filePath) {
+  try {
+    const { stdout } = await run("git", ["log", "-1", "--format=%cI", "--", filePath]);
+    const committed = stdout.trim();
+
+    if (committed) {
+      return new Date(committed);
+    }
+  } catch {
+    // Not a git checkout, or git is unavailable: fall through to the mtime.
+  }
+
+  const stats = await stat(filePath);
+  return stats.mtime;
+}
 
 const SITE_URL = "https://fractal.garden";
 const PAGES_DIR = join(process.cwd(), "pages");
@@ -108,11 +131,10 @@ if (missingSeo.length > 0 || missingPages.length > 0) {
 const entries = await Promise.all(
   seoPaths.map(async (path) => {
     const filePath = routeMap.get(path);
-    const stats = await stat(filePath);
 
     return {
       path,
-      lastModified: stats.mtime,
+      lastModified: await lastModifiedOf(filePath),
       ...routeQuality(path),
     };
   }),

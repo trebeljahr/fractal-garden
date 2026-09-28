@@ -2,217 +2,217 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fractal.garden/</loc>
-    <lastmod>2026-05-14T12:02:44.052Z</lastmod>
+    <lastmod>2026-05-14T12:17:04.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://fractal.garden/mandelbrot</loc>
-    <lastmod>2026-05-14T20:17:32.993Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/buddhabrot</loc>
-    <lastmod>2026-05-14T20:17:32.988Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/newton-fractal</loc>
-    <lastmod>2026-05-14T20:17:32.997Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/burning-ship</loc>
-    <lastmod>2026-05-14T20:17:32.999Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/barnsley-fern</loc>
-    <lastmod>2026-05-14T20:17:32.991Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/sierpinski-carpet</loc>
-    <lastmod>2026-05-14T20:17:32.989Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/fractal-canopy</loc>
-    <lastmod>2026-05-14T20:17:32.999Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/julia-set</loc>
-    <lastmod>2026-05-14T20:17:33.000Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/apollonian-gasket</loc>
-    <lastmod>2026-05-14T20:17:32.988Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/logistic-map</loc>
-    <lastmod>2026-05-14T20:17:33.001Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/mandelbulb</loc>
-    <lastmod>2026-05-14T20:17:32.990Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/menger-sponge</loc>
-    <lastmod>2026-05-14T20:17:32.990Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/mosely-snowflake</loc>
-    <lastmod>2026-05-14T20:17:32.996Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/n-flake</loc>
-    <lastmod>2026-05-14T20:17:32.998Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/pythagoras-tree</loc>
-    <lastmod>2026-05-14T12:02:43.943Z</lastmod>
+    <lastmod>2026-05-14T12:17:04.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/imprint</loc>
-    <lastmod>2026-05-14T12:02:44.000Z</lastmod>
+    <lastmod>2026-05-14T12:17:04.000Z</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://fractal.garden/t-square-fractal</loc>
-    <lastmod>2026-05-14T20:17:32.991Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/vicsek-fractal-2d</loc>
-    <lastmod>2026-05-14T20:17:32.995Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/vicsek-fractal-3d</loc>
-    <lastmod>2026-05-14T20:17:32.994Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/board</loc>
-    <lastmod>2026-05-14T20:17:33.002Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/crystal</loc>
-    <lastmod>2026-05-14T20:17:33.001Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/dragon-curve</loc>
-    <lastmod>2026-05-14T20:17:33.002Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/fern-1</loc>
-    <lastmod>2026-05-14T20:17:33.003Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/fern-2</loc>
-    <lastmod>2026-05-14T20:17:32.998Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/fern-3</loc>
-    <lastmod>2026-05-14T20:17:32.999Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/fern-4</loc>
-    <lastmod>2026-05-14T20:17:33.003Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/fibonacci-word-fractal</loc>
-    <lastmod>2026-05-14T20:17:32.995Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/gosper-curve</loc>
-    <lastmod>2026-05-14T20:17:33.000Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/hilbert-curve</loc>
-    <lastmod>2026-05-14T20:17:33.000Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/koch-snowflake</loc>
-    <lastmod>2026-05-14T20:17:32.998Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/levy-curve</loc>
-    <lastmod>2026-05-14T20:17:32.994Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/quadratic-snowflake</loc>
-    <lastmod>2026-05-14T20:17:33.002Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/sierpinski-arrowhead</loc>
-    <lastmod>2026-05-14T20:17:32.996Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/sierpinski-curve</loc>
-    <lastmod>2026-05-14T20:17:32.995Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/sierpinski-triangle</loc>
-    <lastmod>2026-05-14T20:17:32.993Z</lastmod>
+    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
