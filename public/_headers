@@ -1,0 +1,9 @@
+# Content-hashed build output never changes under the same URL.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/fractal-images/*
+  Cache-Control: public, max-age=86400

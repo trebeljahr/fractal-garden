@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fractal-garden",
+  "compatibility_date": "2026-09-28",
+  "assets": {
+    // `pnpm export` writes the static site here.
+    "directory": "./out",
+    // Serve out/404.html for unknown paths instead of an SPA fallback.
+    "not_found_handling": "404-page"
+  }
+}
