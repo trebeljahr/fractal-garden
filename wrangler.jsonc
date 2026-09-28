@@ -7,5 +7,7 @@
     "directory": "./out",
     // Serve out/404.html for unknown paths instead of an SPA fallback.
     "not_found_handling": "404-page"
-  }
+  },
+  // Serves the production domain; Cloudflare manages the DNS record.
+  "routes": [{ "pattern": "fractal.garden", "custom_domain": true }]
 }
