@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styles from "../styles/Footer.module.css";
 import { DONATE_URL } from "../utils/donation";
+import { ProjectDonateLink } from "./ProjectDonateLink";
 
 export const Footer = () => {
   return (
@@ -23,7 +24,7 @@ export const Footer = () => {
         |
       </span>
       <nav className={styles.links} aria-label="Footer">
-        <a href={DONATE_URL}>Donate</a>
+        <ProjectDonateLink href={DONATE_URL}>Donate</ProjectDonateLink>
         <span className={styles.separator} aria-hidden="true">
           |
         </span>

@@ -1,4 +1,4 @@
-export const DONATE_URL = "https://ricos.site/donate?from=fractal-garden";
+export const DONATE_URL = "https://ricos.site/donate/fractal-garden";
 
 // Set when a donor comes back from ricos.site/donate. Nothing reads it yet;
 // a later inline ask stays quiet for 90 days after it.
