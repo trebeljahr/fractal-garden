@@ -29,7 +29,9 @@
     "rehype-highlight": "^5.0.2",
     "rehype-katex": "^6.0.2",
     "rehype-raw": "^6.1.1",
-    "remark-math": "^5.1.1"
+    "remark-math": "^5.1.1",
+    "highlight.js": "^11.11.1",
+    "react-color": "^2.19.3"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^15.5.24",
@@ -53,7 +55,8 @@
   "pnpm": {
     "overrides": {
       "lodash.set": "file:vendor/lodash-set",
-      "postcss@8": "8.5.28"
+      "postcss@8": "8.5.28",
+      "ws@7": "7.5.11"
     }
   }
 }
