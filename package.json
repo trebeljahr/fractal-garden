@@ -49,5 +49,11 @@
     "*.{js,jsx,ts,tsx,json,jsonc,css}": [
       "biome check --write --no-errors-on-unmatched"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "lodash.set": "file:vendor/lodash-set",
+      "postcss@8": "8.5.28"
+    }
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "safe-lodash-set",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.cjs",
+  "dependencies": {
+    "lodash": "4.18.1"
+  }
+}
