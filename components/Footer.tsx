@@ -28,7 +28,7 @@ export const Footer = () => {
         <span className={styles.separator} aria-hidden="true">
           |
         </span>
-        <Link href="/imprint" passHref>
+        <Link legacyBehavior href="/imprint" passHref>
           <a href="/imprint">Imprint</a>
         </Link>
       </nav>

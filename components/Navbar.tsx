@@ -61,7 +61,7 @@ export const NavElement = () => {
 
   return (
     <nav className={styles.navigationElement}>
-      <Link as={prev} href={prev}>
+      <Link legacyBehavior as={prev} href={prev}>
         <a className={styles.linkButton}>
           <span className="icon-arrow-left">
             <span className="screen-reader-only">
@@ -70,7 +70,7 @@ export const NavElement = () => {
           </span>
         </a>
       </Link>
-      <Link as={home} href={home}>
+      <Link legacyBehavior as={home} href={home}>
         <a className={styles.linkButton}>
           <span className="icon-home3">
             <span className="screen-reader-only">
@@ -79,7 +79,7 @@ export const NavElement = () => {
           </span>
         </a>
       </Link>
-      <Link as={next} href={next}>
+      <Link legacyBehavior as={next} href={next}>
         <a className={styles.linkButton}>
           <span className="icon-arrow-right">
             <span className="screen-reader-only">

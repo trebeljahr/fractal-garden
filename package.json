@@ -10,9 +10,9 @@
     "dev": "next dev -p 1111",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "next build",
-    "export": "pnpm build && next export",
+    "export": "pnpm build",
     "start": "next start -p 1111",
-    "lint": "next lint",
+    "lint": "biome lint .",
     "analyze": "cross-env ANALYZE=true next build",
     "format": "biome format --write .",
     "check": "biome check --write .",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
-    "next": "12.3.1",
+    "next": "^15.5.24",
     "react": "18.2.0",
     "react-cool-dimensions": "^2.0.7",
     "react-dat-gui": "^4.1.1",
@@ -32,7 +32,7 @@
     "remark-math": "^5.1.1"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^12.3.1",
+    "@next/bundle-analyzer": "^15.5.24",
     "@types/node": "18.7.20",
     "@types/prismjs": "^1.26.0",
     "@types/react": "18.0.21",
@@ -40,7 +40,7 @@
     "cross-env": "^7.0.3",
     "glslify-loader": "^2.0.0",
     "raw-loader": "^4.0.2",
-    "typescript": "4.8.3",
+    "typescript": "^5.9.3",
     "@biomejs/biome": "^2.4.13",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0"

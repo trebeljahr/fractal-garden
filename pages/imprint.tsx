@@ -8,7 +8,7 @@ const Imprint: NextPage = () => {
     <>
       <main className={styles.container}>
         <p className={styles.backLink}>
-          <Link href="/" passHref>
+          <Link legacyBehavior href="/" passHref>
             <a href="/" className={styles.link}>
               &larr; Back to Fractal Garden
             </a>

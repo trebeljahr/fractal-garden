@@ -1,4 +1,4 @@
-import Image, { type StaticImageData } from "next/image";
+import Image, { type StaticImageData } from "next/legacy/image";
 import Link from "next/link";
 import useDimensions from "react-cool-dimensions";
 import styles from "../styles/FractalLink.module.css";
@@ -16,7 +16,7 @@ export const FractalLink = ({ href, imageSrc, title, prio = false }: FractalLink
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
-        <Link as={href} href={href} prefetch={false}>
+        <Link legacyBehavior as={href} href={href} prefetch={false}>
           <a className={styles.cardLink}>
             <span className="screen-reader-only">Link to the {title} fractal page.</span>
           </a>

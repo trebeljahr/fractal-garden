@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "next/legacy/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
@@ -47,10 +47,10 @@ const ParagraphRenderer = (paragraph: { children?: JSX.Element[]; node?: HastEle
   if (image?.tagName === "img" && image.properties?.src) {
     const metastring = image.properties.alt ?? "";
     const alt = metastring.replace(/ *\{[^)]*\} */g, "");
-    const metaWidth = metastring.match(/{([^}]+)x/);
-    const metaHeight = metastring.match(/x([^}]+)}/);
-    const width = metaWidth ? metaWidth[1] : "768";
-    const height = metaHeight ? metaHeight[1] : "432";
+    const metaWidth = metastring.match(/{(\d+)x/);
+    const metaHeight = metastring.match(/x(\d+)}/);
+    const width = Number(metaWidth?.[1]) || 768;
+    const height = Number(metaHeight?.[1]) || 432;
     const isPriority = metastring.toLowerCase().includes("{priority}");
     const hasCaption = metastring.toLowerCase().includes("{caption:");
     const caption = metastring.match(/{caption: (.*?)}/)?.pop();
@@ -84,7 +84,7 @@ const LinkRenderer = (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
 
   if (isInternalLink) {
     return (
-      <Link href={href || ""}>
+      <Link legacyBehavior href={href || ""}>
         <a className="internalLink" {...props} />
       </Link>
     );
