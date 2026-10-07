@@ -1,12 +1,4 @@
-import {
-  type ComponentProps,
-  type CSSProperties,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type ComponentProps, type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { DatBoolean, DatSelect } from "react-dat-gui";
 import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerPanel.module.css";
@@ -395,7 +387,7 @@ export const PanelColor = ({
     };
   }, [isOpen]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       setPopoverPosition(null);
       return;
