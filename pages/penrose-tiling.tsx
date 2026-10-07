@@ -42,10 +42,19 @@ type Config = {
 const PADDING = 0.06;
 const INITIAL_ZOOM_SIZE = 1 / (1 - 2 * PADDING);
 const MIN_ZOOM_SIZE = 0.005;
-const MAX_ZOOM_SIZE = 5000;
-// Zoomed far out, draw coarser supertiles to keep roughly this many half-tiles
-// on screen. A half-tile with edge e covers about e² / 4.
+// Zoom out only until the tiles shrink to this budget of half-tiles on screen.
+// A half-tile with edge e covers about e² / 4.
 const MAX_VISIBLE_TRIANGLES = 100000;
+
+// Smallest tile edge in pixels that keeps the screen within the budget.
+function getMinTilePx(width: number, height: number) {
+  return Math.sqrt((4 * width * height) / MAX_VISIBLE_TRIANGLES);
+}
+
+// Tiles after n iterations have edges PHI^-n long.
+function getMaxZoomSize(width: number, height: number, iterations: number) {
+  return Math.min(width, height) / (2 * getMinTilePx(width, height) * PHI ** iterations);
+}
 
 const variantOptions: PenroseVariant[] = ["p2", "p3"];
 const variantLabels: Record<PenroseVariant, string> = {
@@ -102,6 +111,8 @@ const PenroseTiling = ({ description }: Props) => {
     center: [0, 0] as [number, number],
     zoomSize: INITIAL_ZOOM_SIZE,
   });
+  const limitRef = useRef({ width, height, iterations: config.iterations });
+  limitRef.current = { width, height, iterations: config.iterations };
   const renderRef = useRef<(() => void) | null>(null);
   const frameRef = useRef(0);
 
@@ -115,11 +126,24 @@ const PenroseTiling = ({ description }: Props) => {
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
+  // Zooming out never swaps in coarser supertiles: the tiling is self-similar
+  // around its center, so that looked like the view jumping back. Stop zooming
+  // out instead. If iterations grew while zoomed out, hold the current zoom.
+  const maxZoomSize = useCallback(() => {
+    const { width, height, iterations } = limitRef.current;
+    if (!width || !height) return INITIAL_ZOOM_SIZE;
+    return Math.max(
+      getMaxZoomSize(width, height, iterations),
+      INITIAL_ZOOM_SIZE,
+      viewportRef.current.zoomSize,
+    );
+  }, []);
+
   useShaderViewportControls({
     canvas: ctx?.canvas ?? null,
     viewportRef,
     minZoomSize: MIN_ZOOM_SIZE,
-    maxZoomSize: MAX_ZOOM_SIZE,
+    maxZoomSize,
     onViewportChange: requestRender,
     flipY: true,
   });
@@ -146,8 +170,9 @@ const PenroseTiling = ({ description }: Props) => {
       const ratio = window.devicePixelRatio || 1;
       const { center, zoomSize } = viewportRef.current;
       const pixelsPerUnit = Math.min(width, height) / (2 * zoomSize);
-      // Tiles at level L have edges PHI^-L long.
-      const minTilePx = Math.sqrt((4 * width * height) / MAX_VISIBLE_TRIANGLES);
+      // Normally the chosen iterations. Only when iterations grew while zoomed
+      // out does this stay coarser, until zooming in makes room for the detail.
+      const minTilePx = getMinTilePx(width, height);
       const level = Math.min(
         config.iterations,
         Math.floor(Math.log(pixelsPerUnit / minTilePx) / Math.log(PHI)),

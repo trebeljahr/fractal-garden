@@ -15,7 +15,8 @@ type Params = {
   canvas: HTMLCanvasElement | null;
   viewportRef: MutableRefObject<Viewport>;
   minZoomSize: number;
-  maxZoomSize: number;
+  // A function is read on every gesture, so the limit can follow the content.
+  maxZoomSize: number | (() => number);
   onViewportChange: () => void;
   flipY?: boolean;
 };
@@ -47,6 +48,7 @@ export function useShaderViewportControls({
     let pinchAnchorWorld: [number, number] | null = null;
     let pinchInitialDistance = 0;
     let pinchInitialZoom = 0;
+    const getMaxZoomSize = () => (typeof maxZoomSize === "function" ? maxZoomSize() : maxZoomSize);
 
     const getRelativePoint = (event: PointerEvent | WheelEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -147,7 +149,7 @@ export function useShaderViewportControls({
         const nextZoomSize = constrain(
           pinchInitialZoom * (pinchInitialDistance / currentDistance),
           minZoomSize,
-          maxZoomSize,
+          getMaxZoomSize(),
         );
 
         setViewportFromAnchor(pinchAnchorWorld, pinchMidpoint, nextZoomSize);
@@ -193,7 +195,7 @@ export function useShaderViewportControls({
       const nextZoomSize = constrain(
         currentViewport.zoomSize * zoomFactor,
         minZoomSize,
-        maxZoomSize,
+        getMaxZoomSize(),
       );
 
       setViewportFromAnchor(anchorWorld, point, nextZoomSize);
