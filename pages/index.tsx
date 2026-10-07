@@ -21,6 +21,7 @@ import fern4Image from "../public/assets/fractal-images/l-system-fern-4.jpg";
 import fibonacciWordFractalImage from "../public/assets/fractal-images/l-system-fibonacci-word-fractal.jpg";
 import gosperCurveImage from "../public/assets/fractal-images/l-system-gosper-curve.jpg";
 import hilbertCurveImage from "../public/assets/fractal-images/l-system-hilbert-curve.jpg";
+import hilbertCurve3DImage from "../public/assets/fractal-images/l-system-hilbert-curve-3d.jpg";
 import kochAntiSnowflakeImage from "../public/assets/fractal-images/l-system-koch-anti-snowflake.jpg";
 import kochSnowflakeImage from "../public/assets/fractal-images/l-system-koch-snowflake.jpg";
 import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
@@ -32,6 +33,7 @@ import sierpinsikTriangleImage from "../public/assets/fractal-images/l-system-si
 import terdragonImage from "../public/assets/fractal-images/l-system-terdragon.jpg";
 import twindragonImage from "../public/assets/fractal-images/l-system-twindragon.jpg";
 import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
+import lorenzAttractorImage from "../public/assets/fractal-images/lorenz-attractor.jpg";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
 import mandelbulbImage from "../public/assets/fractal-images/mandelbulb.jpg";
 import mengerSpongeImage from "../public/assets/fractal-images/menger-sponge.jpg";
@@ -40,6 +42,7 @@ import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
+import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attractor.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
@@ -183,6 +186,21 @@ const Home: NextPage = () => {
           />
           <FractalLink href="/l-system/twindragon" title="Twindragon" imageSrc={twindragonImage} />
           <FractalLink href="/l-system/terdragon" title="Terdragon" imageSrc={terdragonImage} />
+          <FractalLink
+            href="/lorenz-attractor"
+            title="Lorenz Attractor"
+            imageSrc={lorenzAttractorImage}
+          />
+          <FractalLink
+            href="/rossler-attractor"
+            title="Rössler Attractor"
+            imageSrc={rosslerAttractorImage}
+          />
+          <FractalLink
+            href="/l-system/hilbert-curve-3d"
+            title="3D Hilbert Curve"
+            imageSrc={hilbertCurve3DImage}
+          />
 
           <FractalLink
             href="/jerusalem-cube"

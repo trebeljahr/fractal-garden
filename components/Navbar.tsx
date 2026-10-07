@@ -49,11 +49,19 @@ function useLinks() {
     "/l-system/minkowski-sausage",
     "/l-system/quadratic-koch-island",
     "/l-system/koch-anti-snowflake",
+    "/lorenz-attractor",
+    "/rossler-attractor",
+    "/l-system/hilbert-curve-3d",
   ];
 
-  const i = fractalLinks.findIndex((link) => {
-    return router.pathname.includes(link);
-  });
+  // Exact match first, so "/l-system/hilbert-curve-3d" doesn't resolve to "/l-system/hilbert-curve".
+  const exactIndex = fractalLinks.indexOf(router.pathname);
+  const i =
+    exactIndex >= 0
+      ? exactIndex
+      : fractalLinks.findIndex((link) => {
+          return router.pathname.includes(link);
+        });
 
   if (i === -1) return ["/", "/", "/"];
 

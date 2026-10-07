@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fractal.garden/</loc>
-    <lastmod>2026-10-07T05:41:10.000Z</lastmod>
+    <lastmod>2026-10-07T05:42:11.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -254,25 +254,43 @@
   </url>
   <url>
     <loc>https://fractal.garden/l-system/cesaro-fractal</loc>
-    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <lastmod>2026-10-07T05:42:11.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/minkowski-sausage</loc>
-    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <lastmod>2026-10-07T05:42:11.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/quadratic-koch-island</loc>
-    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <lastmod>2026-10-07T05:42:11.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fractal.garden/l-system/koch-anti-snowflake</loc>
-    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <lastmod>2026-10-07T05:42:11.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/lorenz-attractor</loc>
+    <lastmod>2026-10-07T05:42:56.435Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/rossler-attractor</loc>
+    <lastmod>2026-10-07T05:42:56.435Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/hilbert-curve-3d</loc>
+    <lastmod>2026-10-07T05:42:56.435Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

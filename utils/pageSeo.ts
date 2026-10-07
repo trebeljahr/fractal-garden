@@ -284,6 +284,24 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "See the Koch Snowflake turned inside out: the same rule, with every spike pointing into the triangle.",
     imagePath: "/assets/fractal-images/l-system-koch-anti-snowflake.jpg",
   },
+  "/lorenz-attractor": {
+    title: "Lorenz Attractor",
+    description:
+      "Watch a Lorenz Attractor trail draw itself in 3D, orbit the butterfly and change sigma, rho and beta to see chaos appear and fade.",
+    imagePath: "/assets/fractal-images/lorenz-attractor.jpg",
+  },
+  "/rossler-attractor": {
+    title: "Rössler Attractor",
+    description:
+      "Trace the Rössler Attractor in 3D, rotate its spiral fold and tune a, b and c to move between periodic loops and chaos.",
+    imagePath: "/assets/fractal-images/rossler-attractor.jpg",
+  },
+  "/l-system/hilbert-curve-3d": {
+    title: "3D Hilbert Curve",
+    description:
+      "Rotate a 3D Hilbert Curve as it fills a cube, from 8 points up to 32768, with depth shading and animated growth.",
+    imagePath: "/assets/fractal-images/l-system-hilbert-curve-3d.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];
