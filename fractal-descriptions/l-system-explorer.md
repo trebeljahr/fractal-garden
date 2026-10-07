@@ -33,6 +33,14 @@ Any other letter, for example `X`, draws nothing. It only steers the rewriting. 
 
 The explorer switches to 3D by itself as soon as the system uses one of `& ^ \ / $`. In 3D every line becomes a lit tube. Drag to orbit all the way around, shift-drag or right-drag to move the orbit center, and scroll to fly towards the spot under the cursor.
 
+## Endless zoom
+
+In 2D you can keep zooming, and the explorer grows later generations where you look. It does not rebuild the whole string. Each symbol of one generation becomes a piece of the next, so the drawing is a tree of pieces. The explorer works out once how each symbol moves and turns the turtle after any number of generations. Then it walks down that tree only where the view needs it: pieces outside the view are skipped in one step, and pieces smaller than a pixel are drawn as a single line. The stats under the editor show which generation you are looking at.
+
+A later generation is a little bigger than the one before, and some curves also turn (the dragon curve by 45° each time). The explorer measures that and shrinks and turns each generation back, so the new detail lines up with what you saw before.
+
+Endless zoom needs one rule per symbol, because random rules give every copy a different shape. It also needs a drawing that grows from one generation to the next. Drawings that grow denser with every generation, such as dense bushes or the Penrose tiling, would need ever more lines, so there the explorer stops at the deepest generation that fits in about 300,000 lines.
+
 ## Random rules
 
 Give one symbol several rules and each replacement picks one of them at random. The weight next to a rule sets how often it wins: its chance is its weight divided by the total weight of that symbol's rules, and the explorer shows that chance as a percentage under each weight. The seed under **Advanced** fixes the random choices, so a shared link always grows the same plant.

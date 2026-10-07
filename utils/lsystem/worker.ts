@@ -1,5 +1,6 @@
 import { expand, type Geometry, interpret } from "./engine";
 import type { ColorMode, LSystemSpec } from "./spec";
+import { prepareZoom, type ZoomDetail, type ZoomSystem, type ZoomView } from "./zoom";
 
 export type WorkerRequest = {
   id: number;
@@ -20,14 +21,54 @@ export type WorkerResult = {
   radius: number;
 };
 
+// Endless zoom: draw only what one view of a 2D system needs, at a
+// generation that matches the zoom (see zoom.ts).
+export type ZoomRequest = {
+  id: number;
+  spec: LSystemSpec;
+  iterations: number;
+  view: ZoomView;
+};
+
+export type ZoomResult = {
+  id: number;
+  detail: ZoomDetail | null;
+  // Why the system cannot zoom endlessly, when it cannot.
+  reason: string | null;
+};
+
 type WorkerScope = {
-  onmessage: ((event: MessageEvent<WorkerRequest>) => void) | null;
-  postMessage: (message: WorkerResult, transfer: Transferable[]) => void;
+  onmessage: ((event: MessageEvent<WorkerRequest | ZoomRequest>) => void) | null;
+  postMessage: (message: WorkerResult | ZoomResult, transfer: Transferable[]) => void;
 };
 
 const scope = self as unknown as WorkerScope;
 
+// The effect tables behind endless zoom, kept while the system stays the same.
+let zoomKey = "";
+let zoomSystem: ZoomSystem | string = "";
+
 scope.onmessage = (event) => {
+  if ("view" in event.data) {
+    const { id, spec, iterations, view } = event.data;
+    const key = `${iterations}:${JSON.stringify(spec)}`;
+    if (key !== zoomKey) {
+      zoomKey = key;
+      zoomSystem = prepareZoom(spec, iterations);
+    }
+    if (typeof zoomSystem === "string") {
+      scope.postMessage({ id, detail: null, reason: zoomSystem }, []);
+      return;
+    }
+    const detail = zoomSystem.render(view);
+    scope.postMessage({ id, detail, reason: null }, [
+      detail.positions.buffer,
+      detail.widths.buffer,
+      detail.colors.buffer,
+    ]);
+    return;
+  }
+
   const { id, spec, iterations } = event.data;
   const expansion = expand(spec, iterations);
   const geometry = interpret(expansion.sentence, spec);

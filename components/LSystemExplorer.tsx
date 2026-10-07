@@ -14,13 +14,15 @@ import {
   createRenderer,
   DEFAULT_CAMERA,
   FLAT_CAMERA,
+  flatFit,
   type Renderer,
   type Viewport,
   viewFor,
 } from "../utils/lsystem/render";
 import { decodeSpec, encodeSpec, githubSubmitUrl, presetJson } from "../utils/lsystem/share";
 import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
-import type { WorkerRequest, WorkerResult } from "../utils/lsystem/worker";
+import type { WorkerRequest, WorkerResult, ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
+import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom";
 import { scrollToDescription } from "../utils/scrollToDescription";
 import { WebGLCanvas } from "./Canvas";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
@@ -116,8 +118,11 @@ function download(filename: string, href: string) {
   link.click();
 }
 
-function clampZoom(zoom: number) {
-  return Math.min(Math.max(zoom, 0.05), 500);
+// Without endless zoom, past this the lines would only get blurry.
+const PLAIN_ZOOM_LIMIT = 500;
+
+function clampZoom(zoom: number, limit = PLAIN_ZOOM_LIMIT) {
+  return Math.min(Math.max(zoom, 0.05), limit);
 }
 
 function wrapAngle(angle: number) {
@@ -146,6 +151,9 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const [failed, setFailed] = useState(false);
   const { width, height } = useWindowSize();
 
+  const jobSpecRef = useRef<LSystemSpec | null>(null);
+  // The system the current drawing was made from.
+  const resultSpecRef = useRef<LSystemSpec | null>(null);
   const cameraRef = useRef<Camera>(
     presets[0].spec.dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA },
   );
@@ -222,6 +230,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
       worker.onmessage = (event: MessageEvent<WorkerResult>) => {
         busyRef.current = false;
         if (event.data.id !== jobRef.current) return;
+        resultSpecRef.current = jobSpecRef.current;
         setResult(event.data);
         setFailed(false);
         setComputing(false);
@@ -236,6 +245,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
     busyRef.current = true;
     setComputing(true);
     const request: WorkerRequest = { id, spec: debouncedSpec, iterations };
+    jobSpecRef.current = debouncedSpec;
     worker.postMessage(request);
   }, [debouncedSpec, iterations]);
 
@@ -271,15 +281,113 @@ export const LSystemExplorer = ({ presets }: Props) => {
     return { x: offset, y: 0, width: width - offset, height };
   }, [width, height, panelOpen]);
 
+  // Endless zoom for 2D systems. A second worker redraws only the visible
+  // part, at a generation deep enough for the zoom, whenever the view
+  // changes. Until its answer arrives the last one is stretched into place.
+  const zoomWorkerRef = useRef<Worker | null>(null);
+  const zoomBusyRef = useRef(false);
+  const zoomPendingRef = useRef<ZoomRequest | null>(null);
+  const zoomJobRef = useRef(0);
+  // Answers to requests made before the drawing last changed are dropped.
+  const zoomValidFromRef = useRef(1);
+  const detailRef = useRef<ZoomDetail | null>(null);
+  const zoomLimitRef = useRef(PLAIN_ZOOM_LIMIT);
+  const requestDrawRef = useRef<() => void>(() => {});
+  const [zoomInfo, setZoomInfo] = useState<{ generation: number; lines: number } | null>(null);
+  const [zoomReason, setZoomReason] = useState<string | null>(null);
+
+  useEffect(
+    () => () => {
+      zoomWorkerRef.current?.terminate();
+      zoomWorkerRef.current = null;
+    },
+    [],
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new drawing invalidates the detail
+  useEffect(() => {
+    zoomValidFromRef.current = zoomJobRef.current + 1;
+    detailRef.current = null;
+    setZoomInfo(null);
+    setZoomReason(null);
+  }, [result]);
+
+  const sendZoom = useCallback((request: ZoomRequest) => {
+    if (zoomBusyRef.current) {
+      zoomPendingRef.current = request;
+      return;
+    }
+    let worker = zoomWorkerRef.current;
+    if (!worker) {
+      worker = new Worker(new URL("../utils/lsystem/worker.ts", import.meta.url));
+      worker.onmessage = (event: MessageEvent<ZoomResult>) => {
+        zoomBusyRef.current = false;
+        const pending = zoomPendingRef.current;
+        zoomPendingRef.current = null;
+        if (pending) sendZoom(pending);
+        const { id, detail, reason } = event.data;
+        if (id < zoomValidFromRef.current) return;
+        if (!detail) {
+          zoomLimitRef.current = PLAIN_ZOOM_LIMIT;
+          setZoomReason(reason);
+          return;
+        }
+        zoomLimitRef.current = MAX_ZOOM;
+        if (cameraRef.current.zoom <= 1) return;
+        detailRef.current = detail;
+        setZoomInfo({ generation: detail.generation, lines: detail.count });
+        requestDrawRef.current();
+      };
+      worker.onerror = () => {
+        zoomBusyRef.current = false;
+      };
+      zoomWorkerRef.current = worker;
+    }
+    zoomBusyRef.current = true;
+    worker.postMessage(request);
+  }, []);
+
+  const scheduleZoom = useCallback(() => {
+    const spec = resultSpecRef.current;
+    const camera = cameraRef.current;
+    if (!result || !viewport || !spec || spec.dimension !== "2d" || camera.zoom <= 1) {
+      if (detailRef.current) {
+        detailRef.current = null;
+        setZoomInfo(null);
+      }
+      return;
+    }
+    const scale = camera.zoom * flatFit(result.geometry, viewport);
+    // A margin around the view, so short drags show finished detail.
+    const view: ZoomView = {
+      centerX: result.center[0] - camera.panX / scale,
+      centerY: result.center[1] + camera.panY / scale,
+      scale,
+      halfWidth: viewport.width * 0.65,
+      halfHeight: viewport.height * 0.65,
+      zoom: camera.zoom,
+    };
+    sendZoom({ id: ++zoomJobRef.current, spec, iterations: result.expansion.iterations, view });
+  }, [result, viewport, sendZoom]);
+
   const draw = useCallback(() => {
     if (!renderer || !viewport) return;
-    renderer.draw(result, style, debouncedSpec.dimension, cameraRef.current, viewport);
+    renderer.draw(
+      result,
+      style,
+      debouncedSpec.dimension,
+      cameraRef.current,
+      viewport,
+      debouncedSpec.dimension === "2d" ? detailRef.current : null,
+    );
   }, [renderer, viewport, result, style, debouncedSpec.dimension]);
 
   const requestDraw = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(draw);
-  }, [draw]);
+    scheduleZoom();
+  }, [draw, scheduleZoom]);
+  requestDrawRef.current = requestDraw;
 
   useEffect(() => {
     requestDraw();
@@ -478,7 +586,10 @@ export const LSystemExplorer = ({ presets }: Props) => {
     const stage = stageRef.current;
     if (!stage || !viewport) return;
     const camera = cameraRef.current;
-    const zoom = clampZoom(camera.zoom * factor);
+    const zoom = clampZoom(
+      camera.zoom * factor,
+      debouncedSpec.dimension === "2d" ? zoomLimitRef.current : PLAIN_ZOOM_LIMIT,
+    );
     const k = zoom / camera.zoom;
     const rect = stage.getBoundingClientRect();
     const cx = clientX - rect.left - (viewport.x + viewport.width / 2);
@@ -894,6 +1005,15 @@ export const LSystemExplorer = ({ presets }: Props) => {
             {expansion.length.toLocaleString("en-US")} symbols ·{" "}
             {(result?.lines ?? 0).toLocaleString("en-US")} lines
           </span>
+          {spec.dimension === "2d" && zoomInfo && (
+            <span>
+              Zoomed in: generation {zoomInfo.generation} · {zoomInfo.lines.toLocaleString("en-US")}{" "}
+              lines in view
+            </span>
+          )}
+          {spec.dimension === "2d" && zoomReason && (
+            <span className={styles.warning}>Zooming in cannot add detail here: {zoomReason}.</span>
+          )}
           {expansion.limited && (
             <span className={styles.warning}>
               Stopped at generation {expansion.iterations}: the next one is too long to draw.
@@ -950,7 +1070,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
         <p className={styles.hint}>
           {spec.dimension === "3d"
             ? "Drag to orbit, shift-drag to pan, scroll to zoom, double-click to reset."
-            : "Drag to pan, scroll to zoom, double-click to reset."}
+            : "Drag to pan, scroll to zoom, double-click to reset. Zooming in grows later generations where you look."}
         </p>
         {notice && <p className={styles.notice}>{notice}</p>}
       </aside>

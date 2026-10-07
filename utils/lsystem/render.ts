@@ -1,6 +1,7 @@
 import { createShaderProgram } from "../shaders/compileShader";
 import type { Geometry } from "./engine";
 import type { ColorMode, Dimension } from "./spec";
+import type { ZoomDetail } from "./zoom";
 
 // yaw and pitch orbit around the target, zoom moves the eye closer, and
 // targetX/Y/Z shift the orbit center away from the middle of the drawing (in
@@ -50,6 +51,17 @@ export type Drawing = {
 };
 
 const PADDING = 0.08;
+
+// Screen pixels per drawing unit for a flat drawing at zoom 1: the whole
+// drawing fits the viewport minus padding.
+export function flatFit(geometry: Geometry, viewport: Viewport) {
+  const spanX = Math.max(geometry.max[0] - geometry.min[0], 1e-6);
+  const spanY = Math.max(geometry.max[1] - geometry.min[1], 1e-6);
+  return Math.min(
+    (viewport.width * (1 - 2 * PADDING)) / spanX,
+    (viewport.height * (1 - 2 * PADDING)) / spanY,
+  );
+}
 const FIELD_OF_VIEW = (35 * Math.PI) / 180;
 
 // The eye's axes in drawing space for a camera, and how far the eye sits from
@@ -325,6 +337,7 @@ export type Renderer = {
     dimension: Dimension,
     camera: Camera,
     viewport: Viewport,
+    detail?: ZoomDetail | null,
   ) => void;
   dispose: () => void;
 };
@@ -422,44 +435,66 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
     bind(program, "a_width", widthBuffer, 1);
   };
 
-  // The drawing the buffers hold, so it is uploaded once and every other
+  // The lines the buffers hold, so they are uploaded once and every other
   // frame only sets uniforms.
-  let uploaded: Drawing | null = null;
+  let uploaded: unknown = null;
 
-  const upload = (drawing: Drawing) => {
-    if (drawing === uploaded) return;
-    uploaded = drawing;
-    const { positions, widths, count } = drawing.geometry;
+  const upload = (
+    key: unknown,
+    positions: Float32Array,
+    widths: Float32Array,
+    colors: Float32Array,
+    count: number,
+  ) => {
+    if (key === uploaded) return;
+    uploaded = key;
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, positions.subarray(0, count * 6), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, widthBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, widths.subarray(0, count), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawing.colors.subarray(0, count), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, colors.subarray(0, count), gl.STATIC_DRAW);
   };
 
-  const drawFlat = (drawing: Drawing, style: Style, camera: Camera, viewport: Viewport) => {
+  const drawFlat = (
+    drawing: Drawing,
+    style: Style,
+    camera: Camera,
+    viewport: Viewport,
+    detail: ZoomDetail | null,
+  ) => {
     const { geometry, center } = drawing;
-    const { min, max, count } = geometry;
     const { width, height } = viewport;
     const ratio = window.devicePixelRatio || 1;
-    const spanX = Math.max(max[0] - min[0], 1e-6);
-    const spanY = Math.max(max[1] - min[1], 1e-6);
-    const scale =
-      camera.zoom *
-      Math.min((width * (1 - 2 * PADDING)) / spanX, (height * (1 - 2 * PADDING)) / spanY);
+    const scale = camera.zoom * flatFit(geometry, viewport);
     const color = parseHex(style.color);
     const colorEnd = style.colorMode === "solid" ? color : parseHex(style.colorEnd);
+    const originX = viewport.x + width / 2 + camera.panX;
+    const originY = viewport.y + height / 2 + camera.panY;
 
     gl.useProgram(flat.program);
     gl.uniform2f(flatU.resolution, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
-    gl.uniform2f(
-      flatU.origin,
-      viewport.x + width / 2 + camera.panX,
-      viewport.y + height / 2 + camera.panY,
-    );
-    gl.uniform3f(flatU.center, center[0], center[1], center[2]);
-    gl.uniform1f(flatU.scale, scale);
+    let count = geometry.count;
+    if (detail) {
+      // The detail is in pixels around the drawing point that was in the
+      // middle when it was made. Place that point and rescale, all in double
+      // precision here, so only small numbers reach the GPU.
+      const { view } = detail;
+      upload(detail, detail.positions, detail.widths, detail.colors, detail.count);
+      count = detail.count;
+      gl.uniform2f(
+        flatU.origin,
+        originX + (view.centerX - center[0]) * scale,
+        originY - (view.centerY - center[1]) * scale,
+      );
+      gl.uniform3f(flatU.center, 0, 0, 0);
+      gl.uniform1f(flatU.scale, scale / view.scale);
+    } else {
+      upload(drawing, geometry.positions, geometry.widths, drawing.colors, geometry.count);
+      gl.uniform2f(flatU.origin, originX, originY);
+      gl.uniform3f(flatU.center, center[0], center[1], center[2]);
+      gl.uniform1f(flatU.scale, scale);
+    }
     gl.uniform1f(flatU.lineWidth, style.lineWidth);
     gl.uniform1f(flatU.pixel, 1 / ratio);
     gl.uniform3f(flatU.color, color[0], color[1], color[2]);
@@ -534,16 +569,20 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
   };
 
   return {
-    draw(drawing, style, dimension, camera, viewport) {
+    draw(drawing, style, dimension, camera, viewport, detail = null) {
       const background = parseHex(style.background);
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clearColor(background[0], background[1], background[2], 1);
       gl.clearDepth(1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       if (!drawing || drawing.geometry.count === 0) return;
-      upload(drawing);
-      if (dimension === "3d") drawSolid(drawing, style, background, camera, viewport);
-      else drawFlat(drawing, style, camera, viewport);
+      if (dimension === "3d") {
+        const { geometry } = drawing;
+        upload(drawing, geometry.positions, geometry.widths, drawing.colors, geometry.count);
+        drawSolid(drawing, style, background, camera, viewport);
+      } else {
+        drawFlat(drawing, style, camera, viewport, detail);
+      }
     },
 
     dispose() {
