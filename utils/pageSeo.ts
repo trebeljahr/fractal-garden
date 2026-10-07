@@ -302,6 +302,12 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Rotate a 3D Hilbert Curve as it fills a cube, from 8 points up to 32768, with depth shading and animated growth.",
     imagePath: "/assets/fractal-images/l-system-hilbert-curve-3d.jpg",
   },
+  "/penrose-tiling": {
+    title: "Penrose Tiling",
+    description:
+      "Deflate Penrose kite and dart or rhombus tilings step by step and watch an aperiodic, golden-ratio pattern grow from a sun or star.",
+    imagePath: "/assets/fractal-images/penrose-tiling.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

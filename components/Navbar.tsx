@@ -52,6 +52,7 @@ function useLinks() {
     "/lorenz-attractor",
     "/rossler-attractor",
     "/l-system/hilbert-curve-3d",
+    "/penrose-tiling",
   ];
 
   // Exact match first, so "/l-system/hilbert-curve-3d" doesn't resolve to "/l-system/hilbert-curve".

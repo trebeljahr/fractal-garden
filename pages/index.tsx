@@ -40,6 +40,7 @@ import mengerSpongeImage from "../public/assets/fractal-images/menger-sponge.jpg
 import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowflake.jpg";
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.jpg";
+import penroseTilingImage from "../public/assets/fractal-images/penrose-tiling.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
 import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attractor.jpg";
@@ -231,6 +232,11 @@ const Home: NextPage = () => {
             href="/l-system/koch-anti-snowflake"
             title="Koch Anti-Snowflake"
             imageSrc={kochAntiSnowflakeImage}
+          />
+          <FractalLink
+            href="/penrose-tiling"
+            title="Penrose Tiling"
+            imageSrc={penroseTilingImage}
           />
 
           <AddMoreLink />
