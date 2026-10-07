@@ -348,6 +348,15 @@ export type Renderer = {
     viewport: Viewport,
     detail?: ZoomDetail | null,
   ) => void;
+  // Draws only an endless-zoom detail: its middle at (originX, originY) in
+  // CSS pixels, its pixels multiplied by `stretch`.
+  drawDetail: (
+    detail: ZoomDetail | null,
+    style: Style,
+    originX: number,
+    originY: number,
+    stretch: number,
+  ) => void;
   dispose: () => void;
 };
 
@@ -474,17 +483,13 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
   ) => {
     const { geometry, center } = drawing;
     const { width, height } = viewport;
-    const ratio = window.devicePixelRatio || 1;
     const scale = camera.zoom * flatFit(geometry, viewport);
     const focusX = center[0] + fixedToNumber(camera.deepX, camera.deepBits);
     const focusY = center[1] + fixedToNumber(camera.deepY, camera.deepBits);
-    const color = parseHex(style.color);
-    const colorEnd = style.colorMode === "solid" ? color : parseHex(style.colorEnd);
     const originX = viewport.x + width / 2 + camera.panX;
     const originY = viewport.y + height / 2 + camera.panY;
 
     gl.useProgram(flat.program);
-    gl.uniform2f(flatU.resolution, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
     let count = geometry.count;
     if (detail) {
       // The detail is in pixels around the drawing point that was in the
@@ -516,6 +521,16 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
       gl.uniform3f(flatU.center, focusX, focusY, center[2]);
       gl.uniform1f(flatU.scale, scale);
     }
+    strokeFlat(style, count);
+  };
+
+  // Strokes the uploaded lines with the flat program, whose origin and scale
+  // are already set.
+  const strokeFlat = (style: Style, count: number) => {
+    const ratio = window.devicePixelRatio || 1;
+    const color = parseHex(style.color);
+    const colorEnd = style.colorMode === "solid" ? color : parseHex(style.colorEnd);
+    gl.uniform2f(flatU.resolution, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
     gl.uniform1f(flatU.lineWidth, style.lineWidth);
     gl.uniform1f(flatU.pixel, 1 / ratio);
     gl.uniform3f(flatU.color, color[0], color[1], color[2]);
@@ -604,6 +619,20 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
       } else {
         drawFlat(drawing, style, camera, viewport, detail);
       }
+    },
+
+    drawDetail(detail, style, originX, originY, stretch) {
+      const background = parseHex(style.background);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.clearColor(background[0], background[1], background[2], 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!detail || detail.count === 0) return;
+      gl.useProgram(flat.program);
+      upload(detail, detail.positions, detail.widths, detail.colors, detail.count);
+      gl.uniform2f(flatU.origin, originX, originY);
+      gl.uniform3f(flatU.center, 0, 0, 0);
+      gl.uniform1f(flatU.scale, stretch);
+      strokeFlat(style, detail.count);
     },
 
     dispose() {

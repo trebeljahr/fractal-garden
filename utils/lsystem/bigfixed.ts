@@ -4,7 +4,6 @@
 
 const BIG_0 = BigInt(0);
 const BIG_1 = BigInt(1);
-const BIG_24 = BigInt(24);
 const BIG_32 = BigInt(32);
 const BIG_52 = BigInt(52);
 

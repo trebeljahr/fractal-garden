@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
+import type { ZoomFrame } from "../utils/lsystem/pageZoom";
 import { explorerHref } from "../utils/lsystem/share";
-import { DEFAULT_SPEC } from "../utils/lsystem/spec";
+import { DEFAULT_SPEC, dimensionOf, type LSystemSpec } from "../utils/lsystem/spec";
 import type { LSystem2DParams } from "../utils/render/lsystem2d";
+import { EndlessZoom } from "./EndlessZoom";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 
@@ -148,6 +150,42 @@ const LSystem = ({ ruleset }: Props) => {
     stepDelay: 1000,
   });
 
+  // Endless zoom starts from the page's own picture: the renderer steps
+  // initialLength / divideFactor^generation from the translation, heading
+  // clockwise from up, which is the explorer turtle's convention too.
+  const generation = Math.max(0, config.iterations - 1);
+  const zoomSpec = useMemo<LSystemSpec | null>(() => {
+    if (!params) return null;
+    const spec: LSystemSpec = {
+      ...DEFAULT_SPEC,
+      axiom: params.axiom,
+      rules: Object.entries(params.replace).map(([symbol, replacement]) => ({
+        symbol,
+        replacement,
+      })),
+      angle: params.angle,
+      startAngle: params.startAngle,
+      color: params.color,
+      colorEnd: params.color,
+      colorMode: "solid",
+      background: params.background,
+      lineWidth: params.lineWidth,
+    };
+    return { ...spec, dimension: dimensionOf(spec) };
+  }, [params]);
+  const zoomFrame = useCallback(
+    (): ZoomFrame => ({
+      originX: params?.translation[0] ?? 0,
+      originY: params?.translation[1] ?? 0,
+      scale: params ? params.initialLength / params.divideFactor ** generation : 1,
+    }),
+    [params, generation],
+  );
+  // Growing further while zoomed in would pull the picture away.
+  const onZoomActive = useCallback((active: boolean) => {
+    if (active) setConfig((old) => ({ ...old, animateIterations: false }));
+  }, []);
+
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({
       ...prevState,
@@ -165,7 +203,7 @@ const LSystem = ({ ruleset }: Props) => {
             onClick: () => openInExplorer(config.ruleset, config.ruleset.maxIterations),
           },
         ]}
-        controlsHint="Iterations, palette, and the automatic growth loop."
+        controlsHint="Iterations, palette, and the automatic growth loop. Scroll on the drawing to zoom in endlessly."
         controlsTitle="L-System Studio"
         data={config}
         mode="pattern"
@@ -183,6 +221,16 @@ const LSystem = ({ ruleset }: Props) => {
       </ExplorerPanel>
 
       <div className={styles.fullScreen} ref={containerRef} />
+      {zoomSpec && zoomSpec.dimension === "2d" && (
+        <EndlessZoom
+          spec={zoomSpec}
+          generation={generation}
+          frame={zoomFrame}
+          width={width}
+          height={height}
+          onActiveChange={onZoomActive}
+        />
+      )}
     </>
   );
 };

@@ -3,6 +3,7 @@ import { PanelBoolean, PanelColor, PanelNumber } from "../../components/Explorer
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
+import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../../utils/hooks/useWindowResize";
@@ -64,6 +65,18 @@ const MinkowskiSausage = ({ description }: Props) => {
           <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div className={styles.fullScreen} ref={containerRef} />
+        <TurtleCurveZoom
+          axiom={config.island ? "F+F+F+F" : "F"}
+          rules={{ F: "F+F-F-FF+F+F-F" }}
+          turn={90}
+          start={0}
+          draw={"FG"}
+          minSpan={1e-9}
+          config={config}
+          setConfig={setConfig}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

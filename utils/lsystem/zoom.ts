@@ -40,6 +40,8 @@ export const MAX_ZOOM = 1e280;
 const FLOAT_SAFE = 2 ** 30;
 // Lines worth drawing for one view. Past this, a coarser generation is used.
 const LINE_BUDGET = 300_000;
+// Lines get about this many pixels long once zoomed in far enough.
+const TARGET_STEP = 6;
 // Subtrees whose circle is smaller than this many pixels become one line.
 const MIN_RADIUS = 0.6;
 
@@ -797,22 +799,29 @@ export function prepareZoom(spec: LSystemSpec, iterations: number): ZoomSystem |
     // that grow denser each generation (bushes, the Penrose tiling) can then
     // need more lines than the budget, so the deepest period that fits is
     // searched for: near the last view's pick first, by halving otherwise.
+    // Coarse starting pictures (a page still at its second generation) would
+    // stay coarse, so detail also catches up towards lines of about
+    // TARGET_STEP pixels: not at all at zoom 1, where the view must match
+    // the starting picture, and fully once the zoom has covered the gap.
+    const stepPixels = view.scale / view.zoom;
+    const catchUp = Math.max(1, stepPixels / TARGET_STEP);
     const zoom = Math.min(Math.max(view.zoom, 1), MAX_ZOOM);
+    const effective = zoom * Math.min(zoom, catchUp);
     const perPeriod = Math.log(growth ** period);
-    const deepest = Math.floor(Math.log(zoom) / perPeriod);
+    const deepest = Math.floor(Math.log(effective) / perPeriod);
     const fits = (periods: number) => {
       const detail = attempt(view, periods, periods === 0 ? MAX_SEGMENTS : LINE_BUDGET);
       return detail.limited && periods > 0 ? null : detail;
     };
     const pick = (detail: ZoomDetail, periods: number) => {
-      last = { zoom, periods };
+      last = { zoom: effective, periods };
       return detail;
     };
 
     if (deepest <= 0) return pick(attempt(view, 0, MAX_SEGMENTS), 0);
     let guess = deepest;
     if (last) {
-      const moved = Math.round(Math.log(zoom / last.zoom) / perPeriod);
+      const moved = Math.round(Math.log(effective / last.zoom) / perPeriod);
       guess = Math.min(deepest, Math.max(0, last.periods + moved));
     }
 

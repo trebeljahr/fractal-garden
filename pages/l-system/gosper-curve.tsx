@@ -3,6 +3,7 @@ import { PanelBoolean, PanelColor, PanelNumber } from "../../components/Explorer
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
+import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../../utils/hooks/useWindowResize";
@@ -61,6 +62,18 @@ const GosperCurve = ({ description }: Props) => {
           <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div className={styles.fullScreen} ref={containerRef} />
+        <TurtleCurveZoom
+          axiom={"XF"}
+          rules={{ X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" }}
+          turn={60}
+          start={0}
+          draw={"F"}
+          minSpan={1}
+          config={config}
+          setConfig={setConfig}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>
