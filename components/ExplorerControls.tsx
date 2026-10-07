@@ -1,5 +1,14 @@
-import { type ComponentProps, type CSSProperties, useEffect, useId, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  type CSSProperties,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { DatBoolean, DatSelect } from "react-dat-gui";
+import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerPanel.module.css";
 
 const { ChromePicker } = require("react-color");
@@ -301,6 +310,36 @@ function getContrastingSwatchText(hexColor: string) {
   return luminance > 0.58 ? DARK_SWATCH_TEXT : LIGHT_SWATCH_TEXT;
 }
 
+const POPOVER_GAP = 8;
+const VIEWPORT_MARGIN = 12;
+
+/**
+ * Places the color popover next to its trigger in viewport coordinates. The
+ * popover is portalled to <body> because the controls panel scrolls (and uses
+ * backdrop-filter), which would otherwise clip it.
+ */
+function getPopoverPosition(trigger: HTMLElement, popover: HTMLElement): CSSProperties {
+  const triggerRect = trigger.getBoundingClientRect();
+  const { width, height } = popover.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const spaceBelow = viewportHeight - triggerRect.bottom - POPOVER_GAP - VIEWPORT_MARGIN;
+  const spaceAbove = triggerRect.top - POPOVER_GAP - VIEWPORT_MARGIN;
+  const placeAbove = height > spaceBelow && spaceAbove > spaceBelow;
+  const top = placeAbove
+    ? triggerRect.top - POPOVER_GAP - height
+    : triggerRect.bottom + POPOVER_GAP;
+  const maxTop = viewportHeight - VIEWPORT_MARGIN - height;
+  const left = triggerRect.right - width;
+  const maxLeft = viewportWidth - VIEWPORT_MARGIN - width;
+
+  return {
+    top: Math.max(VIEWPORT_MARGIN, Math.min(top, maxTop)),
+    left: Math.max(VIEWPORT_MARGIN, Math.min(left, maxLeft)),
+  };
+}
+
 export const PanelColor = ({
   className,
   data,
@@ -312,6 +351,9 @@ export const PanelColor = ({
 }: ColorProps) => {
   const pickerId = useId();
   const containerRef = useRef<HTMLLIElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<CSSProperties | null>(null);
   const rawValue = getValueFromPath(data, path);
   const normalizedValue = typeof rawValue === "string" ? normalizeHexColor(rawValue) : null;
   const value = normalizedValue ?? "#000000";
@@ -330,7 +372,8 @@ export const PanelColor = ({
     }
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target) || popoverRef.current?.contains(target)) {
         return;
       }
 
@@ -349,6 +392,29 @@ export const PanelColor = ({
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setPopoverPosition(null);
+      return;
+    }
+
+    const reposition = () => {
+      if (buttonRef.current && popoverRef.current) {
+        setPopoverPosition(getPopoverPosition(buttonRef.current, popoverRef.current));
+      }
+    };
+
+    reposition();
+    // Capture scroll events so scrolling the panel itself keeps the popover attached.
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
     };
   }, [isOpen]);
 
@@ -373,6 +439,7 @@ export const PanelColor = ({
             aria-controls={pickerId}
             aria-expanded={isOpen}
             className={styles.colorButton}
+            ref={buttonRef}
             onClick={() => setIsOpen((open) => !open)}
             style={{
               backgroundColor: value,
@@ -383,53 +450,61 @@ export const PanelColor = ({
             <span className={styles.colorButtonLabel}>{value}</span>
             <span className={styles.colorButtonChip} />
           </button>
-          {isOpen ? (
-            <div className={styles.customColorPopover} id={pickerId}>
-              <div className={styles.customColorPicker}>
-                <ChromePicker
-                  color={value}
-                  defaultView="hex"
-                  disableAlpha
-                  onChange={(color: ColorResult) => {
-                    updateColor(color.hex);
-                  }}
-                  styles={CHROME_PICKER_STYLES}
-                  width="100%"
-                />
-              </div>
-              <label className={styles.colorField}>
-                <span className={styles.colorFieldLabel}>Hex value</span>
-                <input
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  className={styles.colorTextInput}
-                  onBlur={() => {
-                    if (!updateColor(draftValue)) {
-                      setDraftValue(value);
-                    }
-                  }}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setDraftValue(nextValue);
+          {isOpen
+            ? createPortal(
+                <div
+                  className={styles.customColorPopover}
+                  id={pickerId}
+                  ref={popoverRef}
+                  style={popoverPosition ?? { visibility: "hidden" }}
+                >
+                  <div className={styles.customColorPicker}>
+                    <ChromePicker
+                      color={value}
+                      defaultView="hex"
+                      disableAlpha
+                      onChange={(color: ColorResult) => {
+                        updateColor(color.hex);
+                      }}
+                      styles={CHROME_PICKER_STYLES}
+                      width="100%"
+                    />
+                  </div>
+                  <label className={styles.colorField}>
+                    <span className={styles.colorFieldLabel}>Hex value</span>
+                    <input
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      className={styles.colorTextInput}
+                      onBlur={() => {
+                        if (!updateColor(draftValue)) {
+                          setDraftValue(value);
+                        }
+                      }}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setDraftValue(nextValue);
 
-                    updateColor(nextValue);
-                  }}
-                  onFocus={(event) => event.currentTarget.select()}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      if (!updateColor(draftValue)) {
-                        setDraftValue(value);
-                      }
-                      setIsOpen(false);
-                    }
-                  }}
-                  spellCheck={false}
-                  type="text"
-                  value={draftValue}
-                />
-              </label>
-            </div>
-          ) : null}
+                        updateColor(nextValue);
+                      }}
+                      onFocus={(event) => event.currentTarget.select()}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          if (!updateColor(draftValue)) {
+                            setDraftValue(value);
+                          }
+                          setIsOpen(false);
+                        }
+                      }}
+                      spellCheck={false}
+                      type="text"
+                      value={draftValue}
+                    />
+                  </label>
+                </div>,
+                document.body,
+              )
+            : null}
         </div>
       </div>
     </li>
