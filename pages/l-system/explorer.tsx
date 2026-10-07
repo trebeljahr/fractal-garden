@@ -7,7 +7,7 @@ import styles from "../../styles/Fullscreen.module.css";
 import { normalizeSpec } from "../../utils/lsystem/spec";
 import { getDescription } from "../../utils/readFiles";
 
-const DEFAULT_PRESET = "fern-1";
+const DEFAULT_PRESET = "tree-3d";
 
 type Props = {
   description: string;

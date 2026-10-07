@@ -41,6 +41,6 @@ The address bar always holds your current system, so you can copy the link and s
 
 ## Further reading
 
-Most of the 3D presets come from [The Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/#abop) by Przemysław Prusinkiewicz and Aristid Lindenmayer. The book is free to read online.
+Most of the 3D presets, and every preset marked ABOP with a figure number, come from [The Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/#abop) by Przemysław Prusinkiewicz and Aristid Lindenmayer. The book is free to read online.
 
 The finished L-system pages in the garden include the [Hilbert Curve](/l-system/hilbert-curve), the [Koch Snowflake](/l-system/koch-snowflake) and [Fern 1](/l-system/fern-1).

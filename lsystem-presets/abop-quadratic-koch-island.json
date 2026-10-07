@@ -1,0 +1,16 @@
+{
+  "name": "Quadratic Koch Island (ABOP 1.7a)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.7a.",
+  "dimension": "2d",
+  "axiom": "F-F-F-F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F-F+F+FF-F-F+F"
+    }
+  ],
+  "angle": 90,
+  "iterations": 3,
+  "color": "#18fce0",
+  "colorEnd": "#5b6cff"
+}

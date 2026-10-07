@@ -1,0 +1,20 @@
+{
+  "name": "Quadratic Gosper Curve (ABOP 1.11b)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.11b. A space-filling curve; F and G stand for the left and right edges.",
+  "dimension": "2d",
+  "axiom": "-G",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "FF-G-G+F+F-G-GF+G+FFG-F+G+FF+G-FG-G-F+F+GG-"
+    },
+    {
+      "symbol": "G",
+      "replacement": "+FF-G-G+F+FG+F-GG-F-G+FGG-F-GF+F+G-G-F+F+GG"
+    }
+  ],
+  "angle": 90,
+  "iterations": 2,
+  "color": "#ffd23c",
+  "colorEnd": "#ff3c8e"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Plant B (ABOP 1.24b)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.24b. The extra [F] adds a straight shoot at every node.",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F[+F]F[-F][F]"
+    }
+  ],
+  "angle": 20,
+  "iterations": 5,
+  "color": "#8a6a3a",
+  "colorEnd": "#91fc8e"
+}

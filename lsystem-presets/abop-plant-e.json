@@ -1,0 +1,20 @@
+{
+  "name": "Plant E (ABOP 1.24e)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.24e. X marks a bud and F doubles each generation.",
+  "dimension": "2d",
+  "axiom": "X",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "F[+X][-X]FX"
+    },
+    {
+      "symbol": "F",
+      "replacement": "FF"
+    }
+  ],
+  "angle": 25.7,
+  "iterations": 7,
+  "color": "#8a6a3a",
+  "colorEnd": "#91fc8e"
+}

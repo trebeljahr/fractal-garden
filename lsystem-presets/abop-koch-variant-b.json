@@ -1,0 +1,16 @@
+{
+  "name": "Koch Variant B (ABOP 1.9b)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.9b. One of six square Koch curves that differ only in the rule for F.",
+  "dimension": "2d",
+  "axiom": "F-F-F-F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "FF-F-F-F-FF"
+    }
+  ],
+  "angle": 90,
+  "iterations": 4,
+  "color": "#ffd23c",
+  "colorEnd": "#ff7a3c"
+}

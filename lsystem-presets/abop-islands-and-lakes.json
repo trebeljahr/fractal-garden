@@ -1,0 +1,20 @@
+{
+  "name": "Islands and Lakes (ABOP 1.8)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.8. The f moves without drawing, which leaves the lakes as holes.",
+  "dimension": "2d",
+  "axiom": "F+F+F+F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F+f-FF+F+FF+Ff+FF-f+FF-F-FF-Ff-FFF"
+    },
+    {
+      "symbol": "f",
+      "replacement": "ffffff"
+    }
+  ],
+  "angle": 90,
+  "iterations": 2,
+  "color": "#adff00",
+  "colorEnd": "#18fce0"
+}

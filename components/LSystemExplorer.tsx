@@ -97,7 +97,9 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const [failed, setFailed] = useState(false);
   const { width, height } = useWindowSize();
 
-  const cameraRef = useRef<Camera>({ ...FLAT_CAMERA });
+  const cameraRef = useRef<Camera>(
+    presets[0].spec.dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA },
+  );
   const frameRef = useRef(0);
   const inputs = useRef(new Map<string, HTMLInputElement>());
   const activeField = useRef<Field>({ kind: "axiom" });

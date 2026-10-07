@@ -1,0 +1,16 @@
+{
+  "name": "Plant A (ABOP 1.24a)",
+  "description": "From The Algorithmic Beauty of Plants, figure 1.24a. One rule for F grows a weed-like plant.",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F[+F]F[-F]F"
+    }
+  ],
+  "angle": 25.7,
+  "iterations": 5,
+  "color": "#8a6a3a",
+  "colorEnd": "#91fc8e"
+}
