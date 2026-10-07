@@ -1,15 +1,13 @@
-import { useEffect, useState } from "react";
-import { Canvas } from "../components/Canvas";
+import { useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { radians } from "../utils/ctxHelpers";
+import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
-import { remapper } from "../utils/scaling";
-import { type Matrix2D, type Vec2D, Vector } from "../utils/vectors";
+import { PYTHAGORAS_MAX_ITERATIONS as MAX_ITERATIONS } from "../utils/render/drawings/pythagorasTree";
 
 type Config = {
   iterations: number;
@@ -24,38 +22,9 @@ type Props = {
   description: string;
 };
 
-const MAX_ITERATIONS = 11;
-
-function determineTriangleTip(angle: number): (p1: Vec2D, p2: Vec2D) => Vec2D {
-  const angleRad = radians(angle);
-
-  const cos = Math.cos(angleRad);
-  const cos2 = cos * cos;
-
-  const sin = Math.sin(angleRad);
-  const sincos = sin * cos;
-
-  const rot: Matrix2D = [
-    [cos2, sincos],
-    [-sincos, cos2],
-  ];
-
-  return (p1, p2) => {
-    const vec = Vector.sub(p1, p2);
-
-    const dir = Vector.mul(vec, rot);
-    const p3 = Vector.add(p2, dir);
-
-    return p3;
-  };
-}
-
-const remapH = remapper([0, MAX_ITERATIONS], [23, 88]);
-const hsvGradient = (iteration: number) => `hsl(${remapH(iteration)}, 96%, 30%)`;
-
 const PythagorasTreeComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
-    iterations: MAX_ITERATIONS,
+    iterations: 0,
     animateIterations: true,
     angle: 45,
     background: "#252424",
@@ -64,84 +33,19 @@ const PythagorasTreeComponent = ({ description }: Props) => {
   });
 
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
-  useEffect(() => {
-    if (!config.animateIterations) return;
-
-    const delay = config.iterations === MAX_ITERATIONS ? 2000 : 600;
-
-    const interval = setInterval(() => {
-      setConfig((config) => {
-        const iterations = (config.iterations + 1) % (MAX_ITERATIONS + 1);
-        return { ...config, iterations };
-      });
-    }, delay);
-
-    return () => clearInterval(interval);
-  }, [config.animateIterations, config.iterations]);
-
-  useEffect(() => {
-    if (!ctx || !width || !height) return;
-
-    const drawPoly = (points: Vec2D[], color: string, fill = true) => {
-      const [start, ...remaining] = points;
-
-      ctx.beginPath();
-      ctx.moveTo(...start);
-      remaining.forEach((point) => ctx.lineTo(...point));
-      ctx.closePath();
-
-      ctx.fillStyle = color;
-      if (fill) ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.stroke();
-    };
-
-    const thirdPoint = determineTriangleTip(config.angle);
-
-    const drawBranch = (p1: Vec2D, p2: Vec2D, depth = 0) => {
-      const [x1, y1] = p1;
-      const [x2, y2] = p2;
-
-      const d: Vec2D = [y1 - y2, x2 - x1];
-
-      const p3 = Vector.sub(p2, d);
-      const p4 = Vector.sub(p1, d);
-
-      const color = hsvGradient(depth);
-      drawPoly([p1, p2, p3, p4], color, config.fillSquares);
-
-      if (depth === config.iterations) return;
-
-      const p5 = thirdPoint(p3, p4);
-      drawPoly([p3, p4, p5], color, config.fillTriangles);
-
-      drawBranch(p4, p5, depth + 1);
-      drawBranch(p5, p3, depth + 1);
-    };
-
-    const drawTree = (size: number) => {
-      ctx.resetTransform();
-      const ratio = window.devicePixelRatio || 1;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      ctx.fillStyle = config.background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.translate(width / 2, height);
-
-      const half = size / 2;
-      drawBranch([-half, 0], [half, 0]);
-    };
-
-    const draw = () => {
-      const maxW = width / 9;
-      const maxH = height / 5;
-      drawTree(Math.min(maxW, maxH));
-    };
-
-    draw();
-  }, [config, ctx, width, height]);
+  const { containerRef, animateLabel } = useGrowingFractal({
+    kind: "pythagorasTree",
+    storageKey: "pythagoras-tree",
+    config,
+    setConfig,
+    params: config,
+    width,
+    height,
+    max: MAX_ITERATIONS,
+    stepDelay: 600,
+    holdDelay: 2000,
+  });
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -154,14 +58,12 @@ const PythagorasTreeComponent = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelNumber path="angle" min={30} max={60} step={1} />
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-          <PanelBoolean path="animateIterations" />
+          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelBoolean path="fillTriangles" />
           <PanelBoolean path="fillSquares" />
         </ExplorerPanel>
 
-        <div className={styles.fullScreen}>
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        </div>
+        <div className={styles.fullScreen} ref={containerRef} />
 
         <SideDrawer description={description} />
 

@@ -1,3 +1,5 @@
+import type { Context2D } from "./render/types";
+
 export type Vec2D = [number, number];
 
 export type Bounds = {
@@ -133,16 +135,12 @@ export function toCanvasPath(points: Vec2D[], { scale, offsetX, offsetY }: Curve
 }
 
 export function prepareCanvas(
-  ctx: CanvasRenderingContext2D,
+  ctx: Context2D,
   width: number,
   height: number,
   background: string,
   lineWidth: number,
 ) {
-  ctx.resetTransform();
-  const ratio = window.devicePixelRatio || 1;
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, width, height);
 

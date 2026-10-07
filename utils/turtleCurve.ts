@@ -1,6 +1,9 @@
 // Shared helpers for L-system curves that are traced with unit-length steps and
 // then scaled to fit the canvas, so the turn angle can change without a
 // hand-tuned divide factor (see pages/l-system/dragon-curve.tsx for the origin).
+// No DOM access here: the drawing runs in the render worker.
+
+import type { Context2D } from "./render/types";
 
 export type Bounds = {
   minX: number;
@@ -76,8 +79,9 @@ type DrawOptions = {
   closePath?: boolean;
 };
 
+// Returns the number of segments drawn.
 export function drawFittedCurve(
-  ctx: CanvasRenderingContext2D,
+  ctx: Context2D,
   { points, bounds }: TracedCurve,
   { width, height, background, color, lineWidth, padding = 0.08, closePath = false }: DrawOptions,
 ) {
@@ -89,10 +93,6 @@ export function drawFittedCurve(
   );
   const offsetX = (width - curveWidth * scale) / 2 - bounds.minX * scale;
   const offsetY = (height - curveHeight * scale) / 2 + bounds.maxY * scale;
-
-  ctx.resetTransform();
-  const ratio = window.devicePixelRatio || 1;
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, width, height);
@@ -111,4 +111,5 @@ export function drawFittedCurve(
 
   if (closePath) ctx.closePath();
   ctx.stroke();
+  return points.length / 2 - 1;
 }

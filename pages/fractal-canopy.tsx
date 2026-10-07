@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
-import { Canvas } from "../components/Canvas";
+import { useEffect, useMemo, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { radians, rgb } from "../utils/ctxHelpers";
+import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
-import { remapper } from "../utils/scaling";
+import type { FractalCanopyParams } from "../utils/render/drawings/fractalCanopy";
 
 const defaultTree = {
   angle: 43,
@@ -114,7 +113,6 @@ type Props = {
 const FractalTree = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(defaultTree);
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     if (!config.animateAngle) return;
@@ -126,78 +124,21 @@ const FractalTree = ({ description }: Props) => {
     return () => clearInterval(id);
   }, [config.animateAngle]);
 
-  const angle = radians(
-    config.angle *
-      (config.branches % 2 === 0
-        ? Math.floor(config.branches / 2) - 0.5
-        : Math.floor(config.branches / 2)),
+  const params = useMemo<FractalCanopyParams>(
+    () => ({
+      iterations: config.maxIterations,
+      angle: config.angle,
+      branches: config.branches,
+      background: config.background,
+      lengthFactor: config.lengthFactor,
+      widthFactor: config.widthFactor,
+      rootWidth: config.rootWidth,
+    }),
+    [config],
   );
-  const configAngle = radians(-config.angle);
 
-  const remapR = remapper([0, 10], [100, 150]);
-  const remapG = remapper([0, 10], [100, 255]);
-  const strokeStyles = [...new Array(config.maxIterations)].map((_, iteration) => {
-    return rgb(remapR(iteration), remapG(iteration), 100);
-  });
-
-  useEffect(() => {
-    if (!ctx || !width || !height) return;
-
-    const branch = (len: number, weight: number, iteration: number) => {
-      if (iteration > config.maxIterations) {
-        return;
-      }
-
-      ctx.lineWidth = weight;
-      ctx.strokeStyle = strokeStyles[iteration];
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, -len);
-      ctx.stroke();
-      ctx.closePath();
-
-      ctx.translate(0, -len);
-
-      ctx.rotate(angle);
-      for (let i = 0; i < config.branches; i++) {
-        ctx.save();
-        ctx.rotate(configAngle * i);
-        branch(len * config.lengthFactor, weight * config.widthFactor, iteration + 1);
-        ctx.restore();
-      }
-    };
-
-    // factor by which the tree grows to the max
-    const lenFactor = new Array(config.maxIterations)
-      .fill(0)
-      .reduce((acc, _, i) => acc + config.lengthFactor ** (i + 1), 0);
-
-    // pad height and width separately
-    const padding = 0.05;
-    const paddedHeight = height * (1 - padding);
-    const paddedWidth = width * (1 - 2 * padding);
-
-    // max possible base size of the trunk in both directions
-    const baseHigh = paddedHeight / (1 + lenFactor);
-    const baseWide = paddedWidth / (2 * lenFactor);
-
-    // determine which base fits assuming max growth
-    const base = baseHigh * (2 * lenFactor) < paddedWidth ? baseHigh : baseWide;
-
-    const drawTree = () => {
-      ctx.resetTransform();
-      const ratio = window.devicePixelRatio || 1;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      ctx.fillStyle = config.background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.translate(width / 2, height);
-
-      branch(base, config.rootWidth, 0);
-    };
-
-    drawTree();
-  }, [config, ctx, width, height, strokeStyles, configAngle, angle]);
+  // Drawn on a worker: deep, many-branched trees take a while to stroke.
+  const { containerRef } = useRenderSurface({ kind: "fractalCanopy", params, width, height });
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => {
@@ -233,9 +174,7 @@ const FractalTree = ({ description }: Props) => {
           <PanelNumber path="widthFactor" min={0} max={2} step={0.1} />
           <PanelNumber path="rootWidth" min={1} max={60} step={0.5} />
         </ExplorerPanel>
-        <div className={styles.fullScreen}>
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        </div>
+        <div className={styles.fullScreen} ref={containerRef} />
         <SideDrawer description={description} />
         <NavElement />
       </main>

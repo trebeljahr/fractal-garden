@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
-import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
-import { type Polyline3DSceneConfig, usePolyline3DScene } from "../utils/hooks/usePolyline3DScene";
+import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { createEndlessOrbit } from "../utils/polyline3d";
 import { getDescription } from "../utils/readFiles";
+import type { Polyline3DSceneConfig, PolylineSceneParams } from "../utils/render/polylineScene";
 
 type Props = {
   description: string;
@@ -48,33 +47,30 @@ const MAX_POINTS = 150000;
 
 const LorenzAttractor = ({ description }: Props) => {
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
 
+  const params = useMemo<PolylineSceneParams>(() => {
+    const { sigma, rho, beta, dt, steps } = config;
+    return {
+      source: { kind: "lorenz", sigma, rho, beta, dt, steps },
+      config,
+      maxPoints: MAX_POINTS,
+    };
+  }, [config]);
+
+  const { containerRef, canvas } = useRenderSurface({
+    kind: "polylineScene",
+    params,
+    width,
+    height,
+  });
+
   useOrbitZoomControls({
-    canvas: ctx?.canvas ?? null,
+    canvas,
     setConfig,
     minDistance: 0.3,
     maxDistance: 10,
   });
-
-  const { sigma, rho, beta, dt, steps } = config;
-  const { polyline, extend } = useMemo(() => {
-    // Show z as the vertical axis, like the classic butterfly picture.
-    return createEndlessOrbit(
-      (x, y, z, out) => {
-        out[0] = sigma * (y - x);
-        out[1] = x * (rho - z) - y;
-        out[2] = x * y - beta * z;
-      },
-      [0.1, 0, 0],
-      dt,
-      steps,
-      [0, 2, 1],
-    );
-  }, [sigma, rho, beta, dt, steps]);
-
-  usePolyline3DScene({ ctx, width, height, polyline, config, extend, maxPoints: MAX_POINTS });
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -114,9 +110,7 @@ const LorenzAttractor = ({ description }: Props) => {
         <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
         <PanelNumber path="lineWidth" min={0.1} max={4} step={0.05} />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
+      <div className={styles.fullScreen} ref={containerRef} />
       <SideDrawer description={description} />
       <NavElement />
     </main>

@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
-import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
-import { type Polyline3DSceneConfig, usePolyline3DScene } from "../utils/hooks/usePolyline3DScene";
+import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { integrateRK4, normalizePolyline } from "../utils/polyline3d";
 import { getDescription } from "../utils/readFiles";
+import type { Polyline3DSceneConfig, PolylineSceneParams } from "../utils/render/polylineScene";
 
 type Props = {
   description: string;
@@ -44,33 +43,26 @@ const INITIAL_CONFIG: Config = {
 
 const RosslerAttractor = ({ description }: Props) => {
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
 
+  const params = useMemo<PolylineSceneParams>(() => {
+    const { a, b, c, dt, steps } = config;
+    return { source: { kind: "rossler", a, b, c, dt, steps }, config };
+  }, [config]);
+
+  const { containerRef, canvas } = useRenderSurface({
+    kind: "polylineScene",
+    params,
+    width,
+    height,
+  });
+
   useOrbitZoomControls({
-    canvas: ctx?.canvas ?? null,
+    canvas,
     setConfig,
     minDistance: 2,
     maxDistance: 10,
   });
-
-  const { a, b, c, dt, steps } = config;
-  const polyline = useMemo(() => {
-    const orbit = integrateRK4(
-      (x, y, z, out) => {
-        out[0] = -y - z;
-        out[1] = x + a * y;
-        out[2] = b + z * (x - c);
-      },
-      [1, 1, 0],
-      dt,
-      steps,
-    );
-    // Show z as the vertical axis so the folding spike points upward.
-    return normalizePolyline(orbit, [0, 2, 1]);
-  }, [a, b, c, dt, steps]);
-
-  usePolyline3DScene({ ctx, width, height, polyline, config });
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -109,9 +101,7 @@ const RosslerAttractor = ({ description }: Props) => {
         <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
         <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
+      <div className={styles.fullScreen} ref={containerRef} />
       <SideDrawer description={description} />
       <NavElement />
     </main>

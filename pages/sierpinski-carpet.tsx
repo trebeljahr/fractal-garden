@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import { Canvas } from "../components/Canvas";
+import { useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 
 type Config = {
-  maxIterations: number;
+  iterations: number;
   animateIterations: boolean;
   color: string;
   holeColor: string;
@@ -19,72 +19,33 @@ type Config = {
 type Props = {
   description: string;
 };
+
+const MIN_ITERATIONS = 1;
+const MAX_ITERATIONS = 5;
+
 const SierpinskiCarpetComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
-    maxIterations: 5,
+    iterations: MIN_ITERATIONS,
     animateIterations: true,
     color: "#ffe100",
     background: "#252424",
     holeColor: "#000000",
   });
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
-  useEffect(() => {
-    if (!config.animateIterations) return;
-    const id = setInterval(() => {
-      setConfig((old) => {
-        return { ...old, maxIterations: (old.maxIterations % 5) + 1 };
-      });
-    }, 2000);
-    return () => clearInterval(id);
-  }, [config.animateIterations]);
-
-  useEffect(() => {
-    if (!ctx || !width || !height) return;
-
-    let length: number;
-
-    const drawSierpinskiCarpet = () => {
-      length = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-      ctx.fillStyle = config.holeColor;
-      ctx.strokeStyle = config.color;
-      ctx.fillStyle = config.background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.resetTransform();
-      const ratio = window.devicePixelRatio || 1;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      ctx.translate((window.innerWidth - length) / 2, (window.innerHeight - length) / 2);
-      sierpinskiCarpet(length, { x: 0, y: 0 }, 0);
-    };
-
-    const sierpinskiCarpet = (
-      len: number,
-      coordinates: { x: number; y: number },
-      iterations: number,
-    ) => {
-      if (iterations >= config.maxIterations) return;
-      ctx.fillStyle = config.color;
-      ctx.fillRect(coordinates.x, coordinates.y, len, len);
-      for (let x = 0; x <= 2; x++) {
-        for (let y = 0; y <= 2; y++) {
-          const newCoordinates = {
-            x: coordinates.x + x * (len / 3),
-            y: coordinates.y + y * (len / 3),
-          };
-          if (x === 1 && y === 1) {
-            ctx.fillStyle = config.holeColor;
-            ctx.fillRect(newCoordinates.x, newCoordinates.y, len / 3, len / 3);
-          } else {
-            sierpinskiCarpet(len / 3, newCoordinates, iterations + 1);
-          }
-        }
-      }
-    };
-
-    drawSierpinskiCarpet();
-  }, [config, ctx, width, height]);
+  const { containerRef, animateLabel } = useGrowingFractal({
+    kind: "sierpinskiCarpet",
+    storageKey: "sierpinski-carpet",
+    config,
+    setConfig,
+    params: config,
+    width,
+    height,
+    min: MIN_ITERATIONS,
+    max: MAX_ITERATIONS,
+    stepDelay: 2000,
+    holdDelay: 2000,
+  });
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -95,14 +56,18 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
-          <PanelNumber path="maxIterations" min={1} max={5} step={1} />
-          <PanelBoolean path="animateIterations" />
+          <PanelNumber
+            path="iterations"
+            label="Depth"
+            min={MIN_ITERATIONS}
+            max={MAX_ITERATIONS}
+            step={1}
+          />
+          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelColor path="color" />
           <PanelColor path="holeColor" />
         </ExplorerPanel>
-        <div className={styles.fullScreen}>
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        </div>
+        <div className={styles.fullScreen} ref={containerRef} />
         <SideDrawer description={description} />
 
         <NavElement />

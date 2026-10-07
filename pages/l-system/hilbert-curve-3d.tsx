@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { Canvas } from "../../components/Canvas";
+import { useMemo, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../../utils/hooks/useOrbitZoomControls";
-import {
-  type Polyline3DSceneConfig,
-  usePolyline3DScene,
-} from "../../utils/hooks/usePolyline3DScene";
 import { useWindowSize } from "../../utils/hooks/useWindowResize";
-import { generateHilbertCurve3D, normalizePolyline } from "../../utils/polyline3d";
 import { getDescription } from "../../utils/readFiles";
+import type { Polyline3DSceneConfig, PolylineSceneParams } from "../../utils/render/polylineScene";
 
 type Props = {
   description: string;
@@ -27,7 +23,7 @@ const MIN_ITERATIONS = 1;
 const MAX_ITERATIONS = 5;
 
 const INITIAL_CONFIG: Config = {
-  iterations: 3,
+  iterations: MIN_ITERATIONS,
   animateIterations: true,
   animateTrail: false,
   trailSpeed: 20,
@@ -44,36 +40,33 @@ const INITIAL_CONFIG: Config = {
 
 const HilbertCurve3D = ({ description }: Props) => {
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
 
+  const params = useMemo<PolylineSceneParams>(
+    () => ({ source: { kind: "hilbert3d", order: config.iterations }, config }),
+    [config],
+  );
+
+  const { containerRef, canvas, animateLabel } = useGrowingFractal({
+    kind: "polylineScene",
+    storageKey: "hilbert-curve-3d",
+    config,
+    setConfig,
+    params,
+    width,
+    height,
+    min: MIN_ITERATIONS,
+    max: MAX_ITERATIONS,
+    stepDelay: 1200,
+    holdDelay: 2400,
+  });
+
   useOrbitZoomControls({
-    canvas: ctx?.canvas ?? null,
+    canvas,
     setConfig,
     minDistance: 2,
     maxDistance: 10,
   });
-
-  useEffect(() => {
-    if (!config.animateIterations) return;
-
-    const delay = config.iterations >= MAX_ITERATIONS ? 2400 : 1200;
-    const id = window.setTimeout(() => {
-      setConfig((old) => ({
-        ...old,
-        iterations: old.iterations >= MAX_ITERATIONS ? MIN_ITERATIONS : old.iterations + 1,
-      }));
-    }, delay);
-
-    return () => window.clearTimeout(id);
-  }, [config.animateIterations, config.iterations]);
-
-  const polyline = useMemo(
-    () => normalizePolyline(generateHilbertCurve3D(config.iterations)),
-    [config.iterations],
-  );
-
-  usePolyline3DScene({ ctx, width, height, polyline, config });
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -96,7 +89,7 @@ const HilbertCurve3D = ({ description }: Props) => {
         onUpdate={handleUpdate}
       >
         <PanelNumber path="iterations" min={MIN_ITERATIONS} max={MAX_ITERATIONS} step={1} />
-        <PanelBoolean path="animateIterations" />
+        <PanelBoolean path="animateIterations" label={animateLabel} />
         <PanelBoolean path="animateTrail" label="Animate trail" />
         <PanelNumber path="trailSpeed" label="Trail speed" min={1} max={400} step={1} />
         <PanelBoolean path="autoRotate" />
@@ -109,9 +102,7 @@ const HilbertCurve3D = ({ description }: Props) => {
         <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
         <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
+      <div className={styles.fullScreen} ref={containerRef} />
       <SideDrawer description={description} />
       <NavElement />
     </main>
