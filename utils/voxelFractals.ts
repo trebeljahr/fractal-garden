@@ -1,4 +1,4 @@
-import { radians } from "./ctxHelpers";
+import { type Orientation, viewRotation } from "./orientation";
 
 export type Cube = {
   x: number;
@@ -33,6 +33,7 @@ type Face = {
 export type VoxelDrawOptions = {
   rotationX: number;
   rotationY: number;
+  grab?: Orientation;
   cameraDistance: number;
   background: string;
   fillColor: string;
@@ -92,21 +93,11 @@ function dot(a: Vec3, b: Vec3) {
   return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-function rotatePoint(point: Vec3, rotationX: number, rotationY: number) {
-  const cosX = Math.cos(rotationX);
-  const sinX = Math.sin(rotationX);
-  const cosY = Math.cos(rotationY);
-  const sinY = Math.sin(rotationY);
-
-  const x1 = point.x * cosY + point.z * sinY;
-  const z1 = -point.x * sinY + point.z * cosY;
-  const y2 = point.y * cosX - z1 * sinX;
-  const z2 = point.y * sinX + z1 * cosX;
-
+function rotatePoint(point: Vec3, m: Orientation) {
   return {
-    x: x1,
-    y: y2,
-    z: z2,
+    x: m[0] * point.x + m[1] * point.y + m[2] * point.z,
+    y: m[3] * point.x + m[4] * point.y + m[5] * point.z,
+    z: m[6] * point.x + m[7] * point.y + m[8] * point.z,
   };
 }
 
@@ -382,12 +373,11 @@ export function drawBoxScene(
   boxes: Box[],
   options: VoxelDrawOptions,
 ) {
-  const rotationX = radians(options.rotationX);
-  const rotationY = radians(options.rotationY);
+  const rotation = viewRotation(options.rotationX, options.rotationY, options.grab);
   const scale = Math.min(width, height) * 0.3;
   const faces: Face[] = [];
-  const faceNormals = FACE_DEFS.map((faceDef) => rotatePoint(faceDef.normal, rotationX, rotationY));
-  const towardViewer = AXES.map((axis) => rotatePoint(axis, rotationX, rotationY).z > 0) as [
+  const faceNormals = FACE_DEFS.map((faceDef) => rotatePoint(faceDef.normal, rotation));
+  const towardViewer = AXES.map((axis) => rotatePoint(axis, rotation).z > 0) as [
     boolean,
     boolean,
     boolean,
@@ -417,8 +407,7 @@ export function drawBoxScene(
               y: box.y + (v & 2 ? half : -half),
               z: box.z + (v & 4 ? half : -half),
             },
-            rotationX,
-            rotationY,
+            rotation,
           );
           projected.push(projectPoint(vertex, width, height, scale, options.cameraDistance));
         }

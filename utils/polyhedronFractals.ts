@@ -1,4 +1,5 @@
 import { radians } from "./ctxHelpers";
+import { type Orientation, viewRotation } from "./orientation";
 import { shadeColor } from "./voxelFractals";
 
 type Vec3 = [number, number, number];
@@ -25,6 +26,7 @@ export type PolyhedronScene = {
 export type PolyhedronDrawOptions = {
   rotationX: number;
   rotationY: number;
+  grab?: Orientation;
   cameraDistance: number;
   background: string;
   fillColor: string;
@@ -407,12 +409,11 @@ export function drawPolyhedronScene(
     shades,
     order,
   } = scene;
-  const rotationX = radians(options.rotationX);
-  const rotationY = radians(options.rotationY);
-  const cosX = Math.cos(rotationX);
-  const sinX = Math.sin(rotationX);
-  const cosY = Math.cos(rotationY);
-  const sinY = Math.sin(rotationY);
+  const [m0, m1, m2, m3, m4, m5, m6, m7, m8] = viewRotation(
+    options.rotationX,
+    options.rotationY,
+    options.grab,
+  );
   const viewScale = Math.min(width, height) * 0.3;
 
   ctx.fillStyle = options.background;
@@ -422,18 +423,17 @@ export function drawPolyhedronScene(
     const x = positions[i * 3];
     const y = positions[i * 3 + 1];
     const z = positions[i * 3 + 2];
-    const x1 = x * cosY + z * sinY;
-    const z1 = -x * sinY + z * cosY;
-    const y2 = y * cosX - z1 * sinX;
-    const z2 = y * sinX + z1 * cosX;
-    rotated[i * 3] = x1;
-    rotated[i * 3 + 1] = y2;
-    rotated[i * 3 + 2] = z2;
+    const rx = m0 * x + m1 * y + m2 * z;
+    const ry = m3 * x + m4 * y + m5 * z;
+    const rz = m6 * x + m7 * y + m8 * z;
+    rotated[i * 3] = rx;
+    rotated[i * 3 + 1] = ry;
+    rotated[i * 3 + 2] = rz;
 
     const perspective =
-      (PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - z2, 0.2)) * viewScale;
-    projected[i * 2] = width / 2 + x1 * perspective;
-    projected[i * 2 + 1] = height / 2 - y2 * perspective;
+      (PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - rz, 0.2)) * viewScale;
+    projected[i * 2] = width / 2 + rx * perspective;
+    projected[i * 2 + 1] = height / 2 - ry * perspective;
   }
 
   let visible = 0;
@@ -441,10 +441,9 @@ export function drawPolyhedronScene(
     const nx = normals[face * 3];
     const ny = normals[face * 3 + 1];
     const nz = normals[face * 3 + 2];
-    const nz1 = -nx * sinY + nz * cosY;
-    let nx2 = nx * cosY + nz * sinY;
-    let ny2 = ny * cosX - nz1 * sinX;
-    let nz2 = ny * sinX + nz1 * cosX;
+    let nx2 = m0 * nx + m1 * ny + m2 * nz;
+    let ny2 = m3 * nx + m4 * ny + m5 * nz;
+    let nz2 = m6 * nx + m7 * ny + m8 * nz;
 
     if (nz2 <= 0) {
       if (!options.doubleSided) continue;

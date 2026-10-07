@@ -1,17 +1,12 @@
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { constrain } from "../ctxHelpers";
+import { dragRotation, IDENTITY, type Orientation } from "../orientation";
 
 type OrbitZoomConfig = {
-  rotationX: number;
-  rotationY: number;
   cameraDistance: number;
   autoRotate?: boolean;
-};
-
-type DragState<T extends OrbitZoomConfig> = {
-  clientX: number;
-  clientY: number;
-  config: T;
+  /** Rotation added by dragging, in view space. */
+  grab?: Orientation;
 };
 
 type Params<T extends OrbitZoomConfig> = {
@@ -19,58 +14,53 @@ type Params<T extends OrbitZoomConfig> = {
   setConfig: Dispatch<SetStateAction<T>>;
   minDistance: number;
   maxDistance: number;
-  rotationLimit?: number;
 };
 
+// Dragging across the shorter side of the canvas turns the object half a turn.
+const RADIANS_PER_SHORT_SIDE = Math.PI;
+
+/**
+ * Drag turns the object as if it were held under the cursor: the near side
+ * follows the pointer from whatever pose it is in. The wheel dollies.
+ */
 export function useOrbitZoomControls<T extends OrbitZoomConfig>({
   canvas,
   setConfig,
   minDistance,
   maxDistance,
-  rotationLimit = 85,
 }: Params<T>) {
   useEffect(() => {
     if (!canvas) return;
 
-    let dragState: DragState<T> | null = null;
+    let last: { clientX: number; clientY: number } | null = null;
     canvas.style.cursor = "grab";
 
     const handleMouseDown = (event: MouseEvent) => {
       if (event.button !== 0) return;
-
-      setConfig((old) => {
-        dragState = {
-          clientX: event.clientX,
-          clientY: event.clientY,
-          config: old,
-        };
-        return old;
-      });
+      last = { clientX: event.clientX, clientY: event.clientY };
       canvas.style.cursor = "grabbing";
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      const currentDragState = dragState;
-      if (!currentDragState) return;
+      if (!last) return;
 
       const rect = canvas.getBoundingClientRect();
-      const deltaX = (event.clientX - currentDragState.clientX) / rect.width;
-      const deltaY = (event.clientY - currentDragState.clientY) / rect.height;
+      const dx = event.clientX - last.clientX;
+      const dy = event.clientY - last.clientY;
+      last = { clientX: event.clientX, clientY: event.clientY };
+      const angle =
+        (Math.hypot(dx, dy) / Math.max(Math.min(rect.width, rect.height), 1)) *
+        RADIANS_PER_SHORT_SIDE;
 
       setConfig((old) => ({
         ...old,
         autoRotate: typeof old.autoRotate === "boolean" ? false : old.autoRotate,
-        rotationY: currentDragState.config.rotationY + deltaX * 180,
-        rotationX: constrain(
-          currentDragState.config.rotationX + deltaY * 120,
-          -rotationLimit,
-          rotationLimit,
-        ),
+        grab: dragRotation(old.grab ?? IDENTITY, dx, dy, angle),
       }));
     };
 
     const handleMouseUp = () => {
-      dragState = null;
+      last = null;
       canvas.style.cursor = "grab";
     };
 
@@ -103,5 +93,5 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("blur", handleMouseUp);
     };
-  }, [canvas, maxDistance, minDistance, rotationLimit, setConfig]);
+  }, [canvas, maxDistance, minDistance, setConfig]);
 }

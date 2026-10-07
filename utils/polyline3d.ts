@@ -1,4 +1,4 @@
-import { radians } from "./ctxHelpers";
+import { type Orientation, viewRotation } from "./orientation";
 
 export type Polyline3D = {
   // Packed xyz triples: [x0, y0, z0, x1, y1, z1, ...]
@@ -9,6 +9,7 @@ export type Polyline3D = {
 export type Polyline3DDrawOptions = {
   rotationX: number;
   rotationY: number;
+  grab?: Orientation;
   cameraDistance: number;
   background: string;
   nearColor: string;
@@ -294,10 +295,11 @@ export function drawPolyline3D(
 ): { x: number; y: number } | null {
   const { points } = polyline;
   const count = Math.min(visibleCount, polyline.count);
-  const cosX = Math.cos(radians(options.rotationX));
-  const sinX = Math.sin(radians(options.rotationX));
-  const cosY = Math.cos(radians(options.rotationY));
-  const sinY = Math.sin(radians(options.rotationY));
+  const [m0, m1, m2, m3, m4, m5, m6, m7, m8] = viewRotation(
+    options.rotationX,
+    options.rotationY,
+    options.grab,
+  );
   const scale = Math.min(width, height) * 0.42;
   const projected = new Float32Array(count * 3);
   const clipped = new Uint8Array(count);
@@ -312,17 +314,16 @@ export function drawPolyline3D(
     const y = points[i * 3 + 1];
     const z = points[i * 3 + 2];
 
-    const x1 = x * cosY + z * sinY;
-    const z1 = -x * sinY + z * cosY;
-    const y2 = y * cosX - z1 * sinX;
-    const z2 = y * sinX + z1 * cosX;
-    const cameraDepth = options.cameraDistance - z2;
+    const rx = m0 * x + m1 * y + m2 * z;
+    const ry = m3 * x + m4 * y + m5 * z;
+    const rz = m6 * x + m7 * y + m8 * z;
+    const cameraDepth = options.cameraDistance - rz;
     if (cameraDepth < NEAR_PLANE) clipped[i] = 1;
     const perspective = PROJECTION_FOCAL_LENGTH / Math.max(cameraDepth, NEAR_PLANE);
 
-    projected[i * 3] = width / 2 + x1 * scale * perspective;
-    projected[i * 3 + 1] = height / 2 - y2 * scale * perspective;
-    projected[i * 3 + 2] = z2;
+    projected[i * 3] = width / 2 + rx * scale * perspective;
+    projected[i * 3 + 1] = height / 2 - ry * scale * perspective;
+    projected[i * 3 + 2] = rz;
   }
 
   // Counting sort of segment indices into depth bins.

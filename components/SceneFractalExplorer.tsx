@@ -3,6 +3,7 @@ import styles from "../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
+import type { Orientation } from "../utils/orientation";
 import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
@@ -24,6 +25,7 @@ type Config<V extends string> = {
   autoRotate: boolean;
   rotationX: number;
   rotationY: number;
+  grab?: Orientation;
   cameraDistance: number;
   background: string;
   fillColor: string;
@@ -103,6 +105,7 @@ export function SceneFractalExplorer<V extends string>({
       view: {
         rotationX: config.rotationX,
         rotationY: config.rotationY,
+        grab: config.grab,
         cameraDistance: config.cameraDistance,
         background: config.background,
         fillColor: config.fillColor,
@@ -120,6 +123,7 @@ export function SceneFractalExplorer<V extends string>({
       iterations,
       config.rotationX,
       config.rotationY,
+      config.grab,
       config.cameraDistance,
       config.background,
       config.fillColor,

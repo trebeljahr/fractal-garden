@@ -1,3 +1,4 @@
+import type { Orientation } from "../orientation";
 import {
   buildFlakeScene,
   buildKochSurfaceScene,
@@ -44,6 +45,8 @@ export type SceneSpec =
 export type SceneView = {
   rotationX: number;
   rotationY: number;
+  /** Rotation added by dragging, in view space. */
+  grab?: Orientation;
   cameraDistance: number;
   background: string;
   fillColor: string;
