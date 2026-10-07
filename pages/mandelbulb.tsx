@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
-import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
+import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
@@ -16,7 +16,52 @@ type Props = {
   description: string;
 };
 
+type Vec3 = [number, number, number];
+
+// Cosine palettes, color(t) = a + b * cos(2pi * (c * t + d)), indexed by the
+// orbit trap: how close each point's orbit came to the origin and the axes.
+const PALETTES = {
+  ember: {
+    label: "Ember",
+    a: [0.65, 0.42, 0.25],
+    b: [0.35, 0.32, 0.25],
+    c: [1, 1, 1],
+    d: [0, 0.08, 0.18],
+  },
+  ocean: {
+    label: "Ocean",
+    a: [0.35, 0.55, 0.65],
+    b: [0.3, 0.3, 0.3],
+    c: [1, 1, 1],
+    d: [0.55, 0.45, 0.35],
+  },
+  opal: {
+    label: "Opal",
+    a: [0.62, 0.6, 0.62],
+    b: [0.3, 0.3, 0.3],
+    c: [1, 1, 1],
+    d: [0, 0.33, 0.67],
+  },
+  moss: {
+    label: "Moss",
+    a: [0.55, 0.66, 0.38],
+    b: [0.3, 0.3, 0.2],
+    c: [1, 1, 1],
+    d: [0.05, 0.1, 0.25],
+  },
+  solid: { label: "Solid color", a: [0, 0, 0], b: [0, 0, 0], c: [0, 0, 0], d: [0, 0, 0] },
+} satisfies Record<string, { label: string; a: Vec3; b: Vec3; c: Vec3; d: Vec3 }>;
+
+type PaletteName = keyof typeof PALETTES;
+const PALETTE_NAMES = Object.keys(PALETTES) as PaletteName[];
+
+// Close enough to the center to fly into the bulb's folds.
+const MIN_DISTANCE = 1.05;
+const MAX_DISTANCE = 8;
+
 type Config = {
+  palette: PaletteName;
+  shadows: boolean;
   power: number;
   detail: number;
   cameraDistance: number;
@@ -40,9 +85,11 @@ type DragState = {
 };
 
 const INITIAL_CONFIG: Config = {
+  palette: "ember",
+  shadows: true,
   power: 8,
   detail: 14,
-  cameraDistance: 3.8,
+  cameraDistance: 3,
   rotationX: 18,
   rotationY: 32,
   offsetX: 0,
@@ -91,6 +138,11 @@ const Mandelbulb = ({ description }: Props) => {
     const detailLocation = gl.getUniformLocation(program, "u_detail");
     const backgroundLocation = gl.getUniformLocation(program, "u_background");
     const colorLocation = gl.getUniformLocation(program, "u_color");
+    const paletteLocations = (["A", "B", "C", "D"] as const).map((name) =>
+      gl.getUniformLocation(program, `u_palette${name}`),
+    );
+    const solidLocation = gl.getUniformLocation(program, "u_solid");
+    const shadowsLocation = gl.getUniformLocation(program, "u_shadows");
 
     if (
       resolutionLocation === null ||
@@ -100,7 +152,10 @@ const Mandelbulb = ({ description }: Props) => {
       powerLocation === null ||
       detailLocation === null ||
       backgroundLocation === null ||
-      colorLocation === null
+      colorLocation === null ||
+      solidLocation === null ||
+      shadowsLocation === null ||
+      paletteLocations.some((location) => location === null)
     ) {
       return;
     }
@@ -134,6 +189,12 @@ const Mandelbulb = ({ description }: Props) => {
       gl.uniform1f(detailLocation, currentConfig.detail);
       gl.uniform3f(backgroundLocation, bgR, bgG, bgB);
       gl.uniform3f(colorLocation, colorR, colorG, colorB);
+      const palette = PALETTES[currentConfig.palette];
+      [palette.a, palette.b, palette.c, palette.d].forEach((value, index) => {
+        gl.uniform3fv(paletteLocations[index], value);
+      });
+      gl.uniform1f(solidLocation, currentConfig.palette === "solid" ? 1 : 0);
+      gl.uniform1f(shadowsLocation, currentConfig.shadows ? 1 : 0);
 
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -192,7 +253,11 @@ const Mandelbulb = ({ description }: Props) => {
       setConfig((old) => ({
         ...old,
         autoRotate: false,
-        cameraDistance: constrain(old.cameraDistance * (event.deltaY > 0 ? 1.08 : 0.92), 1.5, 8),
+        cameraDistance: constrain(
+          old.cameraDistance * (event.deltaY > 0 ? 1.08 : 0.92),
+          MIN_DISTANCE,
+          MAX_DISTANCE,
+        ),
       }));
     };
 
@@ -243,11 +308,18 @@ const Mandelbulb = ({ description }: Props) => {
           mode="scene"
           onUpdate={handleUpdate}
         >
+          <PanelSelect
+            path="palette"
+            label="Coloring"
+            options={PALETTE_NAMES}
+            optionLabels={PALETTE_NAMES.map((name) => PALETTES[name].label)}
+          />
+          {config.palette === "solid" && <PanelColor path="color" />}
+          <PanelBoolean path="shadows" label="Soft shadows" />
           <PanelColor path="background" />
-          <PanelColor path="color" />
           <PanelNumber path="power" min={2} max={12} step={0.1} />
           <PanelNumber path="detail" min={6} max={20} step={1} />
-          <PanelNumber path="cameraDistance" min={1.5} max={8} step={0.05} />
+          <PanelNumber path="cameraDistance" min={MIN_DISTANCE} max={MAX_DISTANCE} step={0.01} />
           <PanelNumber path="rotationX" min={-85} max={85} step={1} />
           <PanelNumber path="rotationY" min={-180} max={180} step={1} />
           <PanelNumber path="offsetX" min={-2} max={2} step={0.01} />
