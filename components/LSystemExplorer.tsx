@@ -21,12 +21,19 @@ import { decodeSpec, encodeSpec, githubSubmitUrl, presetJson } from "../utils/ls
 import { LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
 import { scrollToDescription } from "../utils/scrollToDescription";
 import { Canvas } from "./Canvas";
+import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
 
 type Props = { presets: Preset[] };
 
 type Field = { kind: "axiom" } | { kind: "rule"; index: number };
+
+const COLOR_MODES: { value: LSystemSpec["colorMode"]; label: string }[] = [
+  { value: "gradient", label: "Along the path" },
+  { value: "depth", label: "By branch depth" },
+  { value: "solid", label: "Single color" },
+];
 
 const SYMBOLS: { symbol: string; label: string; only3d?: boolean }[] = [
   { symbol: "F", label: "Draw a step forward" },
@@ -413,31 +420,28 @@ export const LSystemExplorer = ({ presets }: Props) => {
         )}
 
         <section className={styles.section}>
-          <label className={styles.label} htmlFor="lsystem-preset">
+          <span className={styles.label} id="lsystem-preset-label">
             Preset
-          </label>
-          <select
-            id="lsystem-preset"
-            className={styles.select}
+          </span>
+          <Listbox
+            className={styles.picker}
+            labelledBy="lsystem-preset-label"
             value={presetSlug}
-            onChange={(event) => loadPreset(event.target.value)}
-          >
-            {!presetSlug && <option value="">Your edit: {spec.name}</option>}
-            <optgroup label="2D">
-              {presets2d.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  {p.spec.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="3D">
-              {presets3d.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  {p.spec.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+            onChange={loadPreset}
+            groups={[
+              ...(presetSlug
+                ? []
+                : [{ options: [{ value: "", label: `Your edit: ${spec.name}` }] }]),
+              {
+                label: "2D",
+                options: presets2d.map((p) => ({ value: p.slug, label: p.spec.name })),
+              },
+              {
+                label: "3D",
+                options: presets3d.map((p) => ({ value: p.slug, label: p.spec.name })),
+              },
+            ]}
+          />
           {spec.description && <p className={styles.hint}>{spec.description}</p>}
 
           <div className={styles.segmented} role="radiogroup" aria-label="Dimension">
@@ -598,14 +602,14 @@ export const LSystemExplorer = ({ presets }: Props) => {
               {shownIterations === null ? "Play growth" : `Growing… ${shownIterations}`}
             </button>
             {spec.dimension === "3d" && (
-              <label className={styles.check}>
-                <input
-                  type="checkbox"
+              <div className={styles.check}>
+                <ToggleSwitch
                   checked={autoRotate}
-                  onChange={(event) => setAutoRotate(event.target.checked)}
+                  labelledBy="lsystem-auto-rotate-label"
+                  onChange={setAutoRotate}
                 />
-                Auto rotate
-              </label>
+                <span id="lsystem-auto-rotate-label">Auto rotate</span>
+              </div>
             )}
           </div>
         </section>
@@ -625,21 +629,16 @@ export const LSystemExplorer = ({ presets }: Props) => {
               onChange={(background) => update({ background })}
             />
           </div>
-          <label className={styles.label} htmlFor="lsystem-color-mode">
+          <span className={styles.label} id="lsystem-color-mode-label">
             Coloring
-          </label>
-          <select
-            id="lsystem-color-mode"
-            className={styles.select}
+          </span>
+          <Listbox
+            className={styles.picker}
+            labelledBy="lsystem-color-mode-label"
             value={spec.colorMode}
-            onChange={(event) =>
-              update({ colorMode: event.target.value as LSystemSpec["colorMode"] })
-            }
-          >
-            <option value="gradient">Along the path</option>
-            <option value="depth">By branch depth</option>
-            <option value="solid">Single color</option>
-          </select>
+            onChange={(colorMode) => update({ colorMode: colorMode as LSystemSpec["colorMode"] })}
+            options={COLOR_MODES}
+          />
           <Slider
             label="Line width"
             min={0.25}

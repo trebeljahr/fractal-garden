@@ -123,7 +123,6 @@ details[open] > .summary {
 }
 
 .code,
-.select,
 .number {
   box-sizing: border-box;
   width: 100%;
@@ -154,7 +153,6 @@ textarea.code {
 }
 
 .code:focus,
-.select:focus,
 .number:focus {
   outline: none;
   border-color: rgba(245, 204, 117, 0.45);
@@ -162,25 +160,8 @@ textarea.code {
   box-shadow: 0 0 0 1px rgba(245, 204, 117, 0.14);
 }
 
-.select {
-  appearance: none;
-  padding-right: 2.2rem;
-  background-image:
-    linear-gradient(45deg, transparent 50%, rgba(245, 241, 209, 0.8) 50%),
-    linear-gradient(135deg, rgba(245, 241, 209, 0.8) 50%, transparent 50%);
-  background-position:
-    calc(100% - 1rem) calc(50% - 1px),
-    calc(100% - 0.75rem) calc(50% - 1px);
-  background-size:
-    0.38rem 0.38rem,
-    0.38rem 0.38rem;
-  background-repeat: no-repeat;
-}
-
-.select option,
-.select optgroup {
-  background: #0b1419;
-  color: var(--yellow-white);
+.picker {
+  height: 2.4rem;
 }
 
 .rules {
@@ -332,8 +313,8 @@ textarea.code {
   color: rgba(245, 241, 209, 0.8);
 }
 
-.check input {
-  accent-color: #f5cc75;
+.check button {
+  margin-right: 0;
 }
 
 .colors {

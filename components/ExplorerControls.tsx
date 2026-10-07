@@ -1,14 +1,7 @@
-import {
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerPanel.module.css";
+import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 const { ChromePicker } = require("react-color");
 
@@ -666,42 +659,16 @@ export const PanelBoolean = ({
           {labelText}
         </span>
         <div className={styles.toggleControl} style={getControlWidthStyle(labelWidth)}>
-          <button
-            aria-checked={checked}
-            aria-labelledby={labelId}
-            className={styles.toggle}
-            onClick={() => _onUpdateValue?.(path, !checked)}
-            role="switch"
-            type="button"
-          >
-            <span className={styles.toggleThumb} />
-          </button>
+          <ToggleSwitch
+            checked={checked}
+            labelledBy={labelId}
+            onChange={(next) => _onUpdateValue?.(path, next)}
+          />
         </div>
       </div>
     </li>
   );
 };
-
-const SELECT_GAP = 6;
-const SELECT_MAX_HEIGHT = 320;
-const SELECT_VIEWPORT_MARGIN = 12;
-
-function getListPosition(trigger: HTMLElement): CSSProperties {
-  const rect = trigger.getBoundingClientRect();
-  const spaceBelow = window.innerHeight - rect.bottom - SELECT_GAP - SELECT_VIEWPORT_MARGIN;
-  const spaceAbove = rect.top - SELECT_GAP - SELECT_VIEWPORT_MARGIN;
-  const openUpward = spaceBelow < 200 && spaceAbove > spaceBelow;
-  const maxHeight = Math.min(SELECT_MAX_HEIGHT, openUpward ? spaceAbove : spaceBelow);
-  const minWidth = rect.width;
-  const left = Math.max(
-    SELECT_VIEWPORT_MARGIN,
-    Math.min(rect.left, window.innerWidth - minWidth - SELECT_VIEWPORT_MARGIN),
-  );
-
-  return openUpward
-    ? { bottom: window.innerHeight - rect.top + SELECT_GAP, left, maxHeight, minWidth }
-    : { top: rect.bottom + SELECT_GAP, left, maxHeight, minWidth };
-}
 
 export const PanelSelect = ({
   className,
@@ -714,227 +681,29 @@ export const PanelSelect = ({
   style,
   _onUpdateValue,
 }: SelectProps) => {
-  const baseId = useId();
-  const listboxId = `${baseId}-listbox`;
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const typeaheadRef = useRef({ query: "", timeout: 0 });
+  const labelId = useId();
   const value = String(getValueFromPath(data, path) ?? "");
-  const selectedIndex = options.indexOf(value);
   const labels = optionLabels ?? options.map((option) => humanizeOption(option));
   const labelText = label ?? humanizePath(path);
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(Math.max(selectedIndex, 0));
-  const [position, setPosition] = useState<CSSProperties>({});
-  const getOptionId = (index: number) => `${baseId}-option-${index}`;
-
-  const close = useCallback((restoreFocus: boolean) => {
-    setIsOpen(false);
-    if (restoreFocus) {
-      triggerRef.current?.focus({ preventScroll: true });
-    }
-  }, []);
-
-  const open = (index = selectedIndex) => {
-    if (!triggerRef.current) {
-      return;
-    }
-
-    setPosition(getListPosition(triggerRef.current));
-    setActiveIndex(Math.max(index, 0));
-    setIsOpen(true);
-  };
-
-  const choose = (index: number) => {
-    const option = options[index];
-    if (option !== undefined && option !== value) {
-      _onUpdateValue?.(path, option);
-    }
-    close(true);
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      listRef.current?.focus({ preventScroll: true });
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    document.getElementById(getOptionId(activeIndex))?.scrollIntoView({ block: "nearest" });
-  });
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (triggerRef.current?.contains(target) || listRef.current?.contains(target)) {
-        return;
-      }
-
-      close(false);
-    };
-
-    const reposition = (event: Event) => {
-      if (listRef.current?.contains(event.target as Node)) {
-        return;
-      }
-
-      if (triggerRef.current) {
-        setPosition(getListPosition(triggerRef.current));
-      }
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("resize", reposition);
-    window.addEventListener("scroll", reposition, true);
-
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("resize", reposition);
-      window.removeEventListener("scroll", reposition, true);
-    };
-  }, [close, isOpen]);
-
-  const typeahead = (character: string) => {
-    const state = typeaheadRef.current;
-    window.clearTimeout(state.timeout);
-    state.query += character.toLowerCase();
-    state.timeout = window.setTimeout(() => {
-      state.query = "";
-    }, 600);
-
-    const start = state.query.length === 1 ? activeIndex + 1 : activeIndex;
-    for (let offset = 0; offset < labels.length; offset += 1) {
-      const index = (start + offset) % labels.length;
-      if (labels[index]?.toLowerCase().startsWith(state.query)) {
-        return index;
-      }
-    }
-
-    return -1;
-  };
-
-  const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      open();
-    }
-  };
-
-  const handleListKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    const lastIndex = options.length - 1;
-
-    switch (event.key) {
-      case "ArrowDown":
-        event.preventDefault();
-        setActiveIndex((index) => Math.min(index + 1, lastIndex));
-        return;
-      case "ArrowUp":
-        event.preventDefault();
-        setActiveIndex((index) => Math.max(index - 1, 0));
-        return;
-      case "Home":
-      case "PageUp":
-        event.preventDefault();
-        setActiveIndex(0);
-        return;
-      case "End":
-      case "PageDown":
-        event.preventDefault();
-        setActiveIndex(lastIndex);
-        return;
-      case "Enter":
-      case " ":
-        event.preventDefault();
-        choose(activeIndex);
-        return;
-      case "Escape":
-        event.preventDefault();
-        event.stopPropagation();
-        close(true);
-        return;
-      case "Tab":
-        close(false);
-        return;
-      default:
-        if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
-          const index = typeahead(event.key);
-          if (index >= 0) {
-            setActiveIndex(index);
-          }
-        }
-    }
-  };
 
   return (
     <li className={joinClassNames("cr", "select", className)} style={style}>
       <div className={styles.customControl}>
-        <span className="label-text" id={`${baseId}-label`} style={getLabelWidthStyle(labelWidth)}>
+        <span className="label-text" id={labelId} style={getLabelWidthStyle(labelWidth)}>
           {labelText}
         </span>
         <div className={styles.selectControl} style={getControlWidthStyle(labelWidth)}>
-          <button
-            aria-controls={isOpen ? listboxId : undefined}
-            aria-expanded={isOpen}
-            aria-haspopup="listbox"
-            aria-labelledby={`${baseId}-label ${baseId}-value`}
-            className={joinClassNames(styles.selectTrigger, isOpen && styles.selectTriggerOpen)}
-            onClick={() => (isOpen ? close(true) : open())}
-            onKeyDown={handleTriggerKeyDown}
-            ref={triggerRef}
-            type="button"
-          >
-            <span className={styles.selectValue} id={`${baseId}-value`}>
-              {labels[selectedIndex] ?? value}
-            </span>
-            <span aria-hidden className={styles.selectChevron} />
-          </button>
+          <Listbox
+            labelledBy={labelId}
+            onChange={(next) => _onUpdateValue?.(path, next)}
+            options={options.map((option, index) => ({
+              value: option,
+              label: labels[index] ?? option,
+            }))}
+            value={value}
+          />
         </div>
       </div>
-      {isOpen
-        ? createPortal(
-            <div
-              aria-activedescendant={getOptionId(activeIndex)}
-              aria-labelledby={`${baseId}-label`}
-              className={styles.selectList}
-              id={listboxId}
-              onKeyDown={handleListKeyDown}
-              ref={listRef}
-              role="listbox"
-              style={position}
-              tabIndex={-1}
-            >
-              {options.map((option, index) => (
-                // biome-ignore lint/a11y/useKeyWithClickEvents: the listbox handles keyboard selection via aria-activedescendant
-                <div
-                  aria-selected={index === selectedIndex}
-                  className={joinClassNames(
-                    styles.selectOption,
-                    index === activeIndex && styles.selectOptionActive,
-                    index === selectedIndex && styles.selectOptionSelected,
-                  )}
-                  id={getOptionId(index)}
-                  key={option}
-                  onClick={() => choose(index)}
-                  onPointerMove={() => setActiveIndex(index)}
-                  role="option"
-                  tabIndex={-1}
-                >
-                  <span aria-hidden className={styles.selectCheck} />
-                  <span>{labels[index] ?? option}</span>
-                </div>
-              ))}
-            </div>,
-            document.body,
-          )
-        : null}
     </li>
   );
 };

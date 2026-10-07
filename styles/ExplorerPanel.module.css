@@ -403,6 +403,29 @@
   }
 }
 
+.selectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.selectGroup + .selectGroup,
+.selectOption + .selectGroup {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(245, 241, 209, 0.08);
+}
+
+.selectGroupLabel {
+  padding: 0.35rem 0.6rem 0.25rem;
+  color: rgba(245, 241, 209, 0.46);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
 .selectOption {
   display: flex;
   align-items: center;
