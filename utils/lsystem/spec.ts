@@ -132,12 +132,8 @@ export function normalizeSpec(raw: unknown): Result {
   const description = text("description", LIMITS.textLength);
   if (description) spec.description = description;
 
-  if (raw.dimension !== undefined) {
-    if (raw.dimension === "2d" || raw.dimension === "3d") {
-      spec.dimension = raw.dimension as Dimension;
-    } else {
-      errors.push(`"dimension" must be "2d" or "3d".`);
-    }
+  if (raw.dimension !== undefined && raw.dimension !== "2d" && raw.dimension !== "3d") {
+    errors.push(`"dimension" must be "2d" or "3d".`);
   }
 
   if (raw.colorMode !== undefined) {
@@ -201,8 +197,19 @@ export function normalizeSpec(raw: unknown): Result {
   spec.background = color("background") ?? DEFAULT_SPEC.background;
   spec.drawSymbols = text("drawSymbols", 40) ?? DEFAULT_SPEC.drawSymbols;
   spec.moveSymbols = text("moveSymbols", 40) ?? DEFAULT_SPEC.moveSymbols;
+  spec.dimension = dimensionOf(spec);
 
   return { spec, errors };
+}
+
+// Symbols that turn the turtle out of the flat plane.
+export const SYMBOLS_3D = "&^\\/$";
+
+// A system is 3D exactly when it uses a symbol that leaves the plane. Older
+// share links and presets may still name a dimension; it is ignored.
+export function dimensionOf(spec: Pick<LSystemSpec, "axiom" | "rules">): Dimension {
+  const text = spec.axiom + spec.rules.map((rule) => rule.replacement).join("");
+  return Array.from(SYMBOLS_3D).some((symbol) => text.includes(symbol)) ? "3d" : "2d";
 }
 
 // Drops fields that match the defaults so preset files and share links stay short.

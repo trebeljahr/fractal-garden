@@ -23,6 +23,11 @@ for (const file of files) {
 
   const { spec, errors } = normalizeSpec(raw);
   for (const error of errors) problems.push(`${file}: ${error}`);
+  if (raw.dimension !== undefined && raw.dimension !== spec.dimension) {
+    problems.push(
+      `${file}: "dimension" is "${raw.dimension}" but the rules make it "${spec.dimension}". It follows from the symbols & ^ \\ / $, so remove the field or fix it.`,
+    );
+  }
 
   if (file !== `${slugify(file.replace(/\.json$/, ""))}.json`) {
     problems.push(`${file}: file names must be lowercase words joined by dashes.`);

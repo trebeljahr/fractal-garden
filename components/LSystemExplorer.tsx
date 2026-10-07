@@ -16,9 +16,10 @@ import {
   FLAT_CAMERA,
   type Renderer,
   type Viewport,
+  viewFor,
 } from "../utils/lsystem/render";
 import { decodeSpec, encodeSpec, githubSubmitUrl, presetJson } from "../utils/lsystem/share";
-import { LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
+import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
 import type { WorkerRequest, WorkerResult } from "../utils/lsystem/worker";
 import { scrollToDescription } from "../utils/scrollToDescription";
 import { WebGLCanvas } from "./Canvas";
@@ -36,24 +37,64 @@ const COLOR_MODES: { value: LSystemSpec["colorMode"]; label: string }[] = [
   { value: "solid", label: "Single color" },
 ];
 
-const SYMBOLS: { symbol: string; label: string; only3d?: boolean }[] = [
-  { symbol: "F", label: "Draw a step forward" },
-  { symbol: "G", label: "Draw a step forward (second drawing letter)" },
-  { symbol: "f", label: "Move a step forward without drawing" },
-  { symbol: "+", label: "Turn right by the angle" },
-  { symbol: "-", label: "Turn left by the angle" },
-  { symbol: "|", label: "Turn around (180°)" },
-  { symbol: "[", label: "Start a branch: remember position and direction" },
-  { symbol: "]", label: "End a branch: go back to the remembered state" },
-  { symbol: "&", label: "Pitch down by the angle", only3d: true },
-  { symbol: "^", label: "Pitch up by the angle", only3d: true },
-  { symbol: "\\", label: "Roll left by the angle", only3d: true },
-  { symbol: "/", label: "Roll right by the angle", only3d: true },
-  { symbol: "$", label: "Roll until level with the ground", only3d: true },
-  { symbol: ">", label: "Multiply the step length by the length factor" },
-  { symbol: "<", label: "Divide the step length by the length factor" },
-  { symbol: "!", label: "Multiply the line width by the width factor" },
-  { symbol: "#", label: "Divide the line width by the width factor" },
+type SymbolHelp = { symbol: string; text: (spec: LSystemSpec) => string };
+
+// A negative angle swaps each pair of directions, so the text names the
+// way the turtle actually turns: "turn left by 25°", not "right by -25°".
+const turn = (spec: LSystemSpec, verb: string, positive: string, negative: string) =>
+  `${verb} ${spec.angle < 0 ? negative : positive} by ${Math.abs(spec.angle)}°`;
+
+// The turtle's alphabet, grouped the way people tend to learn it. Texts use
+// the current values, so "turn by the angle" reads as "turn by 25.7°".
+const SYMBOL_GROUPS: { title: string; symbols: SymbolHelp[] }[] = [
+  {
+    title: "Move",
+    symbols: [
+      { symbol: "F", text: () => "Draw a line one step forward." },
+      { symbol: "G", text: () => "Also draws a step, so rules can grow F and G differently." },
+      { symbol: "f", text: () => "Move one step forward without drawing." },
+    ],
+  },
+  {
+    title: "Turn",
+    symbols: [
+      { symbol: "+", text: (spec) => `${turn(spec, "Turn", "right", "left")}.` },
+      { symbol: "-", text: (spec) => `${turn(spec, "Turn", "left", "right")}.` },
+      { symbol: "|", text: () => "Turn around." },
+    ],
+  },
+  {
+    title: "Branch",
+    symbols: [
+      { symbol: "[", text: () => "Start a branch. The turtle remembers where it is." },
+      { symbol: "]", text: () => "End the branch. The turtle jumps back to where [ was." },
+    ],
+  },
+  {
+    title: "3D (any of these makes the system 3D)",
+    symbols: [
+      { symbol: "&", text: (spec) => `${turn(spec, "Tip the nose", "down", "up")}.` },
+      { symbol: "^", text: (spec) => `${turn(spec, "Tip the nose", "up", "down")}.` },
+      {
+        symbol: "\\",
+        text: (spec) => `${turn(spec, "Roll", "left", "right")}, around the heading.`,
+      },
+      {
+        symbol: "/",
+        text: (spec) => `${turn(spec, "Roll", "right", "left")}, around the heading.`,
+      },
+      { symbol: "$", text: () => "Roll back level, so the turtle's top faces the sky." },
+    ],
+  },
+  {
+    title: "Size",
+    symbols: [
+      { symbol: ">", text: (spec) => `Make later steps shorter (× ${spec.lengthFactor}).` },
+      { symbol: "<", text: (spec) => `Make later steps longer (÷ ${spec.lengthFactor}).` },
+      { symbol: "!", text: (spec) => `Make later lines thinner (× ${spec.widthFactor}).` },
+      { symbol: "#", text: (spec) => `Make later lines thicker (÷ ${spec.widthFactor}).` },
+    ],
+  },
 ];
 
 const PANEL_WIDTH = 392;
@@ -73,6 +114,14 @@ function download(filename: string, href: string) {
   link.href = href;
   link.download = filename;
   link.click();
+}
+
+function clampZoom(zoom: number) {
+  return Math.min(Math.max(zoom, 0.05), 500);
+}
+
+function wrapAngle(angle: number) {
+  return Math.atan2(Math.sin(angle), Math.cos(angle));
 }
 
 function sameSpec(a: LSystemSpec, b: LSystemSpec) {
@@ -267,17 +316,28 @@ export const LSystemExplorer = ({ presets }: Props) => {
       ? { ...old, name: `My ${old.name}`, author: undefined, description: undefined }
       : old;
 
+  // The dimension follows the symbols: typing the first & ^ \ / or $ turns
+  // the view 3D, removing the last one flattens it again.
+  const withDimension = (next: LSystemSpec): LSystemSpec => {
+    const dimension = dimensionOf(next);
+    if (dimension === next.dimension) return next;
+    cameraRef.current = dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA };
+    return { ...next, dimension };
+  };
+
   const update = (patch: Partial<LSystemSpec>) => {
-    setSpec((old) => ({ ...detach(old), ...patch }));
+    setSpec((old) => withDimension({ ...detach(old), ...patch }));
     setPresetSlug("");
     setShownIterations(null);
   };
 
   const updateRule = (index: number, patch: Partial<Rule>) => {
-    setSpec((old) => ({
-      ...detach(old),
-      rules: old.rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)),
-    }));
+    setSpec((old) =>
+      withDimension({
+        ...detach(old),
+        rules: old.rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)),
+      }),
+    );
     setPresetSlug("");
   };
 
@@ -289,11 +349,6 @@ export const LSystemExplorer = ({ presets }: Props) => {
     setLinkErrors([]);
     setShownIterations(null);
     cameraRef.current = preset.spec.dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA };
-  };
-
-  const setDimension = (dimension: LSystemSpec["dimension"]) => {
-    cameraRef.current = dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA };
-    update({ dimension });
   };
 
   const resetView = () => {
@@ -359,6 +414,22 @@ export const LSystemExplorer = ({ presets }: Props) => {
   // to pan in 3D, wheel or pinch to zoom, double click to reset.
   const pointers = useRef(new Map<number, { x: number; y: number }>());
 
+  // Moves the drawing with the cursor. In 3D this shifts the orbit center in
+  // the screen plane, so later orbits turn around the new spot.
+  const pan = (dx: number, dy: number) => {
+    const camera = cameraRef.current;
+    if (debouncedSpec.dimension === "2d" || !result || !viewport) {
+      camera.panX += dx;
+      camera.panY += dy;
+      return;
+    }
+    const view = viewFor(camera, result.radius, viewport);
+    const k = view.distance / view.focal;
+    camera.targetX += (-view.right[0] * dx + view.up[0] * dy) * k;
+    camera.targetY += (-view.right[1] * dx + view.up[1] * dy) * k;
+    camera.targetZ += (-view.right[2] * dx + view.up[2] * dy) * k;
+  };
+
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -369,25 +440,22 @@ export const LSystemExplorer = ({ presets }: Props) => {
     if (!previous) return;
     const camera = cameraRef.current;
 
+    const dx = event.clientX - previous.x;
+    const dy = event.clientY - previous.y;
     if (pointers.current.size >= 2) {
       const [a, b] = Array.from(pointers.current.values());
       const other = a === previous ? b : a;
       const before = Math.hypot(previous.x - other.x, previous.y - other.y);
       const after = Math.hypot(event.clientX - other.x, event.clientY - other.y);
-      if (before > 0) camera.zoom = Math.min(Math.max(camera.zoom * (after / before), 0.05), 200);
-      camera.panX += (event.clientX - previous.x) / 2;
-      camera.panY += (event.clientY - previous.y) / 2;
+      if (before > 0) camera.zoom = clampZoom(camera.zoom * (after / before));
+      pan(dx / 2, dy / 2);
+    } else if (debouncedSpec.dimension === "2d" || event.shiftKey || event.buttons === 2) {
+      pan(dx, dy);
     } else {
-      const dx = event.clientX - previous.x;
-      const dy = event.clientY - previous.y;
-      const pan = spec.dimension === "2d" || event.shiftKey || event.buttons === 2;
-      if (pan) {
-        camera.panX += dx;
-        camera.panY += dy;
-      } else {
-        camera.yaw += dx * 0.008;
-        camera.pitch = Math.min(Math.max(camera.pitch + dy * 0.008, -Math.PI / 2), Math.PI / 2);
-      }
+      // Orbit freely, over the top and underneath. Upside down, a sideways
+      // drag still turns the drawing the way the cursor moves.
+      camera.yaw += dx * 0.008 * (Math.cos(camera.pitch) < 0 ? -1 : 1);
+      camera.pitch = wrapAngle(camera.pitch + dy * 0.008);
     }
 
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -407,19 +475,29 @@ export const LSystemExplorer = ({ presets }: Props) => {
       event.preventDefault();
       const camera = cameraRef.current;
       const factor = Math.exp(-event.deltaY * 0.0015);
-      const zoom = Math.min(Math.max(camera.zoom * factor, 0.05), 200);
+      const zoom = clampZoom(camera.zoom * factor);
       const k = zoom / camera.zoom;
       // Keep the point under the cursor in place.
       const cx = event.clientX - (viewport.x + viewport.width / 2);
       const cy = event.clientY - (viewport.y + viewport.height / 2);
-      camera.panX = cx - (cx - camera.panX) * k;
-      camera.panY = cy - (cy - camera.panY) * k;
+      if (debouncedSpec.dimension === "3d" && result) {
+        // Move the eye towards the spot under the cursor, at the orbit
+        // center's depth.
+        const view = viewFor(camera, result.radius, viewport);
+        const step = (view.distance / view.focal) * (1 - 1 / k);
+        camera.targetX += (view.right[0] * cx - view.up[0] * cy) * step;
+        camera.targetY += (view.right[1] * cx - view.up[1] * cy) * step;
+        camera.targetZ += (view.right[2] * cx - view.up[2] * cy) * step;
+      } else {
+        camera.panX = cx - (cx - camera.panX) * k;
+        camera.panY = cy - (cy - camera.panY) * k;
+      }
       camera.zoom = zoom;
       requestDraw();
     };
     stage.addEventListener("wheel", onWheel, { passive: false });
     return () => stage.removeEventListener("wheel", onWheel);
-  }, [viewport, requestDraw]);
+  }, [viewport, requestDraw, debouncedSpec.dimension, result]);
 
   const expansion = result?.expansion ?? { length: 0, iterations: 0, limited: false };
   const geometry = result?.geometry ?? { count: 0, limited: false, warnings: [] as string[] };
@@ -428,6 +506,14 @@ export const LSystemExplorer = ({ presets }: Props) => {
     counts[rule.symbol] = (counts[rule.symbol] ?? 0) + 1;
     return counts;
   }, {});
+  const weightTotals = spec.rules.reduce<Record<string, number>>((totals, rule) => {
+    totals[rule.symbol] = (totals[rule.symbol] ?? 0) + (rule.weight ?? 1);
+    return totals;
+  }, {});
+  const chance = (rule: Rule) => {
+    const percent = ((rule.weight ?? 1) / weightTotals[rule.symbol]) * 100;
+    return `${percent < 1 && percent > 0 ? percent.toFixed(1) : Math.round(percent)}%`;
+  };
   const missingSymbols = spec.rules.filter((rule) => !rule.symbol).length;
   const drawsNothing = geometry.count === 0;
   const pending = spec !== debouncedSpec || computing;
@@ -499,26 +585,11 @@ export const LSystemExplorer = ({ presets }: Props) => {
             ]}
           />
           {spec.description && <p className={styles.hint}>{spec.description}</p>}
-
-          <div className={styles.segmented} role="radiogroup" aria-label="Dimension">
-            {(["2d", "3d"] as const).map((dimension) => (
-              <button
-                key={dimension}
-                type="button"
-                role="radio"
-                aria-checked={spec.dimension === dimension}
-                className={spec.dimension === dimension ? styles.segmentActive : styles.segment}
-                onClick={() => setDimension(dimension)}
-              >
-                {dimension.toUpperCase()}
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className={styles.section}>
           <label className={styles.label} htmlFor="lsystem-axiom">
-            Axiom <span className={styles.labelHint}>the starting string</span>
+            Axiom <span className={styles.labelHint}>generation 0, before any rule runs</span>
           </label>
           <input
             id="lsystem-axiom"
@@ -535,7 +606,10 @@ export const LSystemExplorer = ({ presets }: Props) => {
           />
 
           <div className={styles.label}>
-            Rules <span className={styles.labelHint}>each generation replaces every symbol</span>
+            Rules{" "}
+            <span className={styles.labelHint}>
+              each generation, every left symbol becomes its right side
+            </span>
           </div>
           <div className={styles.rules}>
             {spec.rules.map((rule, index) => (
@@ -568,20 +642,23 @@ export const LSystemExplorer = ({ presets }: Props) => {
                   onChange={(event) => updateRule(index, { replacement: event.target.value })}
                 />
                 {ruleCounts[rule.symbol] > 1 && (
-                  <input
-                    aria-label={`Weight for rule ${index + 1}`}
-                    title="Weight: how often this rule is picked"
-                    className={`${styles.code} ${styles.weight}`}
-                    type="number"
-                    min={0.01}
-                    step={0.1}
-                    value={rule.weight ?? 1}
-                    onChange={(event) =>
-                      updateRule(index, {
-                        weight: Math.max(Number(event.target.value) || 0.01, 0.01),
-                      })
-                    }
-                  />
+                  <label className={styles.weight}>
+                    <input
+                      aria-label={`Weight for rule ${index + 1}`}
+                      title="Weight: compared with the other rules for the same symbol"
+                      className={styles.code}
+                      type="number"
+                      min={0.01}
+                      step={0.1}
+                      value={rule.weight ?? 1}
+                      onChange={(event) =>
+                        updateRule(index, {
+                          weight: Math.max(Number(event.target.value) || 0.01, 0.01),
+                        })
+                      }
+                    />
+                    <span className={styles.chance}>{chance(rule)}</span>
+                  </label>
                 )}
                 <button
                   type="button"
@@ -606,30 +683,44 @@ export const LSystemExplorer = ({ presets }: Props) => {
           </button>
           {stochastic && (
             <p className={styles.hint}>
-              Some symbols have more than one rule. Each step picks one at random, weighted.
+              When a symbol has several rules, each copy of it picks one at random every generation.
+              The number is the rule's weight, and the percentage below it is the chance that
+              results: its weight divided by the total for that symbol. Change the random seed under
+              Advanced to grow a different variant.
             </p>
           )}
-
-          <div className={styles.palette} role="group" aria-label="Insert a symbol">
-            {SYMBOLS.filter((s) => !s.only3d || spec.dimension === "3d").map((s) => (
-              <button
-                key={s.symbol}
-                type="button"
-                className={styles.chip}
-                title={s.label}
-                aria-label={`Insert ${s.symbol}: ${s.label}`}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => insertSymbol(s.symbol)}
-              >
-                {s.symbol}
-              </button>
-            ))}
-          </div>
-          <p className={styles.hint}>
-            Click a symbol to insert it, or hover for its meaning. Letters without a drawing meaning
-            only steer the rewriting.
-          </p>
         </section>
+
+        <details className={styles.section} open>
+          <summary className={styles.summary}>Symbols</summary>
+          <p className={styles.hint}>
+            The turtle reads the final string from left to right. Click a symbol to type it into the
+            field you last used.
+          </p>
+          {SYMBOL_GROUPS.map((group) => (
+            <div key={group.title} className={styles.symbolGroup}>
+              <span className={styles.symbolGroupTitle}>{group.title}</span>
+              {group.symbols.map((help) => (
+                <div key={help.symbol} className={styles.symbolRow}>
+                  <button
+                    type="button"
+                    className={styles.chip}
+                    aria-label={`Insert ${help.symbol}`}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertSymbol(help.symbol)}
+                  >
+                    {help.symbol}
+                  </button>
+                  <span className={styles.hint}>{help.text(spec)}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          <p className={styles.hint}>
+            Any other letter, like X or A, draws nothing. It marks a spot where a rule can grow
+            something in the next generation.
+          </p>
+        </details>
 
         <section className={styles.section}>
           <Slider

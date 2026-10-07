@@ -32,7 +32,7 @@ Only `name`, `axiom` and `rules` are required. Every other field falls back to t
 
 | Field | Meaning | Default |
 | --- | --- | --- |
-| `dimension` | `"2d"` or `"3d"` (3D adds orbit controls) | `"2d"` |
+| `dimension` | Optional. A system is 3D when it uses `& ^ \ / $`, otherwise 2D. The validator checks that this field agrees | set by the symbols |
 | `rules[].weight` | Relative chance when a symbol has several rules | `1` |
 | `angle` | Turn angle in degrees for `+ - & ^ \ /` | `25.7` |
 | `iterations` | Generations to grow, 0 to 24 | `4` |

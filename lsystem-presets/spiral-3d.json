@@ -1,15 +1,17 @@
 {
   "name": "Spiral Staircase",
+  "description": "Each A adds one piece of the column, a step with a post at its end, and rolls 30° with / so the next step turns around the column.",
   "dimension": "3d",
   "axiom": "A",
   "rules": [
     {
       "symbol": "A",
-      "replacement": "F+F+F+F^A"
+      "replacement": "F[!&&&FFF^^^!FF]/A"
     }
   ],
-  "angle": 90,
+  "angle": 30,
   "iterations": 24,
+  "lineWidth": 6,
   "color": "#9af4ff",
   "colorEnd": "#fc79ff"
 }

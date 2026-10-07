@@ -31,9 +31,11 @@ After the last generation, a turtle reads the string from left to right and draw
 
 Any other letter, for example `X`, draws nothing. It only steers the rewriting. You can change which letters draw or move under **Advanced**.
 
+The explorer switches to 3D by itself as soon as the system uses one of `& ^ \ / $`. In 3D every line becomes a lit tube. Drag to orbit all the way around, shift-drag or right-drag to move the orbit center, and scroll to fly towards the spot under the cursor.
+
 ## Random rules
 
-Give one symbol several rules and each replacement picks one of them at random. The weight next to a rule sets how often it wins. The seed under **Advanced** fixes the random choices, so a shared link always grows the same plant.
+Give one symbol several rules and each replacement picks one of them at random. The weight next to a rule sets how often it wins: its chance is its weight divided by the total weight of that symbol's rules, and the explorer shows that chance as a percentage under each weight. The seed under **Advanced** fixes the random choices, so a shared link always grows the same plant.
 
 ## Share and submit
 
