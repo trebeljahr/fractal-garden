@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
@@ -6,15 +6,15 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { radians } from "../utils/ctxHelpers";
+import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import {
-  deflate,
-  getMaxIterations,
-  getStartTriangles,
-  mergeTiles,
+  type Bounds,
+  getVisibleTriangles,
+  MAX_ITERATIONS,
   type PenroseStart,
-  type PenroseTile,
   type PenroseVariant,
+  PHI,
   type RobinsonTriangle,
 } from "../utils/penroseTiling";
 import { getDescription } from "../utils/readFiles";
@@ -28,7 +28,6 @@ type Config = {
   start: PenroseStart;
   iterations: number;
   animateIterations: boolean;
-  zoom: number;
   rotation: number;
   background: string;
   kiteColor: string;
@@ -41,6 +40,12 @@ type Config = {
 };
 
 const PADDING = 0.06;
+const INITIAL_ZOOM_SIZE = 1 / (1 - 2 * PADDING);
+const MIN_ZOOM_SIZE = 0.005;
+const MAX_ZOOM_SIZE = 5000;
+// Zoomed far out, draw coarser supertiles to keep roughly this many half-tiles
+// on screen. A half-tile with edge e covers about e² / 4.
+const MAX_VISIBLE_TRIANGLES = 100000;
 
 const variantOptions: PenroseVariant[] = ["p2", "p3"];
 const variantLabels: Record<PenroseVariant, string> = {
@@ -54,15 +59,25 @@ const startLabels: Record<PenroseStart, string> = {
   star: "Star",
 };
 
-function tracePolygon(ctx: CanvasRenderingContext2D, tile: PenroseTile, closed: boolean) {
-  const [first, ...rest] = tile.points;
+// No closePath: fill closes each subpath anyway, and Chrome slows down
+// quadratically when closing tens of thousands of subpaths in one path.
+function traceTriangle(ctx: CanvasRenderingContext2D, { a, b, c }: RobinsonTriangle) {
+  ctx.moveTo(a[0], a[1]);
+  ctx.lineTo(b[0], b[1]);
+  ctx.lineTo(c[0], c[1]);
+}
+
+// Outline only the real tile edges, not the seam where two halves meet: the
+// leg AB in P2, the base BC in P3.
+function traceTileEdges(
+  ctx: CanvasRenderingContext2D,
+  { a, b, c }: RobinsonTriangle,
+  variant: PenroseVariant,
+) {
+  const [first, middle, last] = variant === "p2" ? [a, c, b] : [b, a, c];
   ctx.moveTo(first[0], first[1]);
-  for (const [x, y] of rest) {
-    ctx.lineTo(x, y);
-  }
-  if (closed) {
-    ctx.closePath();
-  }
+  ctx.lineTo(middle[0], middle[1]);
+  ctx.lineTo(last[0], last[1]);
 }
 
 const PenroseTiling = ({ description }: Props) => {
@@ -73,7 +88,6 @@ const PenroseTiling = ({ description }: Props) => {
     start: "sun",
     iterations: 5,
     animateIterations: true,
-    zoom: 1,
     rotation: 0,
     background: "#252424",
     kiteColor: "#f2b134",
@@ -84,86 +98,130 @@ const PenroseTiling = ({ description }: Props) => {
     outlineColor: "#1b1a1a",
     lineWidth: 1,
   });
+  const viewportRef = useRef({
+    center: [0, 0] as [number, number],
+    zoomSize: INITIAL_ZOOM_SIZE,
+  });
+  const renderRef = useRef<(() => void) | null>(null);
+  const frameRef = useRef(0);
 
-  const maxIterations = getMaxIterations(config.variant, config.start);
+  const requestRender = useCallback(() => {
+    if (frameRef.current) return;
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = 0;
+      renderRef.current?.();
+    });
+  }, []);
 
-  const levels = useMemo(() => {
-    const result: RobinsonTriangle[][] = [getStartTriangles(config.variant, config.start)];
-    for (let i = 1; i <= maxIterations; i++) {
-      result.push(deflate(result[i - 1], config.variant));
-    }
-    return result;
-  }, [config.variant, config.start, maxIterations]);
+  useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
-  const tiles = useMemo(() => {
-    const level = levels[Math.min(config.iterations, levels.length - 1)];
-    return mergeTiles(level, config.variant);
-  }, [levels, config.iterations, config.variant]);
-
-  useEffect(() => {
-    if (config.iterations <= maxIterations) return;
-
-    setConfig((old) => ({
-      ...old,
-      iterations: maxIterations,
-    }));
-  }, [config.iterations, maxIterations]);
+  useShaderViewportControls({
+    canvas: ctx?.canvas ?? null,
+    viewportRef,
+    minZoomSize: MIN_ZOOM_SIZE,
+    maxZoomSize: MAX_ZOOM_SIZE,
+    onViewportChange: requestRender,
+    flipY: true,
+  });
 
   useEffect(() => {
     if (!config.animateIterations) return;
 
-    const delay = config.iterations >= maxIterations ? 1800 : 950;
+    const delay = config.iterations >= MAX_ITERATIONS ? 1800 : 950;
 
     const id = setTimeout(() => {
       setConfig((old) => ({
         ...old,
-        iterations: old.iterations >= maxIterations ? 0 : old.iterations + 1,
+        iterations: old.iterations >= MAX_ITERATIONS ? 0 : old.iterations + 1,
       }));
     }, delay);
 
     return () => clearTimeout(id);
-  }, [config.animateIterations, config.iterations, maxIterations]);
+  }, [config.animateIterations, config.iterations]);
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const ratio = window.devicePixelRatio || 1;
-    const scale = ((Math.min(width, height) * (1 - 2 * PADDING)) / 2) * config.zoom;
-    const colors =
-      config.variant === "p2"
-        ? [config.kiteColor, config.dartColor]
-        : [config.thinColor, config.thickColor];
+    const draw = () => {
+      const ratio = window.devicePixelRatio || 1;
+      const { center, zoomSize } = viewportRef.current;
+      const pixelsPerUnit = Math.min(width, height) / (2 * zoomSize);
+      // Tiles at level L have edges PHI^-L long.
+      const minTilePx = Math.sqrt((4 * width * height) / MAX_VISIBLE_TRIANGLES);
+      const level = Math.min(
+        config.iterations,
+        Math.floor(Math.log(pixelsPerUnit / minTilePx) / Math.log(PHI)),
+      );
 
-    ctx.resetTransform();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
+      // The view rectangle, rotated back into tiling coordinates.
+      const angle = radians(config.rotation);
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const halfWidth = (width / 2 + config.lineWidth) / pixelsPerUnit;
+      const halfHeight = (height / 2 + config.lineWidth) / pixelsPerUnit;
+      const extentX = Math.abs(cos) * halfWidth + Math.abs(sin) * halfHeight;
+      const extentY = Math.abs(sin) * halfWidth + Math.abs(cos) * halfHeight;
+      const centerX = cos * center[0] + sin * center[1];
+      const centerY = -sin * center[0] + cos * center[1];
+      const bounds: Bounds = {
+        minX: centerX - extentX,
+        maxX: centerX + extentX,
+        minY: centerY - extentY,
+        maxY: centerY + extentY,
+      };
+      const triangles = getVisibleTriangles(config.variant, config.start, level, bounds);
+      const colors =
+        config.variant === "p2"
+          ? [config.kiteColor, config.dartColor]
+          : [config.thinColor, config.thickColor];
 
-    ctx.translate(width / 2, height / 2);
-    ctx.rotate(radians(config.rotation));
-    ctx.scale(scale, scale);
+      ctx.resetTransform();
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
 
-    for (const type of [0, 1] as const) {
-      ctx.beginPath();
-      for (const tile of tiles) {
-        if (tile.type === type) tracePolygon(ctx, tile, true);
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(pixelsPerUnit, pixelsPerUnit);
+      ctx.translate(-center[0], -center[1]);
+      ctx.rotate(angle);
+
+      for (const type of [0, 1] as const) {
+        ctx.beginPath();
+        for (const triangle of triangles) {
+          if (triangle.type === type) traceTriangle(ctx, triangle);
+        }
+        ctx.fillStyle = colors[type];
+        ctx.fill();
       }
-      ctx.fillStyle = colors[type];
-      ctx.fill();
-    }
 
-    if (config.showOutline && config.lineWidth > 0) {
-      ctx.beginPath();
-      for (const tile of tiles) {
-        tracePolygon(ctx, tile, tile.complete);
+      if (config.showOutline && config.lineWidth > 0) {
+        ctx.beginPath();
+        for (const triangle of triangles) {
+          traceTileEdges(ctx, triangle, config.variant);
+        }
+        ctx.strokeStyle = config.outlineColor;
+        ctx.lineWidth = config.lineWidth / pixelsPerUnit;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
       }
-      ctx.strokeStyle = config.outlineColor;
-      ctx.lineWidth = config.lineWidth / scale;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
-    }
-  }, [config, ctx, height, tiles, width]);
+    };
+
+    renderRef.current = draw;
+    draw();
+
+    return () => {
+      renderRef.current = null;
+    };
+  }, [config, ctx, height, width]);
+
+  const resetView = useCallback(() => {
+    viewportRef.current = {
+      center: [0, 0],
+      zoomSize: INITIAL_ZOOM_SIZE,
+    };
+    requestRender();
+  }, [requestRender]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -175,7 +233,15 @@ const PenroseTiling = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+        <ExplorerPanel
+          actions={[{ label: "Reset view", onClick: resetView }]}
+          data={config}
+          lines={[
+            "Drag to pan. Scroll or pinch to zoom. The tiling has no edge, so you can travel as far as you like.",
+          ]}
+          mode="pattern"
+          onUpdate={handleUpdate}
+        >
           <PanelSelect
             path="variant"
             optionLabels={variantOptions.map((option) => variantLabels[option])}
@@ -187,9 +253,8 @@ const PenroseTiling = ({ description }: Props) => {
             optionLabels={startOptions.map((option) => startLabels[option])}
             options={startOptions}
           />
-          <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />
+          <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
           <PanelBoolean path="animateIterations" />
-          <PanelNumber path="zoom" label="Zoom" min={0.5} max={4} step={0.1} />
           <PanelNumber path="rotation" label="Rotation" min={-180} max={180} step={1} />
           <PanelColor path="background" />
           {config.variant === "p2" ? (

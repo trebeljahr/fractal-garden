@@ -16,6 +16,8 @@ The way this page builds the tiling is by cutting every tile in half along its m
 
 The trick is that each of these triangles can be cut into smaller copies of the same two triangles, all shrunk by the factor $1/\varphi$. In P2 an acute half-kite becomes two half-kites and one half-dart, and an obtuse half-dart becomes one half-kite and one half-dart. This step is called **deflation**. Repeat it and the tiles get smaller and smaller while the picture stays the same size, which is what the iterations slider does. When drawing, mirrored halves are glued back together, so you see whole kites, darts and rhombi.
 
+Deflation also gives a way to show the whole infinite tiling. The sun and star patches reappear at their own center after four deflations of a copy that is $\varphi^4$ times larger. So the page starts from a patch big enough to cover the screen and deflates only the triangles that touch the view. Drag in any direction and new tiles appear. Zoom far out and the page draws the bigger supertiles instead, which form a Penrose tiling too.
+
 Counting tiles shows the golden ratio again. If $k_n$ and $d_n$ are the numbers of half-kites and half-darts after $n$ deflations, then
 
 $$

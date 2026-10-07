@@ -13,17 +13,13 @@ export type RobinsonTriangle = {
   c: Point;
 };
 
-export type PenroseTile = {
-  type: 0 | 1;
-  points: Point[];
-  // Half-tiles on the edge of the patch have no partner. Their missing mirror
-  // edge is not a real tile edge, so it must not be outlined.
-  complete: boolean;
-};
-
 export const PHI = (1 + Math.sqrt(5)) / 2;
 const INV_PHI = 1 / PHI;
-export const MAX_TRIANGLES = 150000;
+export const MAX_ITERATIONS = 8;
+// Each start patch reappears at its own center after four deflations of a copy
+// scaled up by PHI^4 (the P3 sun from its first deflation on). Growing the seed
+// in steps of PHI^4 therefore extends one and the same infinite tiling.
+const SEED_PERIOD = 4;
 
 function lerp(p: Point, q: Point, t: number): Point {
   return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
@@ -92,65 +88,89 @@ export function getStartTriangles(variant: PenroseVariant, start: PenroseStart) 
   return wheel((u, v) => tri(1, polar(INV_PHI, v), center, polar(1, u)));
 }
 
-export function deflate(triangles: RobinsonTriangle[], variant: PenroseVariant) {
-  return triangles.flatMap(variant === "p2" ? deflateP2 : deflateP3);
+export type Bounds = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+
+function distanceToSegment([px, py]: Point, [ax, ay]: Point, [bx, by]: Point) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(px - ax - t * dx, py - ay - t * dy);
 }
 
-export function getMaxIterations(variant: PenroseVariant, start: PenroseStart) {
-  let counts = [0, 0];
-  for (const t of getStartTriangles(variant, start)) counts[t.type] += 1;
+// Radius of the largest disc around the origin that the patch covers.
+function coveredRadius(triangles: RobinsonTriangle[]) {
+  const edges = triangles.flatMap(({ a, b, c }) => [
+    [a, b],
+    [b, c],
+    [c, a],
+  ]);
+  const key = ([p, q]: Point[]) => [pointKey(p), pointKey(q)].sort().join("|");
+  const counts = new Map<string, number>();
+  for (const edge of edges) counts.set(key(edge), (counts.get(key(edge)) ?? 0) + 1);
 
-  let iterations = 0;
-  while (iterations < 12) {
-    const next =
-      variant === "p2"
-        ? [2 * counts[0] + counts[1], counts[0] + counts[1]]
-        : [counts[0] + counts[1], counts[0] + 2 * counts[1]];
-    if (next[0] + next[1] > MAX_TRIANGLES) break;
-    counts = next;
-    iterations += 1;
+  let radius = Number.POSITIVE_INFINITY;
+  for (const edge of edges) {
+    if (counts.get(key(edge)) === 1) {
+      radius = Math.min(radius, distanceToSegment([0, 0], edge[0], edge[1]));
+    }
   }
-
-  return iterations;
+  return radius;
 }
 
 function pointKey([x, y]: Point) {
   return `${Math.round(x * 1e7)},${Math.round(y * 1e7)}`;
 }
 
-// Glue mirrored Robinson halves back into whole kites, darts and rhombi.
-export function mergeTiles(triangles: RobinsonTriangle[], variant: PenroseVariant) {
-  const halves = new Map<string, { join: [Point, Point]; other: Point; type: 0 | 1 }[]>();
+function touches({ a, b, c }: RobinsonTriangle, bounds: Bounds) {
+  return (
+    Math.max(a[0], b[0], c[0]) >= bounds.minX &&
+    Math.min(a[0], b[0], c[0]) <= bounds.maxX &&
+    Math.max(a[1], b[1], c[1]) >= bounds.minY &&
+    Math.min(a[1], b[1], c[1]) <= bounds.maxY
+  );
+}
 
-  for (const { type, a, b, c } of triangles) {
-    const join: [Point, Point] = variant === "p2" ? [a, b] : [b, c];
-    const other = variant === "p2" ? c : a;
-    const keys = [pointKey(join[0]), pointKey(join[1])].sort();
-    const key = `${type}|${keys[0]}|${keys[1]}`;
-    const list = halves.get(key);
-    if (list) list.push({ join, other, type });
-    else halves.set(key, [{ join, other, type }]);
-  }
+// The part of the infinite tiling inside `bounds` whose tile edges are
+// PHI^-level long. Level 0 tiles match the start patch, so negative levels give
+// the inflated supertiles seen when zooming far out.
+export function getVisibleTriangles(
+  variant: PenroseVariant,
+  start: PenroseStart,
+  level: number,
+  bounds: Bounds,
+) {
+  const seed = getStartTriangles(variant, start);
+  const reach = Math.max(
+    ...[bounds.minX, bounds.maxX].flatMap((x) =>
+      [bounds.minY, bounds.maxY].map((y) => Math.hypot(x, y)),
+    ),
+  );
+  const radius = coveredRadius(seed);
 
-  const tiles: PenroseTile[] = [];
+  let growth = SEED_PERIOD;
+  while (growth + level < 1 || radius * PHI ** growth < reach) growth += SEED_PERIOD;
 
-  for (const list of Array.from(halves.values())) {
-    const [first, second] = list;
-    if (second) {
-      tiles.push({
-        type: first.type,
-        points: [first.join[0], first.other, first.join[1], second.other],
-        complete: true,
-      });
-      continue;
+  const factor = PHI ** growth;
+  const grow = ([x, y]: Point): Point => [x * factor, y * factor];
+  let triangles = seed
+    .map(({ type, a, b, c }) => tri(type, grow(a), grow(b), grow(c)))
+    .filter((triangle) => touches(triangle, bounds));
+
+  const split = variant === "p2" ? deflateP2 : deflateP3;
+  for (let i = 0; i < growth + level; i++) {
+    const next: RobinsonTriangle[] = [];
+    for (const triangle of triangles) {
+      for (const child of split(triangle)) {
+        if (touches(child, bounds)) next.push(child);
+      }
     }
-
-    tiles.push({
-      type: first.type,
-      points: [first.join[0], first.other, first.join[1]],
-      complete: false,
-    });
+    triangles = next;
   }
 
-  return tiles;
+  return triangles;
 }
