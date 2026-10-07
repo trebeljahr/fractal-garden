@@ -149,6 +149,8 @@ export class RenderHost<P> {
         } else {
           probe.drawMs = drawMs;
           probe.drawnAt = performance.now();
+          // Some renderers only know how much they drew once they have drawn it.
+          probe.work = this.renderer.describe()?.work ?? probe.work;
         }
       }
 

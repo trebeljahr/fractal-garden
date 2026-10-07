@@ -1,13 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
-import { useAdaptiveGrowth } from "../utils/hooks/useAdaptiveGrowth";
-import { useRenderSurface } from "../utils/hooks/useRenderSurface";
+import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { explorerHref } from "../utils/lsystem/share";
 import { DEFAULT_SPEC } from "../utils/lsystem/spec";
 import type { LSystem2DParams } from "../utils/render/lsystem2d";
-import type { HostEvent } from "../utils/render/types";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 
@@ -117,20 +115,6 @@ const LSystem = ({ ruleset }: Props) => {
   }));
   const { width, height } = useWindowSize();
 
-  const setIterations = useCallback(
-    (iterations: number) => setConfig((old) => ({ ...old, iterations })),
-    [],
-  );
-  const growth = useAdaptiveGrowth({
-    storageKey: `l-system:${ruleset.axiom}:${JSON.stringify(ruleset.replace)}`,
-    min: minVisibleIteration,
-    max: config.ruleset.maxIterations,
-    iterations: config.iterations,
-    animate: config.animateIterations,
-    setIterations,
-    stepDelay: 1000,
-  });
-
   const params = useMemo<LSystem2DParams | null>(() => {
     if (!width || !height) return null;
     const sizes = { width, height };
@@ -151,22 +135,17 @@ const LSystem = ({ ruleset }: Props) => {
     };
   }, [config, width, height]);
 
-  const { onCost, onRendered } = growth;
-  const onEvent = useCallback(
-    (event: HostEvent) => {
-      if (event.type === "rendered") onRendered(event.level);
-      if (event.type === "cost") onCost(event.report);
-    },
-    [onCost, onRendered],
-  );
-
-  const { containerRef } = useRenderSurface({
+  const { containerRef, animateLabel } = useGrowingFractal({
     kind: "lsystem2d",
+    storageKey: `l-system:${ruleset.axiom}:${JSON.stringify(ruleset.replace)}`,
+    config,
+    setConfig,
     params,
     width,
     height,
-    onEvent,
-    measureKey: growth.measureKey,
+    min: minVisibleIteration,
+    max: config.ruleset.maxIterations,
+    stepDelay: 1000,
   });
 
   const handleUpdate = (newData: Config) => {
@@ -200,14 +179,7 @@ const LSystem = ({ ruleset }: Props) => {
           max={config.ruleset.maxIterations}
           step={1}
         />
-        <PanelBoolean
-          path="animateIterations"
-          label={
-            growth.cap < config.ruleset.maxIterations
-              ? `Animate growth (to ${growth.cap})`
-              : undefined
-          }
-        />
+        <PanelBoolean path="animateIterations" label={animateLabel} />
       </ExplorerPanel>
 
       <div className={styles.fullScreen} ref={containerRef} />

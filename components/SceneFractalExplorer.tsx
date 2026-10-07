@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
-import { useAdaptiveGrowth } from "../utils/hooks/useAdaptiveGrowth";
+import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
-import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
-import type { HostEvent } from "../utils/render/types";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { NavElement } from "./Navbar";
@@ -98,19 +96,6 @@ export function SceneFractalExplorer<V extends string>({
   const iterations = Math.min(config.iterations, maxIterations);
   const variantOptions = Object.keys(variants) as V[];
 
-  const setIterations = useCallback(
-    (next: number) => setConfig((old) => ({ ...old, iterations: next })),
-    [],
-  );
-  const growth = useAdaptiveGrowth({
-    storageKey: `${storageKey}:${config.variant}`,
-    min: 0,
-    max: maxIterations,
-    iterations,
-    animate: config.animateIterations,
-    setIterations,
-  });
-
   const params = useMemo<Scene3DParams>(
     () => ({
       spec: variant.spec,
@@ -147,22 +132,15 @@ export function SceneFractalExplorer<V extends string>({
     ],
   );
 
-  const { onCost, onRendered } = growth;
-  const onEvent = useCallback(
-    (event: HostEvent) => {
-      if (event.type === "rendered") onRendered(event.level);
-      if (event.type === "cost") onCost(event.report);
-    },
-    [onCost, onRendered],
-  );
-
-  const { containerRef, canvas } = useRenderSurface({
+  const { containerRef, canvas, animateLabel } = useGrowingFractal({
     kind: "scene3d",
+    storageKey: `${storageKey}:${config.variant}`,
+    config,
+    setConfig,
     params,
     width,
     height,
-    onEvent,
-    measureKey: growth.measureKey,
+    max: maxIterations,
   });
 
   useOrbitZoomControls({
@@ -174,8 +152,8 @@ export function SceneFractalExplorer<V extends string>({
 
   useEffect(() => {
     if (config.iterations <= maxIterations) return;
-    setIterations(maxIterations);
-  }, [config.iterations, maxIterations, setIterations]);
+    setConfig((old) => ({ ...old, iterations: maxIterations }));
+  }, [config.iterations, maxIterations]);
 
   const handleUpdate = (newData: Config<V>) => {
     setConfig((old) => ({
@@ -207,10 +185,7 @@ export function SceneFractalExplorer<V extends string>({
           />
         )}
         <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />
-        <PanelBoolean
-          path="animateIterations"
-          label={growth.cap < maxIterations ? `Animate growth (to ${growth.cap})` : undefined}
-        />
+        <PanelBoolean path="animateIterations" label={animateLabel} />
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-180} max={180} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
