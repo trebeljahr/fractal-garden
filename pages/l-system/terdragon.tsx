@@ -39,7 +39,7 @@ const Terdragon = ({ description }: Props) => {
     animateIterations: true,
     background: "#252424",
     color: "#7ee8a2",
-    lineWidth: 1.5,
+    lineWidth: 0.5,
   });
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const Terdragon = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelColor path="color" />
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
-          <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
+          <PanelNumber path="lineWidth" min={0.1} max={4} step={0.05} />
           <PanelBoolean path="animateIterations" />
         </ExplorerPanel>
         <div className={styles.fullScreen}>

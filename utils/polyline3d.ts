@@ -21,6 +21,39 @@ type Derivative = (x: number, y: number, z: number, out: Float64Array) => void;
 
 const DEPTH_BINS = 32;
 const PROJECTION_FOCAL_LENGTH = 4;
+// Points closer to the camera than this are clipped instead of projected.
+const NEAR_PLANE = 0.05;
+const CLIPPED = 255;
+const MIN_NORMALIZATION_STEPS = 20000;
+
+/**
+ * Advances `state` by one classic fourth-order Runge-Kutta step in place.
+ * Returns false once the orbit escapes to infinity.
+ */
+function stepRK4(derivative: Derivative, state: Float64Array, dt: number, scratch: Float64Array[]) {
+  const [k1, k2, k3, k4] = scratch;
+  const x = state[0];
+  const y = state[1];
+  const z = state[2];
+
+  derivative(x, y, z, k1);
+  derivative(x + (dt / 2) * k1[0], y + (dt / 2) * k1[1], z + (dt / 2) * k1[2], k2);
+  derivative(x + (dt / 2) * k2[0], y + (dt / 2) * k2[1], z + (dt / 2) * k2[2], k3);
+  derivative(x + dt * k3[0], y + dt * k3[1], z + dt * k3[2], k4);
+
+  for (let axis = 0; axis < 3; axis++) {
+    state[axis] += (dt / 6) * (k1[axis] + 2 * k2[axis] + 2 * k3[axis] + k4[axis]);
+  }
+
+  const sum = state[0] + state[1] + state[2];
+  return (
+    Number.isFinite(sum) && Math.abs(state[0]) + Math.abs(state[1]) + Math.abs(state[2]) <= 1e6
+  );
+}
+
+function createScratch() {
+  return [new Float64Array(3), new Float64Array(3), new Float64Array(3), new Float64Array(3)];
+}
 
 /**
  * Integrates a 3D ODE with classic fourth-order Runge-Kutta and stores every
@@ -34,34 +67,15 @@ export function integrateRK4(
   steps: number,
 ): Polyline3D {
   const points = new Float32Array((steps + 1) * 3);
-  const k1 = new Float64Array(3);
-  const k2 = new Float64Array(3);
-  const k3 = new Float64Array(3);
-  const k4 = new Float64Array(3);
-  let [x, y, z] = start;
+  const scratch = createScratch();
+  const state = Float64Array.from(start);
   let count = 1;
 
-  points[0] = x;
-  points[1] = y;
-  points[2] = z;
+  points.set(state, 0);
 
   for (let i = 0; i < steps; i++) {
-    derivative(x, y, z, k1);
-    derivative(x + (dt / 2) * k1[0], y + (dt / 2) * k1[1], z + (dt / 2) * k1[2], k2);
-    derivative(x + (dt / 2) * k2[0], y + (dt / 2) * k2[1], z + (dt / 2) * k2[2], k3);
-    derivative(x + dt * k3[0], y + dt * k3[1], z + dt * k3[2], k4);
-
-    x += (dt / 6) * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
-    y += (dt / 6) * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
-    z += (dt / 6) * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]);
-
-    if (!Number.isFinite(x + y + z) || Math.abs(x) + Math.abs(y) + Math.abs(z) > 1e6) {
-      break;
-    }
-
-    points[count * 3] = x;
-    points[count * 3 + 1] = y;
-    points[count * 3 + 2] = z;
+    if (!stepRK4(derivative, state, dt, scratch)) break;
+    points.set(state, count * 3);
     count++;
   }
 
@@ -69,13 +83,81 @@ export function integrateRK4(
 }
 
 /**
- * Centers the polyline on its bounding box and scales it uniformly so the
- * farthest point lies on the unit sphere. Keeps the aspect ratio intact.
+ * Integrates an orbit like integrateRK4 and normalizes it, but also returns an
+ * `extend` function that keeps integrating from where the orbit left off.
+ * Extended points reuse the normalization of the first `steps`, so the
+ * picture never rescales while it grows. Each extend call appends to the
+ * polyline it is given, growing the buffer with spare capacity as needed.
  */
-export function normalizePolyline(
-  { points, count }: Polyline3D,
+export function createEndlessOrbit(
+  derivative: Derivative,
+  start: [number, number, number],
+  dt: number,
+  steps: number,
   axisOrder: [number, number, number] = [0, 1, 2],
-): Polyline3D {
+) {
+  // Fit the picture to a long enough orbit even when `steps` is short, so the
+  // trail does not grow out of view once it reaches the attractor.
+  const fullOrbit = integrateRK4(derivative, start, dt, Math.max(steps, MIN_NORMALIZATION_STEPS));
+  const orbit = { points: fullOrbit.points, count: Math.min(fullOrbit.count, steps + 1) };
+  const normalization = getNormalization(fullOrbit, axisOrder);
+  const polyline = applyNormalization(orbit, normalization);
+  const scratch = createScratch();
+  const state = Float64Array.from(orbit.points.subarray((orbit.count - 1) * 3, orbit.count * 3));
+  let escaped = orbit.count < steps + 1;
+
+  const extend = ({ points, count }: Polyline3D, extraSteps: number): Polyline3D => {
+    if (escaped) return { points, count };
+
+    let buffer = points;
+    if ((count + extraSteps) * 3 > buffer.length) {
+      buffer = new Float32Array(Math.max(buffer.length * 2, (count + extraSteps) * 3));
+      buffer.set(points.subarray(0, count * 3));
+    }
+
+    let next = count;
+    for (let i = 0; i < extraSteps; i++) {
+      if (!stepRK4(derivative, state, dt, scratch)) {
+        escaped = true;
+        break;
+      }
+      writeNormalized(state, normalization, buffer, next);
+      next++;
+    }
+
+    return { points: buffer, count: next };
+  };
+
+  return { polyline, extend };
+}
+
+/**
+ * Drops the oldest points so at most `maxCount` remain. Shifts the buffer in
+ * place and returns how many points were dropped.
+ */
+export function trimPolyline(polyline: Polyline3D, maxCount: number): number {
+  const dropped = polyline.count - maxCount;
+  if (dropped <= 0) return 0;
+
+  polyline.points.copyWithin(0, dropped * 3, polyline.count * 3);
+  polyline.count = maxCount;
+  return dropped;
+}
+
+type Normalization = {
+  center: number[];
+  scale: number;
+  axisOrder: [number, number, number];
+};
+
+/**
+ * Finds the bounding-box center and the uniform scale that puts the farthest
+ * point on the unit sphere.
+ */
+function getNormalization(
+  { points, count }: Polyline3D,
+  axisOrder: [number, number, number],
+): Normalization {
   const min = [Infinity, Infinity, Infinity];
   const max = [-Infinity, -Infinity, -Infinity];
 
@@ -97,17 +179,43 @@ export function normalizePolyline(
     radius = Math.max(radius, Math.hypot(dx, dy, dz));
   }
 
-  const scale = radius > 0 ? 1 / radius : 1;
+  return { center, scale: radius > 0 ? 1 / radius : 1, axisOrder };
+}
+
+function writeNormalized(
+  source: ArrayLike<number>,
+  { center, scale, axisOrder }: Normalization,
+  target: Float32Array,
+  index: number,
+) {
+  for (let axis = 0; axis < 3; axis++) {
+    const from = axisOrder[axis];
+    target[index * 3 + axis] = (source[from] - center[from]) * scale;
+  }
+}
+
+function applyNormalization(
+  { points, count }: Polyline3D,
+  normalization: Normalization,
+): Polyline3D {
   const normalized = new Float32Array(count * 3);
 
   for (let i = 0; i < count; i++) {
-    for (let axis = 0; axis < 3; axis++) {
-      const source = axisOrder[axis];
-      normalized[i * 3 + axis] = (points[i * 3 + source] - center[source]) * scale;
-    }
+    writeNormalized(points.subarray(i * 3, i * 3 + 3), normalization, normalized, i);
   }
 
   return { points: normalized, count };
+}
+
+/**
+ * Centers the polyline on its bounding box and scales it uniformly so the
+ * farthest point lies on the unit sphere. Keeps the aspect ratio intact.
+ */
+export function normalizePolyline(
+  polyline: Polyline3D,
+  axisOrder: [number, number, number] = [0, 1, 2],
+): Polyline3D {
+  return applyNormalization(polyline, getNormalization(polyline, axisOrder));
 }
 
 /**
@@ -192,6 +300,7 @@ export function drawPolyline3D(
   const sinY = Math.sin(radians(options.rotationY));
   const scale = Math.min(width, height) * 0.42;
   const projected = new Float32Array(count * 3);
+  const clipped = new Uint8Array(count);
 
   ctx.fillStyle = options.background;
   ctx.fillRect(0, 0, width, height);
@@ -207,7 +316,9 @@ export function drawPolyline3D(
     const z1 = y * sinX + z * cosX;
     const x2 = x * cosY + z1 * sinY;
     const z2 = -x * sinY + z1 * cosY;
-    const perspective = PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - z2, 0.1);
+    const cameraDepth = options.cameraDistance - z2;
+    if (cameraDepth < NEAR_PLANE) clipped[i] = 1;
+    const perspective = PROJECTION_FOCAL_LENGTH / Math.max(cameraDepth, NEAR_PLANE);
 
     projected[i * 3] = width / 2 + x2 * scale * perspective;
     projected[i * 3 + 1] = height / 2 - y1 * scale * perspective;
@@ -219,12 +330,19 @@ export function drawPolyline3D(
   const segmentBins = new Uint8Array(segmentCount);
   const binStarts = new Uint32Array(DEPTH_BINS + 1);
 
+  let visibleSegments = 0;
+
   for (let i = 0; i < segmentCount; i++) {
+    if (clipped[i] || clipped[i + 1]) {
+      segmentBins[i] = CLIPPED;
+      continue;
+    }
     const depth = (projected[i * 3 + 2] + projected[i * 3 + 5]) / 2;
     const t = Math.min(Math.max((depth + 1) / 2, 0), 0.9999);
     const bin = Math.floor(t * DEPTH_BINS);
     segmentBins[i] = bin;
     binStarts[bin + 1]++;
+    visibleSegments++;
   }
 
   for (let bin = 0; bin < DEPTH_BINS; bin++) {
@@ -232,8 +350,9 @@ export function drawPolyline3D(
   }
 
   const cursor = binStarts.slice(0, DEPTH_BINS);
-  const sorted = new Uint32Array(segmentCount);
+  const sorted = new Uint32Array(visibleSegments);
   for (let i = 0; i < segmentCount; i++) {
+    if (segmentBins[i] === CLIPPED) continue;
     sorted[cursor[segmentBins[i]]++] = i;
   }
 
@@ -271,5 +390,6 @@ export function drawPolyline3D(
     ctx.stroke();
   }
 
+  if (clipped[count - 1]) return null;
   return { x: projected[(count - 1) * 3], y: projected[(count - 1) * 3 + 1] };
 }

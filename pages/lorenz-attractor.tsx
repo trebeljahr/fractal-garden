@@ -8,7 +8,7 @@ import styles from "../styles/Fullscreen.module.css";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { type Polyline3DSceneConfig, usePolyline3DScene } from "../utils/hooks/usePolyline3DScene";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { integrateRK4, normalizePolyline } from "../utils/polyline3d";
+import { createEndlessOrbit } from "../utils/polyline3d";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -31,6 +31,7 @@ const INITIAL_CONFIG: Config = {
   steps: 20000,
   animateTrail: true,
   trailSpeed: 40,
+  showHead: true,
   autoRotate: true,
   rotationX: 8,
   rotationY: 0,
@@ -39,8 +40,11 @@ const INITIAL_CONFIG: Config = {
   nearColor: "#ffd166",
   farColor: "#ef476f",
   farAlpha: 0.25,
-  lineWidth: 1,
+  lineWidth: 0.6,
 };
+
+// Keeps the endless trail fast: older points fade out of the buffer.
+const MAX_POINTS = 150000;
 
 const LorenzAttractor = ({ description }: Props) => {
   const { width, height } = useWindowSize();
@@ -50,13 +54,14 @@ const LorenzAttractor = ({ description }: Props) => {
   useOrbitZoomControls({
     canvas: ctx?.canvas ?? null,
     setConfig,
-    minDistance: 2,
+    minDistance: 0.3,
     maxDistance: 10,
   });
 
   const { sigma, rho, beta, dt, steps } = config;
-  const polyline = useMemo(() => {
-    const orbit = integrateRK4(
+  const { polyline, extend } = useMemo(() => {
+    // Show z as the vertical axis, like the classic butterfly picture.
+    return createEndlessOrbit(
       (x, y, z, out) => {
         out[0] = sigma * (y - x);
         out[1] = x * (rho - z) - y;
@@ -65,12 +70,11 @@ const LorenzAttractor = ({ description }: Props) => {
       [0.1, 0, 0],
       dt,
       steps,
+      [0, 2, 1],
     );
-    // Show z as the vertical axis, like the classic butterfly picture.
-    return normalizePolyline(orbit, [0, 2, 1]);
   }, [sigma, rho, beta, dt, steps]);
 
-  usePolyline3DScene({ ctx, width, height, polyline, config });
+  usePolyline3DScene({ ctx, width, height, polyline, config, extend, maxPoints: MAX_POINTS });
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -99,15 +103,16 @@ const LorenzAttractor = ({ description }: Props) => {
         <PanelNumber path="steps" label="Steps" min={1000} max={80000} step={1000} />
         <PanelBoolean path="animateTrail" label="Animate trail" />
         <PanelNumber path="trailSpeed" label="Trail speed" min={1} max={500} step={1} />
+        <PanelBoolean path="showHead" label="Show drawing head" />
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-85} max={85} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-        <PanelNumber path="cameraDistance" min={2} max={10} step={0.1} />
+        <PanelNumber path="cameraDistance" min={0.3} max={10} step={0.05} />
         <PanelColor path="background" />
         <PanelColor path="nearColor" label="Near color" />
         <PanelColor path="farColor" label="Far color" />
         <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
-        <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
+        <PanelNumber path="lineWidth" min={0.1} max={4} step={0.05} />
       </ExplorerPanel>
       <div className={styles.fullScreen}>
         <Canvas setCtx={setCtx} width={width} height={height} />
