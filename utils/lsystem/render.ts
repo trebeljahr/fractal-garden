@@ -1,11 +1,14 @@
 import { createShaderProgram } from "../shaders/compileShader";
+import { fixedToNumber, rescale } from "./bigfixed";
 import type { Geometry } from "./engine";
 import type { ColorMode, Dimension } from "./spec";
 import type { ZoomDetail } from "./zoom";
 
 // yaw and pitch orbit around the target, zoom moves the eye closer, and
 // targetX/Y/Z shift the orbit center away from the middle of the drawing (in
-// drawing units). panX/panY shift the flat 2D view in screen pixels.
+// drawing units). panX/panY shift the flat 2D view in screen pixels, around
+// the drawing's center moved by deepX/deepY / 2^deepBits: endless zoom
+// needs more digits for that point than a float has.
 export type Camera = {
   yaw: number;
   pitch: number;
@@ -15,6 +18,9 @@ export type Camera = {
   targetX: number;
   targetY: number;
   targetZ: number;
+  deepX: bigint;
+  deepY: bigint;
+  deepBits: number;
 };
 
 export const DEFAULT_CAMERA: Camera = {
@@ -26,6 +32,9 @@ export const DEFAULT_CAMERA: Camera = {
   targetX: 0,
   targetY: 0,
   targetZ: 0,
+  deepX: BigInt(0),
+  deepY: BigInt(0),
+  deepBits: 64,
 };
 export const FLAT_CAMERA: Camera = { ...DEFAULT_CAMERA, yaw: 0, pitch: 0 };
 
@@ -467,6 +476,8 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
     const { width, height } = viewport;
     const ratio = window.devicePixelRatio || 1;
     const scale = camera.zoom * flatFit(geometry, viewport);
+    const focusX = center[0] + fixedToNumber(camera.deepX, camera.deepBits);
+    const focusY = center[1] + fixedToNumber(camera.deepY, camera.deepBits);
     const color = parseHex(style.color);
     const colorEnd = style.colorMode === "solid" ? color : parseHex(style.colorEnd);
     const originX = viewport.x + width / 2 + camera.panX;
@@ -477,22 +488,32 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
     let count = geometry.count;
     if (detail) {
       // The detail is in pixels around the drawing point that was in the
-      // middle when it was made. Place that point and rescale, all in double
-      // precision here, so only small numbers reach the GPU.
+      // middle when it was made. Place that point and rescale; the distance
+      // between the two points is taken in fixed point, so only small
+      // numbers reach the GPU.
       const { view } = detail;
+      const bits = Math.max(view.bits, camera.deepBits);
+      const shiftX =
+        fixedToNumber(
+          rescale(view.offsetX, view.bits, bits) - rescale(camera.deepX, camera.deepBits, bits),
+          bits,
+        ) +
+        (view.originX - center[0]);
+      const shiftY =
+        fixedToNumber(
+          rescale(view.offsetY, view.bits, bits) - rescale(camera.deepY, camera.deepBits, bits),
+          bits,
+        ) +
+        (view.originY - center[1]);
       upload(detail, detail.positions, detail.widths, detail.colors, detail.count);
       count = detail.count;
-      gl.uniform2f(
-        flatU.origin,
-        originX + (view.centerX - center[0]) * scale,
-        originY - (view.centerY - center[1]) * scale,
-      );
+      gl.uniform2f(flatU.origin, originX + shiftX * scale, originY - shiftY * scale);
       gl.uniform3f(flatU.center, 0, 0, 0);
       gl.uniform1f(flatU.scale, scale / view.scale);
     } else {
       upload(drawing, geometry.positions, geometry.widths, drawing.colors, geometry.count);
       gl.uniform2f(flatU.origin, originX, originY);
-      gl.uniform3f(flatU.center, center[0], center[1], center[2]);
+      gl.uniform3f(flatU.center, focusX, focusY, center[2]);
       gl.uniform1f(flatU.scale, scale);
     }
     gl.uniform1f(flatU.lineWidth, style.lineWidth);

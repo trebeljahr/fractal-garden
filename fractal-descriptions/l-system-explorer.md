@@ -37,6 +37,8 @@ The explorer switches to 3D by itself as soon as the system uses one of `& ^ \ /
 
 In 2D you can keep zooming, and the explorer grows later generations where you look. It does not rebuild the whole string. Each symbol of one generation becomes a piece of the next, so the drawing is a tree of pieces. The explorer works out once how each symbol moves and turns the turtle after any number of generations. Then it walks down that tree only where the view needs it: pieces outside the view are skipped in one step, and pieces smaller than a pixel are drawn as a single line. The stats under the editor show which generation you are looking at.
 
+Deep in, ordinary floating point numbers cannot tell the view's position apart from its neighbours'. So the view's position, and the few parts of the drawing that are far larger than the screen, are kept as whole numbers with as many digits as the zoom needs. Once a part is small enough, the rest of it is worked out with ordinary numbers in screen pixels. That keeps the zoom precise at any depth, without slowing down.
+
 A later generation is a little bigger than the one before, and some curves also turn (the dragon curve by 45° each time). The explorer measures that and shrinks and turns each generation back, so the new detail lines up with what you saw before.
 
 Endless zoom needs one rule per symbol, because random rules give every copy a different shape. It also needs a drawing that grows from one generation to the next. Drawings that grow denser with every generation, such as dense bushes or the Penrose tiling, would need ever more lines, so there the explorer stops at the deepest generation that fits in about 300,000 lines.

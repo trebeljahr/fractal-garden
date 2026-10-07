@@ -8,6 +8,7 @@ import {
 } from "react";
 import styles from "../styles/LSystemExplorer.module.css";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { fixedFromNumber, rescale } from "../utils/lsystem/bigfixed";
 import { isStochastic, MAX_SEGMENTS } from "../utils/lsystem/engine";
 import {
   type Camera,
@@ -123,6 +124,14 @@ const PLAIN_ZOOM_LIMIT = 500;
 
 function clampZoom(zoom: number, limit = PLAIN_ZOOM_LIMIT) {
   return Math.min(Math.max(zoom, 0.05), limit);
+}
+
+// 1234 -> "1,234×", 3.4e47 -> "3.4 × 10⁴⁷".
+function formatZoom(zoom: number) {
+  if (zoom < 1e6) return `${Math.round(zoom).toLocaleString("en-US")}×`;
+  const power = Math.floor(Math.log10(zoom));
+  const digits = Array.from(String(power), (digit) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[Number(digit)]).join("");
+  return `${(zoom / 10 ** power).toFixed(1)} × 10${digits}`;
 }
 
 function wrapAngle(angle: number) {
@@ -293,7 +302,11 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const detailRef = useRef<ZoomDetail | null>(null);
   const zoomLimitRef = useRef(PLAIN_ZOOM_LIMIT);
   const requestDrawRef = useRef<() => void>(() => {});
-  const [zoomInfo, setZoomInfo] = useState<{ generation: number; lines: number } | null>(null);
+  const [zoomInfo, setZoomInfo] = useState<{
+    generation: number;
+    lines: number;
+    zoom: number;
+  } | null>(null);
   const [zoomReason, setZoomReason] = useState<string | null>(null);
 
   useEffect(
@@ -335,7 +348,11 @@ export const LSystemExplorer = ({ presets }: Props) => {
         zoomLimitRef.current = MAX_ZOOM;
         if (cameraRef.current.zoom <= 1) return;
         detailRef.current = detail;
-        setZoomInfo({ generation: detail.generation, lines: detail.count });
+        setZoomInfo({
+          generation: detail.generation,
+          lines: detail.count,
+          zoom: detail.view.zoom,
+        });
         requestDrawRef.current();
       };
       worker.onerror = () => {
@@ -358,10 +375,23 @@ export const LSystemExplorer = ({ presets }: Props) => {
       return;
     }
     const scale = camera.zoom * flatFit(result.geometry, viewport);
+    // Move the pan into the fixed-point center, with enough bits for this
+    // zoom, so the center keeps every digit however deep the view goes.
+    const bits = Math.max(camera.deepBits, Math.ceil(Math.log2(Math.max(scale, 1))) + 64);
+    camera.deepX =
+      rescale(camera.deepX, camera.deepBits, bits) + fixedFromNumber(-camera.panX / scale, bits);
+    camera.deepY =
+      rescale(camera.deepY, camera.deepBits, bits) + fixedFromNumber(camera.panY / scale, bits);
+    camera.deepBits = bits;
+    camera.panX = 0;
+    camera.panY = 0;
     // A margin around the view, so short drags show finished detail.
     const view: ZoomView = {
-      centerX: result.center[0] - camera.panX / scale,
-      centerY: result.center[1] + camera.panY / scale,
+      originX: result.center[0],
+      originY: result.center[1],
+      offsetX: camera.deepX,
+      offsetY: camera.deepY,
+      bits,
       scale,
       halfWidth: viewport.width * 0.65,
       halfHeight: viewport.height * 0.65,
@@ -1007,8 +1037,8 @@ export const LSystemExplorer = ({ presets }: Props) => {
           </span>
           {spec.dimension === "2d" && zoomInfo && (
             <span>
-              Zoomed in: generation {zoomInfo.generation} · {zoomInfo.lines.toLocaleString("en-US")}{" "}
-              lines in view
+              Zoomed {formatZoom(zoomInfo.zoom)}: generation {zoomInfo.generation} ·{" "}
+              {zoomInfo.lines.toLocaleString("en-US")} lines in view
             </span>
           )}
           {spec.dimension === "2d" && zoomReason && (
