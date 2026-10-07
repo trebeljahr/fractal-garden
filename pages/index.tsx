@@ -42,12 +42,14 @@ import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowfla
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.jpg";
 import penroseTilingImage from "../public/assets/fractal-images/penrose-tiling.jpg";
+import polyhedronFlakeImage from "../public/assets/fractal-images/polyhedron-flake.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
 import rauzyFractalImage from "../public/assets/fractal-images/rauzy-fractal.jpg";
 import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attractor.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
+import sierpinskiTetrahedronImage from "../public/assets/fractal-images/sierpinski-tetrahedron.jpg";
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
 import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
 import vicsekFractal3DImage from "../public/assets/fractal-images/vicsek-fractal-3d.jpg";
@@ -204,7 +206,6 @@ const Home: NextPage = () => {
             title="3D Hilbert Curve"
             imageSrc={hilbertCurve3DImage}
           />
-
           <FractalLink
             href="/jerusalem-cube"
             title="Jerusalem Cube"
@@ -242,7 +243,16 @@ const Home: NextPage = () => {
           />
           <FractalLink href="/h-tree" title="H Tree" imageSrc={hTreeImage} />
           <FractalLink href="/rauzy-fractal" title="Rauzy Fractal" imageSrc={rauzyFractalImage} />
-
+          <FractalLink
+            href="/sierpinski-tetrahedron"
+            title="Sierpinski Tetrahedron"
+            imageSrc={sierpinskiTetrahedronImage}
+          />
+          <FractalLink
+            href="/polyhedron-flake"
+            title="Polyhedron Flake"
+            imageSrc={polyhedronFlakeImage}
+          />
           <AddMoreLink />
         </div>
       </main>

@@ -55,6 +55,8 @@ function useLinks() {
     "/penrose-tiling",
     "/h-tree",
     "/rauzy-fractal",
+    "/sierpinski-tetrahedron",
+    "/polyhedron-flake",
   ];
 
   // Exact match first, so "/l-system/hilbert-curve-3d" doesn't resolve to "/l-system/hilbert-curve".

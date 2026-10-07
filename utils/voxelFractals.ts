@@ -144,7 +144,7 @@ function hexToRgb(hex: string) {
   };
 }
 
-function shadeColor(hex: string, shade: number, alpha: number) {
+export function shadeColor(hex: string, shade: number, alpha: number) {
   const { r, g, b } = hexToRgb(hex);
   const factor = 0.35 + shade * 0.75;
 

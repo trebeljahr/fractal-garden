@@ -320,6 +320,18 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Project the tribonacci word onto a plane and watch thousands of points fill the three interlocking tiles of the Rauzy fractal.",
     imagePath: "/assets/fractal-images/rauzy-fractal.jpg",
   },
+  "/sierpinski-tetrahedron": {
+    title: "Sierpinski Tetrahedron",
+    description:
+      "Rotate the Sierpinski Tetrahedron and the square-based Sierpinski Pyramid in 3D and watch them split into half-size copies at every corner.",
+    imagePath: "/assets/fractal-images/sierpinski-tetrahedron.jpg",
+  },
+  "/polyhedron-flake": {
+    title: "Polyhedron Flake",
+    description:
+      "Grow octahedron, dodecahedron and icosahedron flakes in 3D, where each solid is replaced by smaller copies at its corners.",
+    imagePath: "/assets/fractal-images/polyhedron-flake.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

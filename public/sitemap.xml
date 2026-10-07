@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fractal.garden/</loc>
-    <lastmod>2026-10-07T05:44:17.000Z</lastmod>
+    <lastmod>2026-10-07T05:47:20.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -302,13 +302,25 @@
   </url>
   <url>
     <loc>https://fractal.garden/h-tree</loc>
-    <lastmod>2026-10-07T05:46:48.971Z</lastmod>
+    <lastmod>2026-10-07T05:47:20.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/rauzy-fractal</loc>
-    <lastmod>2026-10-07T05:46:48.971Z</lastmod>
+    <lastmod>2026-10-07T05:47:20.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/sierpinski-tetrahedron</loc>
+    <lastmod>2026-10-07T05:49:38.759Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/polyhedron-flake</loc>
+    <lastmod>2026-10-07T05:49:38.758Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
