@@ -88,6 +88,40 @@ export function getStartTriangles(variant: PenroseVariant, start: PenroseStart) 
   return wheel((u, v) => tri(1, polar(INV_PHI, v), center, polar(1, u)));
 }
 
+// The start patch as drawn on top of the deflated tiles: its outer boundary,
+// ordered around the center, and every edge of its tiles. Deflation keeps
+// each child inside its parent, so the finer tiles always fill this frame.
+export function getStartOutline(variant: PenroseVariant, start: PenroseStart) {
+  const triangles = getStartTriangles(variant, start);
+  const edges = triangles.flatMap(({ a, b, c }) => [
+    { edge: [a, b], glue: variant === "p2" },
+    { edge: [b, c], glue: variant === "p3" },
+    { edge: [c, a], glue: false },
+  ]);
+  const key = ([p, q]: Point[]) => [pointKey(p), pointKey(q)].sort().join("|");
+  const counts = new Map<string, number>();
+  for (const { edge } of edges) counts.set(key(edge), (counts.get(key(edge)) ?? 0) + 1);
+
+  const seen = new Set<string>();
+  const tileEdges: Point[][] = [];
+  const boundary = new Map<string, Point>();
+  for (const { edge, glue } of edges) {
+    const outer = counts.get(key(edge)) === 1;
+    if (outer) for (const p of edge) boundary.set(pointKey(p), p);
+    // Inner seams where two halves meet are not tile edges.
+    if ((outer || !glue) && !seen.has(key(edge))) {
+      seen.add(key(edge));
+      tileEdges.push(edge);
+    }
+  }
+
+  // Every start patch is star-shaped around the origin.
+  const outline = Array.from(boundary.values()).sort(
+    (p, q) => Math.atan2(p[1], p[0]) - Math.atan2(q[1], q[0]),
+  );
+  return { outline, edges: tileEdges };
+}
+
 export type Bounds = {
   minX: number;
   minY: number;

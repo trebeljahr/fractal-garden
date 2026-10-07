@@ -34,6 +34,8 @@ type Config = {
   showOutline: boolean;
   outlineColor: string;
   lineWidth: number;
+  showStart: boolean;
+  startColor: string;
 };
 
 type Viewport = {
@@ -64,6 +66,8 @@ function toParams(config: Config, { center, zoomSize }: Viewport): PenroseParams
     showOutline: config.showOutline,
     outlineColor: config.outlineColor,
     lineWidth: config.lineWidth,
+    showStart: config.showStart,
+    startColor: config.startColor,
     center: [center[0], center[1]],
     zoomSize,
   };
@@ -97,6 +101,8 @@ const PenroseTiling = ({ description }: Props) => {
     showOutline: true,
     outlineColor: "#1b1a1a",
     lineWidth: 1,
+    showStart: true,
+    startColor: "#f4efe6",
   });
   const viewportRef = useRef<Viewport>({
     center: [0, 0],
@@ -212,6 +218,8 @@ const PenroseTiling = ({ description }: Props) => {
         <PanelBoolean path="showOutline" label="Outline" />
         <PanelColor path="outlineColor" label="Outline color" />
         <PanelNumber path="lineWidth" min={0} max={4} step={0.1} />
+        <PanelBoolean path="showStart" label="Frame start patch" />
+        <PanelColor path="startColor" label="Start patch color" />
       </ExplorerPanel>
       <div className={styles.fullScreen} ref={containerRef} />
       <SideDrawer description={description} />
