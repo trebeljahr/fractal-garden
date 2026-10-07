@@ -312,16 +312,16 @@ export function drawPolyline3D(
     const y = points[i * 3 + 1];
     const z = points[i * 3 + 2];
 
-    const y1 = y * cosX - z * sinX;
-    const z1 = y * sinX + z * cosX;
-    const x2 = x * cosY + z1 * sinY;
-    const z2 = -x * sinY + z1 * cosY;
+    const x1 = x * cosY + z * sinY;
+    const z1 = -x * sinY + z * cosY;
+    const y2 = y * cosX - z1 * sinX;
+    const z2 = y * sinX + z1 * cosX;
     const cameraDepth = options.cameraDistance - z2;
     if (cameraDepth < NEAR_PLANE) clipped[i] = 1;
     const perspective = PROJECTION_FOCAL_LENGTH / Math.max(cameraDepth, NEAR_PLANE);
 
-    projected[i * 3] = width / 2 + x2 * scale * perspective;
-    projected[i * 3 + 1] = height / 2 - y1 * scale * perspective;
+    projected[i * 3] = width / 2 + x1 * scale * perspective;
+    projected[i * 3 + 1] = height / 2 - y2 * scale * perspective;
     projected[i * 3 + 2] = z2;
   }
 

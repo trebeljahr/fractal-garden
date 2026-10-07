@@ -98,14 +98,14 @@ function rotatePoint(point: Vec3, rotationX: number, rotationY: number) {
   const cosY = Math.cos(rotationY);
   const sinY = Math.sin(rotationY);
 
-  const y1 = point.y * cosX - point.z * sinX;
-  const z1 = point.y * sinX + point.z * cosX;
-  const x2 = point.x * cosY + z1 * sinY;
-  const z2 = -point.x * sinY + z1 * cosY;
+  const x1 = point.x * cosY + point.z * sinY;
+  const z1 = -point.x * sinY + point.z * cosY;
+  const y2 = point.y * cosX - z1 * sinX;
+  const z2 = point.y * sinX + z1 * cosX;
 
   return {
-    x: x2,
-    y: y1,
+    x: x1,
+    y: y2,
     z: z2,
   };
 }

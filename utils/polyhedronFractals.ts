@@ -422,18 +422,18 @@ export function drawPolyhedronScene(
     const x = positions[i * 3];
     const y = positions[i * 3 + 1];
     const z = positions[i * 3 + 2];
-    const y1 = y * cosX - z * sinX;
-    const z1 = y * sinX + z * cosX;
-    const x2 = x * cosY + z1 * sinY;
-    const z2 = -x * sinY + z1 * cosY;
-    rotated[i * 3] = x2;
-    rotated[i * 3 + 1] = y1;
+    const x1 = x * cosY + z * sinY;
+    const z1 = -x * sinY + z * cosY;
+    const y2 = y * cosX - z1 * sinX;
+    const z2 = y * sinX + z1 * cosX;
+    rotated[i * 3] = x1;
+    rotated[i * 3 + 1] = y2;
     rotated[i * 3 + 2] = z2;
 
     const perspective =
       (PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - z2, 0.2)) * viewScale;
-    projected[i * 2] = width / 2 + x2 * perspective;
-    projected[i * 2 + 1] = height / 2 - y1 * perspective;
+    projected[i * 2] = width / 2 + x1 * perspective;
+    projected[i * 2 + 1] = height / 2 - y2 * perspective;
   }
 
   let visible = 0;
@@ -441,11 +441,10 @@ export function drawPolyhedronScene(
     const nx = normals[face * 3];
     const ny = normals[face * 3 + 1];
     const nz = normals[face * 3 + 2];
-    const ny1 = ny * cosX - nz * sinX;
-    const nz1 = ny * sinX + nz * cosX;
-    let nx2 = nx * cosY + nz1 * sinY;
-    let ny2 = ny1;
-    let nz2 = -nx * sinY + nz1 * cosY;
+    const nz1 = -nx * sinY + nz * cosY;
+    let nx2 = nx * cosY + nz * sinY;
+    let ny2 = ny * cosX - nz1 * sinX;
+    let nz2 = ny * sinX + nz1 * cosX;
 
     if (nz2 <= 0) {
       if (!options.doubleSided) continue;
