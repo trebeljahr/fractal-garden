@@ -168,6 +168,9 @@ export class RenderHost<P> {
     if (!probe) return;
 
     if (!probe.presented) {
+      // Params can arrive before the canvas has a size; nothing is on screen
+      // to time until the level has been drawn once.
+      if (!probe.drawnAt) return;
       probe.presented = true;
       probe.lastFrameAt = time;
       this.emit({ type: "rendered", level: probe.level });
