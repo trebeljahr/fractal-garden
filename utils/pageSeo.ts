@@ -308,6 +308,18 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Deflate Penrose kite and dart or rhombus tilings step by step and watch an aperiodic, golden-ratio pattern grow from a sun or star.",
     imagePath: "/assets/fractal-images/penrose-tiling.jpg",
   },
+  "/h-tree": {
+    title: "H Tree",
+    description:
+      "Grow an H tree from nested H shapes that halve every two steps and fill a rectangle with the same proportions as A4 paper.",
+    imagePath: "/assets/fractal-images/h-tree.jpg",
+  },
+  "/rauzy-fractal": {
+    title: "Rauzy Fractal",
+    description:
+      "Project the tribonacci word onto a plane and watch thousands of points fill the three interlocking tiles of the Rauzy fractal.",
+    imagePath: "/assets/fractal-images/rauzy-fractal.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

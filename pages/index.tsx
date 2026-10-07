@@ -7,6 +7,7 @@ import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg";
 import burningShipImage from "../public/assets/fractal-images/burning-ship.jpg";
 import diffusionLimitedAggregationImage from "../public/assets/fractal-images/diffusion-limited-aggregation.jpg";
 import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.jpg";
+import hTreeImage from "../public/assets/fractal-images/h-tree.jpg";
 import jerusalemCubeImage from "../public/assets/fractal-images/jerusalem-cube.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
@@ -43,6 +44,7 @@ import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.j
 import penroseTilingImage from "../public/assets/fractal-images/penrose-tiling.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
+import rauzyFractalImage from "../public/assets/fractal-images/rauzy-fractal.jpg";
 import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attractor.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
@@ -238,6 +240,8 @@ const Home: NextPage = () => {
             title="Penrose Tiling"
             imageSrc={penroseTilingImage}
           />
+          <FractalLink href="/h-tree" title="H Tree" imageSrc={hTreeImage} />
+          <FractalLink href="/rauzy-fractal" title="Rauzy Fractal" imageSrc={rauzyFractalImage} />
 
           <AddMoreLink />
         </div>
