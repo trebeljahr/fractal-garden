@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { Canvas } from "../components/Canvas";
 import styles from "../styles/Fullscreen.module.css";
-import { radians } from "../utils/ctxHelpers";
+import { useAdaptiveGrowth } from "../utils/hooks/useAdaptiveGrowth";
+import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { explorerHref } from "../utils/lsystem/share";
 import { DEFAULT_SPEC } from "../utils/lsystem/spec";
+import type { LSystem2DParams } from "../utils/render/lsystem2d";
+import type { HostEvent } from "../utils/render/types";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 
@@ -90,130 +92,82 @@ function getFirstVisibleIteration(ruleset: Ruleset) {
   return ruleset.minIterations;
 }
 
+// Replays initRotation against a stub context to recover the starting heading
+// and line width, so the drawing itself can run on a worker.
+function readInitialPose(ruleset: Ruleset, config: Config) {
+  let startAngle = 0;
+  let lineWidth = 1;
+  const stub = {
+    rotate: (angle: number) => (startAngle += (angle * 180) / Math.PI),
+    set lineWidth(value: number) {
+      lineWidth = value;
+    },
+  };
+  ruleset.initRotation?.(stub as unknown as CanvasRenderingContext2D, config);
+  return { startAngle, lineWidth };
+}
+
 const LSystem = ({ ruleset }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
-    iterations: ruleset.maxIterations,
+    iterations: minVisibleIteration,
     animateIterations: true,
     background: "#252424",
     ruleset: ruleset,
   }));
   const { width, height } = useWindowSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
-  useEffect(() => {
-    if (!ctx || !width || !height) return;
+  const setIterations = useCallback(
+    (iterations: number) => setConfig((old) => ({ ...old, iterations })),
+    [],
+  );
+  const growth = useAdaptiveGrowth({
+    storageKey: `l-system:${ruleset.axiom}:${JSON.stringify(ruleset.replace)}`,
+    min: minVisibleIteration,
+    max: config.ruleset.maxIterations,
+    iterations: config.iterations,
+    animate: config.animateIterations,
+    setIterations,
+    stepDelay: 1000,
+  });
 
-    let rotationDirection = 1;
-    let weight = 5;
-    const weightIncrement = 0;
-    const scale = 1;
-    const angleIncrement = 0;
-    let len = 0;
-    let angle = 0;
-    let sentence = "";
-    let id: NodeJS.Timeout;
-
-    const commonSetup = () => {
-      ctx.resetTransform();
-      const ratio = window.devicePixelRatio || 1;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      ctx.fillStyle = config.background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.strokeStyle = config.ruleset.color;
-
-      const initialLength = config.ruleset.initLength({ width, height });
-      angle = config.ruleset.angle;
-      len = len || initialLength;
-
-      const [xOff, yOff] = config.ruleset.initTranslation({ width, height }, initialLength);
-      ctx.translate(xOff, yOff);
-      config.ruleset.initRotation?.(ctx, config);
+  const params = useMemo<LSystem2DParams | null>(() => {
+    if (!width || !height) return null;
+    const sizes = { width, height };
+    const initialLength = config.ruleset.initLength(sizes);
+    const { startAngle, lineWidth } = readInitialPose(config.ruleset, config);
+    return {
+      axiom: config.ruleset.axiom,
+      replace: config.ruleset.replace,
+      angle: config.ruleset.angle,
+      startAngle,
+      lineWidth,
+      color: config.ruleset.color,
+      background: config.background,
+      initialLength,
+      translation: config.ruleset.initTranslation(sizes, initialLength),
+      divideFactor: config.ruleset.divideFactor,
+      iterations: config.iterations,
     };
+  }, [config, width, height]);
 
-    const commonAfter = () => {
-      len /= config.ruleset.divideFactor;
-    };
+  const { onCost, onRendered } = growth;
+  const onEvent = useCallback(
+    (event: HostEvent) => {
+      if (event.type === "rendered") onRendered(event.level);
+      if (event.type === "cost") onCost(event.report);
+    },
+    [onCost, onRendered],
+  );
 
-    const drawForward = () => {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, -len);
-      ctx.stroke();
-      ctx.closePath();
-      ctx.translate(0, -len);
-    };
-
-    const drawRules: Record<string, () => void> = {
-      V: () => {},
-      W: () => {},
-      X: () => {},
-      Y: () => {},
-      Z: () => {},
-      G: drawForward,
-      F: drawForward,
-      f: () => ctx.translate(0, -len),
-      "+": () => ctx.rotate(radians(angle * rotationDirection)),
-      "-": () => ctx.rotate(radians(angle * -rotationDirection)),
-      "|": () => ctx.rotate(radians(180)),
-      "[": () => ctx.save(),
-      "]": () => ctx.restore(),
-      "#": () => (ctx.lineWidth = weight += weightIncrement),
-      "!": () => (ctx.lineWidth = weight -= weightIncrement),
-      ">": () => (len *= scale),
-      "<": () => (len /= scale),
-      "&": () => (rotationDirection = -rotationDirection),
-      "(": () => (angle += angleIncrement),
-      ")": () => (angle -= angleIncrement),
-    };
-
-    const resetAndDraw = () => {
-      ctx.resetTransform();
-      const ratio = window.devicePixelRatio || 1;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      sentence = config.ruleset.axiom;
-      len = 0;
-      generateFractal();
-    };
-
-    function generateNextIteration() {
-      let newSentence = "";
-      commonSetup();
-
-      for (const char of sentence) {
-        newSentence += config.ruleset.replace[char] || char;
-        const drawFunc = drawRules[char];
-        drawFunc();
-      }
-      commonAfter();
-
-      sentence = newSentence;
-    }
-
-    function generateFractal() {
-      for (let i = 0; i < config.iterations; i++) {
-        generateNextIteration();
-      }
-
-      if (!config.animateIterations) return;
-
-      id = setTimeout(() => {
-        setConfig((old) => {
-          const newIterations = old.iterations + 1;
-          return {
-            ...old,
-            iterations:
-              newIterations > config.ruleset.maxIterations ? minVisibleIteration : newIterations,
-          };
-        });
-      }, 1000);
-    }
-
-    resetAndDraw();
-
-    return () => clearTimeout(id);
-  }, [config, ctx, width, height, config.animateIterations, minVisibleIteration]);
+  const { containerRef } = useRenderSurface({
+    kind: "lsystem2d",
+    params,
+    width,
+    height,
+    onEvent,
+    measureKey: growth.measureKey,
+  });
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({
@@ -246,12 +200,17 @@ const LSystem = ({ ruleset }: Props) => {
           max={config.ruleset.maxIterations}
           step={1}
         />
-        <PanelBoolean path="animateIterations" />
+        <PanelBoolean
+          path="animateIterations"
+          label={
+            growth.cap < config.ruleset.maxIterations
+              ? `Animate growth (to ${growth.cap})`
+              : undefined
+          }
+        />
       </ExplorerPanel>
 
-      <div className={styles.fullScreen}>
-        <Canvas setCtx={setCtx} width={width} height={height} />
-      </div>
+      <div className={styles.fullScreen} ref={containerRef} />
     </>
   );
 };

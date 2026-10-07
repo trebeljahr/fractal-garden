@@ -1,13 +1,5 @@
-import {
-  PolyhedronFractalExplorer,
-  type PolyhedronVariant,
-} from "../components/PolyhedronFractalExplorer";
-import {
-  buildFlakeScene,
-  getMaxIterations,
-  squarePyramidMesh,
-  tetrahedronMesh,
-} from "../utils/polyhedronFractals";
+import { SceneFractalExplorer, type SceneVariant } from "../components/SceneFractalExplorer";
+import { getMaxIterations, squarePyramidMesh, tetrahedronMesh } from "../utils/polyhedronFractals";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -19,22 +11,23 @@ type Variant = "tetrahedron" | "squarePyramid";
 const tetrahedron = tetrahedronMesh();
 const squarePyramid = squarePyramidMesh();
 
-const VARIANTS: Record<Variant, PolyhedronVariant> = {
+const VARIANTS: Record<Variant, SceneVariant> = {
   tetrahedron: {
     label: "Tetrahedron (4 copies)",
     maxIterations: getMaxIterations(tetrahedron.faces.length, 4),
-    buildScene: (iterations) => buildFlakeScene(tetrahedron, 1 / 2, iterations),
+    spec: { kind: "flake", mesh: "tetrahedron", ratio: 1 / 2 },
   },
   squarePyramid: {
     label: "Square pyramid (5 copies)",
     maxIterations: getMaxIterations(squarePyramid.faces.length, 5),
-    buildScene: (iterations) => buildFlakeScene(squarePyramid, 1 / 2, iterations),
+    spec: { kind: "flake", mesh: "squarePyramid", ratio: 1 / 2 },
   },
 };
 
 const SierpinskiTetrahedron = ({ description }: Props) => (
-  <PolyhedronFractalExplorer
+  <SceneFractalExplorer
     description={description}
+    storageKey="sierpinski-tetrahedron"
     title="Sierpinski Tetrahedron"
     controlsTitle="Pyramid Studio"
     controlsHint="Pick a base solid, then tune growth, orbit, and linework."

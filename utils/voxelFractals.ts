@@ -237,76 +237,40 @@ export function generateMengerSponge(iterations: number) {
   });
 }
 
-export function drawVoxelScene(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  cubes: Cube[],
-  options: VoxelDrawOptions,
-) {
-  const rotationX = radians(options.rotationX);
-  const rotationY = radians(options.rotationY);
-  const scale = Math.min(width, height) * 0.3;
-  const faces: Face[] = [];
+// The faces of a cube that no neighbouring cube covers. Hidden faces never
+// show, so dropping them once here saves sorting them on every frame.
+export function exposedCubeFaces(cubes: Cube[]): Quad[] {
   const occupied = new Set(cubes.map((cube) => `${cube.gridX},${cube.gridY},${cube.gridZ}`));
-
-  ctx.fillStyle = options.background;
-  ctx.fillRect(0, 0, width, height);
+  const quads: Quad[] = [];
 
   for (let i = 0; i < cubes.length; i++) {
     const cube = cubes[i];
     const half = cube.size / 2;
-    const vertices = [
-      { x: cube.x - half, y: cube.y - half, z: cube.z - half },
-      { x: cube.x + half, y: cube.y - half, z: cube.z - half },
-      { x: cube.x - half, y: cube.y + half, z: cube.z - half },
-      { x: cube.x + half, y: cube.y + half, z: cube.z - half },
-      { x: cube.x - half, y: cube.y - half, z: cube.z + half },
-      { x: cube.x + half, y: cube.y - half, z: cube.z + half },
-      { x: cube.x - half, y: cube.y + half, z: cube.z + half },
-      { x: cube.x + half, y: cube.y + half, z: cube.z + half },
-    ].map((vertex) => rotatePoint(vertex, rotationX, rotationY));
-
-    const projected = vertices.map((vertex) =>
-      projectPoint(vertex, width, height, scale, options.cameraDistance),
-    );
+    const vertices: Vec3[] = [];
+    for (let v = 0; v < 8; v++) {
+      vertices.push({
+        x: cube.x + (v & 1 ? half : -half),
+        y: cube.y + (v & 2 ? half : -half),
+        z: cube.z + (v & 4 ? half : -half),
+      });
+    }
 
     for (let faceIndex = 0; faceIndex < FACE_DEFS.length; faceIndex++) {
       const faceDef = FACE_DEFS[faceIndex];
       const [dx, dy, dz] = faceDef.direction;
-      const neighborKey = `${cube.gridX + dx},${cube.gridY + dy},${cube.gridZ + dz}`;
-
-      if (occupied.has(neighborKey)) {
+      if (occupied.has(`${cube.gridX + dx},${cube.gridY + dy},${cube.gridZ + dz}`)) {
         continue;
       }
 
-      const normal = rotatePoint(faceDef.normal, rotationX, rotationY);
-      if (normal.z <= 0) {
-        continue;
-      }
-
-      const points = faceDef.indices.map((index) => [projected[index].x, projected[index].y]) as [
-        number,
-        number,
-      ][];
-
-      let depth = 0;
-      for (let j = 0; j < faceDef.indices.length; j++) {
-        depth += vertices[faceDef.indices[j]].z;
-      }
-      depth /= faceDef.indices.length;
-      const shade = Math.max(0.2, dot(normalize(normal), LIGHT));
-
-      faces.push({
-        points,
-        depth,
-        shade,
+      const [a, b, c, d] = faceDef.indices;
+      quads.push({
+        corners: [vertices[a], vertices[b], vertices[c], vertices[d]],
+        normal: faceDef.normal,
       });
     }
   }
 
-  faces.sort((a, b) => a.depth - b.depth);
-  paintFaces(ctx, faces, options);
+  return quads;
 }
 
 // Draws faces in the given order, back to front.
@@ -379,48 +343,6 @@ function squareCorners(center: Vec3, u: Vec3, v: Vec3, half: number): Quad["corn
     addScaled(addScaled(center, u, half), v, half),
     addScaled(addScaled(center, u, -half), v, half),
   ];
-}
-
-export function drawQuadScene(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  quads: Quad[],
-  options: VoxelDrawOptions,
-) {
-  const rotationX = radians(options.rotationX);
-  const rotationY = radians(options.rotationY);
-  const scale = Math.min(width, height) * 0.3;
-  const faces: Face[] = [];
-
-  ctx.fillStyle = options.background;
-  ctx.fillRect(0, 0, width, height);
-
-  for (let i = 0; i < quads.length; i++) {
-    const quad = quads[i];
-    const normal = rotatePoint(quad.normal, rotationX, rotationY);
-    if (normal.z <= 0) {
-      continue;
-    }
-
-    const points: [number, number][] = [];
-    let depth = 0;
-    for (let j = 0; j < quad.corners.length; j++) {
-      const vertex = rotatePoint(quad.corners[j], rotationX, rotationY);
-      const projected = projectPoint(vertex, width, height, scale, options.cameraDistance);
-      points.push([projected.x, projected.y]);
-      depth += vertex.z;
-    }
-
-    faces.push({
-      points,
-      depth: depth / quad.corners.length,
-      shade: Math.max(0.2, dot(normalize(normal), LIGHT)),
-    });
-  }
-
-  faces.sort((a, b) => a.depth - b.depth);
-  paintFaces(ctx, faces, options);
 }
 
 // Children of every box sit in the cells of a (possibly uneven) 3 x 3 x 3 grid. Walking

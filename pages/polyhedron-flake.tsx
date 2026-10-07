@@ -1,9 +1,5 @@
+import { SceneFractalExplorer, type SceneVariant } from "../components/SceneFractalExplorer";
 import {
-  PolyhedronFractalExplorer,
-  type PolyhedronVariant,
-} from "../components/PolyhedronFractalExplorer";
-import {
-  buildFlakeScene,
   dodecahedronMesh,
   getMaxIterations,
   icosahedronMesh,
@@ -23,27 +19,28 @@ const octahedron = octahedronMesh();
 const dodecahedron = dodecahedronMesh();
 const icosahedron = icosahedronMesh();
 
-const VARIANTS: Record<Variant, PolyhedronVariant> = {
+const VARIANTS: Record<Variant, SceneVariant> = {
   octahedron: {
     label: "Octahedron flake (6 copies)",
     maxIterations: getMaxIterations(octahedron.faces.length, 6),
-    buildScene: (iterations) => buildFlakeScene(octahedron, 1 / 2, iterations),
+    spec: { kind: "flake", mesh: "octahedron", ratio: 1 / 2 },
   },
   dodecahedron: {
     label: "Dodecahedron flake (20 copies)",
     maxIterations: getMaxIterations(dodecahedron.faces.length, 20),
-    buildScene: (iterations) => buildFlakeScene(dodecahedron, 1 / (2 + PHI), iterations),
+    spec: { kind: "flake", mesh: "dodecahedron", ratio: 1 / (2 + PHI) },
   },
   icosahedron: {
     label: "Icosahedron flake (12 copies)",
     maxIterations: getMaxIterations(icosahedron.faces.length, 12),
-    buildScene: (iterations) => buildFlakeScene(icosahedron, 1 / (1 + PHI), iterations),
+    spec: { kind: "flake", mesh: "icosahedron", ratio: 1 / (1 + PHI) },
   },
 };
 
 const PolyhedronFlake = ({ description }: Props) => (
-  <PolyhedronFractalExplorer
+  <SceneFractalExplorer
     description={description}
+    storageKey="polyhedron-flake"
     title="Polyhedron Flake"
     controlsTitle="Flake Studio"
     controlsHint="Pick a Platonic solid, then tune growth, orbit, and linework."

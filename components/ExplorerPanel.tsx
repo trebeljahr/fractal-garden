@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Children, type ReactNode, useEffect, useMemo, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
 import { scrollToDescription } from "../utils/scrollToDescription";
@@ -127,7 +127,8 @@ export function ExplorerPanel<T>({
 
       <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
         <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
-          {children}
+          {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+          {Children.toArray(children)}
         </DatFolder>
       </DatGui>
     </aside>

@@ -363,6 +363,32 @@ export function buildKochSurfaceScene(start: "triangle" | "tetrahedron", iterati
   return scene;
 }
 
+type QuadFace = {
+  corners: { x: number; y: number; z: number }[];
+  normal: { x: number; y: number; z: number };
+};
+
+/** Packs loose quads with known normals into the typed arrays the renderer draws. */
+export function quadsToScene(quads: QuadFace[]) {
+  const scene = createScene(quads.length * 4, quads.length, quads.length * 4);
+  for (let face = 0; face < quads.length; face++) {
+    const { corners, normal } = quads[face];
+    scene.faceOffsets[face] = face * 4;
+    for (let corner = 0; corner < 4; corner++) {
+      const index = face * 4 + corner;
+      scene.faceIndices[index] = index;
+      scene.positions[index * 3] = corners[corner].x;
+      scene.positions[index * 3 + 1] = corners[corner].y;
+      scene.positions[index * 3 + 2] = corners[corner].z;
+    }
+    scene.normals[face * 3] = normal.x;
+    scene.normals[face * 3 + 1] = normal.y;
+    scene.normals[face * 3 + 2] = normal.z;
+  }
+  scene.faceOffsets[quads.length] = quads.length * 4;
+  return scene;
+}
+
 export function drawPolyhedronScene(
   ctx: CanvasRenderingContext2D,
   width: number,
