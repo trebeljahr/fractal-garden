@@ -25,6 +25,8 @@ import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
 import quadraticSnowflakeImage from "../public/assets/fractal-images/l-system-quadratic-snowflake.jpg";
 import sierpinskiCurveImage from "../public/assets/fractal-images/l-system-sierpinski-curve.jpg";
 import sierpinsikTriangleImage from "../public/assets/fractal-images/l-system-sierpinski-triangle.jpg";
+import terdragonImage from "../public/assets/fractal-images/l-system-terdragon.jpg";
+import twindragonImage from "../public/assets/fractal-images/l-system-twindragon.jpg";
 import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
 import mandelbulbImage from "../public/assets/fractal-images/mandelbulb.jpg";
@@ -175,6 +177,8 @@ const Home: NextPage = () => {
             title="Diffusion-Limited Aggregation"
             imageSrc={diffusionLimitedAggregationImage}
           />
+          <FractalLink href="/l-system/twindragon" title="Twindragon" imageSrc={twindragonImage} />
+          <FractalLink href="/l-system/terdragon" title="Terdragon" imageSrc={terdragonImage} />
 
           <FractalLink
             href="/jerusalem-cube"

@@ -248,6 +248,18 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Rotate the 3D quadratic Koch surface and watch small cubes grow out of the middle of every face at each iteration.",
     imagePath: "/assets/fractal-images/quadratic-koch-3d.jpg",
   },
+  "/l-system/twindragon": {
+    title: "Twindragon",
+    description:
+      "Join two Heighway dragons back to back into the Twindragon tile and watch copies of it cover the plane with no gaps.",
+    imagePath: "/assets/fractal-images/l-system-twindragon.jpg",
+  },
+  "/l-system/terdragon": {
+    title: "Terdragon",
+    description:
+      "Fold a line with 120° turns into the Terdragon, a space-filling L-system curve made of three copies of itself.",
+    imagePath: "/assets/fractal-images/l-system-terdragon.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

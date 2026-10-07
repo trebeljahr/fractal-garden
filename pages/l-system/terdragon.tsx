@@ -27,19 +27,18 @@ type Config = {
   lineWidth: number;
 };
 
-const MAX_ITERATIONS = 16;
-const TURN_ANGLE = Math.PI / 2;
-const START_ANGLE = Math.PI / 4;
+const MAX_ITERATIONS = 11;
+const TURN_ANGLE = (2 * Math.PI) / 3;
 const PADDING = 0.08;
 
-const DragonCurve = ({ description }: Props) => {
+const Terdragon = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>({
     iterations: MAX_ITERATIONS,
     animateIterations: true,
     background: "#252424",
-    color: "#9af4ff",
+    color: "#7ee8a2",
     lineWidth: 1.5,
   });
 
@@ -62,11 +61,11 @@ const DragonCurve = ({ description }: Props) => {
   useEffect(() => {
     if (!ctx || !width || !height) return;
 
-    const sentence = rewriteSentence("F", { F: "F+G", G: "F-G" }, config.iterations);
+    const sentence = rewriteSentence("F", { F: "F+F-F" }, config.iterations);
+    // Each iteration turns the chord by 30°, so counter-rotate to keep it level.
     const { points, bounds } = traceTurtle(sentence, {
       turnAngle: TURN_ANGLE,
-      startAngle: START_ANGLE,
-      drawChars: "FG",
+      startAngle: (-config.iterations * Math.PI) / 6,
     });
     const transform = fitBounds(bounds, width, height, PADDING);
 
@@ -99,10 +98,10 @@ const DragonCurve = ({ description }: Props) => {
   );
 };
 
-export default DragonCurve;
+export default Terdragon;
 
 export async function getStaticProps() {
-  const description = await getDescription("dragon-curve.md");
+  const description = await getDescription("terdragon.md");
   return {
     props: {
       description,

@@ -43,6 +43,8 @@ function useLinks() {
     "/diffusion-limited-aggregation",
     "/jerusalem-cube",
     "/quadratic-koch-3d",
+    "/l-system/twindragon",
+    "/l-system/terdragon",
   ];
 
   const i = fractalLinks.findIndex((link) => {
