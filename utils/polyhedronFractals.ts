@@ -456,6 +456,7 @@ export function drawPolyhedronScene(
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.lineWidth = options.lineWidth;
+  const showOutline = options.showWireframe && options.lineWidth > 0;
 
   for (let i = 0; i < drawOrder.length; i++) {
     const face = drawOrder[i];
@@ -476,7 +477,8 @@ export function drawPolyhedronScene(
       ctx.fill();
     }
 
-    if (options.showWireframe) {
+    // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
+    if (showOutline) {
       ctx.strokeStyle = styleFor(strokeStyles, options.strokeColor, shades[face], 0.95);
       ctx.stroke();
     }

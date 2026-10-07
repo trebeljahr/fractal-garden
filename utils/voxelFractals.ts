@@ -314,6 +314,7 @@ function paintFaces(ctx: CanvasRenderingContext2D, faces: Face[], options: Voxel
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.lineWidth = options.lineWidth;
+  const showOutline = options.showWireframe && options.lineWidth > 0;
 
   for (let i = 0; i < faces.length; i++) {
     const face = faces[i];
@@ -329,7 +330,8 @@ function paintFaces(ctx: CanvasRenderingContext2D, faces: Face[], options: Voxel
       ctx.fill();
     }
 
-    if (options.showWireframe) {
+    // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
+    if (showOutline) {
       ctx.strokeStyle = shadeColor(options.strokeColor, face.shade, 0.95);
       ctx.stroke();
     }

@@ -185,7 +185,7 @@ export function PolyhedronFractalExplorer<V extends string>({
         <PanelNumber path="rotationX" min={-180} max={180} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
         <PanelNumber path="cameraDistance" min={3} max={10} step={0.1} />
-        <PanelNumber path="lineWidth" min={0.2} max={2} step={0.1} />
+        <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
         <PanelBoolean path="showFaces" />
         <PanelBoolean path="showWireframe" />
       </ExplorerPanel>
