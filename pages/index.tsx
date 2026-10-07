@@ -7,6 +7,7 @@ import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg";
 import burningShipImage from "../public/assets/fractal-images/burning-ship.jpg";
 import diffusionLimitedAggregationImage from "../public/assets/fractal-images/diffusion-limited-aggregation.jpg";
 import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.jpg";
+import jerusalemCubeImage from "../public/assets/fractal-images/jerusalem-cube.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
@@ -32,6 +33,7 @@ import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowfla
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.jpg";
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
+import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
@@ -172,6 +174,17 @@ const Home: NextPage = () => {
             href="/diffusion-limited-aggregation"
             title="Diffusion-Limited Aggregation"
             imageSrc={diffusionLimitedAggregationImage}
+          />
+
+          <FractalLink
+            href="/jerusalem-cube"
+            title="Jerusalem Cube"
+            imageSrc={jerusalemCubeImage}
+          />
+          <FractalLink
+            href="/quadratic-koch-3d"
+            title="Quadratic Koch Surface"
+            imageSrc={quadraticKoch3DImage}
           />
 
           <AddMoreLink />

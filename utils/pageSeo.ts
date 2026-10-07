@@ -236,6 +236,18 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Watch random walkers drift, touch, and freeze into a branching diffusion-limited aggregation cluster that grows live in your browser.",
     imagePath: "/assets/fractal-images/diffusion-limited-aggregation.jpg",
   },
+  "/jerusalem-cube": {
+    title: "Jerusalem Cube",
+    description:
+      "Rotate a 3D Jerusalem Cube and watch cross-shaped cuts split every cube into corner and edge cubes scaled by √2 − 1.",
+    imagePath: "/assets/fractal-images/jerusalem-cube.jpg",
+  },
+  "/quadratic-koch-3d": {
+    title: "Quadratic Koch Surface",
+    description:
+      "Rotate the 3D quadratic Koch surface and watch small cubes grow out of the middle of every face at each iteration.",
+    imagePath: "/assets/fractal-images/quadratic-koch-3d.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

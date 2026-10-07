@@ -41,6 +41,8 @@ function useLinks() {
     "/apollonian-gasket",
     "/logistic-map",
     "/diffusion-limited-aggregation",
+    "/jerusalem-cube",
+    "/quadratic-koch-3d",
   ];
 
   const i = fractalLinks.findIndex((link) => {
