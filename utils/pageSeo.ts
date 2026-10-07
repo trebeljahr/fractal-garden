@@ -332,6 +332,12 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Grow octahedron, dodecahedron and icosahedron flakes in 3D, where each solid is replaced by smaller copies at its corners.",
     imagePath: "/assets/fractal-images/polyhedron-flake.jpg",
   },
+  "/koch-surface": {
+    title: "Koch Surface",
+    description:
+      "Grow the von Koch surface in 3D by raising a tetrahedron on the middle of every triangle, from one triangle or a whole tetrahedron.",
+    imagePath: "/assets/fractal-images/koch-surface.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

@@ -10,6 +10,7 @@ import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.j
 import hTreeImage from "../public/assets/fractal-images/h-tree.jpg";
 import jerusalemCubeImage from "../public/assets/fractal-images/jerusalem-cube.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
+import kochSurfaceImage from "../public/assets/fractal-images/koch-surface.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
 import cesaroFractalImage from "../public/assets/fractal-images/l-system-cesaro-fractal.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
@@ -253,6 +254,7 @@ const Home: NextPage = () => {
             title="Polyhedron Flake"
             imageSrc={polyhedronFlakeImage}
           />
+          <FractalLink href="/koch-surface" title="Koch Surface" imageSrc={kochSurfaceImage} />
           <AddMoreLink />
         </div>
       </main>

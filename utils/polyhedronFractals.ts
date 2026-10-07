@@ -310,6 +310,59 @@ export function buildFlakeScene(mesh: Mesh, ratio: number, iterations: number) {
   return scene;
 }
 
+/**
+ * Von Koch surface: each triangle splits into four, and the middle one is
+ * replaced by the three side walls of a regular tetrahedron.
+ */
+export function buildKochSurfaceScene(start: "triangle" | "tetrahedron", iterations: number) {
+  let triangles: [Vec3, Vec3, Vec3][];
+
+  if (start === "tetrahedron") {
+    const { vertices, faces } = tetrahedronMesh(CIRCUMRADIUS);
+    triangles = faces.map((face) => [vertices[face[0]], vertices[face[1]], vertices[face[2]]]);
+  } else {
+    const corners = [90, 330, 210].map(
+      (angle): Vec3 => [1.6 * Math.cos(radians(angle)), -0.35, 1.6 * Math.sin(radians(angle))],
+    );
+    triangles = [[corners[0], corners[1], corners[2]]];
+  }
+
+  for (let step = 0; step < iterations; step++) {
+    const next: typeof triangles = [];
+    for (const [a, b, c] of triangles) {
+      const ab = scale(add(a, b), 0.5);
+      const bc = scale(add(b, c), 0.5);
+      const ca = scale(add(c, a), 0.5);
+      const edge = Math.hypot(...sub(ab, bc));
+      const normal = normalize(cross(sub(bc, ab), sub(ca, ab)));
+      const apex = add(centroid([ab, bc, ca]), scale(normal, edge * Math.sqrt(2 / 3)));
+      next.push(
+        [a, ab, ca],
+        [ab, b, bc],
+        [ca, bc, c],
+        [ab, bc, apex],
+        [bc, ca, apex],
+        [ca, ab, apex],
+      );
+    }
+    triangles = next;
+  }
+
+  const scene = createScene(triangles.length * 3, triangles.length, triangles.length * 3);
+  triangles.forEach((triangle, face) => {
+    scene.faceOffsets[face] = face * 3;
+    triangle.forEach((point, corner) => {
+      const index = face * 3 + corner;
+      scene.faceIndices[index] = index;
+      scene.positions.set(point, index * 3);
+    });
+  });
+  scene.faceOffsets[triangles.length] = triangles.length * 3;
+
+  computeNormals(scene);
+  return scene;
+}
+
 export function drawPolyhedronScene(
   ctx: CanvasRenderingContext2D,
   width: number,
