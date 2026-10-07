@@ -45,6 +45,9 @@ export function useAdaptiveGrowth({
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [renderedLevel, setRenderedLevel] = useState<number | null>(null);
   const [measureKey, setMeasureKey] = useState(0);
+  // Bumped whenever a fractal has no cached budget and must be calibrated.
+  const [calibrationId, setCalibrationId] = useState(0);
+  const [calibrating, setCalibrating] = useState(false);
   const droppedHiddenSample = useRef(false);
   const setIterationsRef = useRef(setIterations);
   setIterationsRef.current = setIterations;
@@ -59,10 +62,14 @@ export function useAdaptiveGrowth({
     setLoadedKey(storageKey);
     setRenderedLevel(null);
 
-    // A repeat visit jumps straight to the level found last time instead of
-    // climbing from the bottom again.
-    if (animateRef.current && Object.keys(stored).length > 0) {
+    // Open on the deepest level this machine handles: the one found last
+    // time, or, on a first visit, the one a calibration sweep finds.
+    if (Object.keys(stored).length > 0) {
+      setCalibrating(false);
       setIterationsRef.current(computeCap(stored, min, max));
+    } else {
+      setCalibrating(true);
+      setCalibrationId((id) => id + 1);
     }
   }, [storageKey, min, max]);
 
@@ -88,6 +95,22 @@ export function useAdaptiveGrowth({
 
   const onRendered = useCallback((level: number) => setRenderedLevel(level), []);
 
+  const onCalibrated = useCallback(
+    (reports: CostReport[]) => {
+      setSamples((old) => {
+        const next = { ...old };
+        for (const report of reports) {
+          next[report.level] = { load: loadFromReport(report), work: Math.max(1, report.work) };
+        }
+        if (reports.length > 0) writeSamples(storageKey, next);
+        setIterationsRef.current(computeCap(next, min, max));
+        return next;
+      });
+      setCalibrating(false);
+    },
+    [storageKey, min, max],
+  );
+
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden || !droppedHiddenSample.current) return;
@@ -98,7 +121,7 @@ export function useAdaptiveGrowth({
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
-  const ready = loadedKey === storageKey;
+  const ready = loadedKey === storageKey && !calibrating;
   const waitingForRender = renderedLevel !== iterations;
 
   useEffect(() => {
@@ -112,7 +135,16 @@ export function useAdaptiveGrowth({
     return () => window.clearTimeout(id);
   }, [animate, ready, waitingForRender, iterations, cap, min, stepDelay, holdDelay]);
 
-  return { cap, onCost, onRendered, measureKey };
+  return {
+    cap,
+    onCost,
+    onRendered,
+    measureKey,
+    /** True until the first-visit calibration has found where to start. */
+    calibrating: calibrating || loadedKey !== storageKey,
+    calibrationId,
+    onCalibrated,
+  };
 }
 
 /** Times a synchronous main-thread render, for pages that draw without a worker. */

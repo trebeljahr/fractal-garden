@@ -146,6 +146,11 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     return Boolean(extend) || trailRunning || config.autoRotate;
   }
 
+  withLevel(params: PolylineSceneParams, level: number): PolylineSceneParams {
+    if (params.source.kind !== "hilbert3d") return params;
+    return { ...params, source: { ...params.source, order: level } };
+  }
+
   describe() {
     // Only the Hilbert curve has growth levels to budget.
     if (this.params?.source.kind !== "hilbert3d") return null;

@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { calibrate } from "../render/calibrate";
 import { RenderHost } from "../render/host";
 import type { RendererKind } from "../render/registry";
-import type { HostEvent } from "../render/types";
+import type { CalibrationRequest, HostEvent } from "../render/types";
 
 type Channel = {
   setParams: (params: unknown) => void;
   resize: (width: number, height: number, ratio: number) => void;
   remeasure: () => void;
+  calibrate: (request: CalibrationRequest<unknown>) => void;
   dispose: () => void;
 };
+
+/** Asks the renderer how deep this machine can go; a new `id` asks again. */
+export type Calibration<P> = { id: number; params: P; min: number; max: number };
 
 type Params<P> = {
   kind: RendererKind;
@@ -19,6 +24,7 @@ type Params<P> = {
   onEvent?: (event: HostEvent) => void;
   /** Changing this asks the renderer to time the current level again. */
   measureKey?: number;
+  calibration?: Calibration<P> | null;
 };
 
 function openWorkerChannel(
@@ -48,6 +54,7 @@ function openWorkerChannel(
     setParams: (params) => active.postMessage({ type: "params", params }),
     resize: (width, height, ratio) => active.postMessage({ type: "resize", width, height, ratio }),
     remeasure: () => active.postMessage({ type: "remeasure" }),
+    calibrate: (request) => active.postMessage({ type: "calibrate", request }),
     dispose: () => active.terminate(),
   };
 }
@@ -65,6 +72,7 @@ export function useRenderSurface<P>({
   height,
   onEvent,
   measureKey,
+  calibration,
 }: Params<P>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -75,6 +83,10 @@ export function useRenderSurface<P>({
   latestSize.current = { width, height };
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
+  const latestCalibration = useRef(calibration);
+  latestCalibration.current = calibration;
+  const sentCalibration = useRef<number | null>(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -95,6 +107,7 @@ export function useRenderSurface<P>({
       const { width: w, height: h } = latestSize.current;
       if (w && h) channel.resize(w, h, window.devicePixelRatio || 1);
       if (latestParams.current != null) channel.setParams(latestParams.current);
+      setConnected(true);
     };
 
     const workerChannel = openWorkerChannel(element, kind, handle);
@@ -108,6 +121,15 @@ export function useRenderSurface<P>({
           setParams: (next) => host.setParams(next),
           resize: (w, h, ratio) => host.resize(w, h, ratio),
           remeasure: () => host.remeasure(),
+          calibrate: (request) => {
+            const reports = calibrate({
+              ...request,
+              template: request.params,
+              createRenderer: () => createRenderer(kind),
+              offThread: false,
+            });
+            handle({ type: "calibrated", reports });
+          },
           dispose: () => host.dispose(),
         });
       });
@@ -117,6 +139,8 @@ export function useRenderSurface<P>({
       disposed = true;
       channelRef.current?.dispose();
       channelRef.current = null;
+      sentCalibration.current = null;
+      setConnected(false);
       element.remove();
       setCanvas(null);
     };
@@ -136,6 +160,24 @@ export function useRenderSurface<P>({
   useEffect(() => {
     if (measureKey) channelRef.current?.remeasure();
   }, [measureKey]);
+
+  // Keyed by id, and re-checked once the page can describe its params.
+  const calibrationId = calibration ? calibration.id : null;
+  useEffect(() => {
+    const request = latestCalibration.current;
+    const channel = channelRef.current;
+    if (!connected || !channel || !request || !width || !height) return;
+    if (sentCalibration.current === request.id) return;
+    sentCalibration.current = request.id;
+    channel.calibrate({
+      params: request.params,
+      min: request.min,
+      max: request.max,
+      width,
+      height,
+      ratio: window.devicePixelRatio || 1,
+    });
+  }, [connected, calibrationId, width, height]);
 
   // For pages that change the picture faster than React should re-render,
   // such as a pan: posts straight to the renderer.

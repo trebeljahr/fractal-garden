@@ -14,11 +14,14 @@ export interface Renderer<P> {
   draw(ctx: Context2D, width: number, height: number): boolean;
   /** Level and amount of geometry currently shown, for the iteration budget. */
   describe(): { level: number; work: number } | null;
+  /** The parameters for another growth level; defaults to replacing `iterations`. */
+  withLevel?(params: P, level: number): P;
 }
 
 export type HostEvent =
   | { type: "rendered"; level: number }
   | { type: "cost"; report: CostReport }
+  | { type: "calibrated"; reports: CostReport[] }
   | { type: "error"; message: string };
 
 export type WorkerRequest =
@@ -32,4 +35,14 @@ export type WorkerRequest =
     }
   | { type: "resize"; width: number; height: number; ratio: number }
   | { type: "params"; params: unknown }
-  | { type: "remeasure" };
+  | { type: "remeasure" }
+  | { type: "calibrate"; request: CalibrationRequest<unknown> };
+
+export type CalibrationRequest<P> = {
+  params: P;
+  min: number;
+  max: number;
+  width: number;
+  height: number;
+  ratio: number;
+};

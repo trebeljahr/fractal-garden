@@ -20,7 +20,8 @@ export const RENDERERS = {
   fractalCanopy: () => new StaticRenderer(drawFractalCanopy),
   ...RECURSIVE_2D_RENDERERS,
   ...TURTLE_RENDERERS,
-} satisfies Record<string, () => Renderer<never>>;
+  // withLevel returns its own params type, which a `never` check cannot accept.
+} satisfies Record<string, () => Omit<Renderer<never>, "withLevel">>;
 
 export type RendererKind = keyof typeof RENDERERS;
 
