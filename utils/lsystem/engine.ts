@@ -3,7 +3,7 @@ import type { LSystemSpec, Rule } from "./spec";
 // Hard caps that keep the page responsive while someone types a rule that
 // explodes. Hitting one stops early and reports it instead of freezing the tab.
 export const MAX_SENTENCE_LENGTH = 3_000_000;
-export const MAX_SEGMENTS = 400_000;
+export const MAX_SEGMENTS = 2_000_000;
 
 export type Expansion = {
   sentence: string;

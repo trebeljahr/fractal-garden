@@ -8,19 +8,20 @@ import {
 } from "react";
 import styles from "../styles/LSystemExplorer.module.css";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { expand, interpret, isStochastic, MAX_SEGMENTS } from "../utils/lsystem/engine";
+import { isStochastic, MAX_SEGMENTS } from "../utils/lsystem/engine";
 import {
   type Camera,
+  createRenderer,
   DEFAULT_CAMERA,
   FLAT_CAMERA,
-  prepare,
-  render,
+  type Renderer,
   type Viewport,
 } from "../utils/lsystem/render";
 import { decodeSpec, encodeSpec, githubSubmitUrl, presetJson } from "../utils/lsystem/share";
 import { LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
+import type { WorkerRequest, WorkerResult } from "../utils/lsystem/worker";
 import { scrollToDescription } from "../utils/scrollToDescription";
-import { Canvas } from "./Canvas";
+import { WebGLCanvas } from "./Canvas";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
@@ -87,7 +88,13 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const [panelOpen, setPanelOpen] = useState(true);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [notice, setNotice] = useState("");
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [renderer, setRenderer] = useState<Renderer | null>(null);
+  const [unsupported, setUnsupported] = useState(false);
+  const [result, setResult] = useState<WorkerResult | null>(null);
+  const [computing, setComputing] = useState(true);
+  const [failed, setFailed] = useState(false);
   const { width, height } = useWindowSize();
 
   const cameraRef = useRef<Camera>({ ...FLAT_CAMERA });
@@ -137,10 +144,48 @@ export const LSystemExplorer = ({ presets }: Props) => {
 
   const iterations = shownIterations ?? debouncedSpec.iterations;
 
-  const result = useMemo(() => {
-    const expansion = expand(debouncedSpec, iterations);
-    const geometry = interpret(expansion.sentence, debouncedSpec);
-    return { expansion, geometry };
+  // Rewriting and the turtle run in a worker so typing never waits for them.
+  // A worker cannot be interrupted mid-job, so a busy one is replaced, and
+  // only the answer to the latest request is kept.
+  const workerRef = useRef<Worker | null>(null);
+  const busyRef = useRef(false);
+  const jobRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const id = ++jobRef.current;
+    if (busyRef.current) {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    }
+    let worker = workerRef.current;
+    if (!worker) {
+      worker = new Worker(new URL("../utils/lsystem/worker.ts", import.meta.url));
+      worker.onmessage = (event: MessageEvent<WorkerResult>) => {
+        busyRef.current = false;
+        if (event.data.id !== jobRef.current) return;
+        setResult(event.data);
+        setFailed(false);
+        setComputing(false);
+      };
+      worker.onerror = () => {
+        busyRef.current = false;
+        setFailed(true);
+        setComputing(false);
+      };
+      workerRef.current = worker;
+    }
+    busyRef.current = true;
+    setComputing(true);
+    const request: WorkerRequest = { id, spec: debouncedSpec, iterations };
+    worker.postMessage(request);
   }, [debouncedSpec, iterations]);
 
   const style = useMemo(
@@ -160,7 +205,13 @@ export const LSystemExplorer = ({ presets }: Props) => {
     ],
   );
 
-  const prepared = useMemo(() => prepare(result.geometry, style), [result.geometry, style]);
+  useEffect(() => {
+    if (!gl) return;
+    const created = createRenderer(gl);
+    setRenderer(created);
+    setUnsupported(!created);
+    return () => created?.dispose();
+  }, [gl]);
 
   const viewport = useMemo<Viewport | null>(() => {
     if (!width || !height) return null;
@@ -170,9 +221,9 @@ export const LSystemExplorer = ({ presets }: Props) => {
   }, [width, height, panelOpen]);
 
   const draw = useCallback(() => {
-    if (!ctx || !viewport) return;
-    render(ctx, prepared, style, debouncedSpec.dimension, cameraRef.current, viewport);
-  }, [ctx, viewport, prepared, style, debouncedSpec.dimension]);
+    if (!renderer || !viewport) return;
+    renderer.draw(result, style, debouncedSpec.dimension, cameraRef.current, viewport);
+  }, [renderer, viewport, result, style, debouncedSpec.dimension]);
 
   const requestDraw = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
@@ -295,8 +346,10 @@ export const LSystemExplorer = ({ presets }: Props) => {
     `${window.location.origin}${window.location.pathname}#s=${encodeSpec(spec)}`;
 
   const savePng = () => {
-    const canvas = ctx?.canvas;
     if (!canvas) return;
+    // The drawing buffer is only guaranteed until the frame is shown, so draw
+    // and read it in the same task.
+    draw();
     download(`${slugify(spec.name)}.png`, canvas.toDataURL("image/png"));
   };
 
@@ -366,7 +419,8 @@ export const LSystemExplorer = ({ presets }: Props) => {
     return () => stage.removeEventListener("wheel", onWheel);
   }, [viewport, requestDraw]);
 
-  const { expansion, geometry } = result;
+  const expansion = result?.expansion ?? { length: 0, iterations: 0, limited: false };
+  const geometry = result?.geometry ?? { count: 0, limited: false, warnings: [] as string[] };
   const stochastic = isStochastic(spec.rules);
   const ruleCounts = spec.rules.reduce<Record<string, number>>((counts, rule) => {
     counts[rule.symbol] = (counts[rule.symbol] ?? 0) + 1;
@@ -374,7 +428,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
   }, {});
   const missingSymbols = spec.rules.filter((rule) => !rule.symbol).length;
   const drawsNothing = geometry.count === 0;
-  const pending = spec !== debouncedSpec;
+  const pending = spec !== debouncedSpec || computing;
 
   const presets2d = presets.filter((p) => p.spec.dimension === "2d");
   const presets3d = presets.filter((p) => p.spec.dimension === "3d");
@@ -391,7 +445,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
         onDoubleClick={resetView}
         onContextMenu={(event) => event.preventDefault()}
       >
-        <Canvas setCtx={setCtx} width={width} height={height} />
+        <WebGLCanvas setGl={setGl} setCnv={setCanvas} width={width} height={height} />
       </div>
 
       {!panelOpen && (
@@ -702,8 +756,8 @@ export const LSystemExplorer = ({ presets }: Props) => {
         <section className={styles.stats} aria-live="polite">
           <span>
             {pending ? "Drawing…" : `Generation ${expansion.iterations}`} ·{" "}
-            {expansion.sentence.length.toLocaleString("en-US")} symbols ·{" "}
-            {geometry.count.toLocaleString("en-US")} lines
+            {expansion.length.toLocaleString("en-US")} symbols ·{" "}
+            {(result?.lines ?? 0).toLocaleString("en-US")} lines
           </span>
           {expansion.limited && (
             <span className={styles.warning}>
@@ -714,6 +768,12 @@ export const LSystemExplorer = ({ presets }: Props) => {
             <span className={styles.warning}>
               Showing the first {MAX_SEGMENTS.toLocaleString("en-US")} lines.
             </span>
+          )}
+          {unsupported && (
+            <span className={styles.warning}>This browser cannot draw with WebGL.</span>
+          )}
+          {failed && !pending && (
+            <span className={styles.warning}>Drawing failed. Try fewer iterations.</span>
           )}
           {missingSymbols > 0 && (
             <span className={styles.warning}>A rule has no symbol and is ignored.</span>
