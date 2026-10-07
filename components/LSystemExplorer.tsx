@@ -447,8 +447,12 @@ export const LSystemExplorer = ({ presets }: Props) => {
       const other = a === previous ? b : a;
       const before = Math.hypot(previous.x - other.x, previous.y - other.y);
       const after = Math.hypot(event.clientX - other.x, event.clientY - other.y);
-      if (before > 0) camera.zoom = clampZoom(camera.zoom * (after / before));
+      // Pan with the midpoint, then zoom around where it is now, so the spot
+      // between the fingers stays under them.
       pan(dx / 2, dy / 2);
+      if (before > 0) {
+        zoomAt((event.clientX + other.x) / 2, (event.clientY + other.y) / 2, after / before);
+      }
     } else if (debouncedSpec.dimension === "2d" || event.shiftKey || event.buttons === 2) {
       pan(dx, dy);
     } else {
@@ -467,37 +471,75 @@ export const LSystemExplorer = ({ presets }: Props) => {
   };
 
   const stageRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
+
+  // Scales the view by `factor` while the drawing point under the given
+  // screen position stays where it is.
+  const zoomAt = (clientX: number, clientY: number, factor: number) => {
     const stage = stageRef.current;
     if (!stage || !viewport) return;
+    const camera = cameraRef.current;
+    const zoom = clampZoom(camera.zoom * factor);
+    const k = zoom / camera.zoom;
+    const rect = stage.getBoundingClientRect();
+    const cx = clientX - rect.left - (viewport.x + viewport.width / 2);
+    const cy = clientY - rect.top - (viewport.y + viewport.height / 2);
+    if (debouncedSpec.dimension === "3d" && result) {
+      // Move the eye towards the spot under the cursor, at the orbit
+      // center's depth.
+      const view = viewFor(camera, result.radius, viewport);
+      const step = (view.distance / view.focal) * (1 - 1 / k);
+      camera.targetX += (view.right[0] * cx - view.up[0] * cy) * step;
+      camera.targetY += (view.right[1] * cx - view.up[1] * cy) * step;
+      camera.targetZ += (view.right[2] * cx - view.up[2] * cy) * step;
+    } else {
+      camera.panX = cx - (cx - camera.panX) * k;
+      camera.panY = cy - (cy - camera.panY) * k;
+    }
+    camera.zoom = zoom;
+    requestDraw();
+  };
+  const zoomAtRef = useRef(zoomAt);
+  zoomAtRef.current = zoomAt;
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
     // Registered natively because React's wheel listener is passive.
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      const camera = cameraRef.current;
-      const factor = Math.exp(-event.deltaY * 0.0015);
-      const zoom = clampZoom(camera.zoom * factor);
-      const k = zoom / camera.zoom;
-      // Keep the point under the cursor in place.
-      const cx = event.clientX - (viewport.x + viewport.width / 2);
-      const cy = event.clientY - (viewport.y + viewport.height / 2);
-      if (debouncedSpec.dimension === "3d" && result) {
-        // Move the eye towards the spot under the cursor, at the orbit
-        // center's depth.
-        const view = viewFor(camera, result.radius, viewport);
-        const step = (view.distance / view.focal) * (1 - 1 / k);
-        camera.targetX += (view.right[0] * cx - view.up[0] * cy) * step;
-        camera.targetY += (view.right[1] * cx - view.up[1] * cy) * step;
-        camera.targetZ += (view.right[2] * cx - view.up[2] * cy) * step;
-      } else {
-        camera.panX = cx - (cx - camera.panX) * k;
-        camera.panY = cy - (cy - camera.panY) * k;
-      }
-      camera.zoom = zoom;
-      requestDraw();
+      // Some mice report lines or pages instead of pixels.
+      const unit =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? stage.clientHeight
+            : 1;
+      // Trackpad pinches arrive as wheel events with ctrlKey and small deltas.
+      const speed = event.ctrlKey ? 0.01 : 0.0015;
+      zoomAtRef.current(event.clientX, event.clientY, Math.exp(-event.deltaY * unit * speed));
+    };
+    // Safari reports trackpad pinches as gesture events instead, and zooms
+    // the whole page unless they are cancelled.
+    let gestureScale = 1;
+    const onGestureStart = (event: Event) => {
+      event.preventDefault();
+      gestureScale = 1;
+    };
+    const onGestureChange = (event: Event) => {
+      event.preventDefault();
+      const gesture = event as Event & { scale: number; clientX: number; clientY: number };
+      zoomAtRef.current(gesture.clientX, gesture.clientY, gesture.scale / gestureScale);
+      gestureScale = gesture.scale;
     };
     stage.addEventListener("wheel", onWheel, { passive: false });
-    return () => stage.removeEventListener("wheel", onWheel);
-  }, [viewport, requestDraw, debouncedSpec.dimension, result]);
+    stage.addEventListener("gesturestart", onGestureStart);
+    stage.addEventListener("gesturechange", onGestureChange);
+    return () => {
+      stage.removeEventListener("wheel", onWheel);
+      stage.removeEventListener("gesturestart", onGestureStart);
+      stage.removeEventListener("gesturechange", onGestureChange);
+    };
+  }, []);
 
   const expansion = result?.expansion ?? { length: 0, iterations: 0, limited: false };
   const geometry = result?.geometry ?? { count: 0, limited: false, warnings: [] as string[] };
