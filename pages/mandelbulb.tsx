@@ -189,7 +189,8 @@ const Mandelbulb = ({ description }: Props) => {
       gl.uniform1f(detailLocation, currentConfig.detail);
       gl.uniform3f(backgroundLocation, bgR, bgG, bgB);
       gl.uniform3f(colorLocation, colorR, colorG, colorB);
-      const palette = PALETTES[currentConfig.palette];
+      // State kept by Fast Refresh, or an older shared config, may lack a palette.
+      const palette = PALETTES[currentConfig.palette] ?? PALETTES[INITIAL_CONFIG.palette];
       [palette.a, palette.b, palette.c, palette.d].forEach((value, index) => {
         gl.uniform3fv(paletteLocations[index], value);
       });
