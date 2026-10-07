@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fractal.garden/</loc>
-    <lastmod>2026-10-07T05:40:01.000Z</lastmod>
+    <lastmod>2026-10-07T05:41:10.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -140,7 +140,7 @@
   </url>
   <url>
     <loc>https://fractal.garden/l-system/dragon-curve</loc>
-    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
+    <lastmod>2026-10-07T05:41:10.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -230,14 +230,26 @@
   </url>
   <url>
     <loc>https://fractal.garden/jerusalem-cube</loc>
-    <lastmod>2026-10-07T05:40:01.000Z</lastmod>
+    <lastmod>2026-10-07T05:40:43.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fractal.garden/quadratic-koch-3d</loc>
-    <lastmod>2026-10-07T05:40:01.000Z</lastmod>
+    <lastmod>2026-10-07T05:40:43.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/twindragon</loc>
+    <lastmod>2026-10-07T05:41:10.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/terdragon</loc>
+    <lastmod>2026-10-07T05:41:10.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
