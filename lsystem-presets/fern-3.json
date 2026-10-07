@@ -1,0 +1,15 @@
+{
+  "name": "Fern 3",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F[+FF][-FF]F[-F][+F]F"
+    }
+  ],
+  "angle": 22.5,
+  "iterations": 4,
+  "color": "#91fc8e",
+  "colorEnd": "#f5f1d1"
+}

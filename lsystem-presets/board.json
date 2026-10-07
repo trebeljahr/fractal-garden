@@ -1,0 +1,15 @@
+{
+  "name": "Board",
+  "dimension": "2d",
+  "axiom": "F+F+F+F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "FF+F+F+F+FF"
+    }
+  ],
+  "angle": 90,
+  "iterations": 4,
+  "color": "#339ffc",
+  "colorEnd": "#9af4ff"
+}

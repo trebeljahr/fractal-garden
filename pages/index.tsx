@@ -11,6 +11,7 @@ import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
 import dragonCurveImage from "../public/assets/fractal-images/l-system-dragon-curve.jpg";
+import lSystemExplorerImage from "../public/assets/fractal-images/l-system-explorer.jpg";
 import fern1Image from "../public/assets/fractal-images/l-system-fern-1.jpg";
 import fern2Image from "../public/assets/fractal-images/l-system-fern-2.jpg";
 import fern3Image from "../public/assets/fractal-images/l-system-fern-3.jpg";
@@ -87,6 +88,11 @@ const Home: NextPage = () => {
             title="Sierpinski Carpet"
             imageSrc={sierpinskiCarpetImage}
             prio={true}
+          />
+          <FractalLink
+            href="/l-system/explorer"
+            title="L-System Explorer"
+            imageSrc={lSystemExplorerImage}
           />
           <FractalLink href="/l-system/levy-curve" title="Lévy Curve" imageSrc={levyCurveImage} />
           <FractalLink

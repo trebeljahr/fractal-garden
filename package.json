@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "next dev -p 1111",
-    "prebuild": "node scripts/generate-sitemap.mjs",
+    "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs && node scripts/generate-sitemap.mjs",
+    "validate:presets": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs",
     "build": "next build",
     "export": "pnpm build",
     "start": "next start -p 1111",

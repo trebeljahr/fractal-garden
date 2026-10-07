@@ -1,0 +1,20 @@
+{
+  "name": "Moore Curve",
+  "description": "A closed loop version of the Hilbert curve.",
+  "dimension": "2d",
+  "axiom": "LFL+F+LFL",
+  "rules": [
+    {
+      "symbol": "L",
+      "replacement": "-RF+LFL+FR-"
+    },
+    {
+      "symbol": "R",
+      "replacement": "+LF-RFR-FL+"
+    }
+  ],
+  "angle": 90,
+  "iterations": 5,
+  "color": "#ffe10b",
+  "colorEnd": "#fc366b"
+}

@@ -128,6 +128,12 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Rotate the 3D Vicsek Fractal and step through its cube-based recursive construction in an interactive viewer.",
     imagePath: "/assets/fractal-images/vicsek-fractal-3d.jpg",
   },
+  "/l-system/explorer": {
+    title: "L-System Explorer",
+    description:
+      "Write your own L-system rules and see the result update as you type, in 2D or 3D, with presets and shareable links.",
+    imagePath: "/assets/fractal-images/l-system-explorer.jpg",
+  },
   "/l-system/board": {
     title: "L-System Board",
     description:

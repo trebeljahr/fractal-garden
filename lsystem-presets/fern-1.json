@@ -1,0 +1,20 @@
+{
+  "name": "Fern 1",
+  "description": "Branching fern from the Fern 1 page of the garden.",
+  "dimension": "2d",
+  "axiom": "X",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "F+[[X]-X]-F[-FX]+X"
+    },
+    {
+      "symbol": "F",
+      "replacement": "FF"
+    }
+  ],
+  "angle": -25,
+  "iterations": 6,
+  "color": "#adff00",
+  "colorEnd": "#18fce0"
+}

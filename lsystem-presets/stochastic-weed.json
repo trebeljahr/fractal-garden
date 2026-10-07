@@ -1,0 +1,29 @@
+{
+  "name": "Stochastic Weed",
+  "description": "Three rules for F with equal weight. Change the seed to grow a different plant.",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F[+F]F[-F]F",
+      "weight": 1
+    },
+    {
+      "symbol": "F",
+      "replacement": "F[+F]F",
+      "weight": 1
+    },
+    {
+      "symbol": "F",
+      "replacement": "F[-F]F",
+      "weight": 1
+    }
+  ],
+  "angle": 25.7,
+  "iterations": 5,
+  "color": "#c6f36b",
+  "colorEnd": "#4fb477",
+  "colorMode": "depth",
+  "seed": 7
+}

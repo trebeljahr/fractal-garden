@@ -1,0 +1,20 @@
+{
+  "name": "Tree 3D",
+  "description": "Each generation shrinks the step length with > and the width with !.",
+  "dimension": "3d",
+  "axiom": "FFA",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "!>[&FFA]///[&FFA]///[&FFA]"
+    }
+  ],
+  "angle": 30,
+  "iterations": 7,
+  "lengthFactor": 0.72,
+  "widthFactor": 0.7,
+  "lineWidth": 7,
+  "color": "#a0784a",
+  "colorEnd": "#91fc8e",
+  "colorMode": "depth"
+}

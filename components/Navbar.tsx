@@ -34,6 +34,7 @@ function useLinks() {
     "/l-system/crystal",
     "/l-system/sierpinski-arrowhead",
     "/l-system/fibonacci-word-fractal",
+    "/l-system/explorer",
     "/t-square-fractal",
     "/n-flake",
     "/vicsek-fractal-2d",

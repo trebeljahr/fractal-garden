@@ -1,0 +1,19 @@
+{
+  "name": "Dragon Curve",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F+G"
+    },
+    {
+      "symbol": "G",
+      "replacement": "F-G"
+    }
+  ],
+  "angle": 90,
+  "iterations": 12,
+  "color": "#9af4ff",
+  "colorEnd": "#fc79ff"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Lévy C Curve",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "-F++F-"
+    }
+  ],
+  "angle": 45,
+  "iterations": 13,
+  "startAngle": 90,
+  "color": "#54bffc",
+  "colorEnd": "#f5f1d1"
+}

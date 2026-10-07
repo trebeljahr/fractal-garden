@@ -1,0 +1,15 @@
+{
+  "name": "Spiral Staircase",
+  "dimension": "3d",
+  "axiom": "A",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "F+F+F+F^A"
+    }
+  ],
+  "angle": 90,
+  "iterations": 24,
+  "color": "#9af4ff",
+  "colorEnd": "#fc79ff"
+}

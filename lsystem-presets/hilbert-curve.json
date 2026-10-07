@@ -1,0 +1,19 @@
+{
+  "name": "Hilbert Curve",
+  "dimension": "2d",
+  "axiom": "W",
+  "rules": [
+    {
+      "symbol": "V",
+      "replacement": "-WF+VFV+FW-"
+    },
+    {
+      "symbol": "W",
+      "replacement": "+VF-WFW-FV+"
+    }
+  ],
+  "angle": 90,
+  "iterations": 6,
+  "color": "#fc79ff",
+  "colorEnd": "#54bffc"
+}

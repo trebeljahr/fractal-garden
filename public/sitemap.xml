@@ -121,6 +121,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://fractal.garden/l-system/explorer</loc>
+    <lastmod>2026-10-07T05:16:56.683Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://fractal.garden/l-system/board</loc>
     <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>

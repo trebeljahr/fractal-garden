@@ -1,0 +1,15 @@
+{
+  "name": "Terdragon",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F+F-F"
+    }
+  ],
+  "angle": 120,
+  "iterations": 8,
+  "color": "#f7ad1c",
+  "colorEnd": "#fc366b"
+}

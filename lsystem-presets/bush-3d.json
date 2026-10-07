@@ -1,0 +1,31 @@
+{
+  "name": "Bush 3D",
+  "description": "A bush from The Algorithmic Beauty of Plants (figure 1.25), without the leaves.",
+  "dimension": "3d",
+  "axiom": "A",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "[&FL!A]/////[&FL!A]///////[&FL!A]"
+    },
+    {
+      "symbol": "F",
+      "replacement": "S/////F"
+    },
+    {
+      "symbol": "S",
+      "replacement": "FL"
+    },
+    {
+      "symbol": "L",
+      "replacement": ""
+    }
+  ],
+  "angle": 22.5,
+  "iterations": 7,
+  "widthFactor": 0.707,
+  "lineWidth": 6,
+  "color": "#8b5a2b",
+  "colorEnd": "#adff00",
+  "colorMode": "depth"
+}

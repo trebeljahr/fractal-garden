@@ -1,0 +1,19 @@
+{
+  "name": "Peano Curve",
+  "dimension": "2d",
+  "axiom": "X",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "XFYFX+F+YFXFY-F-XFYFX"
+    },
+    {
+      "symbol": "Y",
+      "replacement": "YFXFY-F-XFYFX+F+YFXFY"
+    }
+  ],
+  "angle": 90,
+  "iterations": 4,
+  "color": "#b1e5e8",
+  "colorEnd": "#91fc8e"
+}

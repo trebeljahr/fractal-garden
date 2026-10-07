@@ -1,0 +1,15 @@
+{
+  "name": "Koch Snowflake",
+  "dimension": "2d",
+  "axiom": "F++F++F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F-F++F-F"
+    }
+  ],
+  "angle": 60,
+  "iterations": 5,
+  "color": "#b1e5e8",
+  "colorEnd": "#80b8f9"
+}

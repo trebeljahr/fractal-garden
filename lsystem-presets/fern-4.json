@@ -1,0 +1,19 @@
+{
+  "name": "Fern 4",
+  "dimension": "2d",
+  "axiom": "X",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "F[+X]F[-X]+X"
+    },
+    {
+      "symbol": "F",
+      "replacement": "FF"
+    }
+  ],
+  "angle": 20,
+  "iterations": 7,
+  "color": "#ffe10b",
+  "colorEnd": "#adff00"
+}

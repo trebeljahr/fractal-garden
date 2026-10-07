@@ -1,0 +1,15 @@
+{
+  "name": "Sierpinski Curve",
+  "dimension": "2d",
+  "axiom": "F+XF+F+XF",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "XF-F+F-XF+F+XF-F+F-X"
+    }
+  ],
+  "angle": 90,
+  "iterations": 5,
+  "color": "#f7ad1c",
+  "colorEnd": "#ffe10b"
+}

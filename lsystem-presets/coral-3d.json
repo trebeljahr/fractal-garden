@@ -1,0 +1,18 @@
+{
+  "name": "Coral 3D",
+  "dimension": "3d",
+  "axiom": "A",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "F[&>A][^>A][+>A][->A]"
+    }
+  ],
+  "angle": 35,
+  "iterations": 6,
+  "lengthFactor": 0.62,
+  "color": "#fc366b",
+  "colorEnd": "#f5cc75",
+  "colorMode": "depth",
+  "lineWidth": 2
+}

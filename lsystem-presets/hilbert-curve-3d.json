@@ -1,0 +1,29 @@
+{
+  "name": "Hilbert Curve 3D",
+  "description": "The space-filling Hilbert curve in a cube, from The Algorithmic Beauty of Plants (figure 1.11).",
+  "dimension": "3d",
+  "axiom": "A",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "B-F+CFC+F-D&F^D-F+&&CFC+F+B//"
+    },
+    {
+      "symbol": "B",
+      "replacement": "A&F^CFB^F^D^^-F-D^|F^B|FC^F^A//"
+    },
+    {
+      "symbol": "C",
+      "replacement": "|D^|F^B-F+C^F^A&&FA&F^C+F+B^F^D//"
+    },
+    {
+      "symbol": "D",
+      "replacement": "|CFB-F+B|FA&F^A&&FB-F+B|FC//"
+    }
+  ],
+  "angle": 90,
+  "iterations": 3,
+  "color": "#fc79ff",
+  "colorEnd": "#54bffc",
+  "lineWidth": 2
+}

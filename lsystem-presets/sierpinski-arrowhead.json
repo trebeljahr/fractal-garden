@@ -1,0 +1,21 @@
+{
+  "name": "Sierpinski Arrowhead",
+  "dimension": "2d",
+  "axiom": "A",
+  "rules": [
+    {
+      "symbol": "A",
+      "replacement": "B-A-B"
+    },
+    {
+      "symbol": "B",
+      "replacement": "A+B+A"
+    }
+  ],
+  "angle": 60,
+  "iterations": 8,
+  "startAngle": 90,
+  "drawSymbols": "AB",
+  "color": "#fcd227",
+  "colorEnd": "#fc366b"
+}

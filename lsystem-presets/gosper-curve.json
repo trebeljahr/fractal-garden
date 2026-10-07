@@ -1,0 +1,19 @@
+{
+  "name": "Gosper Curve",
+  "dimension": "2d",
+  "axiom": "F",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F-G--G+F++FF+G-"
+    },
+    {
+      "symbol": "G",
+      "replacement": "+F-GG--G-F++F+G"
+    }
+  ],
+  "angle": 60,
+  "iterations": 4,
+  "color": "#89f7d1",
+  "colorEnd": "#339ffc"
+}

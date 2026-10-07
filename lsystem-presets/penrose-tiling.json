@@ -1,0 +1,34 @@
+{
+  "name": "Penrose Tiling",
+  "description": "Penrose P3 rhombus tiling. Only A draws, so the other letters act as tile markers.",
+  "dimension": "2d",
+  "axiom": "[N]++[N]++[N]++[N]++[N]",
+  "rules": [
+    {
+      "symbol": "M",
+      "replacement": "OA++PA----NA[-OA----MA]++"
+    },
+    {
+      "symbol": "N",
+      "replacement": "+OA--PA[---MA--NA]+"
+    },
+    {
+      "symbol": "O",
+      "replacement": "-MA++NA[+++OA++PA]-"
+    },
+    {
+      "symbol": "P",
+      "replacement": "--OA++++MA[+PA++++NA]--NA"
+    },
+    {
+      "symbol": "A",
+      "replacement": ""
+    }
+  ],
+  "angle": 36,
+  "iterations": 5,
+  "drawSymbols": "A",
+  "color": "#f5cc75",
+  "colorEnd": "#fc79ff",
+  "colorMode": "depth"
+}

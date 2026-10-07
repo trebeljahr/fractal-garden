@@ -1,0 +1,19 @@
+{
+  "name": "Fern 2",
+  "dimension": "2d",
+  "axiom": "Y",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "X[-FFF][+FFF]FX"
+    },
+    {
+      "symbol": "Y",
+      "replacement": "YFX[+Y][-Y]"
+    }
+  ],
+  "angle": 25.7,
+  "iterations": 7,
+  "color": "#3cf7d2",
+  "colorEnd": "#adff00"
+}

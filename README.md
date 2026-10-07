@@ -56,6 +56,10 @@ Have a look at the current issues of this project -> searching for those tagged 
 
 Please feel free to clarify points, add more details, or more connections or to simply fix typos where you see fit!
 
+### 🌱 Adding L-System Presets 🌱
+
+The [L-System Explorer](https://fractal.garden/l-system/explorer) lets you write your own L-system rules in 2D or 3D. Its **Submit as preset** button opens a pull request that adds your system to the preset list. See [lsystem-presets/README.md](lsystem-presets/README.md) for the file format.
+
 ### 🌿 Adding New Fractals 🌿
 If you want to contribute your own fractal, see if there is an issue for it first. You can filter the issues by [new-fractal](https://github.com/trebeljahr/fractal-garden/issues?q=is%3Aissue+is%3Aopen+label%3Anew-fractal). If not, create one following the issue template. 
 

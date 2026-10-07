@@ -1,0 +1,20 @@
+{
+  "name": "Sierpinski Triangle",
+  "dimension": "2d",
+  "axiom": "F-G-G",
+  "rules": [
+    {
+      "symbol": "F",
+      "replacement": "F-G+F+G-F"
+    },
+    {
+      "symbol": "G",
+      "replacement": "GG"
+    }
+  ],
+  "angle": 120,
+  "iterations": 7,
+  "startAngle": 90,
+  "color": "#fc366b",
+  "colorEnd": "#ffe10b"
+}
