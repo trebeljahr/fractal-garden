@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RenderHost } from "../render/host";
 import type { RendererKind } from "../render/registry";
 import type { HostEvent } from "../render/types";
@@ -137,5 +137,12 @@ export function useRenderSurface<P>({
     if (measureKey) channelRef.current?.remeasure();
   }, [measureKey]);
 
-  return { containerRef, canvas };
+  // For pages that change the picture faster than React should re-render,
+  // such as a pan: posts straight to the renderer.
+  const setParams = useCallback((next: P) => {
+    latestParams.current = next;
+    channelRef.current?.setParams(next);
+  }, []);
+
+  return { containerRef, canvas, setParams };
 }

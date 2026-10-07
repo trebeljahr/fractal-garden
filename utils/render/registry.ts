@@ -4,6 +4,7 @@ import { RECURSIVE_2D_RENDERERS } from "./drawings/recursive2d";
 import { drawTSquare } from "./drawings/tSquare";
 import { TURTLE_RENDERERS } from "./drawings/turtle";
 import { LSystem2DRenderer } from "./lsystem2d";
+import { PenroseRenderer } from "./penrose";
 import { PolylineSceneRenderer } from "./polylineScene";
 import { Scene3DRenderer } from "./scene3d";
 import { StaticRenderer } from "./static2d";
@@ -14,6 +15,7 @@ export const RENDERERS = {
   lsystem2d: () => new LSystem2DRenderer(),
   polylineScene: () => new PolylineSceneRenderer(),
   buddhabrot: () => new BuddhabrotRenderer(),
+  penrose: () => new PenroseRenderer(),
   tSquare: () => new StaticRenderer(drawTSquare),
   fractalCanopy: () => new StaticRenderer(drawFractalCanopy),
   ...RECURSIVE_2D_RENDERERS,
