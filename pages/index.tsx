@@ -10,6 +10,7 @@ import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.j
 import jerusalemCubeImage from "../public/assets/fractal-images/jerusalem-cube.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
+import cesaroFractalImage from "../public/assets/fractal-images/l-system-cesaro-fractal.jpg";
 import crystalImage from "../public/assets/fractal-images/l-system-crystal.jpg";
 import dragonCurveImage from "../public/assets/fractal-images/l-system-dragon-curve.jpg";
 import lSystemExplorerImage from "../public/assets/fractal-images/l-system-explorer.jpg";
@@ -20,8 +21,11 @@ import fern4Image from "../public/assets/fractal-images/l-system-fern-4.jpg";
 import fibonacciWordFractalImage from "../public/assets/fractal-images/l-system-fibonacci-word-fractal.jpg";
 import gosperCurveImage from "../public/assets/fractal-images/l-system-gosper-curve.jpg";
 import hilbertCurveImage from "../public/assets/fractal-images/l-system-hilbert-curve.jpg";
+import kochAntiSnowflakeImage from "../public/assets/fractal-images/l-system-koch-anti-snowflake.jpg";
 import kochSnowflakeImage from "../public/assets/fractal-images/l-system-koch-snowflake.jpg";
 import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
+import minkowskiSausageImage from "../public/assets/fractal-images/l-system-minkowski-sausage.jpg";
+import quadraticKochIslandImage from "../public/assets/fractal-images/l-system-quadratic-koch-island.jpg";
 import quadraticSnowflakeImage from "../public/assets/fractal-images/l-system-quadratic-snowflake.jpg";
 import sierpinskiCurveImage from "../public/assets/fractal-images/l-system-sierpinski-curve.jpg";
 import sierpinsikTriangleImage from "../public/assets/fractal-images/l-system-sierpinski-triangle.jpg";
@@ -189,6 +193,26 @@ const Home: NextPage = () => {
             href="/quadratic-koch-3d"
             title="Quadratic Koch Surface"
             imageSrc={quadraticKoch3DImage}
+          />
+          <FractalLink
+            href="/l-system/cesaro-fractal"
+            title="Cesàro Fractal"
+            imageSrc={cesaroFractalImage}
+          />
+          <FractalLink
+            href="/l-system/minkowski-sausage"
+            title="Minkowski Sausage"
+            imageSrc={minkowskiSausageImage}
+          />
+          <FractalLink
+            href="/l-system/quadratic-koch-island"
+            title="Quadratic Koch Island"
+            imageSrc={quadraticKochIslandImage}
+          />
+          <FractalLink
+            href="/l-system/koch-anti-snowflake"
+            title="Koch Anti-Snowflake"
+            imageSrc={kochAntiSnowflakeImage}
           />
 
           <AddMoreLink />

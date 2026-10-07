@@ -252,4 +252,28 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://fractal.garden/l-system/cesaro-fractal</loc>
+    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/minkowski-sausage</loc>
+    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/quadratic-koch-island</loc>
+    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/l-system/koch-anti-snowflake</loc>
+    <lastmod>2026-10-07T05:41:51.850Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

@@ -45,6 +45,10 @@ function useLinks() {
     "/quadratic-koch-3d",
     "/l-system/twindragon",
     "/l-system/terdragon",
+    "/l-system/cesaro-fractal",
+    "/l-system/minkowski-sausage",
+    "/l-system/quadratic-koch-island",
+    "/l-system/koch-anti-snowflake",
   ];
 
   const i = fractalLinks.findIndex((link) => {

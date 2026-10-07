@@ -260,6 +260,30 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Fold a line with 120° turns into the Terdragon, a space-filling L-system curve made of three copies of itself.",
     imagePath: "/assets/fractal-images/l-system-terdragon.jpg",
   },
+  "/l-system/cesaro-fractal": {
+    title: "Cesàro Fractal",
+    description:
+      "Open the Koch spike angle from 60° to 89° and watch four inward Cesàro curves fill a square.",
+    imagePath: "/assets/fractal-images/l-system-cesaro-fractal.jpg",
+  },
+  "/l-system/minkowski-sausage": {
+    title: "Minkowski Sausage",
+    description:
+      "Grow the Minkowski Sausage, the right-angled quadratic Koch curve, or switch to the Minkowski island.",
+    imagePath: "/assets/fractal-images/l-system-minkowski-sausage.jpg",
+  },
+  "/l-system/quadratic-koch-island": {
+    title: "Quadratic Koch Island",
+    description:
+      "Draw the Quadratic Koch Island, a square whose coastline gets longer every step while its area stays the same.",
+    imagePath: "/assets/fractal-images/l-system-quadratic-koch-island.jpg",
+  },
+  "/l-system/koch-anti-snowflake": {
+    title: "Koch Anti-Snowflake",
+    description:
+      "See the Koch Snowflake turned inside out: the same rule, with every spike pointing into the triangle.",
+    imagePath: "/assets/fractal-images/l-system-koch-anti-snowflake.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];
