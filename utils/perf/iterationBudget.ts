@@ -35,14 +35,16 @@ export type CostReport = {
   offThread: boolean;
 };
 
-/** A single redraw of an animated scene, to keep rotation smooth. */
-export const FRAME_BUDGET_MS = 1000 / 30;
+/** A single redraw of an animated scene: 20 fps still reads as smooth rotation. */
+export const FRAME_BUDGET_MS = 1000 / 20;
 /** One growth step on the main thread: longer and the page visibly stalls. */
-export const MAIN_THREAD_STEP_BUDGET_MS = 120;
+export const MAIN_THREAD_STEP_BUDGET_MS = 150;
 /** One growth step on a worker: the page stays responsive, the step should still feel quick. */
-export const WORKER_STEP_BUDGET_MS = 350;
+export const WORKER_STEP_BUDGET_MS = 500;
 
-const STORAGE_PREFIX = "fractal-garden:iteration-budget:v1:";
+// Samples store load relative to the budgets above, so bump the version
+// whenever a budget changes.
+const STORAGE_PREFIX = "fractal-garden:iteration-budget:v2:";
 const STORAGE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // Predictions stay a little pessimistic: overshooting tanks the machine,
 // undershooting only hides one level from the animation.
