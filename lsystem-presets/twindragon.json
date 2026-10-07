@@ -1,0 +1,19 @@
+{
+  "name": "Twindragon",
+  "dimension": "2d",
+  "axiom": "FX+FX+",
+  "rules": [
+    {
+      "symbol": "X",
+      "replacement": "X+YF"
+    },
+    {
+      "symbol": "Y",
+      "replacement": "FX-Y"
+    }
+  ],
+  "angle": 90,
+  "iterations": 12,
+  "color": "#ffb86b",
+  "colorEnd": "#c792ea"
+}
