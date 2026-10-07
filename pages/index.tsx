@@ -5,6 +5,7 @@ import apollonianGasketImage from "../public/assets/fractal-images/apollonian-ga
 import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg";
 import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg";
 import burningShipImage from "../public/assets/fractal-images/burning-ship.jpg";
+import diffusionLimitedAggregationImage from "../public/assets/fractal-images/diffusion-limited-aggregation.jpg";
 import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
 import boardImage from "../public/assets/fractal-images/l-system-board.jpg";
@@ -161,6 +162,11 @@ const Home: NextPage = () => {
             imageSrc={apollonianGasketImage}
           />
           <FractalLink href="/logistic-map" title="Logistic Map" imageSrc={logisticMapImage} />
+          <FractalLink
+            href="/diffusion-limited-aggregation"
+            title="Diffusion-Limited Aggregation"
+            imageSrc={diffusionLimitedAggregationImage}
+          />
 
           <AddMoreLink />
         </div>

@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fractal.garden/</loc>
-    <lastmod>2026-05-14T12:17:04.000Z</lastmod>
+    <lastmod>2026-10-07T05:36:39.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://fractal.garden/mandelbrot</loc>
-    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
+    <lastmod>2026-10-07T05:04:42.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -26,7 +26,7 @@
   </url>
   <url>
     <loc>https://fractal.garden/burning-ship</loc>
-    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
+    <lastmod>2026-10-07T05:04:42.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -50,7 +50,7 @@
   </url>
   <url>
     <loc>https://fractal.garden/julia-set</loc>
-    <lastmod>2026-05-14T20:44:19.000Z</lastmod>
+    <lastmod>2026-10-07T05:04:42.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -98,7 +98,7 @@
   </url>
   <url>
     <loc>https://fractal.garden/imprint</loc>
-    <lastmod>2026-05-14T12:17:04.000Z</lastmod>
+    <lastmod>2026-09-30T04:02:51.000Z</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -215,5 +215,11 @@
     <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fractal.garden/diffusion-limited-aggregation</loc>
+    <lastmod>2026-10-07T05:36:39.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

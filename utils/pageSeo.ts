@@ -224,6 +224,12 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Build the Sierpinski Triangle with an L-system renderer and see the iconic triangular void pattern appear step by step.",
     imagePath: "/assets/fractal-images/l-system-sierpinski-triangle.jpg",
   },
+  "/diffusion-limited-aggregation": {
+    title: "Diffusion-Limited Aggregation",
+    description:
+      "Watch random walkers drift, touch, and freeze into a branching diffusion-limited aggregation cluster that grows live in your browser.",
+    imagePath: "/assets/fractal-images/diffusion-limited-aggregation.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

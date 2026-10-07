@@ -39,6 +39,7 @@ function useLinks() {
     "/vicsek-fractal-2d",
     "/apollonian-gasket",
     "/logistic-map",
+    "/diffusion-limited-aggregation",
   ];
 
   const i = fractalLinks.findIndex((link) => {
