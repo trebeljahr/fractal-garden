@@ -2,6 +2,10 @@ type SeoEntry = {
   title: string;
   description: string;
   imagePath: string;
+  // Only set for images composed at a known size (scripts/generate-og-images.mjs);
+  // the raw thumbnails vary in size, so they omit the og:image dimensions.
+  imageWidth?: number;
+  imageHeight?: number;
 };
 
 const SITE_NAME = "Fractal Garden";
@@ -12,7 +16,9 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
     title: "Fractal Garden",
     description:
       "Explore interactive fractals, mathematical patterns, and shareable visualizations across classic sets, L-systems, and 3D recursive forms.",
-    imagePath: "/assets/fractal-images/mandelbrot.jpg",
+    imagePath: "/assets/og/home.jpg",
+    imageWidth: 1200,
+    imageHeight: 630,
   },
   "/mandelbrot": {
     title: "Mandelbrot Set",

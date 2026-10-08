@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev -p 1111",
     "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs && node scripts/generate-sitemap.mjs",
+    "og:images": "node scripts/generate-og-images.mjs",
     "validate:presets": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs",
     "build": "next build",
     "export": "pnpm build",
@@ -43,6 +44,7 @@
     "cross-env": "^7.0.3",
     "glslify-loader": "^2.0.0",
     "raw-loader": "^4.0.2",
+    "sharp": "^0.35.5",
     "typescript": "^5.9.3",
     "@biomejs/biome": "^2.4.13",
     "husky": "^9.1.7",
