@@ -15,3 +15,8 @@ That means every choice of `c` gives a different Julia Set. Some look like dust,
 This is the reason the Mandelbrot Set and Julia Sets are so tightly connected: points in the Mandelbrot parameter plane correspond to families of Julia Sets. Exploring different values of `c` is really a way of slicing through that larger picture.
 
 The version here lets you pick a few interesting presets and also adjust the real and imaginary parts of `c` directly. Because it uses a WebGL shader, you can also zoom in and move around just like in the [Burning Ship Fractal](/burning-ship) or the Mandelbrot view.
+
+## Further reading
+
+- [Julia Set on Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
+- [The Arantzazu Monster: a Julia Set music video by Michael_COMM_Style](https://www.youtube.com/watch?v=b7OTjlvJCD4) — a visually stunning musical journey through the Julia Set.
