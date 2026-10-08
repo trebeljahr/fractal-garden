@@ -13,3 +13,8 @@ but the picture is built from the path of each escaping orbit rather than from t
 If a sampled point stays bounded, it does not contribute anything to the image. If it escapes, every intermediate value in its orbit is plotted into a histogram. After collecting many thousands of those paths, brighter regions appear where many different orbits pass through the same area.
 
 This makes the Buddhabrot feel a bit like an x-ray of the Mandelbrot Set. It shows the flow around the set rather than just its boundary.
+
+## Further reading
+
+- [Buddhabrot on Wikipedia](https://en.wikipedia.org/wiki/Buddhabrot)
+- [The original paper by Melinda Green](https://superliminal.com/fractals/brot/bud.html)
