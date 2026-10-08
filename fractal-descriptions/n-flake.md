@@ -5,3 +5,10 @@ An N-Flake starts with a regular polygon and replaces it with smaller copies of 
 That makes N-Flakes more like a whole family of fractals than a single picture. With `n = 3`, the construction is closely related to the [Sierpinski Triangle](/l-system/sierpinski-triangle). With `n = 5` it becomes a pentaflake, and with `n = 6` it becomes a hexaflake. The square case is special too: if a centered square is kept together with the corner copies, the construction turns into the [2D Vicsek Fractal](/vicsek-fractal-2d). As the number of sides grows, the boundary starts to resemble gentler and gentler versions of the corners seen in the [Koch Snowflake](/l-system/koch-snowflake).
 
 The version here lets you change the number of sides directly, so you can move from sharp triangular flakes to much rounder polygon families. The centered option is especially interesting for the classic pentaflake and hexaflake cases, where the middle copy helps create the denser star-like structure those versions are known for.
+
+---
+
+**Further reading**
+
+- [PF flake (n-flake)](https://en.wikipedia.org/wiki/PF_flake) — Wikipedia entry covering the n-flake family and the formula for fractal dimension `D = log(m·(n-1)+1) / log(n/(n-2))`.
+- [Sierpinski Triangle](/l-system/sierpinski-triangle) — The triangular n-flake case (n=3) is closely related to the classic Sierpinski gasket.
