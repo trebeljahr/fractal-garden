@@ -445,15 +445,23 @@ export function drawPolyhedronScene(
     let ny2 = m3 * nx + m4 * ny + m5 * nz;
     let nz2 = m6 * nx + m7 * ny + m8 * nz;
 
-    if (nz2 <= 0) {
+    const start = faceOffsets[face];
+    const end = faceOffsets[face + 1];
+
+    // The camera sits at (0, 0, cameraDistance) and sees a face's front only
+    // from the side its normal points to. Under perspective that depends on
+    // where the face is, not just on which way it points.
+    const first = faceIndices[start] * 3;
+    const facing =
+      nz2 * options.cameraDistance -
+      (nx2 * rotated[first] + ny2 * rotated[first + 1] + nz2 * rotated[first + 2]);
+    if (facing <= 0) {
       if (!options.doubleSided) continue;
       nx2 = -nx2;
       ny2 = -ny2;
       nz2 = -nz2;
     }
 
-    const start = faceOffsets[face];
-    const end = faceOffsets[face + 1];
     let depth = 0;
     for (let corner = start; corner < end; corner++) {
       depth += rotated[faceIndices[corner] * 3 + 2];
@@ -468,10 +476,10 @@ export function drawPolyhedronScene(
   const drawOrder = order.subarray(0, visible).sort((a, b) => depths[a] - depths[b]);
   const fillStyles = new Map<number, string>();
   const strokeStyles = new Map<number, string>();
-  const styleFor = (cache: Map<number, string>, color: string, step: number, alpha: number) => {
+  const styleFor = (cache: Map<number, string>, color: string, step: number) => {
     let style = cache.get(step);
     if (!style) {
-      style = shadeColor(color, step / SHADE_STEPS, alpha);
+      style = shadeColor(color, step / SHADE_STEPS, 1);
       cache.set(step, style);
     }
     return style;
@@ -497,13 +505,13 @@ export function drawPolyhedronScene(
     ctx.closePath();
 
     if (options.showFaces) {
-      ctx.fillStyle = styleFor(fillStyles, options.fillColor, shades[face], 0.92);
+      ctx.fillStyle = styleFor(fillStyles, options.fillColor, shades[face]);
       ctx.fill();
     }
 
     // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
     if (showOutline) {
-      ctx.strokeStyle = styleFor(strokeStyles, options.strokeColor, shades[face], 0.95);
+      ctx.strokeStyle = styleFor(strokeStyles, options.strokeColor, shades[face]);
       ctx.stroke();
     }
   }
