@@ -16,7 +16,9 @@ const VARIANTS: Record<Variant, SceneVariant> = {
 const JerusalemCube = ({ description }: Props) => (
   <SceneFractalExplorer
     description={description}
-    storageKey="jerusalem-cube"
+    // Renamed when only the surface started being drawn: budgets timed on the
+    // slower renderer would otherwise keep capping the growth.
+    storageKey="jerusalem-cube-surface"
     title="Jerusalem Cube"
     controlsTitle="Scene Studio"
     controlsHint="Growth, orbit, and rendering layers for the cube."

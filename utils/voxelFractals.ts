@@ -24,12 +24,6 @@ type Vec3 = {
   z: number;
 };
 
-type Face = {
-  points: [number, number][];
-  depth: number;
-  shade: number;
-};
-
 export type VoxelDrawOptions = {
   rotationX: number;
   rotationY: number;
@@ -86,34 +80,6 @@ function normalize(vec: Vec3) {
     x: vec.x / len,
     y: vec.y / len,
     z: vec.z / len,
-  };
-}
-
-function dot(a: Vec3, b: Vec3) {
-  return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-function rotatePoint(point: Vec3, m: Orientation) {
-  return {
-    x: m[0] * point.x + m[1] * point.y + m[2] * point.z,
-    y: m[3] * point.x + m[4] * point.y + m[5] * point.z,
-    z: m[6] * point.x + m[7] * point.y + m[8] * point.z,
-  };
-}
-
-function projectPoint(
-  point: Vec3,
-  width: number,
-  height: number,
-  scale: number,
-  cameraDistance: number,
-) {
-  const perspective = PROJECTION_FOCAL_LENGTH / Math.max(cameraDistance - point.z, 0.2);
-
-  return {
-    x: width / 2 + point.x * scale * perspective,
-    y: height / 2 - point.y * scale * perspective,
-    z: point.z,
   };
 }
 
@@ -264,49 +230,9 @@ export function exposedCubeFaces(cubes: Cube[]): Quad[] {
   return quads;
 }
 
-// Draws faces in the given order, back to front.
-function paintFaces(ctx: CanvasRenderingContext2D, faces: Face[], options: VoxelDrawOptions) {
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.lineWidth = options.lineWidth;
-  const showOutline = options.showWireframe && options.lineWidth > 0;
-
-  for (let i = 0; i < faces.length; i++) {
-    const face = faces[i];
-    ctx.beginPath();
-    ctx.moveTo(face.points[0][0], face.points[0][1]);
-    for (let j = 1; j < face.points.length; j++) {
-      ctx.lineTo(face.points[j][0], face.points[j][1]);
-    }
-    ctx.closePath();
-
-    if (options.showFaces) {
-      ctx.fillStyle = shadeColor(options.fillColor, face.shade, 0.92);
-      ctx.fill();
-    }
-
-    // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
-    if (showOutline) {
-      ctx.strokeStyle = shadeColor(options.strokeColor, face.shade, 0.95);
-      ctx.stroke();
-    }
-  }
-}
-
 export type Quad = {
   corners: [Vec3, Vec3, Vec3, Vec3];
   normal: Vec3;
-};
-
-export type Box = {
-  x: number;
-  y: number;
-  z: number;
-  size: number;
-  rank: number;
-  // Cell index (0, 1 or 2 per axis) of this box inside its parent, for every level
-  // from the root down, flattened as [x0, y0, z0, x1, y1, z1, ...].
-  cells: number[];
 };
 
 const AXES: Vec3[] = [
@@ -336,155 +262,280 @@ function squareCorners(center: Vec3, u: Vec3, v: Vec3, half: number): Quad["corn
   ];
 }
 
-// Children of every box sit in the cells of a (possibly uneven) 3 x 3 x 3 grid. Walking
-// that grid from the far side to the near side on every axis, level by level, gives a
-// correct back-to-front order, which a per-face depth sort cannot for mixed box sizes.
-const boxOrderCache = new WeakMap<Box[], Map<number, Box[]>>();
+export const JERUSALEM_RATIO = Math.SQRT2 - 1;
 
-function orderBoxes(boxes: Box[], towardViewer: [boolean, boolean, boolean]) {
-  const key = (towardViewer[0] ? 1 : 0) + (towardViewer[1] ? 2 : 0) + (towardViewer[2] ? 4 : 0);
-  let byOctant = boxOrderCache.get(boxes);
-  if (!byOctant) {
-    byOctant = new Map();
-    boxOrderCache.set(boxes, byOctant);
-  }
+const EXPOSED = 0;
+// Covered by a neighbour of the same size or larger.
+const HIDDEN = 1;
+// A neighbour JERUSALEM_RATIO times the size covers one corner. Bit 0 and bit 1
+// hold which corner: set when it lies towards the positive end of the face's
+// first and second in-plane axis, (axis + 1) % 3 and (axis + 2) % 3.
+const NOTCHED = 4;
+// Where the notch starts, on a face that spans -1 to 1.
+const NOTCH_EDGE = 1 - 2 * JERUSALEM_RATIO;
 
-  const cached = byOctant.get(key);
-  if (cached) return cached;
+/** The Jerusalem cube as a tree of boxes, flattened with parents before children. */
+export type BoxScene = {
+  /** Centre x, y, z and edge length of every box. */
+  boxes: Float32Array;
+  /** Index of the first of a box's 20 children, or -1 for a box that is drawn. */
+  firstChild: Int32Array;
+  /** State of the six faces of every box, at axis * 2, plus 1 for the positive side. */
+  faces: Uint8Array;
+  /** Faces of drawn boxes that are not hidden. */
+  faceCount: number;
+};
 
-  const ordered = [...boxes].sort((a, b) => {
-    const length = Math.min(a.cells.length, b.cells.length);
-    for (let i = 0; i < length; i++) {
-      if (a.cells[i] !== b.cells[i]) {
-        const diff = a.cells[i] - b.cells[i];
-        return towardViewer[i % 3] ? diff : -diff;
+// A box splits into the cells of an uneven 3 x 3 x 3 grid that have at most one
+// middle coordinate: none is a corner cube, one is an edge cube along that axis.
+const JERUSALEM_CELLS: [number, number, number][] = [];
+for (let x = -1; x <= 1; x++) {
+  for (let y = -1; y <= 1; y++) {
+    for (let z = -1; z <= 1; z++) {
+      if ((x === 0 ? 1 : 0) + (y === 0 ? 1 : 0) + (z === 0 ? 1 : 0) <= 1) {
+        JERUSALEM_CELLS.push([x, y, z]);
       }
     }
-    return 0;
-  });
-  byOctant.set(key, ordered);
-  return ordered;
+  }
+}
+
+// Far-to-near position of the three cells along one axis, for a camera before
+// the middle cell, level with it, or past it.
+const CELL_POSITIONS = [
+  [2, 1, 0],
+  [0, 2, 1],
+  [0, 1, 2],
+];
+
+// Walking the grid from the far cell to the near cell on every axis gives a
+// correct back-to-front order, which a per-face depth sort cannot for mixed box
+// sizes. One order per camera placement, indexed by x + 3 * y + 9 * z.
+const JERUSALEM_ORDERS: number[][] = [];
+for (let placement = 0; placement < 27; placement++) {
+  const positions = [
+    CELL_POSITIONS[placement % 3],
+    CELL_POSITIONS[Math.floor(placement / 3) % 3],
+    CELL_POSITIONS[Math.floor(placement / 9)],
+  ];
+  const key = ([x, y, z]: [number, number, number]) =>
+    positions[0][x + 1] * 9 + positions[1][y + 1] * 3 + positions[2][z + 1];
+  JERUSALEM_ORDERS.push(
+    JERUSALEM_CELLS.map((_, index) => index).sort(
+      (a, b) => key(JERUSALEM_CELLS[a]) - key(JERUSALEM_CELLS[b]),
+    ),
+  );
+}
+
+// Every cube splits into 8 corner cubes (ratio k) and 12 edge cubes (ratio k²),
+// with k = √2 − 1 so that k + k² + k fills one edge exactly. A cube of rank r has
+// side k^r; cubes keep splitting until their rank reaches the iteration count.
+//
+// Only the surface is drawn, so every box tracks which of its faces a neighbour
+// covers. Cubes of the same rank that touch share a whole face, which leaves
+// three cases: an edge cube ends against the two larger corner cubes beside it,
+// that leaves a notch in the corner cube's face, and the corner cube's own child
+// in that notch is hidden in turn.
+export function generateJerusalemCube(iterations: number): BoxScene {
+  const k = JERUSALEM_RATIO;
+  const boxes: number[] = [0, 0, 0, 2];
+  const ranks: number[] = [0];
+  const faces: number[] = [EXPOSED, EXPOSED, EXPOSED, EXPOSED, EXPOSED, EXPOSED];
+  const firstChild: number[] = [];
+  let faceCount = 0;
+
+  for (let box = 0; box < ranks.length; box++) {
+    if (ranks[box] >= iterations) {
+      firstChild.push(-1);
+      for (let face = 0; face < 6; face++) {
+        if (faces[box * 6 + face] !== HIDDEN) faceCount += 1;
+      }
+      continue;
+    }
+
+    firstChild.push(ranks.length);
+    const size = boxes[box * 4 + 3];
+
+    for (const cell of JERUSALEM_CELLS) {
+      const edgeAxis = cell.indexOf(0);
+      const isCorner = edgeAxis < 0;
+      const childSize = size * (isCorner ? k : k * k);
+      const offset = (size - childSize) / 2;
+      boxes.push(
+        boxes[box * 4] + cell[0] * offset,
+        boxes[box * 4 + 1] + cell[1] * offset,
+        boxes[box * 4 + 2] + cell[2] * offset,
+        childSize,
+      );
+      ranks.push(ranks[box] + (isCorner ? 1 : 2));
+
+      for (let axis = 0; axis < 3; axis++) {
+        const corner =
+          NOTCHED + (cell[(axis + 1) % 3] > 0 ? 1 : 0) + (cell[(axis + 2) % 3] > 0 ? 2 : 0);
+
+        for (let side = 0; side < 2; side++) {
+          const outward = cell[axis] === side * 2 - 1;
+          const parent = faces[box * 6 + axis * 2 + side];
+
+          if (axis === edgeAxis) {
+            faces.push(HIDDEN);
+          } else if (!outward) {
+            // Corner cubes meet an edge cube here, edge cubes face the hollow.
+            faces.push(isCorner ? corner : EXPOSED);
+          } else if (parent < NOTCHED) {
+            faces.push(parent);
+          } else {
+            faces.push(isCorner && parent === corner ? HIDDEN : EXPOSED);
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    boxes: Float32Array.from(boxes),
+    firstChild: Int32Array.from(firstChild),
+    faces: Uint8Array.from(faces),
+    faceCount,
+  };
 }
 
 export function drawBoxScene(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  boxes: Box[],
+  scene: BoxScene,
   options: VoxelDrawOptions,
 ) {
-  const rotation = viewRotation(options.rotationX, options.rotationY, options.grab);
-  const scale = Math.min(width, height) * 0.3;
-  const faces: Face[] = [];
-  const faceNormals = FACE_DEFS.map((faceDef) => rotatePoint(faceDef.normal, rotation));
-  const towardViewer = AXES.map((axis) => rotatePoint(axis, rotation).z > 0) as [
-    boolean,
-    boolean,
-    boolean,
-  ];
+  const { boxes, firstChild, faces } = scene;
+  const m = viewRotation(options.rotationX, options.rotationY, options.grab);
+  const distance = options.cameraDistance;
+  const viewScale = Math.min(width, height) * 0.3 * PROJECTION_FOCAL_LENGTH;
+  // The camera sits on the view's z axis; this is the same spot in the model.
+  // Sorting and culling against it, not against the view direction, keeps both
+  // right under perspective.
+  const camera = [m[6] * distance, m[7] * distance, m[8] * distance];
 
   ctx.fillStyle = options.background;
   ctx.fillRect(0, 0, width, height);
 
-  const ordered = orderBoxes(boxes, towardViewer);
-  for (let i = 0; i < ordered.length; i++) {
-    const box = ordered[i];
-    const half = box.size / 2;
-    let projected: { x: number; y: number }[] | null = null;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineWidth = options.lineWidth;
+  const showOutline = options.showWireframe && options.lineWidth > 0;
 
-    for (let faceIndex = 0; faceIndex < FACE_DEFS.length; faceIndex++) {
-      const normal = faceNormals[faceIndex];
-      if (normal.z <= 0) {
-        continue;
-      }
-
-      if (!projected) {
-        projected = [];
-        for (let v = 0; v < 8; v++) {
-          const vertex = rotatePoint(
-            {
-              x: box.x + (v & 1 ? half : -half),
-              y: box.y + (v & 2 ? half : -half),
-              z: box.z + (v & 4 ? half : -half),
-            },
-            rotation,
-          );
-          projected.push(projectPoint(vertex, width, height, scale, options.cameraDistance));
-        }
-      }
-
-      const corners = projected;
-      faces.push({
-        points: FACE_DEFS[faceIndex].indices.map((index) => [corners[index].x, corners[index].y]),
-        depth: 0,
-        shade: Math.max(0.2, dot(normalize(normal), LIGHT)),
-      });
-    }
+  // Faces only point along the axes, so six shades cover the whole scene.
+  const fillStyles: string[] = [];
+  const strokeStyles: string[] = [];
+  for (let face = 0; face < 6; face++) {
+    const axis = face >> 1;
+    const facing = m[axis] * LIGHT.x + m[3 + axis] * LIGHT.y + m[6 + axis] * LIGHT.z;
+    const shade = Math.max(0.2, face & 1 ? facing : -facing);
+    fillStyles.push(shadeColor(options.fillColor, shade, 1));
+    strokeStyles.push(shadeColor(options.strokeColor, shade, 1));
   }
 
-  paintFaces(ctx, faces, options);
-}
+  // Centre of the face being drawn and its two half edges, in view space.
+  let ox = 0;
+  let oy = 0;
+  let oz = 0;
+  let ux = 0;
+  let uy = 0;
+  let uz = 0;
+  let vx = 0;
+  let vy = 0;
+  let vz = 0;
 
-export const JERUSALEM_RATIO = Math.SQRT2 - 1;
+  // Adds the point at (u, v) of that face, which spans -1 to 1 both ways.
+  const lineTo = (u: number, v: number) => {
+    const scale = viewScale / Math.max(distance - (oz + u * uz + v * vz), 0.2);
+    ctx.lineTo(
+      width / 2 + (ox + u * ux + v * vx) * scale,
+      height / 2 - (oy + u * uy + v * vy) * scale,
+    );
+  };
 
-// Every cube splits into 8 corner cubes (ratio k) and 12 edge cubes (ratio k²),
-// with k = √2 − 1 so that k + k² + k fills one edge exactly. A cube of rank r has
-// side k^r; cubes keep splitting until their rank reaches the iteration count.
-export function generateJerusalemCube(iterations: number): Box[] {
-  const k = JERUSALEM_RATIO;
-  const result: Box[] = [];
-  const stack: Box[] = [{ x: 0, y: 0, z: 0, size: 2, rank: 0, cells: [] }];
-
-  while (stack.length > 0) {
-    const box = stack.pop() as Box;
-    if (box.rank >= iterations) {
-      result.push(box);
-      continue;
-    }
-
-    const cornerSize = box.size * k;
-    const edgeSize = box.size * k * k;
-    const cornerOffset = (box.size - cornerSize) / 2;
-    const edgeOffset = (box.size - edgeSize) / 2;
-
-    for (const sx of [-1, 1]) {
-      for (const sy of [-1, 1]) {
-        for (const sz of [-1, 1]) {
-          stack.push({
-            x: box.x + sx * cornerOffset,
-            y: box.y + sy * cornerOffset,
-            z: box.z + sz * cornerOffset,
-            size: cornerSize,
-            rank: box.rank + 1,
-            cells: [...box.cells, sx + 1, sy + 1, sz + 1],
-          });
-        }
-      }
-    }
+  const drawBox = (box: number) => {
+    const x = boxes[box * 4];
+    const y = boxes[box * 4 + 1];
+    const z = boxes[box * 4 + 2];
+    const half = boxes[box * 4 + 3] / 2;
 
     for (let axis = 0; axis < 3; axis++) {
-      for (const sa of [-1, 1]) {
-        for (const sb of [-1, 1]) {
-          const offset = [0, 0, 0];
-          const cell = [1, 1, 1];
-          offset[(axis + 1) % 3] = sa * edgeOffset;
-          offset[(axis + 2) % 3] = sb * edgeOffset;
-          cell[(axis + 1) % 3] = sa + 1;
-          cell[(axis + 2) % 3] = sb + 1;
-          stack.push({
-            x: box.x + offset[0],
-            y: box.y + offset[1],
-            z: box.z + offset[2],
-            size: edgeSize,
-            rank: box.rank + 2,
-            cells: [...box.cells, ...cell],
-          });
-        }
+      // A face shows only when the camera is beyond it.
+      const reach = camera[axis] - boxes[box * 4 + axis];
+      if (reach <= half && reach >= -half) continue;
+
+      const face = axis * 2 + (reach > 0 ? 1 : 0);
+      const state = faces[box * 6 + face];
+      if (state === HIDDEN) continue;
+
+      const out = reach > 0 ? half : -half;
+      const u = (axis + 1) % 3;
+      const v = (axis + 2) % 3;
+      ox = m[0] * x + m[1] * y + m[2] * z + out * m[axis];
+      oy = m[3] * x + m[4] * y + m[5] * z + out * m[3 + axis];
+      oz = m[6] * x + m[7] * y + m[8] * z + out * m[6 + axis];
+      ux = half * m[u];
+      uy = half * m[3 + u];
+      uz = half * m[6 + u];
+      vx = half * m[v];
+      vy = half * m[3 + v];
+      vz = half * m[6 + v];
+
+      ctx.beginPath();
+      if (state === EXPOSED) {
+        lineTo(-1, -1);
+        lineTo(1, -1);
+        lineTo(1, 1);
+        lineTo(-1, 1);
+      } else {
+        // An L: the square without the corner a smaller cube covers.
+        const cu = state & 1 ? 1 : -1;
+        const cv = state & 2 ? 1 : -1;
+        lineTo(-cu, -cv);
+        lineTo(cu, -cv);
+        lineTo(cu, cv * NOTCH_EDGE);
+        lineTo(cu * NOTCH_EDGE, cv * NOTCH_EDGE);
+        lineTo(cu * NOTCH_EDGE, cv);
+        lineTo(-cu, cv);
+      }
+      ctx.closePath();
+
+      if (options.showFaces) {
+        ctx.fillStyle = fillStyles[face];
+        ctx.fill();
+      }
+
+      // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
+      if (showOutline) {
+        ctx.strokeStyle = strokeStyles[face];
+        ctx.stroke();
       }
     }
-  }
+  };
 
-  return result;
+  const drawTree = (box: number) => {
+    const first = firstChild[box];
+    if (first < 0) {
+      drawBox(box);
+      return;
+    }
+
+    // Half the width of the middle cell.
+    const middle = (boxes[box * 4 + 3] * JERUSALEM_RATIO * JERUSALEM_RATIO) / 2;
+    let placement = 0;
+    for (let axis = 2; axis >= 0; axis--) {
+      const reach = camera[axis] - boxes[box * 4 + axis];
+      placement = placement * 3 + (reach > middle ? 2 : reach < -middle ? 0 : 1);
+    }
+
+    const order = JERUSALEM_ORDERS[placement];
+    for (let i = 0; i < order.length; i++) {
+      drawTree(first + order[i]);
+    }
+  };
+
+  drawTree(0);
 }
 
 type SurfaceSquare = {

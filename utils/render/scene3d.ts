@@ -13,7 +13,7 @@ import {
   tetrahedronMesh,
 } from "../polyhedronFractals";
 import {
-  type Box,
+  type BoxScene,
   drawBoxScene,
   exposedCubeFaces,
   generateJerusalemCube,
@@ -66,9 +66,7 @@ export type Scene3DParams = {
   view: SceneView;
 };
 
-type BuiltScene =
-  | { type: "faces"; scene: PolyhedronScene }
-  | { type: "boxes"; boxes: Box[]; faceCount: number };
+type BuiltScene = { type: "faces"; scene: PolyhedronScene } | { type: "boxes"; scene: BoxScene };
 
 const meshCache = new Map<string, Mesh>();
 
@@ -100,11 +98,9 @@ export function buildScene(spec: SceneSpec, iterations: number): BuiltScene {
       };
     case "quadraticKoch3d":
       return { type: "faces", scene: quadsToScene(generateQuadraticKochSurface(iterations)) };
-    case "jerusalem": {
+    case "jerusalem":
       // Boxes need their own back-to-front order, which a face sort gets wrong.
-      const boxes = generateJerusalemCube(iterations);
-      return { type: "boxes", boxes, faceCount: boxes.length * 6 };
-    }
+      return { type: "boxes", scene: generateJerusalemCube(iterations) };
     case "flake":
       return { type: "faces", scene: buildFlakeScene(getMesh(spec.mesh), spec.ratio, iterations) };
     case "kochSurface":
@@ -144,7 +140,7 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
     if (built.type === "faces") {
       drawPolyhedronScene(target, width, height, built.scene, options);
     } else {
-      drawBoxScene(target, width, height, built.boxes, options);
+      drawBoxScene(target, width, height, built.scene, options);
     }
 
     if (!view.autoRotate) return false;
@@ -154,7 +150,6 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
 
   describe() {
     if (!this.params || !this.built) return null;
-    const work = this.built.type === "faces" ? this.built.scene.faceCount : this.built.faceCount;
-    return { level: this.params.iterations, work };
+    return { level: this.params.iterations, work: this.built.scene.faceCount };
   }
 }
