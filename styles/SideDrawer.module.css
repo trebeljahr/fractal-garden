@@ -56,6 +56,17 @@
   line-height: 1.6;
 }
 
+/* The global reset zeroes list padding, which leaves the markers hanging
+   outside the text column. */
+.drawerContent ul,
+.drawerContent ol {
+  padding-left: 1.4em;
+}
+
+.drawerContent li + li {
+  margin-top: 0.4rem;
+}
+
 .drawerContent a {
   color: var(--bright-grey);
 }
