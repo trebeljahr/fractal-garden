@@ -111,6 +111,15 @@ export function shadeColor(hex: string, shade: number, alpha: number) {
   )}, ${Math.min(255, Math.round(b * factor))}, ${alpha})`;
 }
 
+/**
+ * Faces are antialiased one at a time, so two that share an edge leave a
+ * hairline of whatever lies behind along it. Without an outline to cover that,
+ * each face is also stroked in its own colour. One device pixel is enough.
+ */
+export function seamWidth(ctx: CanvasRenderingContext2D) {
+  return 1 / ctx.getTransform().a;
+}
+
 export function generateVoxelFractal(
   iterations: number,
   keepCube: (x: number, y: number, z: number) => boolean,
@@ -420,8 +429,9 @@ export function drawBoxScene(
 
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  ctx.lineWidth = options.lineWidth;
   const showOutline = options.showWireframe && options.lineWidth > 0;
+  const sealSeams = options.showFaces && !showOutline;
+  ctx.lineWidth = sealSeams ? seamWidth(ctx) : options.lineWidth;
 
   // Faces only point along the axes, so six shades cover the whole scene.
   const fillStyles: string[] = [];
@@ -504,6 +514,10 @@ export function drawBoxScene(
       if (options.showFaces) {
         ctx.fillStyle = fillStyles[face];
         ctx.fill();
+        if (sealSeams) {
+          ctx.strokeStyle = fillStyles[face];
+          ctx.stroke();
+        }
       }
 
       // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.

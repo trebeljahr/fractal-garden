@@ -1,6 +1,6 @@
 import { radians } from "./ctxHelpers";
 import { type Orientation, viewRotation } from "./orientation";
-import { shadeColor } from "./voxelFractals";
+import { seamWidth, shadeColor } from "./voxelFractals";
 
 type Vec3 = [number, number, number];
 
@@ -487,8 +487,9 @@ export function drawPolyhedronScene(
 
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  ctx.lineWidth = options.lineWidth;
   const showOutline = options.showWireframe && options.lineWidth > 0;
+  const sealSeams = options.showFaces && !showOutline;
+  ctx.lineWidth = sealSeams ? seamWidth(ctx) : options.lineWidth;
 
   for (let i = 0; i < drawOrder.length; i++) {
     const face = drawOrder[i];
@@ -505,8 +506,13 @@ export function drawPolyhedronScene(
     ctx.closePath();
 
     if (options.showFaces) {
-      ctx.fillStyle = styleFor(fillStyles, options.fillColor, shades[face]);
+      const fill = styleFor(fillStyles, options.fillColor, shades[face]);
+      ctx.fillStyle = fill;
       ctx.fill();
+      if (sealSeams) {
+        ctx.strokeStyle = fill;
+        ctx.stroke();
+      }
     }
 
     // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
