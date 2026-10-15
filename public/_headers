@@ -1,6 +1,8 @@
-# Content-hashed build output never changes under the same URL.
-/_next/static/*
-  Cache-Control: public, max-age=31536000, immutable
+# No long cache on hashed build output. Cloudflare applies _headers to 404
+# responses too, and the edge caches them: with an immutable rule here, a
+# browser that asks for a chunk in the seconds after a deploy, or for an
+# old chunk, keeps that 404 for a year (measured 2026-10-12). The default
+# (max-age=0, must-revalidate + ETag) costs only free revalidations.
 
 /assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
