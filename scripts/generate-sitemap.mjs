@@ -86,7 +86,7 @@ function routeQuality(path) {
     return { changeFrequency: "weekly", priority: 1 };
   }
 
-  if (path === "/imprint") {
+  if (path === "/imprint" || path === "/privacy") {
     return { changeFrequency: "yearly", priority: 0.3 };
   }
 

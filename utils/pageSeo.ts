@@ -116,6 +116,12 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Imprint for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr.",
     imagePath: "/assets/fractal-images/mandelbrot.jpg",
   },
+  "/privacy": {
+    title: "Privacy Policy",
+    description:
+      "Every server your browser contacts on fractal.garden, what each one receives, and your rights under the GDPR.",
+    imagePath: "/assets/fractal-images/mandelbrot.jpg",
+  },
   "/t-square-fractal": {
     title: "T-Square Fractal",
     description:

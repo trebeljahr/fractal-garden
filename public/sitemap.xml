@@ -103,6 +103,12 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://fractal.garden/privacy</loc>
+    <lastmod>2026-10-19T05:00:00.000Z</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://fractal.garden/t-square-fractal</loc>
     <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>

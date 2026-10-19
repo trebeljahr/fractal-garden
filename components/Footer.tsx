@@ -31,6 +31,12 @@ export const Footer = () => {
         <Link legacyBehavior href="/imprint" passHref>
           <a href="/imprint">Imprint</a>
         </Link>
+        <span className={styles.separator} aria-hidden="true">
+          |
+        </span>
+        <Link legacyBehavior href="/privacy" passHref>
+          <a href="/privacy">Privacy</a>
+        </Link>
       </nav>
     </footer>
   );
