@@ -137,10 +137,12 @@ const Privacy: NextPage = () => {
           works the same without them.
         </p>
         <p className={styles.paragraph}>
-          Plausible sets no cookies and stores nothing on your device. It combines your IP address
-          and user agent with a salt that changes every day, and stores only the resulting hash. It
-          deletes the salt after 24 hours, so nobody can trace the hash back to you. It never stores
-          the IP address.
+          Plausible sets no cookies and writes nothing to your device. Its script reads one entry
+          from your local storage, <Host>plausible_ignore</Host>, to learn whether you switched
+          counting off for your browser. Your browser has that entry only if you set it. Plausible
+          combines your IP address and user agent with a salt that changes every day, and stores
+          only the resulting hash. It deletes the salt after 24 hours, so nobody can trace the hash
+          back to you. It never stores the IP address.
         </p>
         <p className={styles.paragraph}>
           Plausible records the page address, the referrer, the browser, the operating system, the
@@ -155,8 +157,7 @@ const Privacy: NextPage = () => {
         </p>
         <p className={styles.paragraph}>
           Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in knowing which pages people read).
-          No information is stored on or read from your device for this, so § 25 TDDDG requires no
-          consent. You can object at any time.
+          You can object at any time.
         </p>
 
         <h2 className={styles.subheading}>Data in your browser</h2>
