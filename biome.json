@@ -42,7 +42,6 @@
         "noEmptyBlock": "warn",
         "useIterableCallbackReturn": "warn",
         "noDuplicateProperties": "warn",
-        "useGoogleFontDisplay": "warn",
         "noShorthandPropertyOverrides": "warn",
         "noAssignInExpressions": "warn",
         "noImplicitAnyLet": "warn"

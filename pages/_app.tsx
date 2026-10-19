@@ -1,3 +1,5 @@
+import "katex/dist/katex.min.css";
+import "../styles/_fonts.css";
 import "../styles/_globals.css";
 import "../styles/react-dat-gui.css";
 

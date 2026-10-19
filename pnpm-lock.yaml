@@ -19,6 +19,9 @@ importers:
       highlight.js:
         specifier: ^11.11.1
         version: 11.12.0
+      katex:
+        specifier: ^0.16.45
+        version: 0.16.45
       next:
         specifier: ^15.5.24
         version: 15.5.26(@types/node@18.7.20)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.99.0)

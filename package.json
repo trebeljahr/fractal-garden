@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
+    "katex": "^0.16.45",
     "next": "^15.5.24",
     "react": "18.2.0",
     "react-cool-dimensions": "^2.0.7",
