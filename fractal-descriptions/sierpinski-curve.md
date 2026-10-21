@@ -1,6 +1,6 @@
 # Sierpinski Curve
 
-The Sierpinski Curve is a space-filling curve and is therefore related to the [Hilbert Curve](/l-system/hilbert-curve) and also the [Arrowhead Curve](/l-system/arrowhead-curve). What you see on this page is the "square" based variant of the Sierpinski curve. You can see how it is constructed recursively by adding the current shape, over and over to the four sides of itself.
+The Sierpinski Curve is a space-filling curve and is therefore related to the [Hilbert Curve](/l-system/hilbert-curve) and also the [Arrowhead Curve](/l-system/sierpinski-arrowhead). What you see on this page is the "square" based variant of the Sierpinski curve. You can see how it is constructed recursively by adding the current shape, over and over to the four sides of itself.
 
 It doesn't have the cool spacial closeness preserving properties of the Hilbert curve though. However, it's still a cool-looking 1-dimensional curve, wrapping itself around in a 2D space, completely covering every single point within the plane.
 

@@ -1,6 +1,6 @@
 # Sierpinski Triangle
 
-The Sierpinski Triangle is one of the coolest fractals in this garden. The reason why I like it so much is that there are so so many different ways to construct it. You can recursively cut out an inverted triangle, similar to how you would cut out squares from the [Sierpinski Carpet](/sierpinski-carpet). You could build one out of playing a Chaos Game (the triangle attracts points to it, just like the Barnsley Fern does). You could get it from a [Sierpinski-Arrowhead curve](/sierpinski-arrowhead).
+The Sierpinski Triangle is one of the coolest fractals in this garden. The reason why I like it so much is that there are so so many different ways to construct it. You can recursively cut out an inverted triangle, similar to how you would cut out squares from the [Sierpinski Carpet](/sierpinski-carpet). You could build one out of playing a Chaos Game (the triangle attracts points to it, just like the Barnsley Fern does). You could get it from a [Sierpinski-Arrowhead curve](/l-system/sierpinski-arrowhead).
 
 You could start with a single triangle and shrink it, copy the shrunken version 3 times and stack them. Two at the bottom, 1 at the top in the middle. You could do the same with squares. Or any other shape! Just to show the point Michael Barnsley even created one made out of fishes - you can find an illustration of this on [page 3 of this paper](https://arxiv.org/pdf/math/0312314.pdf). 
 
