@@ -728,7 +728,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
       <aside className={styles.panel} hidden={!panelOpen} aria-label="L-system editor">
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>L-System Explorer</h1>
+            <p className={styles.title}>L-System Explorer</p>
             <p className={styles.subtitle}>Write rewriting rules and watch them grow.</p>
           </div>
           <button className={styles.ghost} onClick={() => setPanelOpen(false)} type="button">

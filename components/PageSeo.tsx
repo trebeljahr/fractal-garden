@@ -6,6 +6,20 @@ export const PageSeo = () => {
   const router = useRouter();
   const pathname = router.pathname || "/";
   const seo = getPageSeo(pathname);
+  // These pages include explanatory articles alongside their interactive views.
+  const article = ["/mandelbulb", "/newton-fractal"].includes(pathname)
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: seo.title,
+        description: seo.description,
+        image: seo.imageUrl,
+        url: seo.url,
+        mainEntityOfPage: seo.url,
+        author: { "@type": "Person", name: "Rico Trebeljahr", url: "https://ricos.site" },
+        inLanguage: "en",
+      }
+    : null;
 
   return (
     <Head>
@@ -14,6 +28,13 @@ export const PageSeo = () => {
       <meta key="keywords" name="keywords" content={seo.keywords} />
       <meta key="robots" name="robots" content="index,follow" />
       <link key="canonical" rel="canonical" href={seo.url} />
+      {article ? (
+        <script
+          key="article-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(article).replace(/</g, "\\u003c") }}
+        />
+      ) : null}
 
       <meta key="og:type" property="og:type" content="website" />
       <meta key="og:site_name" property="og:site_name" content={seo.siteName} />

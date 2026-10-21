@@ -13,7 +13,7 @@ const DEFAULT_SITE_URL = "https://fractal.garden";
 
 export const PAGE_SEO: Record<string, SeoEntry> = {
   "/": {
-    title: "Fractal Garden",
+    title: "Fractal Garden | Interactive Fractal Explorers",
     description:
       "Explore interactive fractals, mathematical patterns, and shareable visualizations across classic sets, L-systems, and 3D recursive forms.",
     imagePath: "/assets/og/home.jpg",
@@ -113,7 +113,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   "/imprint": {
     title: "Imprint",
     description:
-      "Imprint for fractal.garden, an exhibition of mathematical beauty by Rico Trebeljahr.",
+      "Find the operator and contact details for Fractal Garden, Rico Trebeljahr’s collection of interactive mathematical explorations.",
     imagePath: "/assets/fractal-images/mandelbrot.jpg",
   },
   "/privacy": {
@@ -275,7 +275,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   "/l-system/cesaro-fractal": {
     title: "Cesàro Fractal",
     description:
-      "Open the Koch spike angle from 60° to 89° and watch four inward Cesàro curves fill a square.",
+      "Change the Koch spike angle from 60° to 89° in this Cesàro fractal explorer. Watch four inward curves grow and fill a square.",
     imagePath: "/assets/fractal-images/l-system-cesaro-fractal.jpg",
   },
   "/l-system/minkowski-sausage": {
