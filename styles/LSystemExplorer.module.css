@@ -24,7 +24,13 @@
   gap: 0.9rem;
   box-sizing: border-box;
   width: min(392px, calc(100vw - 36px));
-  max-height: calc(100vh - 150px);
+  max-height: calc(
+    100svh -
+    var(--explorer-header-height) -
+    var(--explorer-nav-height) -
+    var(--explorer-nav-gap) -
+    24px
+  );
   overflow-y: auto;
   padding: 1.1rem 1.1rem 1.2rem;
   border: 1px solid rgba(245, 241, 209, 0.14);
