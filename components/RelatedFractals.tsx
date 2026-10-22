@@ -19,7 +19,13 @@ export function RelatedFractals() {
             <Link key={href} legacyBehavior href={href}>
               <a href={href} className={styles.link}>
                 <span className={styles.image}>
-                  <Image src={entry.imagePath} alt="" width={112} height={84} objectFit="cover" />
+                  <Image
+                    src={entry.imagePath}
+                    alt=""
+                    layout="fill"
+                    objectFit="contain"
+                    sizes="(max-width: 600px) 88px, 128px"
+                  />
                 </span>
                 <span className={styles.copy}>
                   <span className={styles.name}>{entry.title}</span>
