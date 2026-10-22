@@ -1,0 +1,199 @@
+.demo {
+  --diagram-bg: #10151a;
+  --diagram-ink: #eee8ce;
+  --diagram-accent: #f5c56d;
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid #eee8ce40;
+  border-bottom: 1px solid #eee8ce40;
+  color: var(--diagram-ink);
+}
+
+.title {
+  font:
+    600 1.1rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.explanation {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(12rem, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1rem 0;
+}
+.explanation svg {
+  display: block;
+  width: 100%;
+  background: var(--diagram-bg);
+}
+.explanation p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+.solid {
+  fill: var(--diagram-ink);
+}
+.hole {
+  fill: var(--diagram-bg);
+}
+.cut {
+  fill: #4a3923;
+  stroke: var(--diagram-accent);
+  stroke-width: 0.004;
+}
+.line {
+  stroke: var(--diagram-ink);
+  stroke-width: 2;
+}
+.newLine {
+  stroke: var(--diagram-accent);
+  stroke-width: 3;
+}
+.guide {
+  stroke: #eee8ce55;
+  stroke-width: 1;
+  stroke-dasharray: 5 5;
+}
+.circle {
+  stroke: var(--diagram-ink);
+  stroke-width: 0.009;
+}
+.newCircle {
+  stroke: var(--diagram-accent);
+  stroke-width: 0.014;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font:
+    500 0.9rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.controls button {
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce70;
+  padding: 0.65rem 0.8rem;
+  min-height: 44px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 150ms;
+  white-space: nowrap;
+}
+.controls button:hover:not(:disabled) {
+  background: #f5c56d22;
+}
+.controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.controls button:focus-visible,
+.demo input:focus-visible {
+  outline: 2px solid var(--diagram-accent);
+  outline-offset: 4px;
+}
+.step {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1;
+  text-align: center;
+}
+.demo input {
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  accent-color: var(--diagram-accent);
+  cursor: pointer;
+}
+.angle {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+.angle span {
+  display: flex;
+  justify-content: space-between;
+}
+@media (max-width: 600px) {
+  .explanation {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .controls {
+    gap: 0.6rem;
+    font-size: 0.75rem;
+  }
+  .controls button {
+    padding: 0.65rem 0.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls button {
+    transition: none;
+  }
+}
+
+.lessonIntro {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0.8rem 0;
+}
+.orbitSummary p {
+  font-size: 1rem;
+  margin: 0 0 0.8rem;
+  overflow-wrap: anywhere;
+}
+.orbitSummary strong {
+  font-weight: 600;
+}
+.axisLabel {
+  fill: #eee8ce99;
+  font:
+    13px "Montserrat",
+    sans-serif;
+}
+.orbitPoint {
+  fill: var(--diagram-accent);
+}
+.foldLine {
+  stroke: var(--diagram-accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.demo fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  margin: 0;
+}
+.demo .parameters {
+  margin-top: 1.5rem;
+}
+.parameters legend {
+  font:
+    600 1rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.newLine,
+.newCircle,
+.cut {
+  animation: new-step 180ms ease-out;
+}
+@keyframes new-step {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .newLine,
+  .newCircle,
+  .cut {
+    animation: none;
+  }
+}

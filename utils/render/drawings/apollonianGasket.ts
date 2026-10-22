@@ -56,7 +56,7 @@ function getInitialConfiguration() {
   return [outer, ...innerCircles] as const;
 }
 
-function buildGasket(iterations: number) {
+export function buildApollonianGasket(iterations: number) {
   const [outer, c1, c2, c3] = getInitialConfiguration();
   const circles = [outer, c1, c2, c3];
 
@@ -86,7 +86,7 @@ export function drawApollonianGasket(
   config: ApollonianGasketParams,
 ) {
   const scale = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
-  const circles = buildGasket(config.iterations);
+  const circles = buildApollonianGasket(config.iterations);
 
   // Group circles by depth and the alpha they are drawn with. Everything
   // shares one color, so the order of the groups does not change the result,

@@ -4,6 +4,8 @@ Zoom into the Mandelbrot set to find spirals, branching edges and smaller versio
 
 The large black shape has a heart-shaped body and a round bulb on its left. More bulbs and thin branches line its edge. The colored bands surround that edge, where nearby points can behave very differently.
 
+<figure data-article-images="mandelbrot"></figure>
+
 ## What to try
 
 Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
@@ -33,5 +35,9 @@ z_0 = 0, \qquad z_{n+1} = z_n^2 + c
 $$
 
 For $c = 0$, the sequence stays at zero. For $c = 1$, it starts $0, 1, 2, 5, 26$ and grows without bound. The Mandelbrot set contains the values of $c$ whose sequences stay bounded forever. A finite image approximates that test.
+
+Try those values below. At $c = -1$, the orbit alternates between zero and minus one. The plot follows the calculated values, rather than the pixel's position in the Mandelbrot image.
+
+<figure data-orbit="mandelbrot"></figure>
 
 The [Julia set explorer](/julia-set) keeps $c$ fixed and varies the starting point instead. The [Burning Ship](/burning-ship) changes the rule by taking absolute values before each square.

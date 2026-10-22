@@ -1,0 +1,117 @@
+[
+  {
+    "name": "carpet-depth-1",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 2134,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "carpet-depth-3",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 9874,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "menger-level-1",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 11522,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "menger-level-2",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 23838,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "mandelbrot-body",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 30460,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "julia-rabbit",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 35242,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "julia-sea-spiral",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 49310,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "burning-ship-little",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 76784,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  },
+  {
+    "name": "apollonian-level-3",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 22522,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering",
+    "settings": {
+      "iterations": 3,
+      "lineWidth": 2.5,
+      "animateGrowth": false
+    }
+  },
+  {
+    "name": "barnsley-classic",
+    "sourceWidth": 2560,
+    "sourceHeight": 1440,
+    "width": 1280,
+    "height": 720,
+    "bytes": 66582,
+    "sourceCommit": "6689c30",
+    "method": "Main explorer Save PNG control; no interface overlays",
+    "kind": "actual runtime rendering"
+  }
+]

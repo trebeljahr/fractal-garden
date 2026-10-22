@@ -5,6 +5,9 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
+import ArticleImages, { isArticleImageKind } from "./ArticleImages";
+import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
+import OrbitLesson, { isOrbitKind } from "./OrbitLesson";
 
 type HeadingResolverProps = {
   level: number;
@@ -36,7 +39,13 @@ const HeadingRenderer: React.FC<HeadingResolverProps> = ({ level, children }) =>
 
 type HastElement = {
   tagName?: string;
-  properties?: { alt?: string; src?: string };
+  properties?: {
+    alt?: string;
+    src?: string;
+    dataConstruction?: unknown;
+    dataOrbit?: unknown;
+    dataArticleImages?: unknown;
+  };
   children?: HastElement[];
 };
 
@@ -102,6 +111,18 @@ const MarkdownRenderers: object = {
   h6: HeadingRenderer,
   p: ParagraphRenderer,
   a: LinkRenderer,
+  figure: ({ node, children }: { node?: HastElement; children?: React.ReactNode }) => {
+    const kind = node?.properties?.dataConstruction;
+    const orbit = node?.properties?.dataOrbit;
+    const images = node?.properties?.dataArticleImages;
+    if (isArticleImageKind(images)) return <ArticleImages kind={images} />;
+    if (isOrbitKind(orbit)) return <OrbitLesson key={orbit} kind={orbit} />;
+    return isConstructionKind(kind) ? (
+      <ConstructionDemo key={kind} kind={kind} />
+    ) : (
+      <figure>{children}</figure>
+    );
+  },
 };
 
 type Props = {

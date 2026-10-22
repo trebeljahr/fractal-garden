@@ -8,9 +8,11 @@ This interactive explorer starts with the whole ship in view. Look toward its le
 
 Drag to pan, then use the scroll wheel to zoom toward the pointer. On a touch screen, drag with one finger and pinch with two fingers to zoom.
 
-Choose **Little ship**, then follow the edge around its masts. Repeated towers appear side by side at different scales. **Whole ship** returns to the starting view.
+Open **Places to explore** and choose **Little ship**. Follow the edge around its masts. Repeated towers appear side by side at different scales. **Whole ship** returns to the starting view.
 
 Open **Coloring Studio** and choose **Inferno** for a red and yellow view. The flame colors come from the palette. Try **Iteration bands** to see the escape steps, or change **Palette** while you stay at the same location.
+
+<figure data-article-images="burning-ship"></figure>
 
 ## How it relates to Mandelbrot
 
@@ -29,6 +31,10 @@ z_0 = 0, \qquad z_{n+1} = \left(|\operatorname{Re}(z_n)| + i|\operatorname{Im}(z
 $$
 
 The absolute values act on the real and imaginary parts separately. They leave the squared real terms unchanged, but make their product nonnegative in the imaginary part.
+
+Step through an orbit below. The dashed amber line shows the fold before the square and addition. This teaching plot uses the usual upward imaginary axis, so you can follow the signs directly.
+
+<figure data-orbit="burning-ship"></figure>
 
 The set contains the values of $c$ whose sequences stay bounded forever. Default coloring uses smooth escape time for the points that escape. Black marks points that do not escape within the current **Iterations** limit.
 

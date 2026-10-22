@@ -1,32 +1,23 @@
 # Pythagoras Tree
 
-The Pythagoras Tree is constructed by starting with a square and attaching a right triangle to the top of it.
-From there, add squares to the remaining two sides of the triangle. Repeat that process to generate the tree.
+Look for squares that split into two smaller squares through a triangular gap. Each smaller square starts another pair of branches. At 45 degrees, the two sides grow symmetrically. Other angles make one side's squares larger than the other's.
 
-Given two points defining a square, we can generate the tree as follows:
+## Build a fork from a square
 
-```ts
-function pythagorasTree(p1: Vec2D, p2: Vec2D, depth = 0) {
-  const [x1, y1] = p1;
-  const [x2, y2] = p2;
+Start with one square. Place a right triangle on its top edge, using that edge as the triangle's hypotenuse. Draw a new square on each of the triangle's other sides. Repeat on both new squares.
 
-  const d: Vec2D = [y1 - y2, x2 - x1];
+Open **Pattern Studio** and turn off **Animate growth**. Set **Iterations** to zero to see the first square, then add levels one at a time. Change **Angle** from 45 degrees toward 30 or 60 degrees to compare the two sides.
 
-  // Determine remaining points of the square
-  const p3 = Vector.sub(p2, d);
-  const p4 = Vector.sub(p1, d);
-  drawPoly([p1, p2, p3, p4], config.color);
+Use **Fill triangles** and **Fill squares** to distinguish the connecting triangles from the squares. Their outlines remain visible when you turn the fill off.
 
-  if (depth === config.iterations) return;
+## Why the sizes fit
 
-  // Determine tip of the triangle
-  const p5 = thirdPoint(p3, p4);
-  drawPoly([p3, p4, p5], config.color);
+Pythagoras' theorem says that the two smaller squares' areas add up to their parent's area. For parent side length $s$ and triangle angle $\theta$, their side lengths are:
 
-  // Repeat with the points on the triangle as new base
-  drawBranch(p4, p5, depth + 1);
-  drawBranch(p5, p3, depth + 1);
-}
-```
+$$
+s_1 = s\cos\theta, \qquad s_2 = s\sin\theta
+$$
 
-See also [Pythagoras Tree](<https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal)>).
+At 45 degrees, both children have side length $s/\sqrt{2}$. As branches grow deeper, squares can overlap. Adding the individual squares' areas therefore does not measure the area covered by the whole tree.
+
+The [fractal canopy](/fractal-canopy) makes forks from line segments. The [T-square fractal](/t-square-fractal) places smaller squares at four corners instead of using triangles.

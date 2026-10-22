@@ -1,45 +1,25 @@
 # Sierpinski Carpet
 
-The Sierpinski Carpet is a fractal that is very simple to generate. Start with a square, divide it into 9 squares, and cut out the middle square. Then repeat that step for the 8 squares left... And so on.
+Look for a square hole surrounded by eight smaller copies of the same pattern. Each copy contains another hole, with still smaller holes around it. The Sierpinski carpet repeats this arrangement at every scale.
 
-This is what this idea looks like in code:
+## Make the first few cuts
 
-```ts
-function SierpinskiCarpet(
-  len: number,
-  coordinates: { x: number; y: number },
-  iterations: number
-) {
-  // stop if maximum depth is reached
-  if (iterations >= config.maxIterations) return;
+Start with a filled square. Divide it into a three-by-three grid and remove the middle square. Apply the same cut to each of the eight remaining squares.
 
-  fill(config.color);
-  rect(coordinates.x, coordinates.y, len, len);
+<figure data-construction="carpet"></figure>
 
-  // subdivide into 9 squares
-  for (let x = 0; x <= 2; x++) {
-    for (let y = 0; y <= 2; y++) {
+In the full explorer, open **Pattern Studio** and turn off **Animate growth** to hold a stage still. Change **Depth** to compare the large central hole with the next ring of smaller holes. **Hole color** makes the removed regions easier to separate from the remaining material.
 
-      // calculate new corner of square
-      const newCoordinates = {
-        x: coordinates.x + x * (len / 3),
-        y: coordinates.y + y * (len / 3),
-      };
-      if (x === 1 && y === 1) {
-        // cut out the middle square by using different color
-        fill(config.fillColor);
-        rect(newCoordinates.x, newCoordinates.y, len / 3, len / 3);
-      } else {
-        // for the other 8 -> recurse!
-        SierpinskiCarpet(len / 3, newCoordinates, iterations + 1);
-      }
-    }
-  }
-}
-```
+<figure data-article-images="carpet"></figure>
 
-Interestingly, the resulting shape has an area of exactly 0. Because after infinitely many squares have been taken out, there is nothing "left" that could account for the area of a Sierpinski Carpet. It's effectively empty!
+## Zero area does not mean empty
 
-To me, these kinds of ideas sit at the beauty of fractals. You can have mathematical shapes that look beautiful and interesting, which have extremely counterintuitive properties, like 0 area, or infinite perimeters or infinite length, yet bounded areas and so on... 
+Each cut keeps eight ninths of the previous area. After $n$ cuts, the fraction left is:
 
-Like many other fractals, this one has deep-reaching connections to other fractals... See also [Sierpinski Triangle](/l-system/sierpinski-triangle) and the Wikipedia article on the [Peano Curve](https://en.wikipedia.org/wiki/Peano_curve).
+$$
+A_n = \left(\frac{8}{9}\right)^n
+$$
+
+That fraction tends to zero as the number of cuts grows without limit. The carpet still contains points, including its entire outer border. Zero area describes how much surface it covers, not whether anything exists there. Every finite stage on this screen still has positive area.
+
+The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. The [2D Vicsek fractal](/vicsek-fractal-2d) uses the same three-by-three grid but keeps only five squares.

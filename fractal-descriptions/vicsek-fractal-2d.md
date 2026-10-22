@@ -1,7 +1,23 @@
 # 2D Vicsek Fractal
 
-The 2D Vicsek Fractal starts with a square. That square is divided into a `3 x 3` grid, but instead of keeping all nine smaller squares, only five of them survive. In the classic saltire version those are the center square and the four corners. In the cross version, the center square is kept together with the four edge squares.
+Look for five squares arranged as a cross, then five smaller squares inside each of those. The Vicsek fractal repeats one layout at a third of the previous size.
 
-That makes it a close relative of the [Sierpinski Carpet](/sierpinski-carpet), which uses the same `3 x 3` subdivision but keeps eight squares instead of five. It is also connected to the [N-Flake](/n-flake): the square member of that family turns into the Vicsek construction as soon as a centered square is kept together with the outer copies.
+## Compare two crosses
 
-Because the whole fractal is built from repeated squares, it also feels related to the [T-Square Fractal](/t-square-fractal), even though the recursion rule is different. Its three-dimensional cousin, the [3D Vicsek Fractal](/vicsek-fractal-3d), applies the same idea to cubes instead of squares. The version here lets you switch between the saltire and cross arrangements so you can see how a small change in the pattern leads to a noticeably different rhythm.
+Open **Pattern Studio**, turn off **Animate growth**, and lower **Iterations** to zero. This shows the starting square. At the next step, a three-by-three grid replaces it, with only five cells kept.
+
+Under **Layout**, **Diagonal cross** keeps the four corners and the center. **Greek cross** keeps the center and the four cells beside it. Increase **Iterations** to compare how those choices repeat through the picture.
+
+Use **Outline squares** to separate the small cells. The two layouts keep the same number of squares at every level, even though their gaps occupy different positions.
+
+## What stays the same
+
+After $n$ replacements, there are $5^n$ squares. Their side length is $1/3^n$ of the original. The remaining fraction of area is:
+
+$$
+A_n = \left(\frac{5}{9}\right)^n
+$$
+
+The fraction tends to zero as the steps continue without limit. The dimension is $\log(5)/\log(3)$, about 1.465, for either layout. Counting copies alone does not tell you their arrangement.
+
+The [Sierpinski carpet](/sierpinski-carpet) keeps eight cells in the same grid. The [3D Vicsek fractal](/vicsek-fractal-3d) uses seven cubes in a three-dimensional cross.
