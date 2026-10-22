@@ -1,6 +1,6 @@
 .overlay {
   position: fixed;
-  top: 0;
+  top: 44px;
   left: 0;
   z-index: 15;
   display: flex;

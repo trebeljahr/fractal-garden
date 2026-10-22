@@ -85,42 +85,36 @@ export const NavElement = () => {
   const [prev, home, next] = useLinks();
 
   return (
-    <nav className={styles.navigationElement} data-fractal-chrome>
-      <Link legacyBehavior as={prev} href={prev}>
+    <nav aria-label="Fractal navigation" data-fractal-chrome>
+      <Link legacyBehavior href={home}>
+        <a href={home} className={styles.homeLink} aria-label="Fractal Garden home">
+          Fractal Garden
+        </a>
+      </Link>
+      <Link legacyBehavior href={prev}>
         <a
-          className={styles.linkButton}
+          className={`${styles.linkButton} ${styles.previous}`}
           href={prev}
           aria-label={`Previous fractal: ${getFractalName(prev)}`}
-          title={getFractalName(prev)}
         >
-          <span className="icon-arrow-left">
-            <span className="screen-reader-only">
-              Arrow Left Icon - When clicked, go to the previous fractal in the exhibition.
-            </span>
+          <span className="icon-arrow-left" aria-hidden="true" />
+          <span className={styles.destination}>
+            <span className={styles.direction}>Prev</span>
+            <span className={styles.fractalName}>{getFractalName(prev)}</span>
           </span>
         </a>
       </Link>
-      <Link legacyBehavior as={home} href={home}>
-        <a href={home} className={styles.linkButton} aria-label="All fractals" title="All fractals">
-          <span className="icon-home3">
-            <span className="screen-reader-only">
-              Home Icon - When clicked, go back to the Home Page of the Exhibition.
-            </span>
-          </span>
-        </a>
-      </Link>
-      <Link legacyBehavior as={next} href={next}>
+      <Link legacyBehavior href={next}>
         <a
-          className={styles.linkButton}
+          className={`${styles.linkButton} ${styles.next}`}
           href={next}
           aria-label={`Next fractal: ${getFractalName(next)}`}
         >
-          <span className={styles.nextName}>{getFractalName(next)}</span>
-          <span className="icon-arrow-right">
-            <span className="screen-reader-only">
-              Arrow Right Icon - When clicked, go to the next fractal in the exhibition.
-            </span>
+          <span className={styles.destination}>
+            <span className={styles.direction}>Next</span>
+            <span className={styles.fractalName}>{getFractalName(next)}</span>
           </span>
+          <span className="icon-arrow-right" aria-hidden="true" />
         </a>
       </Link>
     </nav>

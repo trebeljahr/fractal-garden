@@ -26,6 +26,7 @@
 }
 
 .introCard {
+  margin-top: 44px;
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -826,14 +827,14 @@
 
   .introCard {
     width: min(320px, 100%);
-    margin-top: 118px;
+    margin-top: 162px;
     padding: 16px 18px 8px;
-    max-height: calc(100svh - 294px);
+    max-height: calc(100svh - 338px);
   }
 
   .studioGroup {
     position: absolute;
-    top: 0;
+    top: 44px;
     right: 0;
     max-width: 100%;
     z-index: 1;

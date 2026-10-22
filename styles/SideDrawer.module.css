@@ -148,7 +148,7 @@
 
 @media (max-width: 700px) {
   .learnMore {
-    bottom: calc(100% + 80px);
+    bottom: calc(100% + 112px);
   }
 }
 
