@@ -49,7 +49,11 @@ export function DeepZoomCanvas({ width, height, setGl, setCnv }: Props) {
         style={{ width: w, height: h, display: "block" }}
         aria-label="Interactive fractal. Drag to pan; scroll or pinch to zoom."
       />
-      {error && <output className={styles.status}>{error}</output>}
+      {error && (
+        <output className={styles.status} data-fractal-chrome>
+          {error}
+        </output>
+      )}
     </>
   );
 }

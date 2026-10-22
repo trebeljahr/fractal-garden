@@ -261,3 +261,13 @@ export function viewportDelta(view: DeepViewport, reference: DeepViewport) {
     scale: scaleToFloatExp(view.logZoom),
   };
 }
+
+/** Match saved destinations without rounding away sub-ulp camera movement. */
+export function matchesDeepViewport(view: DeepViewport, target: DeepViewport) {
+  if (Math.abs(view.logZoom - target.logZoom) > 1e-8) return false;
+  const delta = viewportDelta(view, target);
+  return [delta.x, delta.y].every(
+    ([mantissa, exponent]) =>
+      mantissa === 0 || Math.abs(mantissa) * 2 ** (exponent - target.logZoom) <= 1e-8,
+  );
+}

@@ -21,6 +21,7 @@ const {
   fixedOffset,
   fixedToFloatExp,
   moveViewport,
+  matchesDeepViewport,
   rescaleFixed,
   serializeViewport,
   viewportDelta,
@@ -146,4 +147,11 @@ test("reference includes the first escaping iterate and agrees with the direct o
     assert.equal(reference.length, direct.iteration + 2);
     assert.deepEqual(Array.from(reference.orbit.slice(-4)), direct.z.flat());
   }
+});
+
+test("deep destination highlighting clears after a sub-ulp pan", () => {
+  const target = createViewportAtLog([-0.75, 0.125], -4096);
+  assert.equal(matchesDeepViewport(target, { ...target }), true);
+  assert.equal(matchesDeepViewport(moveViewport(target, 1 / 1024, 0), target), false);
+  assert.equal(matchesDeepViewport(zoomViewport(target, target.logZoom - 1), target), false);
 });

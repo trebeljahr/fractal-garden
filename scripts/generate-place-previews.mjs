@@ -17,6 +17,8 @@ for (const [formula, views, density, offset, interior] of [
   ["burning-ship", BURNING_SHIP_PLACES, 0.5, 0.55, 0],
 ]) {
   for (const view of views) {
+    // This binary64 preview renderer cannot resolve the deep destinations.
+    if (view.preciseCenter) continue;
     const pixels = Buffer.alloc(width * height * 3);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {

@@ -273,11 +273,24 @@ export const JULIA_PLACES: EscapeTimePlace[] = [
 function places(formula: string, views: EscapeTimePlace[]) {
   return views.map((view) => ({
     ...view,
-    preview: `/assets/place-previews/${formula}-${view.id}.webp`,
+    preview: view.preciseCenter ? undefined : `/assets/place-previews/${formula}-${view.id}.webp`,
   }));
 }
 
 export const MANDELBROT_PLACES = places("mandelbrot", [
+  {
+    id: "deep-branches",
+    label: "Deep branches",
+    detail: "Fine branches beyond ordinary coordinate precision.",
+    group: "Deep zoom",
+    center: [-0.10109636384562216, 0.9562865108091415],
+    preciseCenter: [
+      "-0.101096363845622161025785445738622565463805442826253483876931177660780840740470584274821219810516779033404531908556741193",
+      "0.956286510809141500771096057729977435809833336510529170034314321500524659065716732526978410787339807204344472492646928436",
+    ],
+    zoomSize: 1e-30,
+    iterations: 1200,
+  },
   {
     id: "whole",
     label: "Whole set",

@@ -7,6 +7,7 @@ import {
   serializeViewport,
   zoomViewport,
 } from "../deepZoom/math";
+import { createZoomWheelGuard } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
 type Point = { x: number; y: number };
@@ -90,7 +91,10 @@ export function useDeepZoomControls({
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       if (!pointers.size) canvas.style.cursor = "grab";
     };
+    const wheelGuard = createZoomWheelGuard(canvas);
     const wheel = (event: WheelEvent) => {
+      if (!wheelGuard.shouldZoom(event, viewportRef.current.logZoom >= Math.log2(maxZoomSize)))
+        return;
       event.preventDefault();
       const anchor = point(event);
       const pixels =
@@ -117,6 +121,8 @@ export function useDeepZoomControls({
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
       canvas.removeEventListener("wheel", wheel);
+      wheelGuard.dispose();
+      canvas.style.touchAction = "";
     };
   }, [canvas, flipY, maxZoomSize, viewportRef]);
 }

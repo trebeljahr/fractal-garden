@@ -15,3 +15,11 @@
   pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
+
+@media (max-width: 700px) {
+  .status {
+    bottom: calc(192px + env(safe-area-inset-bottom));
+    right: 12px;
+    max-width: calc(100vw - 24px);
+  }
+}
