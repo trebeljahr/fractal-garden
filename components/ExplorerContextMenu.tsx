@@ -157,14 +157,18 @@ export function ExplorerContextMenu({
         close(false);
     };
     const hide = () => close(false);
+    const onScroll = (event: Event) => {
+      if (event.target instanceof Node && menu.current?.contains(event.target)) return;
+      close(false);
+    };
     document.addEventListener("pointerdown", dismiss);
     window.addEventListener("resize", hide);
-    window.addEventListener("scroll", hide, true);
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("blur", hide);
     return () => {
       document.removeEventListener("pointerdown", dismiss);
       window.removeEventListener("resize", hide);
-      window.removeEventListener("scroll", hide, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("blur", hide);
     };
   }, [position, close]);
