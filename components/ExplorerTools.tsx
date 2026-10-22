@@ -9,6 +9,7 @@ import {
   snapshotConfig,
 } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { ExplorerContextMenu } from "./ExplorerContextMenu";
 
 type Props<T> = {
   data: T;
@@ -111,40 +112,34 @@ export function ExplorerTools<T>({ data, rules, onRestore }: Props<T>) {
   };
 
   return (
-    <div className={styles.tools}>
-      <div className={styles.buttons}>
-        <button type="button" onClick={copyLink}>
-          Copy link
-        </button>
-        <button type="button" onClick={savePng} disabled={saving}>
-          {saving ? "Saving…" : "Save PNG"}
-        </button>
+    <ExplorerContextMenu onCopyLink={copyLink} onSavePng={savePng} saving={saving}>
+      <div className={styles.tools}>
+        <p className={styles.status} role="status">
+          {message}
+        </p>
+        {sharedLink && !manualLink && (
+          <a className={styles.savedLink} href={sharedLink}>
+            Open saved view
+          </a>
+        )}
+        {pngUrl && (
+          <a
+            className={styles.savedLink}
+            href={pngUrl}
+            download={`fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`}
+          >
+            Download PNG
+          </a>
+        )}
+        {manualLink && (
+          <input
+            aria-label="Link to this view"
+            readOnly
+            value={manualLink}
+            onFocus={(event) => event.target.select()}
+          />
+        )}
       </div>
-      <p className={styles.status} role="status">
-        {message}
-      </p>
-      {sharedLink && !manualLink && (
-        <a className={styles.savedLink} href={sharedLink}>
-          Open saved view
-        </a>
-      )}
-      {pngUrl && (
-        <a
-          className={styles.savedLink}
-          href={pngUrl}
-          download={`fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`}
-        >
-          Download PNG
-        </a>
-      )}
-      {manualLink && (
-        <input
-          aria-label="Link to this view"
-          readOnly
-          value={manualLink}
-          onFocus={(event) => event.target.select()}
-        />
-      )}
-    </div>
+    </ExplorerContextMenu>
   );
 }

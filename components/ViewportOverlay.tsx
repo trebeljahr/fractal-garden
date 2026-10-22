@@ -34,7 +34,7 @@ export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) =
   }, []);
 
   return (
-    <div className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()}>
+    <div className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()} data-fractal-chrome>
       <div className={styles.title}>{title || pageTitle || "Fractal"}</div>
       <div className={styles.copy}>
         {lines.map((line) => (

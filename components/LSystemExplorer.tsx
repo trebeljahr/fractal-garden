@@ -27,6 +27,7 @@ import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom"
 import { scrollToDescription } from "../utils/scrollToDescription";
 import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
+import { ExplorerContextMenu } from "./ExplorerContextMenu";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
@@ -150,6 +151,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const [shownIterations, setShownIterations] = useState<number | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [uiVisible, setUiVisible] = useState(true);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [notice, setNotice] = useState("");
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
@@ -287,9 +289,9 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const viewport = useMemo<Viewport | null>(() => {
     if (!width || !height) return null;
     // On wide screens fit the drawing into the space beside the open panel.
-    const offset = panelOpen && width > 900 ? PANEL_WIDTH + 24 : 0;
+    const offset = panelOpen && uiVisible && width > 900 ? PANEL_WIDTH + 24 : 0;
     return { x: offset, y: 0, width: width - offset, height };
-  }, [width, height, panelOpen]);
+  }, [width, height, panelOpen, uiVisible]);
 
   // Endless zoom for 2D systems. A second worker redraws only the visible
   // part, at a generation deep enough for the zoom, whenever the view
@@ -549,7 +551,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
     download(`${slugify(spec.name)}.png`, canvas.toDataURL("image/png"));
   };
 
-  // Pointer handling: drag to orbit (3D) or pan (2D), shift-drag or right-drag
+  // Pointer handling: drag to orbit (3D) or pan (2D), shift-drag
   // to pan in 3D, wheel or pinch to zoom, double click to reset.
   const pointers = useRef(new Map<number, { x: number; y: number }>());
 
@@ -570,6 +572,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
   };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
   };
@@ -592,7 +595,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
       if (before > 0) {
         zoomAt((event.clientX + other.x) / 2, (event.clientY + other.y) / 2, after / before);
       }
-    } else if (debouncedSpec.dimension === "2d" || event.shiftKey || event.buttons === 2) {
+    } else if (debouncedSpec.dimension === "2d" || event.shiftKey) {
       pan(dx, dy);
     } else {
       // Orbit freely, over the top and underneath. Upside down, a sideways
@@ -718,18 +721,40 @@ export const LSystemExplorer = ({ presets }: Props) => {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onDoubleClick={resetView}
-        onContextMenu={(event) => event.preventDefault()}
+        data-fractal-stage
       >
         <WebGLCanvas setGl={setGl} setCnv={setCanvas} width={width} height={height} />
       </div>
 
+      <ExplorerContextMenu
+        onCopyLink={() => copy(shareLink(), "Link copied.")}
+        onSavePng={savePng}
+        onUIVisibilityChange={setUiVisible}
+      >
+        {notice && (
+          <p className={styles.notice} role="status">
+            {notice}
+          </p>
+        )}
+      </ExplorerContextMenu>
+
       {!panelOpen && (
-        <button className={styles.reopen} onClick={() => setPanelOpen(true)} type="button">
+        <button
+          className={styles.reopen}
+          onClick={() => setPanelOpen(true)}
+          type="button"
+          data-fractal-chrome
+        >
           Edit rules
         </button>
       )}
 
-      <aside className={styles.panel} hidden={!panelOpen} aria-label="L-system editor">
+      <aside
+        className={styles.panel}
+        hidden={!panelOpen}
+        aria-label="L-system editor"
+        data-fractal-chrome
+      >
         <header className={styles.header}>
           <div>
             <p className={styles.title}>L-System Explorer</p>
@@ -1083,16 +1108,6 @@ export const LSystemExplorer = ({ presets }: Props) => {
         <section className={styles.actions}>
           <button type="button" className={styles.primary} onClick={() => setSubmitOpen(true)}>
             Submit as preset
-          </button>
-          <button
-            type="button"
-            className={styles.ghost}
-            onClick={() => copy(shareLink(), "Link copied.")}
-          >
-            Copy link
-          </button>
-          <button type="button" className={styles.ghost} onClick={savePng}>
-            Save PNG
           </button>
           <button type="button" className={styles.ghost} onClick={resetView}>
             Reset view
