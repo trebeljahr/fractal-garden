@@ -95,11 +95,7 @@ const LinkRenderer = (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
   const isInternalLink = href && (href.startsWith("/") || href.startsWith("#"));
 
   if (isInternalLink) {
-    return (
-      <Link legacyBehavior href={href || ""}>
-        <a className="internalLink" {...props} />
-      </Link>
-    );
+    return <Link className="internalLink" {...props} href={href} />;
   }
 
   return <a href={href} {...props} />;

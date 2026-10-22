@@ -106,33 +106,27 @@ export const NavElement = () => {
 
   return (
     <nav aria-label="Fractal navigation" data-fractal-chrome>
-      <Link legacyBehavior href={home}>
-        <a href={home} className={styles.homeLink} aria-label="Fractal Garden home">
-          <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={22} height={22} />
-          <span>Fractal Garden</span>
-        </a>
+      <Link href={home} className={styles.homeLink} aria-label="Fractal Garden home">
+        <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={22} height={22} />
+        <span>Fractal Garden</span>
       </Link>
-      <Link legacyBehavior href={prev}>
-        <a
-          className={`${styles.linkButton} ${styles.previous}`}
-          href={prev}
-          aria-label={`Previous fractal: ${getFractalName(prev)}`}
-          title={`Previous fractal: ${getFractalName(prev)}`}
-        >
-          <NavigationArrow previous />
-          <span>Prev</span>
-        </a>
+      <Link
+        className={`${styles.linkButton} ${styles.previous}`}
+        href={prev}
+        aria-label={`Previous fractal: ${getFractalName(prev)}`}
+        title={`Previous fractal: ${getFractalName(prev)}`}
+      >
+        <NavigationArrow previous />
+        <span>Prev</span>
       </Link>
-      <Link legacyBehavior href={next}>
-        <a
-          className={`${styles.linkButton} ${styles.next}`}
-          href={next}
-          aria-label={`Next fractal: ${getFractalName(next)}`}
-          title={`Next fractal: ${getFractalName(next)}`}
-        >
-          <span>Next</span>
-          <NavigationArrow />
-        </a>
+      <Link
+        className={`${styles.linkButton} ${styles.next}`}
+        href={next}
+        aria-label={`Next fractal: ${getFractalName(next)}`}
+        title={`Next fractal: ${getFractalName(next)}`}
+      >
+        <span>Next</span>
+        <NavigationArrow />
       </Link>
     </nav>
   );

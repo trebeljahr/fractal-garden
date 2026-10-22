@@ -16,16 +16,15 @@ export const FractalLink = ({ href, imageSrc, title, prio = false }: FractalLink
   return (
     <div className={styles.gridItem}>
       <article className={styles.card}>
-        <Link legacyBehavior as={href} href={href} prefetch={false}>
-          <a className={styles.cardLink}>
-            <span className="screen-reader-only">Link to the {title} fractal page.</span>
-          </a>
+        <Link href={href} prefetch={false} className={styles.cardLink}>
+          <span className="screen-reader-only">Link to the {title} fractal page.</span>
         </Link>
         <div className={styles.squareImage} ref={observe}>
           <Image
             src={imageSrc}
             alt={title}
-            placeholder="blur"
+            // Development blur URLs need an image optimizer; static export disables it.
+            placeholder={process.env.NODE_ENV === "development" ? "empty" : "blur"}
             width={width}
             height={height}
             className={styles.squareImage}

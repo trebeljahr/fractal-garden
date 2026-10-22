@@ -17,10 +17,8 @@ const Privacy: NextPage = () => {
     <>
       <main className={styles.container}>
         <p className={styles.backLink}>
-          <Link legacyBehavior href="/" passHref>
-            <a href="/" className={styles.link}>
-              &larr; Back to Fractal Garden
-            </a>
+          <Link href="/" className={styles.link}>
+            &larr; Back to Fractal Garden
           </Link>
         </p>
         <h1 className={styles.heading}>Privacy Policy</h1>
@@ -36,10 +34,8 @@ const Privacy: NextPage = () => {
         <p className={styles.paragraph}>
           The controller under the EU General Data Protection Regulation (GDPR) is the service
           provider named in the{" "}
-          <Link legacyBehavior href="/imprint" passHref>
-            <a href="/imprint" className={styles.link}>
-              imprint
-            </a>
+          <Link href="/imprint" className={styles.link}>
+            imprint
           </Link>
           : Rico Trebeljahr, c/o Block Services, Stuttgarter Str. 106, 70736 Fellbach, Germany.
           Email for privacy questions:{" "}

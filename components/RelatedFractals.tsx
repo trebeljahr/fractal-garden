@@ -16,22 +16,20 @@ export function RelatedFractals() {
         {related.map(({ href, reason }) => {
           const entry = PAGE_SEO[href];
           return (
-            <Link key={href} legacyBehavior href={href}>
-              <a href={href} className={styles.link}>
-                <span className={styles.image}>
-                  <Image
-                    src={entry.imagePath}
-                    alt=""
-                    layout="fill"
-                    objectFit="contain"
-                    sizes="(max-width: 980px) 44vw, 434px"
-                  />
-                </span>
-                <span className={styles.copy}>
-                  <span className={styles.name}>{getFractalName(href)}</span>
-                  <span className={styles.reason}>{reason}</span>
-                </span>
-              </a>
+            <Link key={href} href={href} className={styles.link}>
+              <span className={styles.image}>
+                <Image
+                  src={entry.imagePath}
+                  alt=""
+                  layout="fill"
+                  objectFit="contain"
+                  sizes="(max-width: 980px) 44vw, 434px"
+                />
+              </span>
+              <span className={styles.copy}>
+                <span className={styles.name}>{getFractalName(href)}</span>
+                <span className={styles.reason}>{reason}</span>
+              </span>
             </Link>
           );
         })}

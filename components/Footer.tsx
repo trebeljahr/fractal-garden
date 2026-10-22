@@ -28,15 +28,11 @@ export const Footer = () => {
         <span className={styles.separator} aria-hidden="true">
           |
         </span>
-        <Link legacyBehavior href="/imprint" passHref>
-          <a href="/imprint">Imprint</a>
-        </Link>
+        <Link href="/imprint">Imprint</Link>
         <span className={styles.separator} aria-hidden="true">
           |
         </span>
-        <Link legacyBehavior href="/privacy" passHref>
-          <a href="/privacy">Privacy</a>
-        </Link>
+        <Link href="/privacy">Privacy</Link>
       </nav>
     </footer>
   );

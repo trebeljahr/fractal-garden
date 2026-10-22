@@ -8,10 +8,8 @@ const Imprint: NextPage = () => {
     <>
       <main className={styles.container}>
         <p className={styles.backLink}>
-          <Link legacyBehavior href="/" passHref>
-            <a href="/" className={styles.link}>
-              &larr; Back to Fractal Garden
-            </a>
+          <Link href="/" className={styles.link}>
+            &larr; Back to Fractal Garden
           </Link>
         </p>
         <h1 className={styles.heading}>Imprint</h1>

@@ -11,6 +11,9 @@ import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerContextMenu.module.css";
 import { ExplorerViewControls } from "./ExplorerViewControls";
 
+// Keep menu placement before paint in the browser without running a layout hook during SSR.
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 type Props = {
   animation?: { playing: boolean; onToggle: () => void };
   viewControlsHost?: HTMLElement | null;
@@ -143,7 +146,7 @@ export function ExplorerContextMenu({
     onUIVisibilityChange?.(!clean);
   }, [clean, onUIVisibilityChange]);
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     if (!position || !menu.current) return;
     const element = menu.current;
     const place = () => {
