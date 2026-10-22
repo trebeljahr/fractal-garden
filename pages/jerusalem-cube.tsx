@@ -20,7 +20,6 @@ const JerusalemCube = ({ description }: Props) => (
     // slower renderer would otherwise keep capping the growth.
     storageKey="jerusalem-cube-surface"
     title="Jerusalem Cube"
-    controlsTitle="Scene Studio"
     controlsHint="Growth, orbit, and rendering layers for the cube."
     hint="Drag to rotate the cube and use the scroll wheel to dolly closer or farther away."
     variants={VARIANTS}

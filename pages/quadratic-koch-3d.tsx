@@ -22,7 +22,6 @@ const QuadraticKoch3D = ({ description }: Props) => (
     description={description}
     storageKey="quadratic-koch-3d"
     title="Quadratic Koch Surface"
-    controlsTitle="Scene Studio"
     controlsHint="Growth, orbit, and rendering layers for the surface."
     hint="Drag to rotate the surface and use the scroll wheel to dolly closer or farther away."
     variants={VARIANTS}

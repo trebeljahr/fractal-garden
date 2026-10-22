@@ -40,7 +40,6 @@ const Buddhabrot = ({ description }: Props) => {
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Sampling, exposure, and color for the glowing orbit trails."
-          controlsTitle="Orbit Studio"
           data={config}
           mode="pattern"
           onUpdate={handleUpdate}

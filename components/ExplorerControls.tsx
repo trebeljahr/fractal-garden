@@ -337,15 +337,7 @@ function getPopoverPosition(trigger: HTMLElement, popover: HTMLElement): CSSProp
   };
 }
 
-export const PanelColor = ({
-  className,
-  data,
-  label,
-  labelWidth,
-  path,
-  style,
-  _onUpdateValue,
-}: ColorProps) => {
+export const PanelColor = ({ className, data, label, path, style, _onUpdateValue }: ColorProps) => {
   const pickerId = useId();
   const containerRef = useRef<HTMLLIElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -428,10 +420,10 @@ export const PanelColor = ({
   return (
     <li className={joinClassNames("cr", "color", className)} ref={containerRef} style={style}>
       <div className={styles.customControl}>
-        <span className="label-text" style={getLabelWidthStyle(labelWidth)}>
+        <span className="label-text" style={{ width: "100%" }}>
           {labelText}
         </span>
-        <div className={styles.colorControl} style={getControlWidthStyle(labelWidth)}>
+        <div className={styles.colorControl} style={{ width: "100%" }}>
           <button
             aria-controls={pickerId}
             aria-expanded={isOpen}
@@ -513,7 +505,6 @@ export const PanelNumber = ({
   data,
   disableSlider,
   label,
-  labelWidth,
   max,
   min,
   path,
@@ -521,6 +512,7 @@ export const PanelNumber = ({
   style,
   _onUpdateValue,
 }: NumberProps) => {
+  const labelId = useId();
   const rawValue = getValueFromPath(data, path);
   const initialValue = isFiniteNumber(rawValue) ? rawValue : Number(rawValue ?? 0) || 0;
   const value = constrainNumber(initialValue, min, max, step);
@@ -556,7 +548,7 @@ export const PanelNumber = ({
   return (
     <li className={joinClassNames("cr", "number", className)} style={style}>
       <div className={styles.customControl}>
-        <span className="label-text" style={getLabelWidthStyle(labelWidth)}>
+        <span className="label-text" id={labelId} style={{ width: "100%" }}>
           {labelText}
         </span>
         <div
@@ -564,17 +556,18 @@ export const PanelNumber = ({
             styles.numberControls,
             !hasSlider && styles.numberControlsCompact,
           )}
-          style={getControlWidthStyle(labelWidth)}
+          style={{ width: "100%" }}
         >
           {hasSlider ? (
             <input
+              aria-labelledby={labelId}
               className={styles.numberSlider}
               max={sliderMax}
               min={sliderMin}
               onChange={(event) => updateValue(Number(event.target.value))}
               step={numericStep}
               style={{
-                background: `linear-gradient(90deg, var(--explorer-accent) 0%, var(--explorer-accent) ${sliderPercent}%, var(--explorer-field) ${sliderPercent}%, var(--explorer-field) 100%)`,
+                backgroundImage: `linear-gradient(90deg, var(--explorer-accent) 0%, var(--explorer-accent) ${sliderPercent}%, var(--explorer-field) ${sliderPercent}%, var(--explorer-field) 100%)`,
               }}
               type="range"
               value={value}
@@ -583,6 +576,7 @@ export const PanelNumber = ({
 
           <div className={styles.numberField}>
             <input
+              aria-labelledby={labelId}
               className={styles.numberInput}
               inputMode={numericStep < 1 ? "decimal" : "numeric"}
               onBlur={commitDraftValue}
@@ -674,7 +668,6 @@ export const PanelSelect = ({
   className,
   data,
   label,
-  labelWidth,
   optionLabels,
   options,
   path,
@@ -689,10 +682,10 @@ export const PanelSelect = ({
   return (
     <li className={joinClassNames("cr", "select", className)} style={style}>
       <div className={styles.customControl}>
-        <span className="label-text" id={labelId} style={getLabelWidthStyle(labelWidth)}>
+        <span className="label-text" id={labelId} style={{ width: "100%" }}>
           {labelText}
         </span>
-        <div className={styles.selectControl} style={getControlWidthStyle(labelWidth)}>
+        <div className={styles.selectControl} style={{ width: "100%" }}>
           <Listbox
             labelledBy={labelId}
             onChange={(next) => _onUpdateValue?.(path, next)}

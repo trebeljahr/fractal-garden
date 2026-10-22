@@ -20,7 +20,7 @@ This step is called **deflation**. The outside boundary stays fixed while each p
 
 ## Follow the same cuts in the explorer
 
-Open **Pattern Studio** and turn off **Animate growth**. Set **Variant** to **P2 kite and dart**, then increase **Iterations** one step at a time. Keep **Frame start patch** on to compare the new cuts against the original patch.
+Open **Fractal Studio Controls** and turn off **Animate growth**. Set **Variant** to **P2 kite and dart**, then increase **Iterations** one step at a time. Keep **Frame start patch** on to compare the new cuts against the original patch.
 
 Under **Start**, compare **Sun** with **Star**. The P2 sun starts with five kites meeting at their tips. The P2 star starts with five darts. Switch **Variant** to **P3 rhombus** to compare a different subdivision using thin and thick rhombi.
 

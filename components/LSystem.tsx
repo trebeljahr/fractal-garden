@@ -204,7 +204,6 @@ const LSystem = ({ ruleset }: Props) => {
           },
         ]}
         controlsHint="Iterations, palette, and the automatic growth loop. Scroll on the drawing to zoom in endlessly."
-        controlsTitle="L-System Studio"
         data={config}
         mode="pattern"
         onUpdate={handleUpdate}

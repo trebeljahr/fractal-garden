@@ -14,7 +14,7 @@ The small diagram uses sticking chance 1. The first contact freezes the walker. 
 
 ## Compare the growing clusters
 
-Open **Growth Studio** and switch **Pause** on to hold the picture still. Compare **Point** and **Line** under **Seed**. A point grows outward from the center. A line starts from the bottom edge.
+Open **Fractal Studio Controls** and switch **Pause** on to hold the picture still. Compare **Point** and **Line** under **Seed**. A point grows outward from the center. A line starts from the bottom edge.
 
 Set **Sticking chance** to 1, then lower it to let some touching particles keep moving. Use **Restart growth** for another sample. One short run does not establish how a setting changes the long-term shape.
 

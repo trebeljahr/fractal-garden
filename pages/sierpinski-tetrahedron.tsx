@@ -29,7 +29,6 @@ const SierpinskiTetrahedron = ({ description }: Props) => (
     description={description}
     storageKey="sierpinski-tetrahedron"
     title="Sierpinski Tetrahedron"
-    controlsTitle="Pyramid Studio"
     controlsHint="Pick a base solid, then tune growth, orbit, and linework."
     hint="Drag to rotate the pyramid and use the scroll wheel to dolly closer or farther away."
     variantLabel="Base solid"

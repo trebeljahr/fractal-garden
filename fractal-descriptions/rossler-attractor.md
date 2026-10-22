@@ -22,7 +22,7 @@ The defaults are $a = 0.2$, $b = 0.2$ and $c = 5.7$. The product $z(x-c)$ couple
 
 ## Change the motion in the explorer
 
-Open **Scene Studio** and turn off **Auto rotate** to compare shapes from one camera angle. Turn off **Animate trail** to see the computed path together. Drag to rotate and use the scroll wheel to move closer.
+Open **Fractal Studio Controls** and turn off **Auto rotate** to compare shapes from one camera angle. Turn off **Animate trail** to see the computed path together. Drag to rotate and use the scroll wheel to move closer.
 
 Compare **c** near 2.3 with its default 5.7. Watch how the loops and folds change. A finite trail cannot establish whether an orbit eventually closes or remains irregular forever.
 

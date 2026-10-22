@@ -4,7 +4,7 @@ Look for five squares arranged as a cross, then five smaller squares inside each
 
 ## Compare two crosses
 
-Open **Pattern Studio**, turn off **Animate growth**, and lower **Iterations** to zero. This shows the starting square. At the next step, a three-by-three grid replaces it, with only five cells kept.
+Open **Fractal Studio Controls**, turn off **Animate growth**, and lower **Iterations** to zero. This shows the starting square. At the next step, a three-by-three grid replaces it, with only five cells kept.
 
 Under **Layout**, **Diagonal cross** keeps the four corners and the center. **Greek cross** keeps the center and the four cells beside it. Increase **Iterations** to compare how those choices repeat through the picture.
 

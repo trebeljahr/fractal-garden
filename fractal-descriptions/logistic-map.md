@@ -18,7 +18,7 @@ For $0 \leq r \leq 4$, this rule keeps a starting value in $[0,1]$ inside that i
 
 The full explorer starts each column at $x_0 = 0.5$. It discards some early iterations, then plots the later values at that column's $r$. A sequence that approaches two alternating values leaves two bands. Many later values spread through a column when the sequence does not approach a short cycle.
 
-Open **Bifurcation Studio** and choose **Starting view → Early bifurcations** to inspect the first splits. **Settle iterations** controls how many early values the renderer discards. **Plot iterations** controls how many later values it draws. A finite sample can still contain transients or miss part of a pattern.
+Open **Fractal Studio Controls** and choose **Starting view → Early bifurcations** to inspect the first splits. **Settle iterations** controls how many early values the renderer discards. **Plot iterations** controls how many later values it draws. A finite sample can still contain transients or miss part of a pattern.
 
 Drag to pan. Hold **Shift** while dragging up or down to zoom. Compare **Chaotic bands** with **Feigenbaum window** under **Starting view** to inspect different regions.
 

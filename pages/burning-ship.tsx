@@ -57,7 +57,7 @@ const BurningShip = ({ description }: Props) => {
       ]}
       lines={[
         "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the ship.",
-        "Open the studio and pick the Inferno look to set the ship on fire.",
+        "Open Fractal Studio Controls and pick the Inferno look to set the ship on fire.",
       ]}
     />
   );

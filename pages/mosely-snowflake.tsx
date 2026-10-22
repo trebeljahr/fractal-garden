@@ -27,7 +27,6 @@ const MoselySnowflake = ({ description }: Props) => (
     description={description}
     storageKey="mosely-snowflake"
     title="Mosely Snowflake"
-    controlsTitle="Snowflake Studio"
     controlsHint="Choose a lattice style, then tune orbit, growth, and linework."
     hint="Drag to rotate the snowflake and use the scroll wheel to dolly in closer to the form."
     variantLabel="Snowflake type"

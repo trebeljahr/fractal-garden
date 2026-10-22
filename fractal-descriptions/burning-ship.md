@@ -10,7 +10,7 @@ Drag to pan, then use the scroll wheel to zoom toward the pointer. On a touch sc
 
 Open **Places to explore** and choose **Little ship**. Follow the edge around its masts. Repeated towers appear side by side at different scales. **Whole ship** returns to the starting view.
 
-Open **Coloring Studio** and choose **Inferno** for a red and yellow view. The flame colors come from the palette. Try **Iteration bands** to see the escape steps, or change **Palette** while you stay at the same location.
+Open **Fractal Studio Controls** and choose **Inferno** for a red and yellow view. The flame colors come from the palette. Try **Iteration bands** to see the escape steps, or change **Palette** while you stay at the same location.
 
 <figure data-article-images="burning-ship"></figure>
 

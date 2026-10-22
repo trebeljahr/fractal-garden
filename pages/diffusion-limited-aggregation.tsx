@@ -328,7 +328,6 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
         <ExplorerPanel
           actions={[{ label: "Restart growth", onClick: () => setRestartCount((n) => n + 1) }]}
           controlsHint="Seed shape, stickiness, and colors for the growing cluster."
-          controlsTitle="Growth Studio"
           data={config}
           mode="pattern"
           onUpdate={handleUpdate}

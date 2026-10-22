@@ -4,7 +4,7 @@ Watch dots collect along a stem and its leaflets. Smaller leaflets repeat the sh
 
 ## Watch the dots build a leaf
 
-Open **Fern Studio** and compare **Classic Barnsley** with **Fishbone fern** or **Tree fern** under **Fern style**. A new style restarts the drawing. Wait for the dots to fill in, then compare the stems and the gaps between leaflets.
+Open **Fractal Studio Controls** and compare **Classic Barnsley** with **Fishbone fern** or **Tree fern** under **Fern style**. A new style restarts the drawing. Wait for the dots to fill in, then compare the stems and the gaps between leaflets.
 
 The dots arrive at random positions within the pattern. Changing **Color** or **Backdrop** changes the picture's appearance, while the selected fern style supplies its shape.
 

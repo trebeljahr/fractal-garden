@@ -272,7 +272,6 @@ const LogisticMap = ({ description }: Props) => {
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Views, density, and plotting depth for tracing the route into chaos."
-          controlsTitle="Bifurcation Studio"
           data={config}
           introTitle="Logistic Map"
           lines={[

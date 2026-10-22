@@ -18,7 +18,6 @@ const MengerSponge = ({ description }: Props) => (
     description={description}
     storageKey="menger-sponge"
     title="Menger Sponge"
-    controlsTitle="Scene Studio"
     controlsHint="Growth, orbit, and rendering layers for the sponge."
     hint="Drag to rotate the sponge and use the scroll wheel to dolly closer or farther away."
     variants={VARIANTS}

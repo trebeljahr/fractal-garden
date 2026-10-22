@@ -154,7 +154,6 @@ const FractalTree = ({ description }: Props) => {
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Start with a canopy idea, then steer the branches into your own version."
-          controlsTitle="Branch Studio"
           data={config}
           mode="pattern"
           onUpdate={handleUpdate}

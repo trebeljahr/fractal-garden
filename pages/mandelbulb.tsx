@@ -317,12 +317,11 @@ const Mandelbulb = ({ description }: Props) => {
       <main className={styles.fullScreen}>
         <ExplorerPanel
           controlsHint="Power, detail, orbit, and framing for finding the best silhouettes."
-          controlsTitle="Mandelbulb Studio"
           data={config}
           introTitle="Mandelbulb"
           lines={[
             "Drag to orbit, hold Shift while dragging to pan, and use the scroll wheel to zoom.",
-            "Open the studio to change the shape and shading.",
+            "Open Fractal Studio Controls to change the shape and shading.",
           ]}
           mode="scene"
           onUpdate={handleUpdate}

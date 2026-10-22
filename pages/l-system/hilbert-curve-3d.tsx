@@ -80,7 +80,6 @@ const HilbertCurve3D = ({ description }: Props) => {
     <main className={styles.fullScreen}>
       <ExplorerPanel
         controlsHint="Depth, drawing and orbit view for the space-filling curve."
-        controlsTitle="Scene Studio"
         data={config}
         introTitle="3D Hilbert Curve"
         lines={[

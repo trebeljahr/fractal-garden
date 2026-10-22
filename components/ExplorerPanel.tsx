@@ -17,7 +17,6 @@ type Props<T> = {
   actions?: Action[];
   children: ReactNode;
   controlsHint?: string;
-  controlsTitle?: string;
   data: T;
   defaultOpen?: boolean;
   introTitle?: string;
@@ -69,11 +68,12 @@ function controlRules(children: ReactNode, data: unknown): ControlRule[] {
   return rules;
 }
 
+const STUDIO_TITLE = "Fractal Studio Controls";
+
 const PANEL_COPY: Record<
   PanelMode,
   {
     controlsHint: string;
-    controlsTitle: string;
     introTitle: string;
     lines: string[];
   }
@@ -81,25 +81,22 @@ const PANEL_COPY: Record<
   formula: {
     introTitle: "Explore The Set",
     lines: [
-      "Open the studio to move through presets and nudge the parameters. Tiny changes can completely reshape the structure.",
+      "Open Fractal Studio Controls to move through presets and nudge the parameters. Tiny changes can completely reshape the structure.",
     ],
-    controlsTitle: "Parameter Studio",
     controlsHint: "Presets, color, and the numbers that shift the whole mood.",
   },
   pattern: {
     introTitle: "Explore The Pattern",
     lines: [
-      "Open the studio to play with depth, color, and drawing style. Live updates make it easy to discover the surprising versions.",
+      "Open Fractal Studio Controls to play with depth, color, and drawing style. Live updates make it easy to discover the surprising versions.",
     ],
-    controlsTitle: "Pattern Studio",
     controlsHint: "Shape, palette, and growth controls for wandering a little.",
   },
   scene: {
     introTitle: "Explore The Scene",
     lines: [
-      "Drag the form around, then open the studio for color, depth, and motion. The most interesting versions usually come from a couple of subtle tweaks.",
+      "Drag the form around, then open Fractal Studio Controls for color, depth, and motion. The most interesting versions usually come from a couple of subtle tweaks.",
     ],
-    controlsTitle: "Scene Studio",
     controlsHint: "View, lighting feel, and structure controls for a better look around.",
   },
 };
@@ -108,7 +105,6 @@ export function ExplorerPanel<T>({
   actions = [],
   children,
   controlsHint,
-  controlsTitle,
   data,
   defaultOpen = false,
   introTitle,
@@ -129,7 +125,7 @@ export function ExplorerPanel<T>({
   const displayTitle = introTitle || pageTitle || defaults.introTitle;
   const folderTitle = (
     <div className={styles.folderTitle}>
-      <span className={styles.folderHeading}>{controlsTitle ?? defaults.controlsTitle}</span>
+      <span className={styles.folderHeading}>{STUDIO_TITLE}</span>
       <span className={styles.folderHint}>{controlsHint ?? defaults.controlsHint}</span>
     </div>
   ) as unknown as string;
@@ -170,7 +166,7 @@ export function ExplorerPanel<T>({
         />
       </aside>
 
-      <aside className={styles.studio} aria-label={controlsTitle ?? defaults.controlsTitle}>
+      <aside className={styles.studio} aria-label={STUDIO_TITLE}>
         <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
           <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
             {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}

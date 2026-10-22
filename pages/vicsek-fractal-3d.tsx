@@ -22,7 +22,6 @@ const VicsekFractal3D = ({ description }: Props) => (
     description={description}
     storageKey="vicsek-fractal-3d"
     title="3D Vicsek Fractal"
-    controlsTitle="Scene Studio"
     controlsHint="Growth, framing, and rendering layers for the cubic cross."
     hint="Drag to orbit around the fractal and use the scroll wheel to dolly in or back out."
     variants={VARIANTS}

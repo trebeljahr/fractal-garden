@@ -22,7 +22,7 @@ The default values are $\sigma = 10$, $\rho = 28$ and $\beta = 8/3$. The trail a
 
 ## Compare motion in the full explorer
 
-Open **Scene Studio** and turn off **Auto rotate** to hold the camera still. Turn off **Animate trail** to inspect the full computed path. **Time step** controls the numerical interval. **Steps** controls how many intervals the renderer computes.
+Open **Fractal Studio Controls** and turn off **Auto rotate** to hold the camera still. Turn off **Animate trail** to inspect the full computed path. **Time step** controls the numerical interval. **Steps** controls how many intervals the renderer computes.
 
 The renderer uses fourth-order Runge–Kutta integration. A smaller time step can reduce numerical error over a fixed duration. To compare that duration, reduce **Time step** and increase **Steps** together. Chaotic trajectories can eventually separate even when both numerical approximations are useful.
 

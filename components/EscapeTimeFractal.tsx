@@ -56,7 +56,6 @@ type Props<T extends EscapeTimeColoring> = {
   views?: View[];
   lines: string[];
   controlsHint?: string;
-  controlsTitle?: string;
   children?: ReactNode;
 };
 
@@ -80,7 +79,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   views = [],
   lines,
   controlsHint = "Pick a look, then tune the coloring algorithm, palette and iteration depth.",
-  controlsTitle = "Coloring Studio",
   children,
 }: Props<T>) {
   const { width, height } = useWindowSize();
@@ -201,7 +199,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           )
         }
         controlsHint={controlsHint}
-        controlsTitle={controlsTitle}
         data={config}
         introTitle={title}
         lines={lines}

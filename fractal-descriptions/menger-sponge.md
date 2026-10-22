@@ -10,7 +10,7 @@ Split a cube into 27 equal cubes in a three-by-three-by-three grid. Remove the c
 
 A face of the sponge shows the square-hole pattern of the [Sierpinski carpet](/sierpinski-carpet). The tunnels connect those faces through the interior.
 
-Open **Scene Studio** and turn off **Animate growth** to compare levels with **Iterations**. Disable **Auto rotate** when you want to hold a view still. Drag to rotate, and use the scroll wheel to move closer. Compare **Solid faces** with **Wireframe** to see how the smaller blocks fit together.
+Open **Fractal Studio Controls** and turn off **Animate growth** to compare levels with **Iterations**. Disable **Auto rotate** when you want to hold a view still. Drag to rotate, and use the scroll wheel to move closer. Compare **Solid faces** with **Wireframe** to see how the smaller blocks fit together.
 
 <figure data-article-images="menger"></figure>
 

@@ -84,7 +84,6 @@ const LorenzAttractor = ({ description }: Props) => {
     <main className={styles.fullScreen}>
       <ExplorerPanel
         controlsHint="System parameters, integration and orbit view for the attractor."
-        controlsTitle="Scene Studio"
         data={config}
         introTitle="Lorenz Attractor"
         lines={[

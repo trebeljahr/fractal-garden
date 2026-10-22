@@ -40,7 +40,6 @@ type Props<V extends string> = {
   /** Names this fractal's cached performance budget. */
   storageKey: string;
   title: string;
-  controlsTitle: string;
   controlsHint: string;
   hint: string;
   variantLabel?: string;
@@ -64,7 +63,6 @@ export function SceneFractalExplorer<V extends string>({
   description,
   storageKey,
   title,
-  controlsTitle,
   controlsHint,
   hint,
   variantLabel = "Variant",
@@ -171,7 +169,6 @@ export function SceneFractalExplorer<V extends string>({
     <main className={styles.fullScreen}>
       <ExplorerPanel
         controlsHint={controlsHint}
-        controlsTitle={controlsTitle}
         data={config}
         introTitle={title}
         lines={[hint]}

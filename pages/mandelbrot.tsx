@@ -63,7 +63,7 @@ const Mandelbrot = ({ description }: Props) => {
       ]}
       lines={[
         "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set.",
-        "Open the studio to switch between classic coloring algorithms and palettes.",
+        "Open Fractal Studio Controls to switch between classic coloring algorithms and palettes.",
       ]}
     />
   );

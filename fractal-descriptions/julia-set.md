@@ -6,7 +6,7 @@ Zoom along an edge to find smaller branches that resemble the larger pattern. Ch
 
 ## Try a different shape
 
-Open **Complex Constant** and change **Starting point** from **Rabbit spiral** to **Sea spiral** or **Cauliflower bloom**. These presets choose values for the constant $c$.
+Open **Fractal Studio Controls** and change **Starting point** from **Rabbit spiral** to **Sea spiral** or **Cauliflower bloom**. These presets choose values for the constant $c$.
 
 Nudge **C real** or **C imaginary** to see how nearby values change the shape. Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
 

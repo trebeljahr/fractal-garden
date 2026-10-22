@@ -20,6 +20,6 @@ $$
 N_n = 2^n
 $$
 
-The full explorer uses **Iterations** for this rewrite count. Turn off **Animate growth** in **Pattern Studio** to hold a stage still. The diagram includes the unexpanded starting segment at **Rewrites 0**; the full explorer starts at **Iterations 1**.
+The full explorer uses **Iterations** for this rewrite count. Turn off **Animate growth** in **Fractal Studio Controls** to hold a stage still. The diagram includes the unexpanded starting segment at **Rewrites 0**; the full explorer starts at **Iterations 1**.
 
 The renderer fits each finite path into the view. Compare the triangular turns of the [Lévy curve](/l-system/levy-curve) with the square-grid path of the [Hilbert curve](/l-system/hilbert-curve). The [L-system explorer](/l-system/explorer) lets you edit the replacement rules.

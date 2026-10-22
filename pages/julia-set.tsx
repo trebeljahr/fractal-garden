@@ -72,12 +72,8 @@ const JuliaSet = ({ description }: Props) => {
       initialCenter={[0, 0]}
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
-      controlsHint="Start from a preset, nudge c, then pick a look for the coloring."
-      controlsTitle="Complex Constant"
-      lines={[
-        "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set.",
-        "Open the studio to explore presets, reshape the family and recolor it.",
-      ]}
+      controlsHint="Explore presets, reshape the family and recolor it."
+      lines={["Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set."]}
     >
       <PanelSelect
         path="preset"

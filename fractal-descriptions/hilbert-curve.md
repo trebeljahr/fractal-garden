@@ -10,7 +10,7 @@ This page starts with **W**. Two replacement rules expand **V** and **W** into s
 
 Move **Rewrites** back to zero to see why **W** alone leaves the turtle still. One rewrite produces the first U, with three drawn segments. Use **Next step** to distinguish a forward move from a turn or a rewrite-only symbol. Here **+** turns clockwise by 90 degrees, and **−** turns counterclockwise.
 
-The full explorer counts its starting **W** as **Iterations 1**, even though that word draws no segment. Its first visible U appears at **Iterations 2**. Pause **Animate growth** in **Pattern Studio**, then change **Iterations** to compare stages.
+The full explorer counts its starting **W** as **Iterations 1**, even though that word draws no segment. Its first visible U appears at **Iterations 2**. Pause **Animate growth** in **Fractal Studio Controls**, then change **Iterations** to compare stages.
 
 ## A finite grid and an infinite limit
 

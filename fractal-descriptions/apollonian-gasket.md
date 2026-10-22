@@ -8,7 +8,7 @@ The explorer starts with three equal circles inside one enclosing circle. All fo
 
 <figure data-construction="apollonian"></figure>
 
-Open **Pattern Studio** and turn off **Animate growth** to inspect a stage. Increase **Iterations** one step at a time. Switch **Fill circles** on to compare the circles' sizes, then use **Outline circles** to follow the gaps.
+Open **Fractal Studio Controls** and turn off **Animate growth** to inspect a stage. Increase **Iterations** one step at a time. Switch **Fill circles** on to compare the circles' sizes, then use **Outline circles** to follow the gaps.
 
 <figure data-article-images="apollonian"></figure>
 

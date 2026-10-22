@@ -12,7 +12,7 @@ Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch
 
 Start in the narrow gap between the main body and the round bulb. Follow a curled edge into the region often called Seahorse Valley. Elsewhere along the boundary, look for smaller Mandelbrot shapes among the branches.
 
-Open **Coloring Studio** and try **Iteration bands** to see steps in the escape time. Switch to **Stripes** or **Orbit trap** to reveal different patterns at the same location. Change **Palette** to compare colors without changing the fractal.
+Open **Fractal Studio Controls** and try **Iteration bands** to see steps in the escape time. Switch to **Stripes** or **Orbit trap** to reveal different patterns at the same location. Change **Palette** to compare colors without changing the fractal.
 
 ## Bulbs, cycles and smaller copies
 

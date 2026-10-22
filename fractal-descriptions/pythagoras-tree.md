@@ -10,7 +10,7 @@ Start with one square. Place a right triangle on its top edge, using that edge a
 
 In the small diagram, step forward twice, then move **Triangle angle**. The child squares change size while their combined area stays equal to the parent's.
 
-Open **Pattern Studio** and turn off **Animate growth**. Set **Iterations** to zero to see the first square, then add levels one at a time. Change **Angle** from 45 degrees toward 30 or 60 degrees to compare the two sides.
+Open **Fractal Studio Controls** and turn off **Animate growth**. Set **Iterations** to zero to see the first square, then add levels one at a time. Change **Angle** from 45 degrees toward 30 or 60 degrees to compare the two sides.
 
 Use **Fill triangles** and **Fill squares** to distinguish the connecting triangles from the squares. Their outlines remain visible when you turn the fill off.
 

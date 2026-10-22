@@ -8,7 +8,7 @@ This example uses two branches at each tip. Step forward to add a generation, th
 
 <figure data-construction="canopy"></figure>
 
-The full explorer supports more branches and different length ratios. In **Branch Studio**, turn off **Animate angle** before making a comparison. Lower **Depth** to see the main forks. Increase **Branches** to place more branches at each tip.
+The full explorer supports more branches and different length ratios. In **Fractal Studio Controls**, turn off **Animate angle** before making a comparison. Lower **Depth** to see the main forks. Increase **Branches** to place more branches at each tip.
 
 **Branch shrink** sets each child's length as a fraction of its parent's length. Smaller values keep the outer branches close to their parent. Larger values make the canopy spread farther and can cause branches to overlap.
 

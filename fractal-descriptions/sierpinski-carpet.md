@@ -8,7 +8,7 @@ Start with a filled square. Divide it into a three-by-three grid and remove the 
 
 <figure data-construction="carpet"></figure>
 
-In the full explorer, open **Pattern Studio** and turn off **Animate growth** to hold a stage still. Change **Depth** to compare the large central hole with the next ring of smaller holes. **Hole color** makes the removed regions easier to separate from the remaining material.
+In the full explorer, open **Fractal Studio Controls** and turn off **Animate growth** to hold a stage still. Change **Depth** to compare the large central hole with the next ring of smaller holes. **Hole color** makes the removed regions easier to separate from the remaining material.
 
 <figure data-article-images="carpet"></figure>
 
