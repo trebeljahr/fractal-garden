@@ -28,7 +28,8 @@
   width: 100%;
   min-height: 44px;
   border: 0;
-  padding: 14px 0;
+  padding: 14px 0.65rem;
+  border-radius: 4px;
   background: none;
   color: inherit;
   font: inherit;
@@ -44,6 +45,26 @@
 }
 .places button:hover {
   color: #ffffff;
+}
+.places button[aria-pressed="true"] {
+  background: rgba(245, 204, 117, 0.12);
+  box-shadow: inset 3px 0 #f5cc75;
+  color: #f5cc75;
+}
+.placeLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.75rem;
+}
+.places .currentPlace {
+  color: #f5cc75;
+  font-size: 11px;
+}
+.places summary .currentPlace {
+  display: block;
+  margin-top: 0.3rem;
 }
 .places button:focus-visible,
 .places summary:focus-visible {

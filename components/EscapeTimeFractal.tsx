@@ -1,4 +1,4 @@
-import { Children, type ReactNode, useEffect, useRef, useState } from "react";
+import { Children, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import {
   COLOR_MODE_LABELS,
@@ -91,6 +91,11 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     zoomSize: initialZoomSize,
   });
   const renderRef = useRef<(() => void) | null>(null);
+  const [viewport, setViewport] = useState(viewportRef.current);
+  const updateViewport = useCallback(() => {
+    setViewport(viewportRef.current);
+    renderRef.current?.();
+  }, []);
   // The draw call reads the latest values from refs so control tweaks only redraw.
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
@@ -101,7 +106,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     viewportRef,
     minZoomSize,
     maxZoomSize,
-    onViewportChange: () => renderRef.current?.(),
+    onViewportChange: updateViewport,
     flipY,
   });
 
@@ -182,6 +187,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           views.length > 0 && (
             <FractalPlaces
               views={views}
+              viewport={viewport}
               onSelect={(view) => {
                 viewportRef.current = { center: [...view.center], zoomSize: view.zoomSize };
                 onRestore({
@@ -189,7 +195,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
                   ...view.parameters,
                   iterations: view.iterations ?? config.iterations,
                 });
-                renderRef.current?.();
+                updateViewport();
               }}
             />
           )

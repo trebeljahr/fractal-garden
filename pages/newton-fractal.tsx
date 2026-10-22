@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { FractalPlaces } from "../components/FractalPlaces";
 import { NavElement } from "../components/Navbar";
@@ -30,13 +30,18 @@ const NewtonFractal = ({ description }: Props) => {
     zoomSize: INITIAL_ZOOM_SIZE,
   });
   const renderRef = useRef<(() => void) | null>(null);
+  const [viewport, setViewport] = useState(viewportRef.current);
+  const updateViewport = useCallback(() => {
+    setViewport(viewportRef.current);
+    renderRef.current?.();
+  }, []);
 
   useShaderViewportControls({
     canvas: cnv,
     viewportRef,
     minZoomSize: MIN_ZOOM_SIZE,
     maxZoomSize: MAX_ZOOM_SIZE,
-    onViewportChange: () => renderRef.current?.(),
+    onViewportChange: updateViewport,
   });
 
   useEffect(() => {
@@ -109,6 +114,7 @@ const NewtonFractal = ({ description }: Props) => {
           <ViewportOverlay
             places={
               <FractalPlaces
+                viewport={viewport}
                 views={[
                   {
                     label: "All three basins",
@@ -125,7 +131,7 @@ const NewtonFractal = ({ description }: Props) => {
                 ]}
                 onSelect={(place) => {
                   viewportRef.current = { center: [...place.center], zoomSize: place.zoomSize };
-                  renderRef.current?.();
+                  updateViewport();
                 }}
               />
             }
