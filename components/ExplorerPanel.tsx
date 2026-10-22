@@ -1,9 +1,10 @@
-import { Children, isValidElement, type ReactNode, useEffect, useRef, useState } from "react";
+import { Children, isValidElement, type ReactNode, useRef, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
 import { type ControlRule, isRecord } from "../utils/explorerShare";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
+import { FractalHeader } from "./FractalHeader";
 
 type Action = {
   label: string;
@@ -68,25 +69,10 @@ function controlRules(children: ReactNode, data: unknown): ControlRule[] {
 
 const CONTROLS_TITLE = "Fractal Studio Controls";
 
-const PANEL_COPY: Record<
-  PanelMode,
-  {
-    introTitle: string;
-    lines: string[];
-  }
-> = {
-  formula: {
-    introTitle: "Explore The Set",
-    lines: [],
-  },
-  pattern: {
-    introTitle: "Explore The Pattern",
-    lines: [],
-  },
-  scene: {
-    introTitle: "Explore The Scene",
-    lines: ["Drag to rotate. Scroll to zoom."],
-  },
+const PANEL_COPY: Record<PanelMode, { lines: string[] }> = {
+  formula: { lines: [] },
+  pattern: { lines: [] },
+  scene: { lines: ["Drag to rotate. Scroll to zoom."] },
 };
 
 export function ExplorerPanel<T>({
@@ -144,14 +130,8 @@ export function ExplorerPanel<T>({
       }
     : undefined;
   const defaults = PANEL_COPY[mode];
-  const [pageTitle, setPageTitle] = useState("");
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    setPageTitle(document.title.replace(/ \| Fractal Garden$/, ""));
-  }, []);
-
-  const displayTitle = introTitle || pageTitle || defaults.introTitle;
   const folderTitle = (
     <div className={styles.folderTitle}>
       <span className={styles.folderHeading}>{CONTROLS_TITLE}</span>
@@ -159,31 +139,25 @@ export function ExplorerPanel<T>({
   ) as unknown as string;
 
   return (
-    <div className={styles.panel} data-fractal-chrome>
-      <aside className={styles.introCard} aria-label="Fractal overview">
-        <div className={styles.title}>{displayTitle}</div>
-        {(lines ?? defaults.lines).length > 0 && (
-          <div className={styles.copy}>
-            {(lines ?? defaults.lines).map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </div>
-        )}
+    <>
+      <FractalHeader title={introTitle} lines={lines ?? defaults.lines} places={places} />
+      <div className={styles.panel} data-fractal-chrome>
         {actions.length ? (
-          <div className={styles.actions}>
-            {actions.map((action) => (
-              <button
-                className={styles.action}
-                key={action.label}
-                onClick={action.onClick}
-                type="button"
-              >
-                {action.label}
-              </button>
-            ))}
-          </div>
+          <aside className={styles.introCard} aria-label="Fractal actions">
+            <div className={styles.actions}>
+              {actions.map((action) => (
+                <button
+                  className={styles.action}
+                  key={action.label}
+                  onClick={action.onClick}
+                  type="button"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </aside>
         ) : null}
-        {places}
         <ExplorerTools
           data={data}
           viewControlsHost={viewControlsHost}
@@ -191,19 +165,19 @@ export function ExplorerPanel<T>({
           animation={animation}
           onRestore={onRestore}
         />
-      </aside>
 
-      <div className={styles.studioGroup}>
-        <div ref={setViewControlsHost} className={styles.viewControlsHost} />
-        <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
-          <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
-            <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
-              {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-              {Children.toArray(children)}
-            </DatFolder>
-          </DatGui>
-        </aside>
+        <div className={styles.studioGroup}>
+          <div ref={setViewControlsHost} className={styles.viewControlsHost} />
+          <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
+            <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
+              <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
+                {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+                {Children.toArray(children)}
+              </DatFolder>
+            </DatGui>
+          </aside>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

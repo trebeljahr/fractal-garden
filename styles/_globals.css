@@ -5,7 +5,10 @@
   --dark-grey: #091115;
   --yellow-white: #f5f1d1;
   --explorer-control-height: 52px;
-  --explorer-nav-height: 52px;
+  --explorer-header-height: 88px;
+  --explorer-nav-height: 68px;
+  --explorer-nav-font-size: 13px;
+  --explorer-nav-name-size: 11px;
   --explorer-nav-gap: 16px;
   --explorer-nav-width: min(280px, calc((100vw - 64px) / 3));
   --explorer-surface: rgba(9, 17, 21, 0.96);
@@ -269,4 +272,13 @@ body[data-fractal-clean] [data-fractal-chrome],
 body[data-fractal-clean] [data-fractal-description-section],
 body[data-fractal-fullscreen] [data-fractal-description-section] {
   display: none;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --explorer-header-height: 132px;
+    --explorer-nav-height: 84px;
+    --explorer-nav-font-size: 12px;
+    --explorer-nav-name-size: 10px;
+  }
 }

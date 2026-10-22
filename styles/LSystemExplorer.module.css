@@ -16,7 +16,7 @@
 
 .panel {
   position: absolute;
-  top: 62px;
+  top: calc(var(--explorer-header-height) + 12px);
   left: 18px;
   z-index: 26;
   display: flex;
@@ -46,7 +46,7 @@
 
 @media screen and (max-width: 640px) {
   .panel {
-    top: 62px;
+    top: calc(var(--explorer-header-height) + 12px);
     bottom: auto;
     left: 10px;
     width: calc(100vw - 20px);
@@ -433,7 +433,7 @@ textarea.code {
 
 .reopen {
   position: absolute;
-  top: 62px;
+  top: calc(var(--explorer-header-height) + 12px);
   left: 18px;
   z-index: 26;
   border: 1px solid rgba(245, 241, 209, 0.2);

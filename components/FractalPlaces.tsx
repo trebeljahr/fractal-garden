@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import styles from "../styles/FractalPlaces.module.css";
 import { type FractalPlace, matchesPlace } from "../utils/fractalPlaces";
 
@@ -19,6 +20,28 @@ export function FractalPlaces<T extends FractalPlace>({
   initialZoomSize?: number;
   matchesViewport?: (view: T) => boolean;
 }) {
+  const menu = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const dismissOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !menu.current?.contains(event.target)) {
+        menu.current?.removeAttribute("open");
+      }
+    };
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && menu.current?.open) {
+        menu.current.removeAttribute("open");
+        menu.current.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("keydown", dismissOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("keydown", dismissOnEscape);
+    };
+  }, []);
+
   const activePlace = views.find(
     (view) =>
       (matchesViewport ? matchesViewport(view) : viewport && matchesPlace(view, viewport)) &&
@@ -27,7 +50,7 @@ export function FractalPlaces<T extends FractalPlace>({
   const groups = Array.from(new Set(views.map((view) => view.group)));
 
   return (
-    <details className={styles.places}>
+    <details ref={menu} className={styles.places}>
       <summary>
         Places to explore
         {activePlace && <small className={styles.currentPlace}>{activePlace.label}</small>}

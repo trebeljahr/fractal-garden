@@ -33,7 +33,8 @@
 .openedDrawer {
   position: relative;
   padding: 4vw;
-  padding-bottom: max(4vw, 6rem);
+  padding-bottom: max(4vw, calc(var(--explorer-nav-height) + var(--explorer-nav-gap) + 24px));
+  scroll-margin-top: var(--explorer-header-height);
   font-size: 1.5rem;
   /* transition: all 1s; */
   /* position: absolute; */
@@ -82,10 +83,10 @@
   left: 50%;
   z-index: 27;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 7px;
   height: var(--explorer-nav-height);
   width: var(--explorer-nav-width);
   max-width: calc(100% - 28px);
@@ -96,7 +97,7 @@
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font:
-    13px / 1.4 "Montserrat",
+    var(--explorer-nav-font-size) / 1.4 "Montserrat",
     sans-serif;
   text-align: center;
   transform: translateX(-50%);
@@ -149,7 +150,6 @@
 
 @media (max-width: 700px) {
   .learnMore {
-    font-size: 12px;
     padding: 8px;
     gap: 6px;
   }

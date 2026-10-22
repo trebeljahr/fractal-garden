@@ -1,6 +1,6 @@
 .panel {
   position: absolute;
-  top: 0;
+  top: var(--explorer-header-height);
   left: 0;
   right: 0;
   z-index: 26;
@@ -15,7 +15,7 @@
 .introCard,
 .studio {
   width: min(352px, calc((100vw - 60px) / 2));
-  max-height: calc(100svh - 160px);
+  max-height: calc(100svh - var(--explorer-header-height) - var(--explorer-nav-height) - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -26,7 +26,7 @@
 }
 
 .introCard {
-  margin-top: 44px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -53,25 +53,6 @@
   margin-left: auto;
   border-left: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 0 0 0 6px;
-}
-
-.title {
-  font-size: 21px;
-  font-family: "Montserrat", sans-serif;
-  line-height: 1.3;
-  font-weight: 500;
-  letter-spacing: 0.025em;
-  color: var(--explorer-ink);
-}
-
-.copy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  max-width: 31ch;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #b8c2cb;
 }
 
 .actions {
@@ -822,7 +803,7 @@
 
 @media screen and (max-width: 700px) {
   .panel {
-    top: 0;
+    top: var(--explorer-header-height);
     left: 0;
     right: 0;
     display: block;
@@ -830,14 +811,14 @@
 
   .introCard {
     width: min(320px, 100%);
-    margin-top: 162px;
+    margin-top: var(--explorer-control-height);
     padding: 16px 18px 8px;
     max-height: calc(100svh - 338px);
   }
 
   .studioGroup {
     position: absolute;
-    top: 44px;
+    top: 0;
     right: 0;
     max-width: 100%;
     z-index: 1;
@@ -845,7 +826,7 @@
 
   .studio {
     width: min(320px, calc(100vw - 152px));
-    max-height: calc(100svh - 180px);
+    max-height: calc(100svh - var(--explorer-header-height) - var(--explorer-nav-height) - 32px);
     z-index: 1;
   }
 
@@ -868,7 +849,7 @@
   }
 
   .panel :global(.react-dat-gui.exploration-gui .dg.main) {
-    max-height: calc(100svh - 180px);
+    max-height: calc(100svh - var(--explorer-header-height) - var(--explorer-nav-height) - 32px);
   }
 
   .customControl {

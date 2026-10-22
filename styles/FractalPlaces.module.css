@@ -1,6 +1,5 @@
 .places {
-  border-top: 1px solid rgba(245, 241, 209, 0.12);
-  padding-top: 0.25rem;
+  position: relative;
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
 }
@@ -42,7 +41,14 @@
   transition: color 150ms;
 }
 .destinations {
-  max-height: min(46svh, 440px);
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -8px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(60svh, calc(100svh - var(--explorer-header-height) - 100px));
+  background: var(--explorer-surface);
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -111,5 +117,21 @@
 @media (prefers-reduced-motion: reduce) {
   .places button {
     transition: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .places summary {
+    font-size: 11px;
+  }
+
+  .places summary .currentPlace {
+    display: none;
+  }
+
+  .destinations {
+    position: fixed;
+    top: var(--explorer-header-height);
+    right: 12px;
   }
 }

@@ -1,43 +1,38 @@
-.homeLink,
 .linkButton {
+  bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
   position: fixed;
   z-index: 30;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 5px;
   text-decoration: none;
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
-}
-
-.homeLink {
-  top: 0;
-  left: 0;
-  gap: 9px;
-  width: max-content;
-  max-width: 100%;
-  min-height: 44px;
-  padding: 8px 14px;
-  border-right: 1px solid rgba(245, 241, 209, 0.16);
-  border-bottom: 1px solid rgba(245, 204, 117, 0.32);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.025em;
-}
-
-.linkButton {
-  bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
-  gap: 12px;
-  width: min(160px, var(--explorer-nav-width));
+  width: var(--explorer-nav-width);
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--explorer-nav-font-size);
   height: var(--explorer-nav-height);
   padding: 10px 14px;
   border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 6px;
+}
+
+.direction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.fractalName {
+  max-width: 100%;
+  font-size: var(--explorer-nav-name-size);
+  line-height: 1.35;
+  color: #b8c2cb;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .previous {
@@ -54,13 +49,11 @@
   color: var(--explorer-accent);
 }
 
-.homeLink:hover,
 .linkButton:hover {
   color: var(--explorer-accent);
   background: var(--explorer-field);
 }
 
-.homeLink:focus-visible,
 .linkButton:focus-visible {
   outline: 2px solid var(--explorer-accent);
   outline-offset: -3px;
@@ -68,8 +61,12 @@
 
 @media (max-width: 700px) {
   .linkButton {
-    gap: 8px;
+    gap: 4px;
     padding: 8px;
+  }
+
+  .direction {
+    gap: 8px;
   }
 
   .linkButton svg {
@@ -78,7 +75,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .homeLink,
   .linkButton {
     transition: none;
   }

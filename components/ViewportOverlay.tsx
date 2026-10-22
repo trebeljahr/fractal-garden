@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import styles from "../styles/ViewportOverlay.module.css";
 import { ExplorerTools } from "./ExplorerTools";
+import { FractalHeader } from "./FractalHeader";
 
 type Action = {
   label: string;
@@ -16,11 +17,8 @@ type Props = {
 
 export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) => {
   const [visible, setVisible] = useState(true);
-  const [pageTitle, setPageTitle] = useState("");
 
   useEffect(() => {
-    setPageTitle(document.title.replace(/ \| Fractal Garden$/, ""));
-
     const handleScroll = () => {
       setVisible(window.scrollY <= 24);
     };
@@ -34,29 +32,28 @@ export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) =
   }, []);
 
   return (
-    <div className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()} data-fractal-chrome>
-      <div className={styles.title}>{title || pageTitle || "Fractal"}</div>
-      <div className={styles.copy}>
-        {lines.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
+    <>
+      <FractalHeader title={title} lines={lines} places={places} />
+      <div
+        className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()}
+        data-fractal-chrome
+      >
+        {actions.length > 0 && (
+          <div className={styles.actions}>
+            {actions.map((action) => (
+              <button
+                className={styles.button}
+                key={action.label}
+                onClick={action.onClick}
+                type="button"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <ExplorerTools data={{}} rules={[]} onRestore={() => {}} />
       </div>
-      {actions.length > 0 && (
-        <div className={styles.actions}>
-          {actions.map((action) => (
-            <button
-              className={styles.button}
-              key={action.label}
-              onClick={action.onClick}
-              type="button"
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-      {places}
-      <ExplorerTools data={{}} rules={[]} onRestore={() => {}} />
-    </div>
+    </>
   );
 };

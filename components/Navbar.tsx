@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Navbar.module.css";
@@ -102,22 +101,21 @@ function NavigationArrow({ previous = false }: { previous?: boolean }) {
 }
 
 export const NavElement = () => {
-  const [prev, home, next] = useLinks();
+  const [prev, , next] = useLinks();
 
   return (
     <nav aria-label="Fractal navigation" data-fractal-chrome>
-      <Link href={home} className={styles.homeLink} aria-label="Fractal Garden home">
-        <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={22} height={22} />
-        <span>Fractal Garden</span>
-      </Link>
       <Link
         className={`${styles.linkButton} ${styles.previous}`}
         href={prev}
         aria-label={`Previous fractal: ${getFractalName(prev)}`}
         title={`Previous fractal: ${getFractalName(prev)}`}
       >
-        <NavigationArrow previous />
-        <span>Prev</span>
+        <span className={styles.direction}>
+          <NavigationArrow previous />
+          <span>Prev</span>
+        </span>
+        <span className={styles.fractalName}>{getFractalName(prev)}</span>
       </Link>
       <Link
         className={`${styles.linkButton} ${styles.next}`}
@@ -125,8 +123,11 @@ export const NavElement = () => {
         aria-label={`Next fractal: ${getFractalName(next)}`}
         title={`Next fractal: ${getFractalName(next)}`}
       >
-        <span>Next</span>
-        <NavigationArrow />
+        <span className={styles.direction}>
+          <span>Next</span>
+          <NavigationArrow />
+        </span>
+        <span className={styles.fractalName}>{getFractalName(next)}</span>
       </Link>
     </nav>
   );

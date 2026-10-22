@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { FractalHeader } from "../../components/FractalHeader";
 import { LSystemExplorer, type Preset } from "../../components/LSystemExplorer";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
@@ -43,6 +44,7 @@ export async function getStaticProps() {
 const LSystemExplorerPage = ({ description, presets }: Props) => {
   return (
     <main className={styles.fullScreen}>
+      <FractalHeader title="L-System Explorer" />
       <LSystemExplorer presets={presets} />
       <SideDrawer description={description} />
       <NavElement />

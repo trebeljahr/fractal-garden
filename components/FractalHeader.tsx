@@ -1,0 +1,40 @@
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import type { ReactNode } from "react";
+import styles from "../styles/FractalHeader.module.css";
+import { getFractalName } from "../utils/pageSeo";
+
+export function FractalHeader({
+  title,
+  lines = [],
+  places,
+}: {
+  title?: string;
+  lines?: string[];
+  places?: ReactNode;
+}) {
+  const router = useRouter();
+
+  return (
+    <header className={styles.header} data-fractal-chrome>
+      <nav className={styles.bar} aria-label="Garden navigation">
+        <Link href="/" className={styles.home} aria-label="Fractal Garden home">
+          <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={24} height={24} />
+          <span>Fractal Garden</span>
+        </Link>
+        <div className={styles.overview}>
+          <h1>{title || getFractalName(router.pathname)}</h1>
+          {lines.length > 0 && (
+            <div className={styles.copy}>
+              {lines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+          )}
+        </div>
+        {places && <div className={styles.places}>{places}</div>}
+      </nav>
+    </header>
+  );
+}
