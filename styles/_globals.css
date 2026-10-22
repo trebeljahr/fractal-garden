@@ -255,3 +255,14 @@ code.hljs {
     background: black;
   }
 }
+
+/* View modes belong to the explorer and are cleared when it unmounts. */
+body[data-fractal-clean],
+body[data-fractal-fullscreen] {
+  overflow: hidden;
+}
+body[data-fractal-clean] [data-fractal-chrome],
+body[data-fractal-clean] [data-fractal-description-section],
+body[data-fractal-fullscreen] [data-fractal-description-section] {
+  display: none;
+}

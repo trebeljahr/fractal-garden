@@ -4,6 +4,7 @@ import styles from "../styles/ExplorerPanel.module.css";
 import { type ControlRule, isRecord } from "../utils/explorerShare";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
+import { ExplorerViewControls } from "./ExplorerViewControls";
 
 type Action = {
   label: string;
@@ -134,7 +135,7 @@ export function ExplorerPanel<T>({
   ) as unknown as string;
 
   return (
-    <div className={styles.panel}>
+    <div className={styles.panel} data-fractal-chrome>
       <aside className={styles.introCard} aria-label="Fractal overview">
         <div className={styles.title}>{displayTitle}</div>
         <div className={styles.copy}>
@@ -176,6 +177,7 @@ export function ExplorerPanel<T>({
             {Children.toArray(children)}
           </DatFolder>
         </DatGui>
+        <ExplorerViewControls />
       </aside>
     </div>
   );

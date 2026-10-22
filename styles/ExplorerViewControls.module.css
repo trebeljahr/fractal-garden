@@ -1,0 +1,74 @@
+.controls {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid #354640;
+}
+.controls button,
+.restore button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #a7d9c6;
+  font:
+    13px Arial,
+    Helvetica,
+    sans-serif;
+  cursor: pointer;
+  transition:
+    background 150ms,
+    color 150ms;
+}
+.controls button:hover,
+.restore button:hover {
+  background: #30443c;
+  color: #d2f4e6;
+}
+.controls button:focus-visible,
+.restore button:focus-visible {
+  outline: 2px solid #91cdb5;
+  outline-offset: -2px;
+}
+.restore {
+  position: fixed;
+  z-index: 100;
+  bottom: max(0px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  border: 1px solid #354640;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: #1c2723;
+  opacity: 0.35;
+  transition: opacity 150ms;
+}
+.restore:hover,
+.restore:focus-within {
+  opacity: 1;
+}
+.restore button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.error {
+  padding: 0 14px 12px;
+  font-size: 12px;
+}
+@media (hover: none) {
+  .restore {
+    opacity: 0.8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls button,
+  .restore,
+  .restore button {
+    transition: none;
+  }
+}

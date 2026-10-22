@@ -9,7 +9,11 @@ interface Props {
 
 export const SideDrawer = ({ description }: Props) => {
   return (
-    <section className={styles.descriptionSection} aria-label="About this fractal">
+    <section
+      className={styles.descriptionSection}
+      aria-label="About this fractal"
+      data-fractal-description-section
+    >
       <button className={styles.learnMore} type="button" onClick={scrollToDescription}>
         <span>Learn more about this fractal</span>
         <span className={styles.caret} aria-hidden="true" />

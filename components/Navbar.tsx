@@ -85,7 +85,7 @@ export const NavElement = () => {
   const [prev, home, next] = useLinks();
 
   return (
-    <nav className={styles.navigationElement}>
+    <nav className={styles.navigationElement} data-fractal-chrome>
       <Link legacyBehavior as={prev} href={prev}>
         <a
           className={styles.linkButton}
