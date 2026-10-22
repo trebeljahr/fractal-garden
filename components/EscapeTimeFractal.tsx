@@ -1,24 +1,26 @@
 import { Children, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
+import { createViewport, MAX_DEPTH_BITS, matchesDeepViewport } from "../utils/deepZoom/math";
+import {
+  createDeepZoomRenderer,
+  MAX_RENDER_ITERATIONS,
+  type ZoomStatus,
+} from "../utils/deepZoom/renderer";
 import {
   COLOR_MODE_LABELS,
   COLOR_MODES,
   type EscapeTimeColoring,
-  getColoringLocations,
   LOOK_LABELS,
   LOOK_OPTIONS,
   PALETTE_LABELS,
   PALETTES,
-  setColoringUniforms,
 } from "../utils/escapeTimeColoring";
 import type { ControlRule } from "../utils/explorerShare";
 import { type EscapeTimePlace, matchesJuliaConstant } from "../utils/fractalPlaces";
-import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
+import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { createShaderProgram } from "../utils/shaders/compileShader";
-import escapeTimeShader from "../utils/shaders/escape-time.frag";
-import vertexShader from "../utils/shaders/mandelbrot.vert";
-import { WebGLCanvas } from "./Canvas";
+import { DeepZoomCanvas } from "./DeepZoomCanvas";
 import { PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { FractalPlaces } from "./FractalPlaces";
@@ -26,12 +28,6 @@ import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 
 type Formula = "mandelbrot" | "julia" | "burning-ship";
-
-const FORMULA_DEFINES: Record<Formula, string> = {
-  mandelbrot: "#define FORMULA_MANDELBROT\n",
-  julia: "#define FORMULA_JULIA\n",
-  "burning-ship": "#define FORMULA_BURNING_SHIP\n",
-};
 
 type Props<T extends EscapeTimeColoring> = {
   formula: Formula;
@@ -42,7 +38,6 @@ type Props<T extends EscapeTimeColoring> = {
   onRestore: (newData: T) => void;
   initialCenter: [number, number];
   initialZoomSize: number;
-  minZoomSize?: number;
   maxZoomSize?: number;
   flipY?: boolean;
   c?: [number, number];
@@ -65,7 +60,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   onRestore,
   initialCenter,
   initialZoomSize,
-  minZoomSize = 0.00005,
   maxZoomSize = initialZoomSize,
   flipY = false,
   c = [0, 0],
@@ -77,99 +71,64 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
-  const viewportRef = useRef({
-    center: [...initialCenter] as [number, number],
-    zoomSize: initialZoomSize,
-  });
-  const renderRef = useRef<(() => void) | null>(null);
+  const viewportRef = useRef(createViewport(initialCenter, initialZoomSize));
+  const rendererRef = useRef<ReturnType<typeof createDeepZoomRenderer> | null>(null);
   const [viewport, setViewport] = useState(viewportRef.current);
   const updateViewport = useCallback(() => {
     setViewport(viewportRef.current);
-    renderRef.current?.();
+    rendererRef.current?.update();
   }, []);
-  // The draw call reads the latest values from refs so control tweaks only redraw.
+  const [status, setStatus] = useState<ZoomStatus | null>(null);
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
   const [cReal, cImag] = c;
 
-  useShaderViewportControls({
+  useDeepZoomControls({
     canvas: cnv,
     viewportRef,
-    minZoomSize,
     maxZoomSize,
-    onViewportChange: updateViewport,
     flipY,
+    onChange: updateViewport,
   });
 
   useEffect(() => {
     if (!gl || !cnv) return;
-
-    const output = createShaderProgram(
-      gl,
-      vertexShader,
-      FORMULA_DEFINES[formula] + escapeTimeShader,
-    );
-    if (!output) return;
-
-    const { program, vert, frag } = output;
-
-    // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook by design
-    gl.useProgram(program);
-
-    const vertBuf = gl.createBuffer();
-    if (!vertBuf) return;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-
-    const aPositionLocation = gl.getAttribLocation(program, "aPosition");
-    gl.enableVertexAttribArray(aPositionLocation);
-    gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const centerLocation = gl.getUniformLocation(program, "u_center");
-    const zoomSizeLocation = gl.getUniformLocation(program, "u_zoomSize");
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    const cLocation = gl.getUniformLocation(program, "u_c");
-    const coloringLocations = getColoringLocations(gl, program);
-
-    if (centerLocation === null || zoomSizeLocation === null || resolutionLocation === null) {
+    let renderer: ReturnType<typeof createDeepZoomRenderer>;
+    try {
+      renderer = createDeepZoomRenderer(
+        gl,
+        formula,
+        () => ({
+          ...stateRef.current,
+          view: viewportRef.current,
+          width: stateRef.current.width || 1,
+          height: stateRef.current.height || 1,
+        }),
+        setStatus,
+      );
+    } catch (error) {
+      setStatus({
+        logZoom: viewportRef.current.logZoom,
+        iterations: stateRef.current.config.iterations,
+        message: error instanceof Error ? error.message : String(error),
+        error: true,
+      });
       return;
     }
-
-    const draw = () => {
-      const ratio = window.devicePixelRatio || 1;
-      const { center, zoomSize } = viewportRef.current;
-      const { config, c, width, height } = stateRef.current;
-      if (!width || !height) return;
-
-      gl.uniform2f(centerLocation, center[0], center[1]);
-      gl.uniform1f(zoomSizeLocation, zoomSize);
-      gl.uniform2f(resolutionLocation, width * ratio, height * ratio);
-      gl.uniform2f(cLocation, c[0], c[1]);
-      setColoringUniforms(gl, coloringLocations, config);
-
-      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    };
-    renderRef.current = draw;
-    cnv.addEventListener("garden:redraw", draw);
-
+    rendererRef.current = renderer;
+    cnv.addEventListener("garden:redraw", renderer.redraw);
+    renderer.update();
     return () => {
-      renderRef.current = null;
-      cnv.removeEventListener("garden:redraw", draw);
-      gl.deleteBuffer(vertBuf);
-      gl.deleteProgram(program);
-      gl.deleteShader(vert);
-      gl.deleteShader(frag);
+      cnv.removeEventListener("garden:redraw", renderer.redraw);
+      renderer.destroy();
+      rendererRef.current = null;
     };
   }, [gl, cnv, formula]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: redraw whenever an input changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: every render input invalidates the frame
   useEffect(() => {
-    renderRef.current?.();
-  }, [gl, cnv, formula, config, cReal, cImag, width, height]);
+    rendererRef.current?.update();
+  }, [config, cReal, cImag, width, height]);
 
   return (
     <main className={styles.fullScreen}>
@@ -178,11 +137,19 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           views.length > 0 && (
             <FractalPlaces
               views={views}
-              viewport={viewport}
               initialZoomSize={initialZoomSize}
               matchesParameters={(view) => matchesJuliaConstant(view, c)}
+              matchesViewport={(view) =>
+                matchesDeepViewport(
+                  viewport,
+                  createViewport(view.preciseCenter ?? view.center, view.zoomSize),
+                )
+              }
               onSelect={(view) => {
-                viewportRef.current = { center: [...view.center], zoomSize: view.zoomSize };
+                viewportRef.current = createViewport(
+                  view.preciseCenter ?? view.center,
+                  view.zoomSize,
+                );
                 onRestore({
                   ...config,
                   ...view.parameters,
@@ -199,10 +166,9 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         lines={lines}
         mode="formula"
         onUpdate={(newData) => {
-          // A family selected in the studio starts wide. Destination restores
-          // bypass this path so their own close-up coordinates stay intact.
+          // Studio family changes start wide; destination restores retain their framing.
           if ("preset" in config && "preset" in newData && config.preset !== newData.preset) {
-            viewportRef.current = { center: [...initialCenter], zoomSize: initialZoomSize };
+            viewportRef.current = createViewport(initialCenter, initialZoomSize);
             updateViewport();
           }
           onUpdate(newData);
@@ -224,13 +190,42 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           optionLabels={PALETTES.map((palette) => PALETTE_LABELS[palette])}
           options={[...PALETTES]}
         />
-        <PanelNumber path="iterations" label="Iterations" min={10} max={2000} step={10} />
+        <PanelNumber
+          path="iterations"
+          label="Minimum iterations"
+          min={10}
+          max={MAX_RENDER_ITERATIONS}
+          step={10}
+        />
         <PanelNumber path="colorDensity" label="Color density" min={0.1} max={10} step={0.1} />
         <PanelNumber path="colorOffset" label="Color offset" min={0} max={1} step={0.01} />
         <PanelColor path="interior" label="Interior" />
       </ExplorerPanel>
       <div className={styles.fullScreen}>
-        <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
+        <DeepZoomCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
+        {status && gl && (
+          <output
+            className={zoomStyles.status}
+            data-fractal-chrome
+            data-deep-zoom-status={status.message}
+            aria-live="off"
+          >
+            <span>
+              {status.logZoom < -3
+                ? `10^${(-status.logZoom * Math.LOG10E * Math.LN2).toFixed(1)} zoom`
+                : "Explore the boundary"}
+            </span>
+            <span>
+              {status.logZoom <= -MAX_DEPTH_BITS ? "Precision budget reached" : status.message}
+            </span>
+            {status.logZoom < -7 && (
+              <span>
+                {status.iterations.toLocaleString()} iterations
+                {status.iterations === MAX_RENDER_ITERATIONS ? " (limit)" : ""}
+              </span>
+            )}
+          </output>
+        )}
       </div>
       <SideDrawer description={description} />
       <NavElement />

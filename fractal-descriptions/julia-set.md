@@ -37,3 +37,11 @@ The filled Julia set contains all starting points whose sequences stay bounded f
 With default **Smooth escape time** coloring, the dark region approximates the filled set. The surrounding colors describe how quickly other starting points escape. The finite **Iterations** limit means that a slowly escaping point can still appear dark.
 
 **Orbit trap** colors points by how close their sequences come to the origin, including points that do not escape. This can reveal patterns inside the dark region. The [Burning Ship explorer](/burning-ship) offers the same coloring controls with a different iteration rule.
+
+### Zooming deeper
+
+The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+
+While you drag or zoom, a quick preview keeps the image moving. Detail returns when you pause. Difficult regions can take longer to refine.
+
+This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.

@@ -41,3 +41,11 @@ The set contains the values of $c$ whose sequences stay bounded forever. Default
 Increase **Iterations** when a dark patch near the edge needs a longer test. More steps refine the image but take more drawing time. Changing the colors does not change the rule.
 
 For another view of the same escape-time idea, the [Julia set explorer](/julia-set) fixes $c$ and varies the starting point.
+
+### Zooming deeper
+
+The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+
+While you drag or zoom, a quick preview keeps the image moving. Detail returns when you pause. Difficult regions can take longer to refine.
+
+This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.

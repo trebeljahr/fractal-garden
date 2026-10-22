@@ -9,15 +9,21 @@ export function FractalPlaces<T extends FractalPlace>({
   viewport,
   onSelect,
   matchesParameters = () => true,
+  matchesViewport,
   initialZoomSize,
 }: {
   views: T[];
-  viewport: Pick<FractalPlace, "center" | "zoomSize">;
+  viewport?: Pick<FractalPlace, "center" | "zoomSize">;
   onSelect: (view: T) => void;
   matchesParameters?: (view: T) => boolean;
   initialZoomSize?: number;
+  matchesViewport?: (view: T) => boolean;
 }) {
-  const activePlace = views.find((view) => matchesPlace(view, viewport) && matchesParameters(view));
+  const activePlace = views.find(
+    (view) =>
+      (matchesViewport ? matchesViewport(view) : viewport && matchesPlace(view, viewport)) &&
+      matchesParameters(view),
+  );
   const groups = Array.from(new Set(views.map((view) => view.group)));
 
   return (

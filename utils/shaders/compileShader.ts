@@ -13,7 +13,9 @@ function createProgram(
 
   const success = gl.getProgramParameter(program, gl.LINK_STATUS);
   if (!success) {
-    throw "program failed to link:" + gl.getProgramInfoLog(program);
+    const message = gl.getProgramInfoLog(program);
+    gl.deleteProgram(program);
+    throw new Error("Program failed to link: " + message);
   }
 
   return program;
@@ -29,7 +31,9 @@ function compileShader(gl: WebGLRenderingContext, shaderSource: string, shaderTy
 
   const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success) {
-    throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+    const message = gl.getShaderInfoLog(shader);
+    gl.deleteShader(shader);
+    throw new Error("Could not compile shader: " + message);
   }
 
   return shader;
@@ -37,11 +41,17 @@ function compileShader(gl: WebGLRenderingContext, shaderSource: string, shaderTy
 
 export function createShaderProgram(gl: WebGLRenderingContext, vertSrc: string, fragSrc: string) {
   const vert = compileShader(gl, vertSrc, gl.VERTEX_SHADER);
-  const frag = compileShader(gl, fragSrc, gl.FRAGMENT_SHADER);
-  if (!vert || !frag) return;
-
-  const program = createProgram(gl, vert, frag);
-  if (!program) return;
-
-  return { vert, frag, program };
+  if (!vert) return;
+  let frag: WebGLShader | undefined;
+  try {
+    frag = compileShader(gl, fragSrc, gl.FRAGMENT_SHADER);
+    const program = frag && createProgram(gl, vert, frag);
+    if (frag && program) return { vert, frag, program };
+  } catch (error) {
+    gl.deleteShader(vert);
+    if (frag) gl.deleteShader(frag);
+    throw error;
+  }
+  gl.deleteShader(vert);
+  if (frag) gl.deleteShader(frag);
 }

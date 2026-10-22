@@ -14,7 +14,7 @@ uniform float u_colorOffset;
 uniform vec3 u_interior;
 
 // WebGL 1 loops need a constant bound; u_maxIterations breaks out earlier.
-const int ITERATION_LIMIT = 2000;
+const int ITERATION_LIMIT = 8192;
 const float escapeRadius = 256.0;
 const float escapeRadius2 = escapeRadius * escapeRadius;
 const float stripeDensity = 5.0;

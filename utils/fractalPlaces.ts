@@ -22,6 +22,8 @@ export function matchesPlace(
 
 export type EscapeTimePlace = FractalPlace & {
   id: string;
+  /** Exact decimal coordinates for destinations beyond binary64 resolution. */
+  preciseCenter?: [string, string];
   parameters?: { preset: string; cReal: number; cImag: number };
 };
 

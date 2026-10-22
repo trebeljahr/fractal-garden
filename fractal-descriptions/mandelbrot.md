@@ -24,7 +24,7 @@ Smaller Mandelbrot shapes repeat this organization, with their own bulbs and sur
 
 With the default **Smooth escape time** coloring, the colors describe how quickly a point's sequence grows beyond the escape radius. Smooth coloring blends the steps between whole iteration counts. **Orbit trap** uses a different measurement: how close the sequence comes to the origin.
 
-Black marks points that do not escape within the current **Iterations** limit. Some points near the boundary need more steps before they escape. Increase **Iterations** to refine the image there, at the cost of more drawing time. The explorer also limits how far you can zoom.
+Black marks points that do not escape within the current **Iterations** limit. Some points near the boundary need more steps before they escape. The iteration count grows as you zoom. Raise **Minimum iterations** to add more detail, up to 8,192 steps per pixel.
 
 ## The rule behind the image
 
@@ -41,3 +41,11 @@ Try those values below. At $c = -1$, the orbit alternates between zero and minus
 <figure data-orbit="mandelbrot"></figure>
 
 The [Julia set explorer](/julia-set) keeps $c$ fixed and varies the starting point instead. The [Burning Ship](/burning-ship) changes the rule by taking absolute values before each square.
+
+### Zooming deeper
+
+The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+
+While you drag or zoom, a quick preview keeps the image moving. Detail returns when you pause. Difficult regions can take longer to refine.
+
+This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.

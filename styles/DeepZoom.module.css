@@ -1,0 +1,17 @@
+.status {
+  position: absolute;
+  bottom: 80px;
+  right: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px 12px;
+  max-width: min(80vw, 480px);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgb(8 12 18 / 78%);
+  color: #e4e5e8;
+  font-size: 11px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
