@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getPenroseLessonCut,
+  getPenroseLessonSecondCut,
   getPenroseLessonParent,
   getPenroseLessonStages,
 } from "../utils/lessons/penroseLesson.ts";
@@ -104,4 +105,14 @@ test("the first marked cut divides its parent edge in the golden ratio", () => {
     close(distance(from, cut) / distance(cut, to), PHI);
     close(cross(from, cut, to), 0);
   }
+});
+
+test("the acute lesson marks the second production cut on CA", () => {
+  const parent = getPenroseLessonParent("acute");
+  const q = getPenroseLessonSecondCut(parent);
+  close(distance(parent.c, q) / distance(q, parent.a), PHI);
+  close(cross(parent.c, q, parent.a), 0);
+  const children = deflateP2(parent);
+  assert.deepEqual(q, children[2].a);
+  assert.equal(getPenroseLessonSecondCut(getPenroseLessonParent("obtuse")), null);
 });

@@ -34,3 +34,11 @@ export function getPenroseLessonCut(parent: RobinsonTriangle): [number, number] 
   const [from, to] = parent.type === 0 ? [parent.a, parent.b] : [parent.b, parent.c];
   return [from[0] + (to[0] - from[0]) * INV_PHI, from[1] + (to[1] - from[1]) * INV_PHI];
 }
+
+export function getPenroseLessonSecondCut(parent: RobinsonTriangle): [number, number] | null {
+  if (parent.type !== 0) return null;
+  return [
+    parent.c[0] + (parent.a[0] - parent.c[0]) * INV_PHI,
+    parent.c[1] + (parent.a[1] - parent.c[1]) * INV_PHI,
+  ];
+}

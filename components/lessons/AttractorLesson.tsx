@@ -67,8 +67,9 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
   const nearby = traces.nearby[index];
   const head = fit.project(current);
   const otherHead = fit.project(nearby);
-  const tracePath = (points: AttractorPoint[]) =>
-    sampleTrace(points, index)
+  const batchStart = Math.max(0, index - config.batchSteps);
+  const tracePath = (points: AttractorPoint[], start = 0) =>
+    sampleTrace(points.slice(start, index + 1), index - start)
       .map((point, order) => {
         const p = fit.project(point);
         return `${order ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)}`;
@@ -85,8 +86,9 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
   return (
     <LessonFrame title="Build a trail from numerical steps" kind={system}>
       <p>
-        A moving point leaves this trail. Each button step adds {config.batchSteps} Runge–Kutta
-        integration steps, each with dt = {config.dt}.
+        Each step adds {config.batchSteps * config.dt}{" "}
+        {config.batchSteps * config.dt === 1 ? "unit" : "units"} of model time. The motion is
+        approximated with {config.batchSteps} small numerical updates per batch.
       </p>
       <fieldset className={shared.options} aria-label="Trajectory projection">
         <button
@@ -119,8 +121,10 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           <text x={yEnd.x + 8} y={yEnd.y - 8} className={shared.label}>
             {projection === "xz" ? "z" : "y"}
           </text>
-          <path d={tracePath(traces.reference)} className={shared.line} />
-          {compare && <path d={tracePath(traces.nearby)} className={styles.nearby} />}
+          <path d={tracePath(traces.reference)} className={styles.history} />
+          {compare && <path d={tracePath(traces.nearby)} className={styles.nearbyHistory} />}
+          <path d={tracePath(traces.reference, batchStart)} className={shared.line} />
+          {compare && <path d={tracePath(traces.nearby, batchStart)} className={styles.nearby} />}
           <circle cx={head.x} cy={head.y} r="4.5" className={styles.head} />
           {compare && (
             <circle cx={otherHead.x} cy={otherHead.y} r="6" className={styles.nearbyHead} />
@@ -130,6 +134,12 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           <p>
             {index} integration steps. Model time t = {(index * config.dt).toFixed(2)}.
           </p>
+          {step > 0 && (
+            <p>
+              Bold segments: current batch, t = {(batchStart * config.dt).toFixed(2)} to{" "}
+              {(index * config.dt).toFixed(2)}.
+            </p>
+          )}
           <p>Reference (x, y, z) = ({coordinates(current)}).</p>
           {compare && (
             <p>
@@ -155,13 +165,14 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
       </label>
       <p>
         Cream follows the reference start ({config.start.join(", ")}). Dashed amber follows the
-        nearby start. Both paths share one fixed scale. Their distance can grow or shrink along the
-        way.
+        nearby start. Bold segments show the current batch; fainter lines show earlier motion. Both
+        paths share one fixed scale. Their distance can grow or shrink along the way.
       </p>
       <p>
-        This is a two-dimensional projection of a three-dimensional path. The picture joins every
-        eighth numerical sample and always includes the current point. A short numerical trace does
-        not prove long-term behavior.
+        This is a two-dimensional projection of a three-dimensional path. Lines join every eighth
+        numerical sample, plus the endpoints of the current batch. Each update uses fourth-order
+        Runge–Kutta with dt = {config.dt}. A short numerical trace does not prove long-term
+        behavior.
       </p>
     </LessonFrame>
   );

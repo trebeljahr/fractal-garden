@@ -1,12 +1,12 @@
 figure.lesson p {
-  font-size: 1.15rem;
+  font-size: 1.6rem;
   line-height: 1.6;
 }
 figure.lesson figcaption {
-  font-size: 1.25rem;
+  font-size: 1.8rem;
 }
 fieldset.stepControls {
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 .layers {
   display: block;
@@ -33,14 +33,14 @@ fieldset.stepControls {
 .diagramValue {
   fill: var(--diagram-ink);
   font:
-    14px "Montserrat",
+    18px "Montserrat",
     sans-serif;
 }
 .diagramValue {
-  font-size: 16px;
+  font-size: 18px;
 }
 .summary {
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   line-height: 1.6;
   margin: 1rem 0 1.5rem;
   overflow-wrap: anywhere;
@@ -51,7 +51,7 @@ fieldset.stepControls {
   gap: 0.75rem;
   min-height: 44px;
   margin-top: 1rem;
-  font-size: 1rem;
+  font-size: 1.4rem;
   cursor: pointer;
 }
 .checkbox input[type="checkbox"] {
@@ -78,7 +78,7 @@ fieldset.stepControls {
 .angleLabel {
   fill: var(--diagram-ink);
   font:
-    10px "Montserrat",
+    18px "Montserrat",
     sans-serif;
 }
 .leftSquare {
@@ -126,7 +126,7 @@ fieldset.stepControls {
   stroke-width: 1.5;
 }
 .fernReference {
-  stroke: #eee8ce44;
+  stroke: #eee8ce88;
 }
 .fernCopy {
   stroke: var(--diagram-accent);
@@ -146,6 +146,19 @@ fieldset.stepControls {
   display: grid;
   gap: 0.4rem;
 }
+.ruleChoices legend {
+  font:
+    600 1.6rem / 1.4 "Montserrat",
+    sans-serif;
+  margin-bottom: 1rem;
+}
+.replay {
+  border-top: 1px solid #eee8ce55;
+  padding-top: 1.5rem;
+}
+.replay h3 {
+  font-size: 1.6rem;
+}
 .ruleChoices button {
   display: flex;
   justify-content: space-between;
@@ -157,7 +170,7 @@ fieldset.stepControls {
   background: transparent;
   padding: 0.65rem 0.8rem;
   font:
-    1rem / 1.4 "Montserrat",
+    1.4rem / 1.4 "Montserrat",
     sans-serif;
   cursor: pointer;
 }
@@ -183,7 +196,7 @@ fieldset.stepControls {
 }
 @media (max-width: 600px) {
   .fernLayout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
   .fernControls {
@@ -194,10 +207,13 @@ fieldset.stepControls {
     margin: 0;
   }
   .fernLayout svg {
-    max-height: 24rem;
+    max-height: 36rem;
+  }
+  .ruleChoices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .ruleChoices button {
-    font-size: 1rem;
+    font-size: 1.4rem;
     padding: 0.6rem;
   }
 }

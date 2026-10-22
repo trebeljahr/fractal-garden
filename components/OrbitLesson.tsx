@@ -18,7 +18,11 @@ function format(point: ComplexPoint) {
 function position(point: ComplexPoint) {
   const length = Math.hypot(point.real, point.imaginary);
   const scale = length > 4.65 ? 4.65 / length : 1;
-  return { x: 240 + point.real * scale * 32, y: 160 - point.imaginary * scale * 32 };
+  return {
+    x: 240 + point.real * scale * 32,
+    y: 160 - point.imaginary * scale * 32,
+    clipped: scale < 1,
+  };
 }
 
 export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
@@ -94,6 +98,11 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             </>
           )}
           <circle cx={latest.x} cy={latest.y} r="5" className={styles.orbitPoint} />
+          {latest.clipped && (
+            <text x="240" y="307" textAnchor="middle" className={styles.axisLabel}>
+              Current point is beyond this window.
+            </text>
+          )}
         </svg>
         <div
           id={`${id}-summary`}
@@ -119,6 +128,12 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                 ? "No escape in these 12 steps. This short test does not prove that the orbit stays bounded forever."
                 : "Inside radius 4 so far. Take another step to see what happens."}
           </p>
+          {latest.clipped && (
+            <p>
+              The amber point marks the direction of the full coordinate shown above; its distance
+              is clipped.
+            </p>
+          )}
         </div>
       </div>
       <fieldset className={styles.controls} aria-label={`${title} steps`}>
@@ -152,8 +167,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           </label>
         ))}
         <p className={styles.lessonIntro}>
-          {kind === "julia" ? `Fixed c = ${format(c)}.` : "Starting point z₀ = 0."} Points outside
-          the circle stop at the diagram's edge.
+          {kind === "julia" ? `Fixed c = ${format(c)}.` : "Starting point z₀ = 0."} This lesson
+          stops after an escape beyond radius 4. Points beyond radius 4.65 are shown at that outer
+          radius. The main image uses radius 256 for its escape coloring.
         </p>
       </fieldset>
     </figure>

@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.65rem 1.5rem;
-  font-size: 1.1rem;
+  font-size: 1.6rem;
 }
 .ruleRow code {
   overflow-wrap: anywhere;
@@ -21,7 +21,7 @@
   min-width: 0.85em;
   padding: 0.15rem;
   text-align: center;
-  font-size: 1.15rem;
+  font-size: 1.6rem;
   line-height: 1.4;
 }
 .word .active {
@@ -30,7 +30,7 @@
 }
 .future {
   fill: none;
-  stroke: #eee8ce30;
+  stroke: #eee8ce88;
   stroke-width: 1.5;
   stroke-dasharray: 4 4;
 }

@@ -55,8 +55,8 @@ export default function LogisticLesson() {
   return (
     <LessonFrame title="Follow one value through the map" kind="logistic">
       <p>
-        One iteration moves up to the curve, then across to the diagonal. The diagonal feeds the new
-        value back as the next input.
+        One iteration moves vertically to the curve, then horizontally to the diagonal. The diagonal
+        feeds the new value back as the next input.
       </p>
       <fieldset className={shared.options} aria-label="Logistic example">
         {PRESETS.map((preset) => (
@@ -120,7 +120,7 @@ export default function LogisticLesson() {
           <text x="44" y="23" className={shared.label}>
             orbit value x
           </text>
-          <text x="234" y="286" className={shared.label}>
+          <text x="179" y="294" textAnchor="middle" className={shared.label}>
             iteration n
           </text>
           <text x="37" y="274" className={shared.label}>

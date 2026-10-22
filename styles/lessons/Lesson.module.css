@@ -9,11 +9,11 @@
 }
 .frame .title {
   font:
-    600 1.25rem / 1.4 "Montserrat",
+    600 1.8rem / 1.4 "Montserrat",
     sans-serif;
 }
 .frame p {
-  font-size: 1.15rem;
+  font-size: 1.6rem;
   line-height: 1.6;
   margin: 1rem 0;
   overflow-wrap: anywhere;
@@ -37,7 +37,7 @@
   min-height: 44px;
   cursor: pointer;
   font:
-    1rem / 1.4 "Montserrat",
+    1.4rem / 1.4 "Montserrat",
     sans-serif;
 }
 .frame button:hover:not(:disabled),
@@ -83,7 +83,7 @@
   flex: 1;
   text-align: center;
   font:
-    1rem / 1.4 "Montserrat",
+    1.4rem / 1.4 "Montserrat",
     sans-serif;
 }
 .options {
@@ -95,7 +95,7 @@
 .parameter {
   display: grid;
   gap: 0.35rem;
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   margin: 1rem 0;
 }
 .parameter span {
@@ -115,7 +115,7 @@
 }
 .axis {
   fill: none;
-  stroke: #eee8ce55;
+  stroke: #eee8ce88;
   stroke-width: 1;
 }
 .line {
@@ -141,7 +141,7 @@
 .label {
   fill: var(--lesson-ink);
   font:
-    13px "Montserrat",
+    18px "Montserrat",
     sans-serif;
 }
 .reveal {

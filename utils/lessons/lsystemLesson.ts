@@ -87,6 +87,6 @@ export function instructionDescription(preset: LSystemPreset, instruction: Turtl
   if (instruction.action === "draw")
     return `${instruction.symbol}: draw one segment and move forward.`;
   if (instruction.action === "rewrite")
-    return `${instruction.symbol}: keep this rewrite symbol. It does not draw or turn the turtle.`;
+    return `${instruction.symbol}: skip this symbol while drawing. It expands during the next rewrite.`;
   return `${instruction.symbol}: turn ${instruction.action} by ${LESSON_SYSTEMS[preset].angle}°. Stay at the same point.`;
 }

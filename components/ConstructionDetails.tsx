@@ -282,7 +282,6 @@ function FernLesson() {
   const previous = step > 0 ? FERN_TRACE[step - 1].point : null;
   const changeStep = (next: number) => {
     setStep(next);
-    setSelectedRule(FERN_TRACE[next].rule ?? 1);
   };
   return (
     <figure className={`${base.demo} ${styles.lesson}`} data-detail-lesson="fern">
@@ -290,7 +289,7 @@ function FernLesson() {
         {title}
       </figcaption>
       <p className={base.lessonIntro}>
-        Choose a rule to see its copy in amber. Faint dots show the whole fern for reference.
+        Preview a rule’s copy in amber. The outlined point follows a separate, fixed replay.
       </p>
       <div className={styles.fernLayout}>
         <svg
@@ -313,7 +312,8 @@ function FernLesson() {
           <circle cx={position.x} cy={position.y} r="5" className={styles.fernPoint} />
         </svg>
         <div className={styles.fernControls}>
-          <fieldset className={styles.ruleChoices} aria-label="Fern transformation">
+          <fieldset className={styles.ruleChoices}>
+            <legend>Preview a transformation</legend>
             {FERN_RULES.map((rule, index) => (
               <button
                 key={rule.label}
@@ -326,16 +326,20 @@ function FernLesson() {
               </button>
             ))}
           </fieldset>
-          <p id={`${id}-copy`} className={base.lessonIntro}>
+          <p id={`${id}-copy`} className={base.lessonIntro} aria-live="polite" aria-atomic="true">
+            <strong>Preview: {FERN_RULES[selectedRule].label}.</strong>{" "}
             {FERN_RULES[selectedRule].description} Amber shows this rule applied to every point of
             the whole fern.
           </p>
-          <p id={`${id}-summary`} className={styles.summary} aria-live="polite" aria-atomic="true">
-            {previous && current.rule !== null
-              ? `Step ${step} uses ${FERN_RULES[current.rule].label.toLowerCase()}: ${coordinates(previous)} → ${coordinates(current.point)}.`
-              : "Start at (0.000, 0.000). The outlined dot marks the moving point."}
-          </p>
         </div>
+      </div>
+      <div className={styles.replay}>
+        <h3>Replay one point</h3>
+        <p id={`${id}-summary`} className={styles.summary} aria-live="polite" aria-atomic="true">
+          {previous && current.rule !== null
+            ? `Replay step ${step} uses ${FERN_RULES[current.rule].label.toLowerCase()}: ${coordinates(previous)} → ${coordinates(current.point)}.`
+            : "Start at (0.000, 0.000). The outlined dot marks the moving point."}
+        </p>
       </div>
       <Steps name={title} step={step} max={32} onChange={changeStep} />
       <p className={base.lessonIntro}>

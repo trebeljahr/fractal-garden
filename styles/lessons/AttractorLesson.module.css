@@ -1,3 +1,16 @@
+.history,
+.nearbyHistory {
+  fill: none;
+  stroke: var(--lesson-ink);
+  stroke-width: 1.5;
+  stroke-opacity: 0.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nearbyHistory {
+  stroke: var(--lesson-accent);
+  stroke-dasharray: 5 4;
+}
 .nearby {
   fill: none;
   stroke: var(--lesson-accent);
@@ -22,7 +35,7 @@
   gap: 0.75rem;
   min-height: 44px;
   margin-top: 1rem;
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   cursor: pointer;
 }
 .compare input {

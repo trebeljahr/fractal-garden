@@ -20,7 +20,7 @@
 .label {
   fill: var(--lesson-ink);
   font:
-    14px "Montserrat",
+    18px "Montserrat",
     sans-serif;
 }
 .legend {

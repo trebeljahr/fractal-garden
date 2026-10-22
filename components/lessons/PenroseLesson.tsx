@@ -3,6 +3,7 @@ import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/PenroseLesson.module.css";
 import {
   getPenroseLessonCut,
+  getPenroseLessonSecondCut,
   getPenroseLessonStages,
   type PenroseLessonParent,
 } from "../../utils/lessons/penroseLesson";
@@ -42,6 +43,8 @@ export default function PenroseLesson() {
       })
       .join(" ");
   const cut = project(getPenroseLessonCut(parent));
+  const secondCut = getPenroseLessonSecondCut(parent);
+  const q = secondCut && project(secondCut);
   const centroid = project([
     (parent.a[0] + parent.b[0] + parent.c[0]) / 3,
     (parent.a[1] + parent.b[1] + parent.c[1]) / 3,
@@ -54,6 +57,7 @@ export default function PenroseLesson() {
     };
   };
   const cutLabel = labelPosition(cut);
+  const qLabel = q && labelPosition(q);
   const summary =
     step === 0
       ? `Start with one ${kind === "acute" ? "acute half-kite" : "obtuse half-dart"}. Its boundary stays fixed as the pieces get smaller.`
@@ -98,6 +102,14 @@ export default function PenroseLesson() {
           })}
           {step > 0 && (
             <>
+              {q && qLabel && (
+                <>
+                  <circle cx={q.x} cy={q.y} r="4" className={common.point} />
+                  <text x={qLabel.x} y={qLabel.y} textAnchor="middle" className={styles.label}>
+                    Q
+                  </text>
+                </>
+              )}
               <circle cx={cut.x} cy={cut.y} r="4" className={common.point} />
               <text x={cutLabel.x} y={cutLabel.y} textAnchor="middle" className={styles.label}>
                 P
@@ -115,7 +127,12 @@ export default function PenroseLesson() {
             <span>Dashed line: original boundary</span>
           </p>
           {step > 0 && (
-            <p>P divides {kind === "acute" ? "AB" : "BC"} in the ratio φ : 1, about 1.618 : 1.</p>
+            <p>
+              {kind === "acute"
+                ? "First split: mark P on AB with AP : PB = φ : 1, and Q on CA with CQ : QA = φ : 1. Join C to P, then P to Q."
+                : "First split: mark P on BC with BP : PC = φ : 1, then join A to P."}{" "}
+              φ is about 1.618. {step > 1 && "The marked points still show the first split."}
+            </p>
           )}
         </div>
       </div>

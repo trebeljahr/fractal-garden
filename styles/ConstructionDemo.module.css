@@ -11,7 +11,7 @@
 
 .title {
   font:
-    600 1.1rem / 1.4 "Montserrat",
+    600 1.8rem / 1.4 "Montserrat",
     sans-serif;
 }
 .explanation {
@@ -27,7 +27,7 @@
   background: var(--diagram-bg);
 }
 .explanation p {
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   line-height: 1.6;
   margin: 0;
 }
@@ -51,7 +51,7 @@
   stroke-width: 3;
 }
 .guide {
-  stroke: #eee8ce55;
+  stroke: #eee8ce88;
   stroke-width: 1;
   stroke-dasharray: 5 5;
 }
@@ -68,7 +68,7 @@
   align-items: center;
   gap: 1rem;
   font:
-    500 0.9rem / 1.4 "Montserrat",
+    500 1.4rem / 1.4 "Montserrat",
     sans-serif;
 }
 .controls button {
@@ -111,7 +111,7 @@
   display: grid;
   gap: 0.3rem;
   margin-top: 1rem;
-  font-size: 1rem;
+  font-size: 1.6rem;
 }
 .angle span {
   display: flex;
@@ -124,7 +124,7 @@
   }
   .controls {
     gap: 0.6rem;
-    font-size: 0.75rem;
+    font-size: 1.4rem;
   }
   .controls button {
     padding: 0.65rem 0.5rem;
@@ -137,12 +137,12 @@
 }
 
 .lessonIntro {
-  font-size: 1rem;
+  font-size: 1.6rem;
   line-height: 1.6;
   margin: 0.8rem 0;
 }
 .orbitSummary p {
-  font-size: 1rem;
+  font-size: 1.6rem;
   margin: 0 0 0.8rem;
   overflow-wrap: anywhere;
 }
@@ -152,7 +152,7 @@
 .axisLabel {
   fill: #eee8ce99;
   font:
-    13px "Montserrat",
+    18px "Montserrat",
     sans-serif;
 }
 .orbitPoint {
@@ -174,7 +174,7 @@
 }
 .parameters legend {
   font:
-    600 1rem / 1.4 "Montserrat",
+    600 1.6rem / 1.4 "Montserrat",
     sans-serif;
 }
 .newLine,
