@@ -65,7 +65,7 @@ const Home: NextPage = () => {
         <h2 className={styles.subtitle}>An Exhibition Of Mathematical Beauty</h2>
         {process.env.NODE_ENV === "development" && (
           <Link href="/garden" className={styles.gardenLink}>
-            Enter the experimental garden ↗ <span>Development only</span>
+            Enter the experimental garden <span>Development only</span>
           </Link>
         )}
         <div className={styles.grid}>

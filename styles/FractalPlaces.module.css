@@ -37,11 +37,6 @@
   cursor: pointer;
   transition: color 150ms;
 }
-.places button > span {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
 .places small {
   font-size: 12px;
   line-height: 1.45;

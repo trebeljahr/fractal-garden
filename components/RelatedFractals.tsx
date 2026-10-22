@@ -22,10 +22,7 @@ export function RelatedFractals() {
                   <Image src={entry.imagePath} alt="" width={112} height={84} objectFit="cover" />
                 </span>
                 <span className={styles.copy}>
-                  <span className={styles.name}>
-                    {entry.title}
-                    <span aria-hidden="true"> ↗</span>
-                  </span>
+                  <span className={styles.name}>{entry.title}</span>
                   <span className={styles.reason}>{reason}</span>
                 </span>
               </a>

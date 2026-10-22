@@ -28,10 +28,7 @@ export function FractalPlaces<T extends { label: string; detail?: string }>({
                 event.currentTarget.closest("details")?.removeAttribute("open");
               }}
             >
-              <span>
-                {view.label}
-                <span aria-hidden="true"> ↗</span>
-              </span>
+              <span>{view.label}</span>
               {view.detail && <small>{view.detail}</small>}
             </button>
           </li>

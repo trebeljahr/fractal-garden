@@ -35,9 +35,6 @@
   gap: 0.35rem;
 }
 .name {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
   font:
     1.05rem "Montserrat",
     sans-serif;

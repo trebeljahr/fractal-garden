@@ -389,7 +389,7 @@ export default function GardenExplorer() {
           Experimental <span>· development only</span>
         </span>
         <button type="button" onClick={saveImage} className={styles.save}>
-          Save image <span aria-hidden="true">↗</span>
+          Save image
         </button>
       </header>
       <div className={styles.workspace}>
@@ -743,16 +743,16 @@ export default function GardenExplorer() {
               golden-angle phyllotaxis. These are plant studies, not botanical simulations.
             </p>
             <a href="https://algorithmicbotany.org/papers/#abop" target="_blank" rel="noreferrer">
-              The Algorithmic Beauty of Plants ↗
+              The Algorithmic Beauty of Plants
             </a>
             <a
               href="https://tympanus.net/codrops/2025/01/27/fractals-to-forests-creating-realistic-3d-trees-with-three-js/"
               target="_blank"
               rel="noreferrer"
             >
-              Fractals to Forests, Codrops ↗
+              Fractals to Forests, Codrops
             </a>
-            <Link href="/l-system/explorer">Explore the L-system rules ↗</Link>
+            <Link href="/l-system/explorer">Explore the L-system rules</Link>
           </details>
         </aside>
       </div>
