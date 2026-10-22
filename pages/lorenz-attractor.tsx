@@ -67,6 +67,7 @@ const LorenzAttractor = ({ description }: Props) => {
 
   useOrbitZoomControls({
     canvas,
+    cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 0.3,
     maxDistance: 10,

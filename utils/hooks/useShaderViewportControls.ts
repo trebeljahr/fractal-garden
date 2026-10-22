@@ -1,6 +1,7 @@
 import { type MutableRefObject, useEffect } from "react";
 import { constrain } from "../ctxHelpers";
 import { readViewport } from "../explorerShare";
+import { shouldZoomWheel } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
 type Viewport = {
@@ -202,6 +203,7 @@ export function useShaderViewportControls({
     };
 
     const handleWheel = (event: WheelEvent) => {
+      if (!shouldZoomWheel(event, canvas, viewportRef.current.zoomSize >= getMaxZoomSize())) return;
       event.preventDefault();
 
       const currentViewport = viewportRef.current;

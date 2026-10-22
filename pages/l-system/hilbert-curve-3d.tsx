@@ -63,6 +63,7 @@ const HilbertCurve3D = ({ description }: Props) => {
 
   useOrbitZoomControls({
     canvas,
+    cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 2,
     maxDistance: 10,

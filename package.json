@@ -12,6 +12,7 @@
     "og:images": "node scripts/generate-og-images.mjs",
     "validate:presets": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs",
     "test:garden": "node scripts/test-garden.mjs",
+    "test:wheel": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/test-wheel-controls.mjs",
     "build": "next build",
     "export": "pnpm build",
     "start": "next start -p 1111",

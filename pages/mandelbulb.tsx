@@ -13,6 +13,7 @@ import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
+import { shouldZoomWheel } from "../utils/shouldZoomWheel";
 
 type Props = {
   description: string;
@@ -265,6 +266,7 @@ const Mandelbulb = ({ description }: Props) => {
     };
 
     const handleWheel = (event: WheelEvent) => {
+      if (!shouldZoomWheel(event, cnv, configRef.current.cameraDistance >= MAX_DISTANCE)) return;
       event.preventDefault();
       setConfig((old) => ({
         ...old,

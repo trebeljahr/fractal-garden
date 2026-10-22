@@ -1,6 +1,7 @@
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { constrain } from "../ctxHelpers";
 import { dragRotation, IDENTITY, type Orientation } from "../orientation";
+import { shouldZoomWheel } from "../shouldZoomWheel";
 
 type OrbitZoomConfig = {
   cameraDistance: number;
@@ -11,6 +12,7 @@ type OrbitZoomConfig = {
 
 type Params<T extends OrbitZoomConfig> = {
   canvas: HTMLCanvasElement | null;
+  cameraDistance: number;
   setConfig: Dispatch<SetStateAction<T>>;
   minDistance: number;
   maxDistance: number;
@@ -25,10 +27,14 @@ const RADIANS_PER_SHORT_SIDE = Math.PI;
  */
 export function useOrbitZoomControls<T extends OrbitZoomConfig>({
   canvas,
+  cameraDistance,
   setConfig,
   minDistance,
   maxDistance,
 }: Params<T>) {
+  const distanceRef = useRef(cameraDistance);
+  distanceRef.current = cameraDistance;
+
   useEffect(() => {
     if (!canvas) return;
 
@@ -65,6 +71,7 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
     };
 
     const handleWheel = (event: WheelEvent) => {
+      if (!shouldZoomWheel(event, canvas, distanceRef.current >= maxDistance)) return;
       event.preventDefault();
 
       setConfig((old) => ({

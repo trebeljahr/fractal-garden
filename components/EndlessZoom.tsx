@@ -8,6 +8,7 @@ import { createRenderer, type Renderer } from "../utils/lsystem/render";
 import type { LSystemSpec } from "../utils/lsystem/spec";
 import type { ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail } from "../utils/lsystem/zoom";
+import { shouldZoomWheel } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 
 type Props = {
@@ -37,6 +38,7 @@ type View = {
 };
 
 const ZERO = BigInt(0);
+const MIN_ZOOM = 0.05;
 
 // 1234 -> "1,234×", 3.4e47 -> "3.4 × 10⁴⁷".
 function formatZoom(zoom: number) {
@@ -332,7 +334,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     const stage = stageRef.current;
     if (!stage || !width || !height || unsupported) return;
     const view = takeOver();
-    const zoom = Math.min(Math.max(view.zoom * factor, 0.05), MAX_ZOOM);
+    const zoom = Math.min(Math.max(view.zoom * factor, MIN_ZOOM), MAX_ZOOM);
     const k = zoom / view.zoom;
     const rect = stage.getBoundingClientRect();
     const cx = clientX - rect.left - width / 2;
@@ -349,6 +351,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     const stage = stageRef.current;
     if (!stage) return;
     const onWheel = (event: WheelEvent) => {
+      if (!shouldZoomWheel(event, stage, (viewRef.current?.zoom ?? 1) <= MIN_ZOOM)) return;
       event.preventDefault();
       const unit =
         event.deltaMode === WheelEvent.DOM_DELTA_LINE

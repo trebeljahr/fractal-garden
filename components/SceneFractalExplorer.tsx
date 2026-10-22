@@ -149,6 +149,7 @@ export function SceneFractalExplorer<V extends string>({
 
   useOrbitZoomControls({
     canvas,
+    cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 3,
     maxDistance: 10,

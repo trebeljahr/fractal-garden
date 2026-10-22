@@ -25,6 +25,7 @@ import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../ut
 import type { WorkerRequest, WorkerResult, ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom";
 import { scrollToDescription } from "../utils/scrollToDescription";
+import { shouldZoomWheel } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
 
@@ -647,6 +648,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
     if (!stage) return;
     // Registered natively because React's wheel listener is passive.
     const onWheel = (event: WheelEvent) => {
+      if (!shouldZoomWheel(event, stage, cameraRef.current.zoom <= clampZoom(0))) return;
       event.preventDefault();
       // Some mice report lines or pages instead of pixels.
       const unit =
