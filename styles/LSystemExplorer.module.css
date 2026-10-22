@@ -46,11 +46,11 @@
 
 @media screen and (max-width: 640px) {
   .panel {
-    top: auto;
-    bottom: 124px;
+    top: 62px;
+    bottom: auto;
     left: 10px;
     width: calc(100vw - 20px);
-    max-height: 58vh;
+    max-height: min(58svh, calc(100svh - 250px));
   }
 }
 
