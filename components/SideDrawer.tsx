@@ -1,4 +1,5 @@
 import styles from "../styles/SideDrawer.module.css";
+import { scrollToDescription } from "../utils/scrollToDescription";
 import { RenderMarkdown } from "./Markdown";
 import { RelatedFractals } from "./RelatedFractals";
 
@@ -8,11 +9,22 @@ interface Props {
 
 export const SideDrawer = ({ description }: Props) => {
   return (
-    <div className={styles.openedDrawer} id="fractal-description" data-fractal-description={true}>
-      <div className={styles.drawerContent}>
-        <RenderMarkdown content={description} />
-        <RelatedFractals />
+    <section className={styles.descriptionSection} aria-label="About this fractal">
+      <button className={styles.learnMore} type="button" onClick={scrollToDescription}>
+        <span>Learn more about this fractal</span>
+        <span className={styles.caret} aria-hidden="true" />
+      </button>
+      <div
+        tabIndex={-1}
+        className={styles.openedDrawer}
+        id="fractal-description"
+        data-fractal-description={true}
+      >
+        <div className={styles.drawerContent}>
+          <RenderMarkdown content={description} />
+          <RelatedFractals />
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

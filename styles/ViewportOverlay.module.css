@@ -6,15 +6,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  max-width: min(352px, calc(100vw - 36px));
+  width: min(320px, calc(100vw - 36px));
+  font-family: Arial, Helvetica, sans-serif;
   padding: 1.15rem 1.2rem;
-  border: 1px solid rgba(245, 241, 209, 0.14);
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at top right, rgba(245, 204, 117, 0.16), transparent 36%),
-    linear-gradient(180deg, rgba(11, 20, 25, 0.88), rgba(7, 12, 15, 0.9));
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+  border: 0;
+  border-radius: 3px;
+  background: #202020;
+  box-shadow: none;
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
@@ -27,11 +25,11 @@
 }
 
 .title {
-  font-size: 1.35rem;
-  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.15;
-  letter-spacing: 0.02em;
-  color: var(--yellow-white);
+  font-weight: 600;
+  color: #e6e6e6;
 }
 
 .copy {
@@ -39,9 +37,9 @@
   flex-direction: column;
   gap: 0.55rem;
   max-width: 31ch;
-  font-size: 1.08rem;
+  font-size: 14px;
   line-height: 1.5;
-  color: rgba(245, 241, 209, 0.9);
+  color: rgba(230, 230, 230, 0.9);
 }
 
 .actions {
@@ -51,13 +49,13 @@
 }
 
 .button {
-  border: 1px solid rgba(245, 241, 209, 0.16);
-  border-radius: 999px;
+  border: 1px solid rgba(230, 230, 230, 0.16);
+  border-radius: 3px;
   padding: 0.72rem 1.05rem;
-  background: rgba(245, 241, 209, 0.08);
-  color: var(--yellow-white);
+  background: rgba(230, 230, 230, 0.08);
+  color: #e6e6e6;
   font-size: 1rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -66,9 +64,8 @@
 }
 
 .button:hover {
-  background: rgba(245, 241, 209, 0.14);
-  border-color: rgba(245, 241, 209, 0.3);
-  transform: translateY(-1px);
+  background: rgba(230, 230, 230, 0.14);
+  border-color: rgba(230, 230, 230, 0.3);
 }
 
 @media screen and (max-width: 700px) {
@@ -82,10 +79,10 @@
 
   .copy {
     max-width: none;
-    font-size: 1rem;
+    font-size: 14px;
   }
 
   .title {
-    font-size: 1.18rem;
+    font-size: 18px;
   }
 }

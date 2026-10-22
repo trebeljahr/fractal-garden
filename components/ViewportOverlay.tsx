@@ -1,6 +1,5 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import styles from "../styles/ViewportOverlay.module.css";
-import { scrollToDescription } from "../utils/scrollToDescription";
 import { ExplorerTools } from "./ExplorerTools";
 
 type Action = {
@@ -34,21 +33,6 @@ export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) =
     };
   }, []);
 
-  const overlayActions = useMemo(() => {
-    const combined = [
-      ...actions,
-      {
-        label: "About this fractal",
-        onClick: scrollToDescription,
-      },
-    ];
-
-    return combined.filter(
-      (action, index) =>
-        combined.findIndex((candidate) => candidate.label === action.label) === index,
-    );
-  }, [actions]);
-
   return (
     <div className={`${styles.overlay} ${visible ? "" : styles.hidden}`.trim()}>
       <div className={styles.title}>{title || pageTitle || "Fractal"}</div>
@@ -57,18 +41,20 @@ export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) =
           <p key={line}>{line}</p>
         ))}
       </div>
-      <div className={styles.actions}>
-        {overlayActions.map((action) => (
-          <button
-            className={styles.button}
-            key={action.label}
-            onClick={action.onClick}
-            type="button"
-          >
-            {action.label}
-          </button>
-        ))}
-      </div>
+      {actions.length > 0 && (
+        <div className={styles.actions}>
+          {actions.map((action) => (
+            <button
+              className={styles.button}
+              key={action.label}
+              onClick={action.onClick}
+              type="button"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
       {places}
       <ExplorerTools data={{}} rules={[]} onRestore={() => {}} />
     </div>

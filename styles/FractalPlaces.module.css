@@ -1,17 +1,17 @@
 .places {
-  border-top: 1px solid rgba(245, 241, 209, 0.12);
+  border-top: 1px solid rgba(230, 230, 230, 0.12);
   padding-top: 0.25rem;
-  color: var(--yellow-white);
-  font-family: "Montserrat", sans-serif;
+  color: #e6e6e6;
+  font-family: Arial, Helvetica, sans-serif;
 }
 .places summary {
   padding: 0.75rem 0;
   min-height: 44px;
   cursor: pointer;
-  font-size: 0.94rem;
+  font-size: 13px;
 }
 .places summary::marker {
-  color: #f5cc75;
+  color: #ffffff;
 }
 .places ul {
   list-style: none;
@@ -19,7 +19,7 @@
   padding: 0;
 }
 .places li + li {
-  border-top: 1px solid rgba(245, 241, 209, 0.08);
+  border-top: 1px solid rgba(230, 230, 230, 0.08);
 }
 .places button {
   display: flex;
@@ -32,7 +32,7 @@
   background: none;
   color: inherit;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 13px;
   text-align: left;
   cursor: pointer;
   transition: color 150ms;
@@ -43,16 +43,16 @@
   gap: 1rem;
 }
 .places small {
-  font-size: 0.78rem;
+  font-size: 12px;
   line-height: 1.45;
-  color: rgba(245, 241, 209, 0.65);
+  color: rgba(230, 230, 230, 0.65);
 }
 .places button:hover {
-  color: #f5cc75;
+  color: #ffffff;
 }
 .places button:focus-visible,
 .places summary:focus-visible {
-  outline: 2px solid #f5cc75;
+  outline: 2px solid #ffffff;
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {

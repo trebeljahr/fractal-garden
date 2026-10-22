@@ -119,7 +119,7 @@ type ColorResult = {
   hex: string;
 };
 
-const LIGHT_SWATCH_TEXT = "rgba(245, 241, 209, 0.96)";
+const LIGHT_SWATCH_TEXT = "#ededed";
 const DARK_SWATCH_TEXT = "rgba(19, 26, 31, 0.88)";
 
 const CHROME_PICKER_STYLES = {
@@ -574,7 +574,7 @@ export const PanelNumber = ({
               onChange={(event) => updateValue(Number(event.target.value))}
               step={numericStep}
               style={{
-                background: `linear-gradient(90deg, rgba(245, 204, 117, 0.86) 0%, rgba(245, 170, 111, 0.88) ${sliderPercent}%, rgba(4, 8, 10, 0.66) ${sliderPercent}%, rgba(4, 8, 10, 0.66) 100%)`,
+                background: `linear-gradient(90deg, #bcbcbc 0%, #bcbcbc ${sliderPercent}%, #292929 ${sliderPercent}%, #292929 100%)`,
               }}
               type="range"
               value={value}

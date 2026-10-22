@@ -71,3 +71,72 @@
 .drawerContent a {
   color: var(--bright-grey);
 }
+
+.descriptionSection {
+  position: relative;
+}
+
+.learnMore {
+  position: absolute;
+  bottom: calc(100% + 18px);
+  left: 50%;
+  z-index: 27;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  width: max-content;
+  max-width: calc(100% - 28px);
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #202020;
+  color: #dedede;
+  font:
+    13px / 1.4 Arial,
+    Helvetica,
+    sans-serif;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.caret {
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 150ms ease;
+}
+
+.learnMore:hover {
+  color: #fff;
+}
+
+.learnMore:hover .caret {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.learnMore:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.openedDrawer:focus {
+  outline: none;
+}
+
+@media (max-width: 700px) {
+  .learnMore {
+    bottom: calc(100% + 80px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    transition: none;
+  }
+}

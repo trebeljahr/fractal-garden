@@ -1,8 +1,7 @@
-import { Children, isValidElement, type ReactNode, useEffect, useMemo, useState } from "react";
+import { Children, isValidElement, type ReactNode, useEffect, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
 import { type ControlRule, isRecord } from "../utils/explorerShare";
-import { scrollToDescription } from "../utils/scrollToDescription";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
 
@@ -126,21 +125,6 @@ export function ExplorerPanel<T>({
     setPageTitle(document.title);
   }, []);
 
-  const panelActions = useMemo(() => {
-    const combined = [
-      ...actions,
-      {
-        label: "About this fractal",
-        onClick: scrollToDescription,
-      },
-    ];
-
-    return combined.filter(
-      (action, index) =>
-        combined.findIndex((candidate) => candidate.label === action.label) === index,
-    );
-  }, [actions]);
-
   const displayTitle = introTitle || pageTitle || defaults.introTitle;
   const folderTitle = (
     <div className={styles.folderTitle}>
@@ -150,17 +134,17 @@ export function ExplorerPanel<T>({
   ) as unknown as string;
 
   return (
-    <aside className={styles.panel}>
-      <div className={styles.introCard}>
+    <div className={styles.panel}>
+      <aside className={styles.introCard} aria-label="Fractal overview">
         <div className={styles.title}>{displayTitle}</div>
         <div className={styles.copy}>
           {(lines ?? defaults.lines).map((line) => (
             <p key={line}>{line}</p>
           ))}
         </div>
-        {panelActions.length ? (
+        {actions.length ? (
           <div className={styles.actions}>
-            {panelActions.map((action) => (
+            {actions.map((action) => (
               <button
                 className={styles.action}
                 key={action.label}
@@ -183,14 +167,16 @@ export function ExplorerPanel<T>({
           ]}
           onRestore={onRestore}
         />
-      </div>
+      </aside>
 
-      <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
-        <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
-          {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-          {Children.toArray(children)}
-        </DatFolder>
-      </DatGui>
-    </aside>
+      <aside className={styles.studio} aria-label={controlsTitle ?? defaults.controlsTitle}>
+        <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
+          <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
+            {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+            {Children.toArray(children)}
+          </DatFolder>
+        </DatGui>
+      </aside>
+    </div>
   );
 }
