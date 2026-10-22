@@ -64,7 +64,6 @@ const JuliaSet = ({ description }: Props) => {
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
       views={JULIA_PLACES}
-      controlsHint="Shape and color"
       shareRules={[
         { path: "cReal", kind: "number", min: -1, max: 1 },
         { path: "cImag", kind: "number", min: -1, max: 1 },

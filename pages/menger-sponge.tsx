@@ -18,7 +18,6 @@ const MengerSponge = ({ description }: Props) => (
     description={description}
     storageKey="menger-sponge"
     title="Menger Sponge"
-    controlsHint="Growth and view"
     hint="Drag to rotate. Scroll to zoom."
     variants={VARIANTS}
     initialVariant="default"

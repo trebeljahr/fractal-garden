@@ -225,12 +225,7 @@ const BarnsleyFern = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel
-          controlsHint="Fern style and color"
-          data={config}
-          mode="pattern"
-          onUpdate={handleUpdate}
-        >
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelSelect
             path="fernToUse"
             label="Fern style"

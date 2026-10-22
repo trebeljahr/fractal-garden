@@ -83,7 +83,6 @@ const LorenzAttractor = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        controlsHint="Parameters and motion"
         data={config}
         introTitle="Lorenz Attractor"
         lines={["Drag to rotate. Scroll to zoom."]}

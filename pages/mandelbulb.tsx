@@ -318,7 +318,6 @@ const Mandelbulb = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
-          controlsHint="Shape and shading"
           data={config}
           introTitle="Mandelbulb"
           lines={["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}

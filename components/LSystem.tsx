@@ -203,7 +203,6 @@ const LSystem = ({ ruleset }: Props) => {
             onClick: () => openInExplorer(config.ruleset, config.ruleset.maxIterations),
           },
         ]}
-        controlsHint="Color and growth"
         data={config}
         mode="pattern"
         onUpdate={handleUpdate}

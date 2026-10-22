@@ -102,8 +102,6 @@
 
 .folderTitle {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
   padding-right: 24px;
 }
 
@@ -114,14 +112,6 @@
   line-height: 1.3;
   font-weight: 500;
   letter-spacing: 0.025em;
-}
-
-.folderHint {
-  max-width: 28ch;
-  font-size: 12px;
-  line-height: 1.45;
-  color: #b8c2cb;
-  font-weight: 400;
 }
 
 .panel :global(.react-dat-gui.exploration-gui) {

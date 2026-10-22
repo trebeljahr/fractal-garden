@@ -20,7 +20,6 @@ const JerusalemCube = ({ description }: Props) => (
     // slower renderer would otherwise keep capping the growth.
     storageKey="jerusalem-cube-surface"
     title="Jerusalem Cube"
-    controlsHint="Growth and view"
     hint="Drag to rotate. Scroll to zoom."
     variants={VARIANTS}
     initialVariant="default"

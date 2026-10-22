@@ -27,7 +27,6 @@ const MoselySnowflake = ({ description }: Props) => (
     description={description}
     storageKey="mosely-snowflake"
     title="Mosely Snowflake"
-    controlsHint="Shape and growth"
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Snowflake type"
     variants={VARIANTS}

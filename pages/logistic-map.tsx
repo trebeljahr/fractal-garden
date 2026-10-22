@@ -271,7 +271,6 @@ const LogisticMap = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
-          controlsHint="View and detail"
           data={config}
           introTitle="Logistic Map"
           lines={[

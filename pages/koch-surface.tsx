@@ -28,7 +28,6 @@ const KochSurface = ({ description }: Props) => (
     description={description}
     storageKey="koch-surface"
     title="Koch Surface"
-    controlsHint="Shape and growth"
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Start shape"
     variants={VARIANTS}

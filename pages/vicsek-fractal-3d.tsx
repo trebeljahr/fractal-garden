@@ -22,7 +22,6 @@ const VicsekFractal3D = ({ description }: Props) => (
     description={description}
     storageKey="vicsek-fractal-3d"
     title="3D Vicsek Fractal"
-    controlsHint="Growth and view"
     hint="Drag to rotate. Scroll to zoom."
     variants={VARIANTS}
     initialVariant="default"

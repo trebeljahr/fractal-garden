@@ -29,7 +29,6 @@ const SierpinskiTetrahedron = ({ description }: Props) => (
     description={description}
     storageKey="sierpinski-tetrahedron"
     title="Sierpinski Tetrahedron"
-    controlsHint="Shape and growth"
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Base solid"
     variants={VARIANTS}

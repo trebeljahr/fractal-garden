@@ -22,7 +22,6 @@ const QuadraticKoch3D = ({ description }: Props) => (
     description={description}
     storageKey="quadratic-koch-3d"
     title="Quadratic Koch Surface"
-    controlsHint="Growth and view"
     hint="Drag to rotate. Scroll to zoom."
     variants={VARIANTS}
     initialVariant="default"

@@ -152,12 +152,7 @@ const FractalTree = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel
-          controlsHint="Branches and growth"
-          data={config}
-          mode="pattern"
-          onUpdate={handleUpdate}
-        >
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
           <PanelSelect
             path="option"

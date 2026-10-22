@@ -38,12 +38,7 @@ const Buddhabrot = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel
-          controlsHint="Sampling and color"
-          data={config}
-          mode="pattern"
-          onUpdate={handleUpdate}
-        >
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
           <PanelColor path="color" />
           <PanelNumber path="maxIterations" min={40} max={400} step={10} />

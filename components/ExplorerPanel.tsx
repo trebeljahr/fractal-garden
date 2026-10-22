@@ -15,7 +15,6 @@ type PanelMode = "formula" | "pattern" | "scene";
 type Props<T> = {
   actions?: Action[];
   children: ReactNode;
-  controlsHint?: string;
   data: T;
   defaultOpen?: boolean;
   introTitle?: string;
@@ -67,12 +66,11 @@ function controlRules(children: ReactNode, data: unknown): ControlRule[] {
   return rules;
 }
 
-const STUDIO_TITLE = "Fractal Studio Controls";
+const CONTROLS_TITLE = "Controls";
 
 const PANEL_COPY: Record<
   PanelMode,
   {
-    controlsHint: string;
     introTitle: string;
     lines: string[];
   }
@@ -80,24 +78,20 @@ const PANEL_COPY: Record<
   formula: {
     introTitle: "Explore The Set",
     lines: [],
-    controlsHint: "Presets and color",
   },
   pattern: {
     introTitle: "Explore The Pattern",
     lines: [],
-    controlsHint: "Shape, color and growth",
   },
   scene: {
     introTitle: "Explore The Scene",
     lines: ["Drag to rotate. Scroll to zoom."],
-    controlsHint: "Shape and view",
   },
 };
 
 export function ExplorerPanel<T>({
   actions = [],
   children,
-  controlsHint,
   data,
   defaultOpen = false,
   introTitle,
@@ -119,8 +113,7 @@ export function ExplorerPanel<T>({
   const displayTitle = introTitle || pageTitle || defaults.introTitle;
   const folderTitle = (
     <div className={styles.folderTitle}>
-      <span className={styles.folderHeading}>{STUDIO_TITLE}</span>
-      <span className={styles.folderHint}>{controlsHint ?? defaults.controlsHint}</span>
+      <span className={styles.folderHeading}>{CONTROLS_TITLE}</span>
     </div>
   ) as unknown as string;
 
@@ -165,7 +158,7 @@ export function ExplorerPanel<T>({
 
       <div className={styles.studioGroup}>
         <div ref={setViewControlsHost} className={styles.viewControlsHost} />
-        <aside className={styles.studio} aria-label={STUDIO_TITLE}>
+        <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
           <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
             <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
               {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}

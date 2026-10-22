@@ -48,7 +48,6 @@ type Props<T extends EscapeTimeColoring> = {
   c?: [number, number];
   views?: EscapeTimePlace[];
   lines: string[];
-  controlsHint?: string;
   children?: ReactNode;
   shareRules?: ControlRule[];
 };
@@ -72,7 +71,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   c = [0, 0],
   views = [],
   lines,
-  controlsHint = "Color and detail",
   children,
   shareRules,
 }: Props<T>) {
@@ -196,7 +194,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           )
         }
         shareRules={shareRules}
-        controlsHint={controlsHint}
         data={config}
         introTitle={title}
         lines={lines}

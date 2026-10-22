@@ -79,7 +79,6 @@ const HilbertCurve3D = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        controlsHint="Depth and view"
         data={config}
         introTitle="3D Hilbert Curve"
         lines={["Drag to rotate. Scroll to zoom."]}

@@ -75,7 +75,6 @@ const RosslerAttractor = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        controlsHint="Parameters and motion"
         data={config}
         introTitle="Rössler Attractor"
         lines={["Drag to rotate. Scroll to zoom."]}

@@ -42,7 +42,6 @@ const PolyhedronFlake = ({ description }: Props) => (
     description={description}
     storageKey="polyhedron-flake"
     title="Polyhedron Flake"
-    controlsHint="Shape and growth"
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Solid"
     variants={VARIANTS}
