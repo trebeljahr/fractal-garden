@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { constrain } from "../ctxHelpers";
 import { dragRotation, IDENTITY, type Orientation } from "../orientation";
-import { shouldZoomWheel } from "../shouldZoomWheel";
+import { createZoomWheelGuard } from "../shouldZoomWheel";
 
 type OrbitZoomConfig = {
   cameraDistance: number;
@@ -70,8 +70,9 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
       canvas.style.cursor = "grab";
     };
 
+    const wheelGuard = createZoomWheelGuard(canvas);
     const handleWheel = (event: WheelEvent) => {
-      if (!shouldZoomWheel(event, canvas, distanceRef.current >= maxDistance)) return;
+      if (!wheelGuard.shouldZoom(event, distanceRef.current >= maxDistance)) return;
       event.preventDefault();
 
       setConfig((old) => ({
@@ -96,6 +97,7 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseleave", handleMouseUp);
       canvas.removeEventListener("wheel", handleWheel);
+      wheelGuard.dispose();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("blur", handleMouseUp);

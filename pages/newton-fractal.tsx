@@ -19,7 +19,7 @@ type Props = {
 const INITIAL_CENTER: [number, number] = [0, 0];
 const INITIAL_ZOOM_SIZE = 2.2;
 const MIN_ZOOM_SIZE = 0.00005;
-const MAX_ZOOM_SIZE = 4;
+const MAX_ZOOM_SIZE = INITIAL_ZOOM_SIZE;
 
 const NewtonFractal = ({ description }: Props) => {
   const { width, height } = useWindowSize();

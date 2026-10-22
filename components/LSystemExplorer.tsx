@@ -25,7 +25,7 @@ import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../ut
 import type { WorkerRequest, WorkerResult, ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom";
 import { scrollToDescription } from "../utils/scrollToDescription";
-import { shouldZoomWheel } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
 
@@ -124,7 +124,7 @@ function download(filename: string, href: string) {
 const PLAIN_ZOOM_LIMIT = 500;
 
 function clampZoom(zoom: number, limit = PLAIN_ZOOM_LIMIT) {
-  return Math.min(Math.max(zoom, 0.05), limit);
+  return Math.min(Math.max(zoom, 1), limit);
 }
 
 // 1234 -> "1,234×", 3.4e47 -> "3.4 × 10⁴⁷".
@@ -647,8 +647,9 @@ export const LSystemExplorer = ({ presets }: Props) => {
     const stage = stageRef.current;
     if (!stage) return;
     // Registered natively because React's wheel listener is passive.
+    const wheelGuard = createZoomWheelGuard(stage);
     const onWheel = (event: WheelEvent) => {
-      if (!shouldZoomWheel(event, stage, cameraRef.current.zoom <= clampZoom(0))) return;
+      if (!wheelGuard.shouldZoom(event, cameraRef.current.zoom <= clampZoom(0))) return;
       event.preventDefault();
       // Some mice report lines or pages instead of pixels.
       const unit =
@@ -679,6 +680,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
     stage.addEventListener("gesturechange", onGestureChange);
     return () => {
       stage.removeEventListener("wheel", onWheel);
+      wheelGuard.dispose();
       stage.removeEventListener("gesturestart", onGestureStart);
       stage.removeEventListener("gesturechange", onGestureChange);
     };

@@ -1,7 +1,7 @@
 import { type MutableRefObject, useEffect } from "react";
 import { constrain } from "../ctxHelpers";
 import { readViewport } from "../explorerShare";
-import { shouldZoomWheel } from "../shouldZoomWheel";
+import { createZoomWheelGuard } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
 type Viewport = {
@@ -202,8 +202,9 @@ export function useShaderViewportControls({
       endPointer(event.pointerId);
     };
 
+    const wheelGuard = createZoomWheelGuard(canvas);
     const handleWheel = (event: WheelEvent) => {
-      if (!shouldZoomWheel(event, canvas, viewportRef.current.zoomSize >= getMaxZoomSize())) return;
+      if (!wheelGuard.shouldZoom(event, viewportRef.current.zoomSize >= getMaxZoomSize())) return;
       event.preventDefault();
 
       const currentViewport = viewportRef.current;
@@ -233,6 +234,7 @@ export function useShaderViewportControls({
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
       canvas.removeEventListener("wheel", handleWheel);
+      wheelGuard.dispose();
       canvas.style.touchAction = "";
     };
   }, [canvas, flipY, maxZoomSize, minZoomSize, onViewportChange, viewportRef]);

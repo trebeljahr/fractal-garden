@@ -70,7 +70,7 @@ const LorenzAttractor = ({ description }: Props) => {
     cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 0.3,
-    maxDistance: 10,
+    maxDistance: INITIAL_CONFIG.cameraDistance,
   });
 
   const handleUpdate = (newData: Config) => {
@@ -103,7 +103,12 @@ const LorenzAttractor = ({ description }: Props) => {
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-85} max={85} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-        <PanelNumber path="cameraDistance" min={0.3} max={10} step={0.05} />
+        <PanelNumber
+          path="cameraDistance"
+          min={0.3}
+          max={INITIAL_CONFIG.cameraDistance}
+          step={0.05}
+        />
         <PanelColor path="background" />
         <PanelColor path="nearColor" label="Near color" />
         <PanelColor path="farColor" label="Far color" />

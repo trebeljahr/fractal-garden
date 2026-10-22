@@ -75,7 +75,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   initialCenter,
   initialZoomSize,
   minZoomSize = 0.00005,
-  maxZoomSize = 4,
+  maxZoomSize = initialZoomSize,
   flipY = false,
   c = [0, 0],
   views = [],

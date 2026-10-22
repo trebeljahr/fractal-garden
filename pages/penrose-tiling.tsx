@@ -7,14 +7,9 @@ import styles from "../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import {
-  MAX_ITERATIONS,
-  type PenroseStart,
-  type PenroseVariant,
-  PHI,
-} from "../utils/penroseTiling";
+import { MAX_ITERATIONS, type PenroseStart, type PenroseVariant } from "../utils/penroseTiling";
 import { getDescription } from "../utils/readFiles";
-import { getMinTilePx, type PenroseParams } from "../utils/render/penrose";
+import type { PenroseParams } from "../utils/render/penrose";
 
 type Props = {
   description: string;
@@ -46,11 +41,6 @@ type Viewport = {
 const PADDING = 0.06;
 const INITIAL_ZOOM_SIZE = 1 / (1 - 2 * PADDING);
 const MIN_ZOOM_SIZE = 0.005;
-
-// Tiles after n iterations have edges PHI^-n long.
-function getMaxZoomSize(width: number, height: number, iterations: number) {
-  return Math.min(width, height) / (2 * getMinTilePx(width, height) * PHI ** iterations);
-}
 
 function toParams(config: Config, { center, zoomSize }: Viewport): PenroseParams {
   return {
@@ -108,8 +98,6 @@ const PenroseTiling = ({ description }: Props) => {
     center: [0, 0],
     zoomSize: INITIAL_ZOOM_SIZE,
   });
-  const limitRef = useRef({ width, height, iterations: config.iterations });
-  limitRef.current = { width, height, iterations: config.iterations };
   const configRef = useRef(config);
   configRef.current = config;
   const frameRef = useRef(0);
@@ -142,24 +130,11 @@ const PenroseTiling = ({ description }: Props) => {
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
-  // Zooming out never swaps in coarser supertiles: the tiling is self-similar
-  // around its center, so that looked like the view jumping back. Stop zooming
-  // out instead. If iterations grew while zoomed out, hold the current zoom.
-  const maxZoomSize = useCallback(() => {
-    const { width, height, iterations } = limitRef.current;
-    if (!width || !height) return INITIAL_ZOOM_SIZE;
-    return Math.max(
-      getMaxZoomSize(width, height, iterations),
-      INITIAL_ZOOM_SIZE,
-      viewportRef.current.zoomSize,
-    );
-  }, []);
-
   useShaderViewportControls({
     canvas,
     viewportRef,
     minZoomSize: MIN_ZOOM_SIZE,
-    maxZoomSize,
+    maxZoomSize: INITIAL_ZOOM_SIZE,
     onViewportChange: requestRender,
     flipY: true,
   });

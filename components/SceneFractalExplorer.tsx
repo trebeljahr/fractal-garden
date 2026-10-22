@@ -54,6 +54,8 @@ type Props<V extends string> = {
   rotationSpeed?: number;
 };
 
+const INITIAL_CAMERA_DISTANCE = 6;
+
 /**
  * Orbitable, auto-rotating 3D fractal page. Geometry is built and drawn on a
  * worker, and the growth animation stops at the deepest level this machine
@@ -83,7 +85,7 @@ export function SceneFractalExplorer<V extends string>({
     autoRotate: true,
     rotationX,
     rotationY,
-    cameraDistance: 6,
+    cameraDistance: INITIAL_CAMERA_DISTANCE,
     background: "#252424",
     fillColor,
     strokeColor,
@@ -150,7 +152,7 @@ export function SceneFractalExplorer<V extends string>({
     cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 3,
-    maxDistance: 10,
+    maxDistance: INITIAL_CAMERA_DISTANCE,
   });
 
   useEffect(() => {
@@ -207,7 +209,7 @@ export function SceneFractalExplorer<V extends string>({
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-180} max={180} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-        <PanelNumber path="cameraDistance" min={3} max={10} step={0.1} />
+        <PanelNumber path="cameraDistance" min={3} max={INITIAL_CAMERA_DISTANCE} step={0.1} />
         <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
         <PanelBoolean path="showFaces" />
         <PanelBoolean path="showWireframe" />

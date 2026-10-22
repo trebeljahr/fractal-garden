@@ -13,7 +13,7 @@ import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
-import { shouldZoomWheel } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 
 type Props = {
   description: string;
@@ -60,7 +60,7 @@ const PALETTE_NAMES = Object.keys(PALETTES) as PaletteName[];
 
 // Close enough to the center to fly into the bulb's folds.
 const MIN_DISTANCE = 1.05;
-const MAX_DISTANCE = 8;
+const MAX_DISTANCE = 3;
 
 type Config = {
   palette: PaletteName;
@@ -92,7 +92,7 @@ const INITIAL_CONFIG: Config = {
   shadows: true,
   power: 8,
   detail: 14,
-  cameraDistance: 3,
+  cameraDistance: MAX_DISTANCE,
   rotationX: 18,
   rotationY: 32,
   offsetX: 0,
@@ -265,8 +265,9 @@ const Mandelbulb = ({ description }: Props) => {
       cnv.style.cursor = "grab";
     };
 
+    const wheelGuard = createZoomWheelGuard(cnv);
     const handleWheel = (event: WheelEvent) => {
-      if (!shouldZoomWheel(event, cnv, configRef.current.cameraDistance >= MAX_DISTANCE)) return;
+      if (!wheelGuard.shouldZoom(event, configRef.current.cameraDistance >= MAX_DISTANCE)) return;
       event.preventDefault();
       setConfig((old) => ({
         ...old,
@@ -295,6 +296,7 @@ const Mandelbulb = ({ description }: Props) => {
       cnv.removeEventListener("mousedown", handleMouseDown);
       cnv.removeEventListener("mouseleave", handleMouseUp);
       cnv.removeEventListener("wheel", handleWheel);
+      wheelGuard.dispose();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("blur", handleMouseUp);

@@ -66,7 +66,7 @@ const HilbertCurve3D = ({ description }: Props) => {
     cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 2,
-    maxDistance: 10,
+    maxDistance: INITIAL_CONFIG.cameraDistance,
   });
 
   const handleUpdate = (newData: Config) => {
@@ -95,7 +95,7 @@ const HilbertCurve3D = ({ description }: Props) => {
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-85} max={85} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-        <PanelNumber path="cameraDistance" min={2} max={10} step={0.1} />
+        <PanelNumber path="cameraDistance" min={2} max={INITIAL_CONFIG.cameraDistance} step={0.1} />
         <PanelColor path="background" />
         <PanelColor path="nearColor" label="Near color" />
         <PanelColor path="farColor" label="Far color" />

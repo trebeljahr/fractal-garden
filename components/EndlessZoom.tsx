@@ -8,7 +8,7 @@ import { createRenderer, type Renderer } from "../utils/lsystem/render";
 import type { LSystemSpec } from "../utils/lsystem/spec";
 import type { ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail } from "../utils/lsystem/zoom";
-import { shouldZoomWheel } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 
 type Props = {
@@ -38,7 +38,7 @@ type View = {
 };
 
 const ZERO = BigInt(0);
-const MIN_ZOOM = 0.05;
+const MIN_ZOOM = 1;
 
 // 1234 -> "1,234×", 3.4e47 -> "3.4 × 10⁴⁷".
 function formatZoom(zoom: number) {
@@ -350,8 +350,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
+    const wheelGuard = createZoomWheelGuard(stage);
     const onWheel = (event: WheelEvent) => {
-      if (!shouldZoomWheel(event, stage, (viewRef.current?.zoom ?? 1) <= MIN_ZOOM)) return;
+      if (!wheelGuard.shouldZoom(event, (viewRef.current?.zoom ?? 1) <= MIN_ZOOM)) return;
       event.preventDefault();
       const unit =
         event.deltaMode === WheelEvent.DOM_DELTA_LINE
@@ -378,6 +379,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     stage.addEventListener("gesturechange", onGestureChange);
     return () => {
       stage.removeEventListener("wheel", onWheel);
+      wheelGuard.dispose();
       stage.removeEventListener("gesturestart", onGestureStart);
       stage.removeEventListener("gesturechange", onGestureChange);
     };
