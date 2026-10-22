@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { constrain } from "../utils/ctxHelpers";
 import { finite, isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useLogisticViewportControls } from "../utils/hooks/useLogisticViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
+import {
+  FULL_LOGISTIC_VIEW,
+  type LogisticRender,
+  type LogisticView,
+  renderLogistic,
+} from "../utils/logisticMap";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -54,12 +60,7 @@ const presetLabels: Record<Preset, string> = {
 
 type Preset = keyof typeof PRESETS | "Custom";
 
-type View = {
-  rMin: number;
-  rMax: number;
-  xMin: number;
-  xMax: number;
-};
+type View = LogisticView;
 
 type Config = {
   preset: Preset;
@@ -72,28 +73,14 @@ type Config = {
   color: string;
 };
 
-type DragState = {
-  clientX: number;
-  clientY: number;
-  view: View;
-  mode: "pan" | "zoom";
-  focusX: number;
-  focusY: number;
-};
-
 const MIN_RANGE = 0.000001;
 const MAX_RANGE = 10;
-const INITIAL_VIEW: View = { ...PRESETS.Full };
-
-function logistic(r: number, x: number) {
-  return r * x * (1 - x);
-}
+const INITIAL_VIEW: View = FULL_LOGISTIC_VIEW;
 
 const LogisticMap = ({ description }: Props) => {
   const { width, height } = useWindowSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [view, setView] = useState<View>(INITIAL_VIEW);
-  const dragRef = useRef<DragState | null>(null);
+  const renderRef = useRef<(() => void) | null>(null);
   const viewRef = useRef<View>(INITIAL_VIEW);
   const [config, setConfig] = useState<Config>({
     preset: "Full",
@@ -101,14 +88,17 @@ const LogisticMap = ({ description }: Props) => {
     plotIterations: 180,
     columns: 1400,
     pointAlpha: 0.12,
-    pointSize: 1,
+    pointSize: 0.5,
     background: "#252424",
     color: "#f0d66d",
   });
 
-  useEffect(() => {
-    viewRef.current = view;
-  }, [view]);
+  const configRef = useRef(config);
+  const updateView = useCallback(() => {
+    setConfig((old) => (old.preset === "Custom" ? old : { ...old, preset: "Custom" }));
+    renderRef.current?.();
+  }, []);
+  useLogisticViewportControls(ctx?.canvas ?? null, viewRef, updateView);
 
   useExplorerPart(
     "logisticView",
@@ -125,183 +115,121 @@ const LogisticMap = ({ description }: Props) => {
       ) {
         throw new Error("Invalid diagram view");
       }
-      setView({ rMin: saved.rMin, rMax: saved.rMax, xMin: saved.xMin, xMax: saved.xMax });
+      viewRef.current = { rMin: saved.rMin, rMax: saved.rMax, xMin: saved.xMin, xMax: saved.xMax };
+      renderRef.current?.();
     },
   );
 
   useEffect(() => {
-    if (!ctx) return;
-
-    const canvas = ctx.canvas;
-    canvas.style.cursor = "grab";
-
-    const handleMouseDown = (event: MouseEvent) => {
-      event.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      dragRef.current = {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        view: { ...viewRef.current },
-        mode: event.shiftKey ? "zoom" : "pan",
-        focusX: constrain((event.clientX - rect.left) / rect.width, 0, 1),
-        focusY: constrain((event.clientY - rect.top) / rect.height, 0, 1),
-      };
-      canvas.style.cursor = event.shiftKey ? "ns-resize" : "grabbing";
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!dragRef.current) return;
-
-      const rect = canvas.getBoundingClientRect();
-      setConfig((old) => (old.preset === "Custom" ? old : { ...old, preset: "Custom" }));
-      if (dragRef.current.mode === "zoom") {
-        const xRange = dragRef.current.view.rMax - dragRef.current.view.rMin;
-        const yRange = dragRef.current.view.xMax - dragRef.current.view.xMin;
-        const deltaY = (event.clientY - dragRef.current.clientY) / rect.height;
-        const zoomFactor = Math.exp(deltaY * 2.2);
-        const nextXRange = constrain(xRange * zoomFactor, MIN_RANGE, MAX_RANGE);
-        const nextYRange = constrain(yRange * zoomFactor, MIN_RANGE, MAX_RANGE);
-        const focusR = dragRef.current.view.rMin + dragRef.current.focusX * xRange;
-        const focusX = dragRef.current.view.xMax - dragRef.current.focusY * yRange;
-        const rMin = focusR - dragRef.current.focusX * nextXRange;
-        const rMax = rMin + nextXRange;
-        const xMax = focusX + dragRef.current.focusY * nextYRange;
-        const xMin = xMax - nextYRange;
-
-        setView({
-          rMin,
-          rMax,
-          xMin,
-          xMax,
-        });
-        return;
+    if (!ctx || !width || !height) return;
+    let worker: Worker | null = null;
+    let busy = false;
+    let dirty = false;
+    let frame = 0;
+    let disposed = false;
+    const request = (): LogisticRender => ({
+      width: ctx.canvas.width,
+      height: ctx.canvas.height,
+      ratio: ctx.canvas.width / width,
+      view: { ...viewRef.current },
+      config: configRef.current,
+    });
+    const paint = (pixels: Uint8ClampedArray<ArrayBuffer>, w: number, h: number) => {
+      if (ctx.canvas.width === w && ctx.canvas.height === h) {
+        ctx.putImageData(new ImageData(pixels, w, h), 0, 0);
       }
-
-      const xRange = dragRef.current.view.rMax - dragRef.current.view.rMin;
-      const yRange = dragRef.current.view.xMax - dragRef.current.view.xMin;
-      const deltaX = ((event.clientX - dragRef.current.clientX) / rect.width) * xRange;
-      const deltaY = ((event.clientY - dragRef.current.clientY) / rect.height) * yRange;
-
-      setView({
-        rMin: dragRef.current.view.rMin - deltaX,
-        rMax: dragRef.current.view.rMax - deltaX,
-        xMin: dragRef.current.view.xMin + deltaY,
-        xMax: dragRef.current.view.xMax + deltaY,
-      });
     };
-
-    const handleMouseUp = () => {
-      dragRef.current = null;
-      canvas.style.cursor = "grab";
+    const draw = () => {
+      frame = 0;
+      if (disposed || busy || !dirty) return;
+      dirty = false;
+      const job = request();
+      if (worker) {
+        busy = true;
+        worker.postMessage(job);
+      } else paint(renderLogistic(job), job.width, job.height);
     };
-
-    canvas.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
+    const schedule = () => {
+      dirty = true;
+      if (!frame && !busy) frame = requestAnimationFrame(draw);
+    };
+    try {
+      worker = new Worker(new URL("../utils/logistic.worker.ts", import.meta.url));
+      worker.onmessage = ({ data }) => {
+        busy = false;
+        if (disposed) return;
+        paint(data.pixels, data.width, data.height);
+        if (dirty) schedule();
+      };
+      worker.onerror = () => {
+        worker?.terminate();
+        worker = null;
+        busy = false;
+        schedule();
+      };
+    } catch {
+      // Keep the explorer usable when a browser cannot start a worker.
+    }
+    // Export must contain the current view even if its worker frame is still queued.
+    const beforeExport = () => {
+      const job = request();
+      paint(renderLogistic(job), job.width, job.height);
+    };
+    window.addEventListener("garden:before-export", beforeExport);
+    renderRef.current = schedule;
+    schedule();
     return () => {
-      canvas.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      disposed = true;
+      renderRef.current = null;
+      cancelAnimationFrame(frame);
+      worker?.terminate();
+      window.removeEventListener("garden:before-export", beforeExport);
     };
-  }, [ctx]);
+  }, [ctx, width, height]);
 
   useEffect(() => {
-    if (!ctx || !width || !height) return;
-
-    const renderWidth = Math.max(1, ctx.canvas.width);
-    const renderHeight = Math.max(1, ctx.canvas.height);
-    const ratio = renderWidth / width || 1;
-    const xRange = Math.max(view.rMax - view.rMin, MIN_RANGE);
-    const yRange = Math.max(view.xMax - view.xMin, MIN_RANGE);
-    const columns = Math.max(Math.round(config.columns * ratio), 1);
-    const pointSize = Math.max(1, config.pointSize * ratio);
-
-    ctx.resetTransform();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, renderWidth, renderHeight);
-
-    ctx.fillStyle = config.color;
-    ctx.globalAlpha = config.pointAlpha;
-
-    for (let column = 0; column < columns; column++) {
-      const t = columns === 1 ? 0 : column / (columns - 1);
-      const r = view.rMin + t * xRange;
-      const px = t * Math.max(renderWidth - pointSize, 0);
-      let x = 0.5;
-
-      for (let i = 0; i < config.settleIterations; i++) {
-        x = logistic(r, x);
-      }
-
-      for (let i = 0; i < config.plotIterations; i++) {
-        x = logistic(r, x);
-
-        if (x < view.xMin || x > view.xMax) {
-          continue;
-        }
-
-        const py = ((view.xMax - x) / yRange) * Math.max(renderHeight - pointSize, 0);
-        ctx.fillRect(px, py, pointSize, pointSize);
-      }
-    }
-
-    ctx.globalAlpha = 1;
-  }, [config, ctx, height, view, width]);
+    configRef.current = config;
+    renderRef.current?.();
+  }, [config]);
 
   const handleUpdate = (newData: Config) => {
     const merged = { ...config, ...newData };
     if (newData.preset && newData.preset !== config.preset && newData.preset !== "Custom") {
-      setView(PRESETS[newData.preset]);
+      viewRef.current = { ...PRESETS[newData.preset] };
     }
     setConfig(merged);
   };
 
-  const _resetView = () => {
-    setConfig((old) => ({
-      ...old,
-      preset: "Full",
-    }));
-    setView({ ...PRESETS.Full });
-  };
-
   return (
-    <>
-      <main className={styles.fullScreen}>
-        <ExplorerPanel
-          data={config}
-          introTitle="Logistic Map"
-          lines={[
-            "Drag to pan across the bifurcation diagram.",
-            "Hold Shift while dragging up or down to zoom.",
-          ]}
-          mode="formula"
-          onUpdate={handleUpdate}
-          onRestore={setConfig}
-        >
-          <PanelColor path="background" />
-          <PanelColor path="color" />
-          <PanelSelect
-            path="preset"
-            label="Starting view"
-            optionLabels={logisticPresetOptions.map((option) => presetLabels[option])}
-            options={logisticPresetOptions}
-          />
-          <PanelNumber path="settleIterations" min={50} max={1000} step={10} />
-          <PanelNumber path="plotIterations" min={20} max={400} step={10} />
-          <PanelNumber path="columns" min={200} max={2400} step={100} />
-          <PanelNumber path="pointAlpha" min={0.02} max={1} step={0.01} />
-          <PanelNumber path="pointSize" min={0.5} max={2.5} step={0.1} />
-        </ExplorerPanel>
-        <div className={styles.fullScreen}>
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        </div>
-        <SideDrawer description={description} />
-        <NavElement />
-      </main>
-    </>
+    <main className={styles.fullScreen}>
+      <ExplorerPanel
+        data={config}
+        introTitle="Logistic Map"
+        lines={["Drag to pan. Scroll or pinch to zoom."]}
+        mode="formula"
+        onUpdate={handleUpdate}
+        onRestore={setConfig}
+      >
+        <PanelColor path="background" />
+        <PanelColor path="color" />
+        <PanelSelect
+          path="preset"
+          label="Starting view"
+          optionLabels={logisticPresetOptions.map((option) => presetLabels[option])}
+          options={logisticPresetOptions}
+        />
+        <PanelNumber path="settleIterations" min={50} max={1000} step={10} />
+        <PanelNumber path="plotIterations" min={20} max={400} step={10} />
+        <PanelNumber path="columns" min={200} max={2400} step={100} />
+        <PanelNumber path="pointAlpha" min={0.02} max={1} step={0.01} />
+        <PanelNumber path="pointSize" min={0.5} max={2.5} step={0.1} />
+      </ExplorerPanel>
+      <div className={styles.fullScreen}>
+        <Canvas setCtx={setCtx} width={width} height={height} />
+      </div>
+      <SideDrawer description={description} />
+      <NavElement />
+    </main>
   );
 };
 

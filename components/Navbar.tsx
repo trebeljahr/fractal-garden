@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Navbar.module.css";
@@ -107,7 +108,8 @@ export const NavElement = () => {
     <nav aria-label="Fractal navigation" data-fractal-chrome>
       <Link legacyBehavior href={home}>
         <a href={home} className={styles.homeLink} aria-label="Fractal Garden home">
-          Fractal Garden
+          <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={22} height={22} />
+          <span>Fractal Garden</span>
         </a>
       </Link>
       <Link legacyBehavior href={prev}>

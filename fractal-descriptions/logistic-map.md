@@ -20,6 +20,6 @@ The full explorer starts each column at $x_0 = 0.5$. It discards some early iter
 
 Open **Fractal Studio Controls** and choose **Starting view → Early bifurcations** to inspect the first splits. **Settle steps** controls how many early values the renderer discards. **Plotted steps** controls how many later values it draws. A finite sample can still contain transients or miss part of a pattern.
 
-Drag to pan. Hold **Shift** while dragging up or down to zoom. Compare **Chaotic bands** with **Feigenbaum window** under **Starting view** to inspect different regions.
+Drag to pan. Scroll or pinch to zoom. Compare **Chaotic bands** with **Feigenbaum window** under **Starting view** to inspect different regions.
 
 The logistic map repeats a rule on real numbers. The [Julia set](/julia-set) and [Mandelbrot set](/mandelbrot) repeat rules on complex numbers. The [Lorenz attractor](/lorenz-attractor) follows a continuous flow through three-dimensional space instead of a discrete recurrence.
