@@ -2,7 +2,7 @@
   display: flex;
   gap: 8px;
   padding: 8px 14px;
-  border-top: 1px solid #354640;
+  border-top: 1px solid rgba(245, 204, 117, 0.25);
 }
 .controls button,
 .restore button {
@@ -11,9 +11,9 @@
   border: 0;
   border-radius: 3px;
   background: transparent;
-  color: #a7d9c6;
+  color: var(--explorer-accent);
   font:
-    13px Arial,
+    13px "Montserrat",
     Helvetica,
     sans-serif;
   cursor: pointer;
@@ -23,12 +23,12 @@
 }
 .controls button:hover,
 .restore button:hover {
-  background: #30443c;
-  color: #d2f4e6;
+  background: var(--explorer-field);
+  color: var(--explorer-ink);
 }
 .controls button:focus-visible,
 .restore button:focus-visible {
-  outline: 2px solid #91cdb5;
+  outline: 2px solid var(--explorer-accent);
   outline-offset: -2px;
 }
 .restore {
@@ -39,10 +39,10 @@
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  border: 1px solid #354640;
+  border: 1px solid rgba(245, 204, 117, 0.25);
   border-bottom: 0;
   border-radius: 6px 6px 0 0;
-  background: #1c2723;
+  background: var(--explorer-surface);
   opacity: 0.35;
   transition: opacity 150ms;
 }

@@ -804,9 +804,9 @@
 
   .introCard {
     width: min(320px, 100%);
-    margin-top: 54px;
+    margin-top: 118px;
     padding: 16px 18px 8px;
-    max-height: calc(100svh - 230px);
+    max-height: calc(100svh - 294px);
   }
 
   .studio {
