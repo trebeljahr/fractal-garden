@@ -54,7 +54,12 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+        <ExplorerPanel
+          data={config}
+          mode="pattern"
+          lines={["Remove the centre square. Repeat in the eight that remain."]}
+          onUpdate={handleUpdate}
+        >
           <PanelColor path="background" />
           <PanelNumber
             path="iterations"
