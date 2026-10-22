@@ -1,6 +1,10 @@
 .status {
   position: absolute;
-  bottom: 80px;
+  bottom: calc(
+    var(--explorer-nav-height) +
+    max(var(--explorer-nav-gap), env(safe-area-inset-bottom)) +
+    12px
+  );
   right: 18px;
   display: flex;
   flex-wrap: wrap;
@@ -18,7 +22,6 @@
 
 @media (max-width: 700px) {
   .status {
-    bottom: calc(192px + env(safe-area-inset-bottom));
     right: 12px;
     max-width: calc(100vw - 24px);
   }
