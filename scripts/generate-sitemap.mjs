@@ -58,7 +58,12 @@ async function discoverPageRoutes(dir = PAGES_DIR) {
         return discoverPageRoutes(filePath);
       }
 
-      if (!entry.isFile() || !entry.name.endsWith(".tsx") || entry.name.startsWith("_")) {
+      if (
+        !entry.isFile() ||
+        !entry.name.endsWith(".tsx") ||
+        entry.name.startsWith("_") ||
+        entry.name === "garden.tsx"
+      ) {
         return [];
       }
 
@@ -71,7 +76,8 @@ async function discoverPageRoutes(dir = PAGES_DIR) {
 
 async function pageSeoPaths() {
   const source = await readFile(PAGE_SEO_PATH, "utf8");
-  const [, seoObject = ""] = source.match(/PAGE_SEO: Record<string, SeoEntry> = \{([\s\S]*?)\n\};/) ?? [];
+  const [, seoObject = ""] =
+    source.match(/PAGE_SEO: Record<string, SeoEntry> = \{([\s\S]*?)\n\};/) ?? [];
   const paths = [...seoObject.matchAll(/"([^"]+)":\s*\{/g)].map((match) => match[1]);
 
   if (paths.length === 0) {

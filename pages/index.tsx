@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import Link from "next/link";
 import { Footer } from "../components/Footer";
 import { AddMoreLink, FractalLink } from "../components/FractalLink";
 import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
@@ -62,6 +63,11 @@ const Home: NextPage = () => {
       <main className={styles.mainContent}>
         <h1 className={styles.heading}>Fractal Garden</h1>
         <h2 className={styles.subtitle}>An Exhibition Of Mathematical Beauty</h2>
+        {process.env.NODE_ENV === "development" && (
+          <Link href="/garden" className={styles.gardenLink}>
+            Enter the experimental garden ↗ <span>Development only</span>
+          </Link>
+        )}
         <div className={styles.grid}>
           <FractalLink
             href="/mandelbrot"

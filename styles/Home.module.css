@@ -62,3 +62,18 @@
     grid-gap: 60px;
   }
 }
+.gardenLink {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 3rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #879a72;
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.1rem;
+  color: #c9d99d;
+}
+.gardenLink span {
+  margin-left: 1.5rem;
+  font-size: 0.8rem;
+  color: #9ba89b;
+}

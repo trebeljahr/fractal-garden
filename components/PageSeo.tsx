@@ -5,6 +5,14 @@ import { getPageSeo } from "../utils/pageSeo";
 export const PageSeo = () => {
   const router = useRouter();
   const pathname = router.pathname || "/";
+  if (pathname === "/garden") {
+    return (
+      <Head>
+        <title key="title">The garden · Fractal Garden laboratory</title>
+        <meta key="robots" name="robots" content="noindex,nofollow" />
+      </Head>
+    );
+  }
   const seo = getPageSeo(pathname);
   // These pages include explanatory articles alongside their interactive views.
   const article = ["/mandelbulb", "/newton-fractal"].includes(pathname)

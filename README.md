@@ -46,6 +46,16 @@ and tada, you should have a development environment up and running. There are no
 
 Have a look around at some of the fractals. And enjoy. 😊
 
+### Experimental garden
+
+Open `/garden` on the development server, or use the experimental garden link on the home page.
+Compose L-system trees, ferns and shrubs alongside phyllotaxis rosettes in 2D or 3D.
+The inspector edits each plant; drag to orbit or arrange the bed. Gardens save in local browser storage.
+
+This page exists only in development. Production builds return `notFound`, omit the home link and exclude the route from the sitemap.
+The garden explorer import is also removed from production bundles.
+Run `pnpm test:garden` for geometry, growth, projection and storage checks.
+
 ## 💪 Contribute 💪
 
 There are two main ways to contribute - improving the existing fractals or adding new ones. 
