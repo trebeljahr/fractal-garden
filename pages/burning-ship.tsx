@@ -5,6 +5,7 @@ import {
   type EscapeTimeColoring,
   updateColoring,
 } from "../utils/escapeTimeColoring";
+import { BURNING_SHIP_PLACES } from "../utils/escapeTimePlaces";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -32,29 +33,7 @@ const BurningShip = ({ description }: Props) => {
       initialCenter={[-0.4, -0.543]}
       initialZoomSize={1.55}
       flipY
-      views={[
-        {
-          label: "Whole ship",
-          detail: "Return to the starting view.",
-          center: [-0.4, -0.543],
-          zoomSize: 1.55,
-          iterations: 200,
-        },
-        {
-          label: "Little ship",
-          detail: "A small ship with ridged sails.",
-          center: [-1.76, -0.03],
-          zoomSize: 0.06,
-          iterations: 500,
-        },
-        {
-          label: "Along the sails",
-          detail: "Explore the little ship's fine vertical folds.",
-          center: [-1.76, -0.03],
-          zoomSize: 0.012,
-          iterations: 900,
-        },
-      ]}
+      views={BURNING_SHIP_PLACES}
       lines={[
         "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the ship.",
         "Open Fractal Studio Controls and pick the Inferno look to set the ship on fire.",

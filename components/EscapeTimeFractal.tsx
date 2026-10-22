@@ -12,6 +12,7 @@ import {
   setColoringUniforms,
 } from "../utils/escapeTimeColoring";
 import type { ControlRule } from "../utils/explorerShare";
+import { type EscapeTimePlace, matchesJuliaConstant } from "../utils/fractalPlaces";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { createShaderProgram } from "../utils/shaders/compileShader";
@@ -32,15 +33,6 @@ const FORMULA_DEFINES: Record<Formula, string> = {
   "burning-ship": "#define FORMULA_BURNING_SHIP\n",
 };
 
-type View = {
-  label: string;
-  center: [number, number];
-  zoomSize: number;
-  detail?: string;
-  iterations?: number;
-  parameters?: { preset: string; cReal: number; cImag: number };
-};
-
 type Props<T extends EscapeTimeColoring> = {
   formula: Formula;
   title: string;
@@ -54,7 +46,7 @@ type Props<T extends EscapeTimeColoring> = {
   maxZoomSize?: number;
   flipY?: boolean;
   c?: [number, number];
-  views?: View[];
+  views?: EscapeTimePlace[];
   lines: string[];
   controlsHint?: string;
   children?: ReactNode;
@@ -189,6 +181,8 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
             <FractalPlaces
               views={views}
               viewport={viewport}
+              initialZoomSize={initialZoomSize}
+              matchesParameters={(view) => matchesJuliaConstant(view, c)}
               onSelect={(view) => {
                 viewportRef.current = { center: [...view.center], zoomSize: view.zoomSize };
                 onRestore({
@@ -207,7 +201,15 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         introTitle={title}
         lines={lines}
         mode="formula"
-        onUpdate={onUpdate}
+        onUpdate={(newData) => {
+          // A family selected in the studio starts wide. Destination restores
+          // bypass this path so their own close-up coordinates stay intact.
+          if ("preset" in config && "preset" in newData && config.preset !== newData.preset) {
+            viewportRef.current = { center: [...initialCenter], zoomSize: initialZoomSize };
+            updateViewport();
+          }
+          onUpdate(newData);
+        }}
         onRestore={onRestore}
       >
         {/* DatFolder clones every child, so drop empty slots first. */}

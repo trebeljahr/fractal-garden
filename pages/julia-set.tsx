@@ -7,6 +7,7 @@ import {
   type EscapeTimeColoring,
   updateColoring,
 } from "../utils/escapeTimeColoring";
+import { JULIA_PLACES, JULIA_PRESET_LABELS, JULIA_PRESETS } from "../utils/escapeTimePlaces";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -19,20 +20,9 @@ type Config = EscapeTimeColoring & {
   cImag: number;
 };
 
-const presets: Record<string, { cReal: number; cImag: number }> = {
-  Rabbit: { cReal: -0.70176, cImag: -0.3842 },
-  Spiral: { cReal: -0.8, cImag: 0.156 },
-  Dendrite: { cReal: 0.285, cImag: 0.01 },
-  Cauliflower: { cReal: -0.4, cImag: 0.6 },
-};
-
+const presets = JULIA_PRESETS;
 const presetOptions = Object.keys(presets);
-const presetLabels: Record<string, string> = {
-  Rabbit: "Rabbit spiral",
-  Spiral: "Sea spiral",
-  Dendrite: "Electric dendrite",
-  Cauliflower: "Cauliflower bloom",
-};
+const presetLabels = JULIA_PRESET_LABELS;
 
 const JuliaSet = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(() => ({
@@ -73,6 +63,7 @@ const JuliaSet = ({ description }: Props) => {
       initialCenter={[0, 0]}
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
+      views={JULIA_PLACES}
       controlsHint="Explore presets, reshape the family and recolor it."
       shareRules={[
         { path: "cReal", kind: "number", min: -1, max: 1 },
