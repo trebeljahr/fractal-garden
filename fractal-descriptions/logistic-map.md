@@ -1,15 +1,25 @@
 # Logistic Map
 
-The Logistic Map comes from a very small equation:
+Look for vertical columns that split from one band into two, then into more bands. Each column follows the same rule with a different parameter:
 
 $$
 x_{n+1} = r x_n (1 - x_n)
 $$
 
-Even though it looks simple, changing the parameter `r` produces an enormous range of behaviour. For smaller values, the iteration settles down to one stable number. Increase `r` a little further and that stable value splits into two. Then those two split into four, then eight, and eventually the pattern spills over into chaos.
+## Follow one column's rule
 
-The usual way to see all of that at once is to draw a **bifurcation diagram**. For each value of `r`, the iteration is run many times, the early transient values are discarded, and only the long-term values are plotted. That is why the image looks like a branching tree made out of dots.
+Choose a starting value between zero and one. Multiply it by $r$ and by one minus itself. Feed the result back into the same calculation.
 
-The Logistic Map is not a geometric fractal in the same way as the [Apollonian Gasket](/apollonian-gasket) or the [2D Vicsek Fractal](/vicsek-fractal-2d), but it belongs to the same world of recursive rules producing unexpectedly rich structure. It also has the same feeling as the [Julia Set](/julia-set) and the [Mandelbrot Set](/mandelbrot): a very small iteration rule can hide an extraordinary amount of detail once you start to zoom in.
+<figure data-lesson="logistic"></figure>
 
-The version here lets you pan and zoom through the bifurcation diagram directly, so you can move from the full route to chaos into the tiny windows where order briefly reappears.
+For $0 \leq r \leq 4$, this rule keeps a starting value in $[0,1]$ inside that interval. Different values of $r$ can produce a stable value, an alternating cycle, or an irregular sequence. Periodic windows also occur between irregular regions. Increasing $r$ does not make every trace chaotic.
+
+## Build the bifurcation image
+
+The full explorer starts each column at $x_0 = 0.5$. It discards some early iterations, then plots the later values at that column's $r$. A sequence that approaches two alternating values leaves two bands. Many later values spread through a column when the sequence does not approach a short cycle.
+
+Open **Bifurcation Studio** and choose **Starting view → Early bifurcations** to inspect the first splits. **Settle iterations** controls how many early values the renderer discards. **Plot iterations** controls how many later values it draws. A finite sample can still contain transients or miss part of a pattern.
+
+Drag to pan. Hold **Shift** while dragging up or down to zoom. Compare **Chaotic bands** with **Feigenbaum window** under **Starting view** to inspect different regions.
+
+The logistic map repeats a rule on real numbers. The [Julia set](/julia-set) and [Mandelbrot set](/mandelbrot) repeat rules on complex numbers. The [Lorenz attractor](/lorenz-attractor) follows a continuous flow through three-dimensional space instead of a discrete recurrence.

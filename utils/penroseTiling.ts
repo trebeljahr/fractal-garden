@@ -34,7 +34,7 @@ function tri(type: 0 | 1, a: Point, b: Point, c: Point): RobinsonTriangle {
 }
 
 // P2 halves are glued along the leg AB (the symmetry axis of kite and dart).
-function deflateP2({ type, a, b, c }: RobinsonTriangle): RobinsonTriangle[] {
+export function deflateP2({ type, a, b, c }: RobinsonTriangle): RobinsonTriangle[] {
   if (type === 0) {
     const d = lerp(a, b, INV_PHI);
     const e = lerp(c, a, INV_PHI);

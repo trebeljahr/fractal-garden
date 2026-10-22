@@ -1,0 +1,46 @@
+.ruleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem 1.5rem;
+  font-size: 1.1rem;
+}
+.ruleRow code {
+  overflow-wrap: anywhere;
+}
+.word {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+  gap: 0.15rem;
+  border-block: 1px solid #eee8ce30;
+  margin: 1rem 0;
+}
+.word code {
+  display: inline-block;
+  min-width: 0.85em;
+  padding: 0.15rem;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+.word .active {
+  background: var(--lesson-accent);
+  color: var(--lesson-bg);
+}
+.future {
+  fill: none;
+  stroke: #eee8ce30;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.start {
+  fill: var(--lesson-bg);
+  stroke: var(--lesson-ink);
+  stroke-width: 1.5;
+}
+.turtle {
+  fill: var(--lesson-accent);
+  stroke: var(--lesson-bg);
+  stroke-width: 1;
+}

@@ -30,4 +30,8 @@ This page uses an L-system. **F** means draw forward. The symbols **+** and **�
 F → F-F++F-F
 ```
 
+<figure data-lesson="lsystem-koch"></figure>
+
+Move **Rewrites** to expand the word, then use **Next step** to read its symbols. A turn changes the arrow's direction without adding a segment. The faint path shows where the complete word will go. Here **+** turns clockwise and **−** turns counterclockwise.
+
 The [L-system explorer](/l-system/explorer) lets you edit rules and compare the resulting paths.

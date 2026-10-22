@@ -1,0 +1,174 @@
+.frame {
+  --lesson-bg: #10151a;
+  --lesson-ink: #eee8ce;
+  --lesson-accent: #f5c56d;
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  border-block: 1px solid #eee8ce40;
+  color: var(--lesson-ink);
+}
+.frame .title {
+  font:
+    600 1.25rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.frame p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin: 1rem 0;
+  overflow-wrap: anywhere;
+}
+.frame svg {
+  display: block;
+  width: 100%;
+  background: var(--lesson-bg);
+}
+.frame fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.frame button {
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce70;
+  padding: 0.65rem 0.8rem;
+  min-height: 44px;
+  cursor: pointer;
+  font:
+    1rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.frame button:hover:not(:disabled),
+.frame button[aria-pressed="true"] {
+  background: #f5c56d22;
+  border-color: var(--lesson-accent);
+}
+.frame button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.frame button:focus-visible,
+.frame input:focus-visible,
+.frame select:focus-visible {
+  outline: 2px solid var(--lesson-accent);
+  outline-offset: 3px;
+}
+.frame input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  accent-color: var(--lesson-accent);
+  cursor: pointer;
+}
+.frame select {
+  font: inherit;
+  color: inherit;
+  background: var(--lesson-bg);
+  border: 1px solid #eee8ce70;
+  padding: 0.6rem;
+  min-height: 44px;
+  max-width: 100%;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.step {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1;
+  text-align: center;
+  font:
+    1rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.parameter {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 1.1rem;
+  margin: 1rem 0;
+}
+.parameter span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(12rem, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+.diagram {
+  margin: 1rem 0;
+}
+.axis {
+  fill: none;
+  stroke: #eee8ce55;
+  stroke-width: 1;
+}
+.line {
+  fill: none;
+  stroke: var(--lesson-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.accent {
+  fill: none;
+  stroke: var(--lesson-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.point {
+  fill: var(--lesson-accent);
+}
+.muted {
+  fill: #eee8ce99;
+}
+.label {
+  fill: var(--lesson-ink);
+  font:
+    13px "Montserrat",
+    sans-serif;
+}
+.reveal {
+  animation: reveal 160ms ease-out;
+}
+@keyframes reveal {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .controls {
+    gap: 0.6rem;
+  }
+  .frame button {
+    padding: 0.6rem 0.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}

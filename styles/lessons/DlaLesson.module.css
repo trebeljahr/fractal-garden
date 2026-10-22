@@ -1,0 +1,46 @@
+.diagram {
+  max-height: 32rem;
+}
+.gridLine {
+  fill: none;
+  stroke: #eee8ce24;
+  stroke-width: 0.7;
+}
+.contactCell {
+  fill: #eee8ce0b;
+  stroke: #eee8ce66;
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+.frozen {
+  fill: var(--lesson-ink);
+}
+.newFrozen {
+  fill: var(--lesson-accent);
+  stroke: var(--lesson-ink);
+  stroke-width: 1.2;
+}
+.trail {
+  fill: none;
+  stroke: var(--lesson-accent);
+  stroke-width: 1.6;
+  stroke-opacity: 0.65;
+  stroke-dasharray: 3 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.walker {
+  fill: var(--lesson-bg);
+  stroke: var(--lesson-accent);
+  stroke-width: 2.2;
+}
+.coordinate {
+  fill: #eee8ce99;
+  font:
+    11px "Montserrat",
+    sans-serif;
+}
+.legend {
+  display: grid;
+  gap: 0.3rem;
+}

@@ -1,6 +1,16 @@
 # Rössler Attractor
 
-The Rössler Attractor is what you get when you try to build the simplest possible chaotic system. In 1976 Otto Rössler looked at the [Lorenz Attractor](/lorenz-attractor) and asked whether chaos really needs two wings and two nonlinear terms. His answer was a system with only one nonlinear term:
+Follow the spiral as it spreads outward, rises and folds back toward its center. The trail records successive positions of one moving point. A view from above hides much of its height.
+
+## Follow a short trajectory
+
+Step forward through the small diagram. The **x–y projection** shows the spiral from above. Switch to **x–z projection** to see its height. Both views show the same numerical positions.
+
+<figure data-lesson="rossler"></figure>
+
+Turn on **Compare a nearby start** to follow a second trajectory with a small change to its initial x-coordinate. The two paths share one scale. Their separation can grow and shrink over time, so the displayed distance uses all three coordinates.
+
+The point follows three coupled equations:
 
 $$
 \frac{dx}{dt} = -y - z, \qquad
@@ -8,8 +18,14 @@ $$
 \frac{dz}{dt} = b + z (x - c)
 $$
 
-With the standard values $a = 0.2$, $b = 0.2$ and $c = 5.7$, the orbit spirals outward in the $xy$-plane. Once it gets far enough from the center, the $z$ term switches on, lifts the orbit up into a sharp fold and drops it back near the middle of the spiral. Then the whole process starts over. That stretch-and-fold motion, a bit like kneading dough, is the basic recipe behind most chaotic systems.
+The defaults are $a = 0.2$, $b = 0.2$ and $c = 5.7$. The product $z(x-c)$ couples height to the x-coordinate. Its effect changes as the point moves. The repeated spiral and fold come from following the whole system.
 
-The attractor is almost a flat band with one twist in it, so its fractal dimension is only just above two: estimates based on its Lyapunov exponents give about $2.01$. Cut through it and you would find a Cantor-like stack of very thin layers.
+## Change the motion in the explorer
 
-What you see here is a numerical solution with the classic fourth-order [Runge-Kutta method](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods). The parameter $c$ is the most fun to play with. For small values, around $c = 2.3$, the orbit closes into a simple loop. Increase it and the loop doubles to period 2, then 4, then 8, until it turns chaotic, the same period-doubling cascade you can see in the [Logistic Map](/logistic-map).
+Open **Scene Studio** and turn off **Auto rotate** to compare shapes from one camera angle. Turn off **Animate trail** to see the computed path together. Drag to rotate and use the scroll wheel to move closer.
+
+Compare **c** near 2.3 with its default 5.7. Watch how the loops and folds change. A finite trail cannot establish whether an orbit eventually closes or remains irregular forever.
+
+The renderer uses fourth-order Runge–Kutta integration. **Time step** controls the numerical interval, while **Steps** controls the number of intervals. To compare two approximations over the same duration, reduce **Time step** and increase **Steps** together.
+
+The [Lorenz attractor](/lorenz-attractor) carries a trajectory between two wings. The [logistic map](/logistic-map) shows a related progression of changing long-term behavior with a single recurrence.

@@ -1,0 +1,33 @@
+.nearby {
+  fill: none;
+  stroke: var(--lesson-accent);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.head {
+  fill: var(--lesson-ink);
+  stroke: var(--lesson-bg);
+  stroke-width: 1.5;
+}
+.nearbyHead {
+  fill: var(--lesson-bg);
+  stroke: var(--lesson-accent);
+  stroke-width: 2;
+}
+.compare {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.compare input {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--lesson-accent);
+  flex: 0 0 auto;
+}

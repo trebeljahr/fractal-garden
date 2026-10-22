@@ -1,0 +1,32 @@
+.acute {
+  fill: #f5c56d26;
+  stroke: var(--lesson-accent);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.obtuse {
+  fill: #eee8ce24;
+  stroke: #eee8ce99;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.parent {
+  fill: none;
+  stroke: var(--lesson-ink);
+  stroke-width: 2;
+  stroke-dasharray: 7 4;
+  stroke-linejoin: round;
+}
+.label {
+  fill: var(--lesson-ink);
+  font:
+    14px "Montserrat",
+    sans-serif;
+}
+.legend {
+  display: grid;
+  gap: 0.3rem;
+}
+.acuteKey {
+  color: var(--lesson-accent);
+}

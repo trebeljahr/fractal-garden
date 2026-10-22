@@ -1,0 +1,34 @@
+.plot {
+  max-height: 33rem;
+  margin: 1rem 0;
+}
+.tangent {
+  fill: none;
+  stroke: var(--lesson-accent);
+  stroke-width: 1.3;
+  stroke-dasharray: 5 5;
+}
+.currentPoint {
+  fill: var(--lesson-bg);
+  stroke: var(--lesson-accent);
+  stroke-width: 2.5;
+}
+.root {
+  fill: var(--lesson-bg);
+  stroke: var(--lesson-ink);
+  stroke-width: 1.5;
+}
+.oldPoint {
+  fill: var(--lesson-ink);
+}
+.status {
+  min-height: 5rem;
+}
+.status p {
+  margin: 0.65rem 0;
+}
+@media (max-width: 600px) {
+  .status {
+    min-height: 0;
+  }
+}

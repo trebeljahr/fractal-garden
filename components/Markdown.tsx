@@ -9,6 +9,7 @@ import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
 import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
 import OrbitLesson, { isOrbitKind } from "./OrbitLesson";
+import TeachingLesson, { isTeachingLessonKind } from "./TeachingLesson";
 
 type HeadingResolverProps = {
   level: number;
@@ -118,6 +119,7 @@ const MarkdownRenderers: object = {
     const orbit = node?.properties?.dataOrbit;
     const images = node?.properties?.dataArticleImages;
     const lesson = node?.properties?.dataLesson;
+    if (isTeachingLessonKind(lesson)) return <TeachingLesson key={lesson} kind={lesson} />;
     if (isDetailKind(lesson)) return <ConstructionDetails key={lesson} kind={lesson} />;
     if (isArticleImageKind(images)) return <ArticleImages kind={images} />;
     if (isOrbitKind(orbit)) return <OrbitLesson key={orbit} kind={orbit} />;

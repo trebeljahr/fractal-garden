@@ -1,26 +1,29 @@
 # Diffusion-Limited Aggregation
 
-Diffusion-Limited Aggregation (DLA for short) is the odd one out in this garden. There is no formula you iterate and no rule you rewrite. There's just a sticky seed and a lot of drunk particles stumbling around until they bump into it.
+Watch new particles collect on the tips of a growing cluster. Branches extend into open space while narrow gaps receive fewer arrivals. Diffusion-limited aggregation, or DLA, builds this pattern from moving particles that stick to frozen ones.
 
-The recipe is almost silly in how simple it is. Start with a single frozen particle in the middle of the screen. Release a new particle somewhere far away and let it do a [random walk](https://en.wikipedia.org/wiki/Random_walk): one step up, down, left or right, chosen completely at random, over and over again. The moment it touches the frozen cluster, it freezes too. Then release the next one. Repeat a few ten thousand times.
+## Follow one particle
 
-What grows out of that is not a blob, but a branching, coral-like tree. The reason is that the tips of the branches stick out the furthest, so a wandering particle is much more likely to hit a tip than to sneak all the way into one of the deep fjords between the branches. The tips grow, which makes them stick out even further, which makes them grow even faster. The inner parts get starved. It's the rich-get-richer effect, drawn in particles.
+Start with a frozen seed. A walker chooses a direction, moves, and checks whether it touches the cluster. In this grid model, each short move goes up, down, left or right. Contact includes all eight neighboring cells, so a diagonal touch counts too.
 
-You can find this shape all over nature: in [electrodeposition](https://en.wikipedia.org/wiki/Electrochemical_deposition) of metals, in mineral dendrites on rocks, in frost on a window, in lightning and in the [Lichtenberg figures](https://en.wikipedia.org/wiki/Lichtenberg_figure) that form when high voltage burns through wood. It looks related to the branching of the [Fractal Canopy](/fractal-canopy) or the leaves of the [Barnsley Fern](/barnsley-fern), but those are perfectly ordered and self-similar. A DLA cluster is only self-similar *statistically*. Zoom into one branch and it doesn't look exactly like the whole thing, but it looks like it *could* have been the whole thing.
+<figure data-lesson="dla"></figure>
 
-Like the [Buddhabrot](/buddhabrot), the picture is built from randomness, and no two runs ever give the same cluster. Yet they all have the same "feel" and the same fractal dimension. In two dimensions, the number of particles $N$ inside a radius $r$ grows like
+Use **Next step** to follow a walker, or move the step slider to inspect its trail. **Walk 1** reaches the seed along an edge. **Walk 2** reaches a diagonal neighbor. **Walk 3** leaves the small window before touching the seed. Each replay uses a fixed random seed, with no steering toward the cluster.
 
-$$
-N(r) \propto r^{D}, \qquad D \approx 1.71
-$$
+The small diagram uses sticking chance 1. The first contact freezes the walker. Adding more walkers repeats the same local rule around the enlarged cluster.
 
-So the cluster is more than a line ($D = 1$) but much less than a filled disc ($D = 2$). It's full of holes on every scale.
+## Compare the growing clusters
 
-What you see here is a simulation on a grid of tiny cells. To keep it fast, a few tricks are used:
+Open **Growth Studio** and switch **Pause** on to hold the picture still. Compare **Point** and **Line** under **Seed**. A point grows outward from the center. A line starts from the bottom edge.
 
-- New walkers are spawned on a circle just outside the current cluster, instead of far, far away.
-- Walkers that wander off too far are simply removed, because they would take forever to come back.
-- When a walker is far from the cluster, it takes one big random jump instead of hundreds of tiny steps, since nothing can happen to it out there anyway.
-- Many walkers are simulated per animation frame, but the work is cut off after a few milliseconds so your browser stays responsive.
+Set **Sticking chance** to 1, then lower it to let some touching particles keep moving. Use **Restart growth** for another sample. One short run does not establish how a setting changes the long-term shape.
 
-The **sticking chance** controls how likely a particle is to freeze when it touches the cluster. At 1, every touch sticks and you get thin, wispy branches. Lower it and particles get a few more chances to roll deeper into the gaps, which makes the cluster thicker and denser. The **line** seed starts from the whole bottom edge instead of a single point and grows a forest of competing trees, where the tallest ones shade out their neighbors. The colors show the arrival time: the first particles get the first color, the last ones the second, so you can see how the cluster grew from the inside out.
+**First arrivals** and **Last arrivals** set the colors for the oldest and newest frozen particles. The gradient shows their relative arrival order. **Particle budget** limits the cluster's size, while **Walkers per frame** changes how much work the animation attempts per frame.
+
+## Why the gaps stay open
+
+An approaching walker can reach an exposed tip before it reaches a sheltered gap. As the tips gain particles, they intercept more walkers. This local growth can produce branching patterns without repeating an exact geometric copy of the whole cluster.
+
+The full explorer starts walkers near the growing cluster, discards distant walkers, and uses longer jumps far from contact. Those shortcuts keep it responsive. The inline diagram uses unit moves inside a fixed window so each decision stays visible.
+
+The [Barnsley fern](/barnsley-fern) also chooses moves at random, but applies fixed transformations to a point. The [fractal canopy](/fractal-canopy) uses explicit branching geometry. The [Buddhabrot](/buddhabrot) builds a picture from many sampled orbits.
