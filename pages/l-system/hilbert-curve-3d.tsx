@@ -79,12 +79,10 @@ const HilbertCurve3D = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        controlsHint="Depth, drawing and orbit view for the space-filling curve."
+        controlsHint="Depth and view"
         data={config}
         introTitle="3D Hilbert Curve"
-        lines={[
-          "Drag to rotate the cube-filling curve and use the scroll wheel to dolly closer or farther away.",
-        ]}
+        lines={["Drag to rotate. Scroll to zoom."]}
         mode="scene"
         onUpdate={handleUpdate}
       >

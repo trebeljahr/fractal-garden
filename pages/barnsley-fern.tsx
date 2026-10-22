@@ -226,7 +226,7 @@ const BarnsleyFern = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
-          controlsHint="Swap fern families, then settle on the palette you like best."
+          controlsHint="Fern style and color"
           data={config}
           mode="pattern"
           onUpdate={handleUpdate}

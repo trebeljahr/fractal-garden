@@ -34,10 +34,7 @@ const BurningShip = ({ description }: Props) => {
       initialZoomSize={1.55}
       flipY
       views={BURNING_SHIP_PLACES}
-      lines={[
-        "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the ship.",
-        "Open Fractal Studio Controls and pick the Inferno look to set the ship on fire.",
-      ]}
+      lines={["Drag to pan. Scroll or pinch to zoom."]}
     />
   );
 };

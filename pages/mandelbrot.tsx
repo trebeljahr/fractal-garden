@@ -33,10 +33,7 @@ const Mandelbrot = ({ description }: Props) => {
       initialCenter={[-0.5, 0]}
       initialZoomSize={1.5}
       views={MANDELBROT_PLACES}
-      lines={[
-        "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set.",
-        "Open Fractal Studio Controls to switch between classic coloring algorithms and palettes.",
-      ]}
+      lines={["Drag to pan. Scroll or pinch to zoom."]}
     />
   );
 };

@@ -83,12 +83,10 @@ const LorenzAttractor = ({ description }: Props) => {
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        controlsHint="System parameters, integration and orbit view for the attractor."
+        controlsHint="Parameters and motion"
         data={config}
         introTitle="Lorenz Attractor"
-        lines={[
-          "Drag to rotate the attractor and use the scroll wheel to dolly closer or farther away.",
-        ]}
+        lines={["Drag to rotate. Scroll to zoom."]}
         mode="scene"
         onUpdate={handleUpdate}
       >

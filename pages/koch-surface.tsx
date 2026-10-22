@@ -28,8 +28,8 @@ const KochSurface = ({ description }: Props) => (
     description={description}
     storageKey="koch-surface"
     title="Koch Surface"
-    controlsHint="Start from one triangle or a whole tetrahedron, then tune growth and orbit."
-    hint="Drag to rotate the surface and use the scroll wheel to dolly closer or farther away."
+    controlsHint="Shape and growth"
+    hint="Drag to rotate. Scroll to zoom."
     variantLabel="Start shape"
     variants={VARIANTS}
     initialVariant="triangle"

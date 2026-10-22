@@ -64,12 +64,12 @@ const JuliaSet = ({ description }: Props) => {
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
       views={JULIA_PLACES}
-      controlsHint="Explore presets, reshape the family and recolor it."
+      controlsHint="Shape and color"
       shareRules={[
         { path: "cReal", kind: "number", min: -1, max: 1 },
         { path: "cImag", kind: "number", min: -1, max: 1 },
       ]}
-      lines={["Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set."]}
+      lines={["Drag to pan. Scroll or pinch to zoom."]}
     >
       <PanelSelect
         path="preset"

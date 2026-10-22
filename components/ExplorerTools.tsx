@@ -13,11 +13,12 @@ import { ExplorerContextMenu } from "./ExplorerContextMenu";
 
 type Props<T> = {
   data: T;
+  viewControlsHost?: HTMLElement | null;
   rules: ControlRule[];
   onRestore: (data: T) => void;
 };
 
-export function ExplorerTools<T>({ data, rules, onRestore }: Props<T>) {
+export function ExplorerTools<T>({ data, rules, onRestore, viewControlsHost }: Props<T>) {
   const [message, setMessage] = useState("");
   const [manualLink, setManualLink] = useState("");
   const [sharedLink, setSharedLink] = useState("");
@@ -112,7 +113,12 @@ export function ExplorerTools<T>({ data, rules, onRestore }: Props<T>) {
   };
 
   return (
-    <ExplorerContextMenu onCopyLink={copyLink} onSavePng={savePng} saving={saving}>
+    <ExplorerContextMenu
+      onCopyLink={copyLink}
+      onSavePng={savePng}
+      saving={saving}
+      viewControlsHost={viewControlsHost}
+    >
       <div className={styles.tools}>
         <p className={styles.status} role="status">
           {message}

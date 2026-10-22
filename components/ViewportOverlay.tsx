@@ -19,7 +19,7 @@ export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) =
   const [pageTitle, setPageTitle] = useState("");
 
   useEffect(() => {
-    setPageTitle(document.title);
+    setPageTitle(document.title.replace(/ \| Fractal Garden$/, ""));
 
     const handleScroll = () => {
       setVisible(window.scrollY <= 24);

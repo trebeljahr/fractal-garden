@@ -9,8 +9,10 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerContextMenu.module.css";
+import { ExplorerViewControls } from "./ExplorerViewControls";
 
 type Props = {
+  viewControlsHost?: HTMLElement | null;
   onCopyLink: () => void;
   onSavePng: () => void;
   saving?: boolean;
@@ -64,6 +66,7 @@ export function ExplorerContextMenu({
   saving,
   children,
   onUIVisibilityChange,
+  viewControlsHost,
 }: Props) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [clean, setClean] = useState(false);
@@ -173,7 +176,7 @@ export function ExplorerContextMenu({
     };
   }, [position, close]);
 
-  const toggleFullscreen = async () => {
+  const toggleFullscreen = async (closeMenu = true) => {
     setError("");
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
@@ -181,7 +184,7 @@ export function ExplorerContextMenu({
         window.scrollTo(0, 0);
         await document.documentElement.requestFullscreen();
       }
-      close();
+      if (closeMenu) close();
     } catch {
       setError("Fullscreen is unavailable in this browser.");
     }
@@ -191,6 +194,21 @@ export function ExplorerContextMenu({
 
   return createPortal(
     <>
+      {viewControlsHost &&
+        createPortal(
+          <ExplorerViewControls
+            clean={clean}
+            fullscreen={fullscreen}
+            supported={supported}
+            error={error}
+            onToggleUI={() => {
+              if (!clean) window.scrollTo(0, 0);
+              setClean(!clean);
+            }}
+            onToggleFullscreen={() => void toggleFullscreen(false)}
+          />,
+          viewControlsHost,
+        )}
       <button
         ref={trigger}
         type="button"
@@ -260,7 +278,7 @@ export function ExplorerContextMenu({
             role="menuitemcheckbox"
             aria-checked={fullscreen}
             disabled={!supported}
-            onClick={toggleFullscreen}
+            onClick={() => void toggleFullscreen()}
           >
             <Icon name={fullscreen ? "restore" : "fullscreen"} />
             <span>Full screen</span>

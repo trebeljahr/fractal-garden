@@ -79,24 +79,18 @@ const PANEL_COPY: Record<
 > = {
   formula: {
     introTitle: "Explore The Set",
-    lines: [
-      "Open Fractal Studio Controls to move through presets and nudge the parameters. Tiny changes can completely reshape the structure.",
-    ],
-    controlsHint: "Presets, color, and the numbers that shift the whole mood.",
+    lines: [],
+    controlsHint: "Presets and color",
   },
   pattern: {
     introTitle: "Explore The Pattern",
-    lines: [
-      "Open Fractal Studio Controls to play with depth, color, and drawing style. Live updates make it easy to discover the surprising versions.",
-    ],
-    controlsHint: "Shape, palette, and growth controls for wandering a little.",
+    lines: [],
+    controlsHint: "Shape, color and growth",
   },
   scene: {
     introTitle: "Explore The Scene",
-    lines: [
-      "Drag the form around, then open Fractal Studio Controls for color, depth, and motion. The most interesting versions usually come from a couple of subtle tweaks.",
-    ],
-    controlsHint: "View, lighting feel, and structure controls for a better look around.",
+    lines: ["Drag to rotate. Scroll to zoom."],
+    controlsHint: "Shape and view",
   },
 };
 
@@ -116,9 +110,10 @@ export function ExplorerPanel<T>({
 }: Props<T>) {
   const defaults = PANEL_COPY[mode];
   const [pageTitle, setPageTitle] = useState("");
+  const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setPageTitle(document.title);
+    setPageTitle(document.title.replace(/ \| Fractal Garden$/, ""));
   }, []);
 
   const displayTitle = introTitle || pageTitle || defaults.introTitle;
@@ -133,11 +128,13 @@ export function ExplorerPanel<T>({
     <div className={styles.panel} data-fractal-chrome>
       <aside className={styles.introCard} aria-label="Fractal overview">
         <div className={styles.title}>{displayTitle}</div>
-        <div className={styles.copy}>
-          {(lines ?? defaults.lines).map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </div>
+        {(lines ?? defaults.lines).length > 0 && (
+          <div className={styles.copy}>
+            {(lines ?? defaults.lines).map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        )}
         {actions.length ? (
           <div className={styles.actions}>
             {actions.map((action) => (
@@ -155,6 +152,7 @@ export function ExplorerPanel<T>({
         {places}
         <ExplorerTools
           data={data}
+          viewControlsHost={viewControlsHost}
           rules={[
             ...controlRules(children, data).filter(
               (rule) => !shareRules.some((override) => override.path === rule.path),
@@ -165,14 +163,17 @@ export function ExplorerPanel<T>({
         />
       </aside>
 
-      <aside className={styles.studio} aria-label={STUDIO_TITLE}>
-        <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
-          <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
-            {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-            {Children.toArray(children)}
-          </DatFolder>
-        </DatGui>
-      </aside>
+      <div className={styles.studioGroup}>
+        <div ref={setViewControlsHost} className={styles.viewControlsHost} />
+        <aside className={styles.studio} aria-label={STUDIO_TITLE}>
+          <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
+            <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
+              {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+              {Children.toArray(children)}
+            </DatFolder>
+          </DatGui>
+        </aside>
+      </div>
     </div>
   );
 }

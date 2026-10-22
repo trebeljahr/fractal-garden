@@ -42,8 +42,8 @@ const PolyhedronFlake = ({ description }: Props) => (
     description={description}
     storageKey="polyhedron-flake"
     title="Polyhedron Flake"
-    controlsHint="Pick a Platonic solid, then tune growth, orbit, and linework."
-    hint="Drag to rotate the flake and use the scroll wheel to dolly closer or farther away."
+    controlsHint="Shape and growth"
+    hint="Drag to rotate. Scroll to zoom."
     variantLabel="Solid"
     variants={VARIANTS}
     initialVariant="icosahedron"

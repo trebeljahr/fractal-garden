@@ -34,6 +34,17 @@
   border-radius: 0 0 6px 0;
 }
 
+.viewControlsHost {
+  flex: 0 0 44px;
+}
+
+.studioGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-left: auto;
+}
+
 .studio {
   display: flex;
   flex-direction: column;
@@ -111,10 +122,6 @@
   line-height: 1.45;
   color: #b8c2cb;
   font-weight: 400;
-}
-
-.studio > :last-child {
-  flex-shrink: 0;
 }
 
 .panel :global(.react-dat-gui.exploration-gui) {
@@ -831,18 +838,23 @@
     max-height: calc(100svh - 294px);
   }
 
-  .studio {
+  .studioGroup {
     position: absolute;
     top: 0;
     right: 0;
-    width: min(320px, 100%);
+    max-width: 100%;
+    z-index: 1;
+  }
+
+  .studio {
+    width: min(320px, calc(100vw - 52px));
     max-height: calc(100svh - 180px);
     z-index: 1;
   }
 
   .studio:has(:global(.folder.closed)) {
     width: max-content;
-    max-width: 100%;
+    max-width: calc(100vw - 52px);
   }
 
   .studio:has(:global(.folder.closed)) .folderHint {

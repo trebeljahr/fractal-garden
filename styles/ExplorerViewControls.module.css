@@ -1,0 +1,58 @@
+.controls,
+.restore {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 44px;
+  pointer-events: auto;
+}
+.controls button,
+.restore button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(245, 204, 117, 0.25);
+  border-radius: 3px;
+  background: var(--explorer-surface);
+  color: var(--explorer-accent);
+  cursor: pointer;
+  transition:
+    background 150ms,
+    color 150ms;
+}
+.controls button:hover,
+.restore button:hover {
+  background: var(--explorer-field);
+  color: var(--explorer-ink);
+}
+.controls button:focus-visible,
+.restore button:focus-visible {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -2px;
+}
+.restore {
+  position: fixed;
+  z-index: 100;
+  top: max(0px, env(safe-area-inset-top));
+  right: max(0px, env(safe-area-inset-right));
+}
+.error {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 220px;
+  margin-top: 6px;
+  padding: 10px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls button,
+  .restore button {
+    transition: none;
+  }
+}

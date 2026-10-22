@@ -136,9 +136,7 @@ const NewtonFractal = ({ description }: Props) => {
               />
             }
             title="Newton Fractal"
-            lines={[
-              "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the basins.",
-            ]}
+            lines={["Drag to pan. Scroll or pinch to zoom."]}
           />
         </div>
         <SideDrawer description={description} />

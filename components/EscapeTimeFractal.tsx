@@ -72,7 +72,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   c = [0, 0],
   views = [],
   lines,
-  controlsHint = "Pick a look, then tune the coloring algorithm, palette and iteration depth.",
+  controlsHint = "Color and detail",
   children,
   shareRules,
 }: Props<T>) {

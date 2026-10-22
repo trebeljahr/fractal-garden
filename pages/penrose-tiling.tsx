@@ -159,9 +159,7 @@ const PenroseTiling = ({ description }: Props) => {
       <ExplorerPanel
         actions={[{ label: "Reset view", onClick: resetView }]}
         data={config}
-        lines={[
-          "Drag to pan. Scroll or pinch to zoom. The tiling has no edge, so you can travel as far as you like.",
-        ]}
+        lines={["Drag to pan. Scroll or pinch to zoom."]}
         mode="pattern"
         onUpdate={handleUpdate}
       >

@@ -271,7 +271,7 @@ const LogisticMap = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
-          controlsHint="Views, density, and plotting depth for tracing the route into chaos."
+          controlsHint="View and detail"
           data={config}
           introTitle="Logistic Map"
           lines={[

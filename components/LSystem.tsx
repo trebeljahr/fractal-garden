@@ -203,7 +203,7 @@ const LSystem = ({ ruleset }: Props) => {
             onClick: () => openInExplorer(config.ruleset, config.ruleset.maxIterations),
           },
         ]}
-        controlsHint="Iterations, palette, and the automatic growth loop. Scroll on the drawing to zoom in endlessly."
+        controlsHint="Color and growth"
         data={config}
         mode="pattern"
         onUpdate={handleUpdate}
