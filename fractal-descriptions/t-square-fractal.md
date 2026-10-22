@@ -18,3 +18,9 @@ if (depth < iterations) {
 ```
 
 Even though it is built from squares, the negative space between those squares can start to echo the triangular gaps that appear in the [Sierpinski Triangle](/l-system/sierpinski-triangle). It also belongs in the same recursive family as the [Sierpinski Carpet](/sierpinski-carpet), where a very small placement rule creates a much larger geometric structure.
+
+---
+
+**Further reading**
+
+- [T-square (fractal)](https://en.wikipedia.org/wiki/T-square_(fractal)) on Wikipedia
