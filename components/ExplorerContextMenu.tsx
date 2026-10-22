@@ -20,7 +20,7 @@ type Props = {
   onUIVisibilityChange?: (visible: boolean) => void;
 };
 
-type IconName = "link" | "download" | "fullscreen" | "restore" | "eye" | "check" | "more";
+type IconName = "link" | "download" | "fullscreen" | "restore" | "eye" | "check";
 
 function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -35,13 +35,6 @@ function Icon({ name }: { name: IconName }) {
       </>
     ),
     check: <path d="m5 12 4 4L19 6" />,
-    more: (
-      <>
-        <circle cx="5" cy="12" r="1" />
-        <circle cx="12" cy="12" r="1" />
-        <circle cx="19" cy="12" r="1" />
-      </>
-    ),
   };
   return (
     <svg
@@ -75,7 +68,6 @@ export function ExplorerContextMenu({
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const id = useId();
 
@@ -83,10 +75,9 @@ export function ExplorerContextMenu({
     setPosition(null);
     if (restoreFocus) {
       const target = returnFocus.current;
-      (target?.isConnected && target !== document.body && !target.closest("[data-fractal-chrome]")
-        ? target
-        : trigger.current
-      )?.focus({ preventScroll: true });
+      if (target?.isConnected && !target.closest("[data-fractal-chrome]")) {
+        target.focus({ preventScroll: true });
+      }
     }
   }, []);
 
@@ -114,6 +105,22 @@ export function ExplorerContextMenu({
     };
     const restore = (event: KeyboardEvent) => {
       if (event.key === "Escape") setClean(false);
+      if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest(
+          "input, textarea, select, button, a, [contenteditable], [data-fractal-description]",
+        )
+      )
+        return;
+      const canvas = document.querySelector("main canvas");
+      const rect = canvas?.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      event.preventDefault();
+      returnFocus.current = target instanceof HTMLElement ? target : null;
+      setError("");
+      setPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
     };
     document.addEventListener("contextmenu", open);
     document.addEventListener("fullscreenchange", syncFullscreen);
@@ -152,12 +159,7 @@ export function ExplorerContextMenu({
   useEffect(() => {
     if (!position) return;
     const dismiss = (event: PointerEvent) => {
-      if (
-        event.target instanceof Node &&
-        !menu.current?.contains(event.target) &&
-        !trigger.current?.contains(event.target)
-      )
-        close(false);
+      if (event.target instanceof Node && !menu.current?.contains(event.target)) close(false);
     };
     const hide = () => close(false);
     const onScroll = (event: Event) => {
@@ -209,27 +211,6 @@ export function ExplorerContextMenu({
           />,
           viewControlsHost,
         )}
-      <button
-        ref={trigger}
-        type="button"
-        className={styles.trigger}
-        aria-label="Explorer options"
-        title="Explorer options (right-click the drawing)"
-        aria-haspopup="menu"
-        aria-expanded={!!position}
-        aria-controls={position ? id : undefined}
-        onClick={() => {
-          if (position) close();
-          else {
-            const rect = trigger.current!.getBoundingClientRect();
-            returnFocus.current = trigger.current;
-            setError("");
-            setPosition({ x: rect.right, y: rect.top - 8 });
-          }
-        }}
-      >
-        <Icon name="more" />
-      </button>
       {position && (
         <div
           ref={menu}

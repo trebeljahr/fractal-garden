@@ -31,7 +31,7 @@ After the last generation, a turtle reads the string from left to right and draw
 
 Any other letter, for example `X`, draws nothing. It only steers the rewriting. You can change which letters draw or move under **Advanced**.
 
-The explorer switches to 3D by itself as soon as the system uses one of `& ^ \ / $`. In 3D every line becomes a lit tube. Drag to orbit all the way around, shift-drag or right-drag to move the orbit center, and scroll to fly towards the spot under the cursor.
+The explorer switches to 3D by itself as soon as the system uses one of `& ^ \ / $`. In 3D every line becomes a lit tube. Drag to orbit all the way around, hold Shift and drag to move the orbit center, and scroll to fly towards the spot under the cursor.
 
 ## Endless zoom
 

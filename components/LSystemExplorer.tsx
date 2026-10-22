@@ -118,7 +118,9 @@ function download(filename: string, href: string) {
   const link = document.createElement("a");
   link.href = href;
   link.download = filename;
+  document.body.appendChild(link);
   link.click();
+  link.remove();
 }
 
 // Without endless zoom, past this the lines would only get blurry.
@@ -544,11 +546,17 @@ export const LSystemExplorer = ({ presets }: Props) => {
     `${window.location.origin}${window.location.pathname}#s=${encodeSpec(spec)}`;
 
   const savePng = () => {
-    if (!canvas) return;
-    // The drawing buffer is only guaranteed until the frame is shown, so draw
-    // and read it in the same task.
-    draw();
-    download(`${slugify(spec.name)}.png`, canvas.toDataURL("image/png"));
+    try {
+      if (!canvas) throw new Error("Drawing not ready");
+      // Redraw and capture before WebGL clears its default drawing buffer.
+      draw();
+      const url = canvas.toDataURL("image/png");
+      if (url === "data:,") throw new Error("Empty drawing");
+      download(`${slugify(spec.name)}.png`, url);
+      flash("PNG ready.");
+    } catch {
+      flash("The drawing is not ready to save. Try again in a moment.");
+    }
   };
 
   // Pointer handling: drag to orbit (3D) or pan (2D), shift-drag
