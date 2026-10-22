@@ -7,14 +7,14 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 32px;
+  gap: 24px;
   pointer-events: none;
   font-family: "Montserrat", sans-serif;
 }
 
 .introCard,
 .studio {
-  width: min(380px, calc((100vw - 88px) / 2));
+  width: min(352px, calc((100vw - 60px) / 2));
   max-height: calc(100svh - 160px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -28,8 +28,8 @@
 .introCard {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
+  gap: 0.55rem;
+  padding: 16px 18px 8px;
   border-right: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 0 0 6px 0;
 }
@@ -52,10 +52,10 @@
 .copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.55rem;
   max-width: 31ch;
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.5;
   color: #b8c2cb;
 }
 
@@ -89,7 +89,7 @@
 .folderTitle {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.3rem;
   padding-right: 24px;
 }
 
@@ -140,7 +140,7 @@
 
 .panel :global(.react-dat-gui.exploration-gui li.folder .title) {
   position: relative;
-  padding: 22px 24px;
+  padding: 1.05rem 1.15rem 1rem;
   transition: background-color 0.18s ease;
   background: transparent;
   border-bottom: 1px solid rgba(245, 241, 209, 0.08);
@@ -157,8 +157,8 @@
 .panel :global(.react-dat-gui.exploration-gui li.folder .title::after) {
   content: "";
   position: absolute;
-  top: 26px;
-  right: 24px;
+  top: 18px;
+  right: 18px;
   width: 7px;
   height: 7px;
   border-right: 1px solid var(--explorer-accent);
@@ -173,11 +173,11 @@
 .panel :global(.react-dat-gui.exploration-gui li.folder ul) {
   margin-left: 0;
   width: 100%;
-  padding: 12px 20px 20px;
+  padding: 0.4rem 0.75rem 0.85rem;
 }
 
 .panel :global(.react-dat-gui.exploration-gui .cr) {
-  margin-top: 0;
+  margin-top: 0.45rem;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -190,7 +190,7 @@
 .panel :global(.react-dat-gui.exploration-gui .cr label) {
   align-items: center;
   gap: 0.75rem;
-  padding: 12px 4px;
+  padding: 0.25rem 0.35rem 0.25rem 0.85rem;
 }
 
 .panel :global(.react-dat-gui.exploration-gui .cr .label-text) {
@@ -249,7 +249,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 12px 4px;
+  padding: 0.25rem 0.35rem 0.25rem 0.85rem;
 }
 
 .customControlInline {
@@ -805,7 +805,7 @@
   .introCard {
     width: min(320px, 100%);
     margin-top: 54px;
-    padding: 18px;
+    padding: 16px 18px 8px;
     max-height: calc(100svh - 230px);
   }
 
@@ -814,7 +814,7 @@
     top: 0;
     right: 0;
     width: min(320px, 100%);
-    max-height: calc(100svh - 110px);
+    max-height: calc(100svh - 180px);
     z-index: 1;
   }
 
@@ -829,11 +829,11 @@
 
   .panel :global(.react-dat-gui.exploration-gui li.folder .title) {
     min-height: 44px;
-    padding: 14px 22px;
+    padding: 14px 18px;
   }
 
   .panel :global(.react-dat-gui.exploration-gui .dg.main) {
-    max-height: calc(100svh - 110px);
+    max-height: calc(100svh - 180px);
   }
 
   .customControl {
