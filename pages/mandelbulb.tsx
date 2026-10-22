@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
-import { FractalPlaces } from "../components/FractalPlaces";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
@@ -315,44 +314,6 @@ const Mandelbulb = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
-          places={
-            <FractalPlaces
-              views={[
-                {
-                  label: "Whole bulb",
-                  detail: "See the eight-fold form from a distance.",
-                  distance: 3,
-                  tilt: 18,
-                  turn: 32,
-                },
-                {
-                  label: "Surface folds",
-                  detail: "Move closer to the ridges and cavities.",
-                  distance: 1.7,
-                  tilt: 28,
-                  turn: 42,
-                },
-                {
-                  label: "Looking down",
-                  detail: "See how the branches meet around the pole.",
-                  distance: 2.4,
-                  tilt: 80,
-                  turn: 0,
-                },
-              ]}
-              onSelect={(place) =>
-                setConfig((old) => ({
-                  ...old,
-                  cameraDistance: place.distance,
-                  rotationX: place.tilt,
-                  rotationY: place.turn,
-                  offsetX: 0,
-                  offsetY: 0,
-                  autoRotate: false,
-                }))
-              }
-            />
-          }
           controlsHint="Power, detail, orbit, and framing for finding the best silhouettes."
           controlsTitle="Mandelbulb Studio"
           data={config}

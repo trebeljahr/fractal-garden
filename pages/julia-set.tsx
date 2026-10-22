@@ -72,39 +72,6 @@ const JuliaSet = ({ description }: Props) => {
       initialCenter={[0, 0]}
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
-      views={[
-        {
-          label: "Whole set",
-          detail: "See the current Julia set in full.",
-          center: [0, 0],
-          zoomSize: 1.8,
-          iterations: 200,
-        },
-        {
-          label: "Rabbit spiral",
-          detail: "Three branches curl around the center.",
-          center: [0, 0],
-          zoomSize: 1.8,
-          iterations: 500,
-          parameters: { preset: "Rabbit", ...presets.Rabbit },
-        },
-        {
-          label: "Sea spiral",
-          detail: "A change in c creates a different family of spirals.",
-          center: [0, 0],
-          zoomSize: 1.8,
-          iterations: 500,
-          parameters: { preset: "Spiral", ...presets.Spiral },
-        },
-        {
-          label: "Cauliflower bloom",
-          detail: "Explore a branching outline with fine curled edges.",
-          center: [0, 0],
-          zoomSize: 1.6,
-          iterations: 500,
-          parameters: { preset: "Cauliflower", ...presets.Cauliflower },
-        },
-      ]}
       controlsHint="Start from a preset, nudge c, then pick a look for the coloring."
       controlsTitle="Complex Constant"
       lines={[
