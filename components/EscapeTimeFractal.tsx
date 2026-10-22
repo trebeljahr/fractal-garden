@@ -11,6 +11,7 @@ import {
   PALETTES,
   setColoringUniforms,
 } from "../utils/escapeTimeColoring";
+import type { ControlRule } from "../utils/explorerShare";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { createShaderProgram } from "../utils/shaders/compileShader";
@@ -57,6 +58,7 @@ type Props<T extends EscapeTimeColoring> = {
   lines: string[];
   controlsHint?: string;
   children?: ReactNode;
+  shareRules?: ControlRule[];
 };
 
 /**
@@ -80,6 +82,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   lines,
   controlsHint = "Pick a look, then tune the coloring algorithm, palette and iteration depth.",
   children,
+  shareRules,
 }: Props<T>) {
   const { width, height } = useWindowSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
@@ -198,6 +201,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
             />
           )
         }
+        shareRules={shareRules}
         controlsHint={controlsHint}
         data={config}
         introTitle={title}

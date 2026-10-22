@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { ComplexConstantControl } from "../components/ComplexConstantControl";
 import { EscapeTimeFractal } from "../components/EscapeTimeFractal";
-import { PanelNumber, PanelSelect } from "../components/ExplorerControls";
+import { PanelSelect } from "../components/ExplorerControls";
 import {
   createColoring,
   type EscapeTimeColoring,
@@ -73,6 +74,10 @@ const JuliaSet = ({ description }: Props) => {
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
       controlsHint="Explore presets, reshape the family and recolor it."
+      shareRules={[
+        { path: "cReal", kind: "number", min: -1, max: 1 },
+        { path: "cImag", kind: "number", min: -1, max: 1 },
+      ]}
       lines={["Drag to pan and use the scroll wheel or a pinch gesture to zoom into the set."]}
     >
       <PanelSelect
@@ -81,8 +86,10 @@ const JuliaSet = ({ description }: Props) => {
         optionLabels={presetOptions.map((option) => presetLabels[option])}
         options={presetOptions}
       />
-      <PanelNumber path="cReal" min={-1} max={1} step={0.001} />
-      <PanelNumber path="cImag" min={-1} max={1} step={0.001} />
+      <ComplexConstantControl
+        value={config}
+        onChange={(point) => setConfig((current) => ({ ...current, ...point }))}
+      />
     </EscapeTimeFractal>
   );
 };

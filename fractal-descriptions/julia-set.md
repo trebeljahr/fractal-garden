@@ -8,7 +8,7 @@ Zoom along an edge to find smaller branches that resemble the larger pattern. Ch
 
 Open **Fractal Studio Controls** and change **Starting point** from **Rabbit spiral** to **Sea spiral** or **Cauliflower bloom**. These presets choose values for the constant $c$.
 
-Nudge **C real** or **C imaginary** to see how nearby values change the shape. Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
+Drag the point in the complex plane to see how nearby values change the shape. **Real (x)** runs horizontally; **Imaginary (y)** runs vertically. You can also type either coordinate below the plane. Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
 
 Use **Look** to compare coloring styles at the same location. **Palette** changes the colors while keeping the constant fixed. If a dark patch near an edge lacks detail, increase **Iterations** to give those points a longer escape test.
 
