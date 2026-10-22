@@ -21,9 +21,9 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
     imageHeight: 630,
   },
   "/mandelbrot": {
-    title: "Mandelbrot Set",
+    title: "Mandelbrot Set Explorer",
     description:
-      "Zoom through the Mandelbrot Set in an interactive WebGL explorer and discover one of the most famous fractals in mathematics.",
+      "Zoom into the Mandelbrot set, find spirals and smaller copies, and change coloring and iteration depth in this interactive fractal explorer.",
     imagePath: "/assets/fractal-images/mandelbrot.jpg",
   },
   "/buddhabrot": {
@@ -39,9 +39,9 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
     imagePath: "/assets/fractal-images/newton-fractal.jpg",
   },
   "/burning-ship": {
-    title: "Burning Ship Fractal",
+    title: "Burning Ship Fractal Explorer",
     description:
-      "Dive into the Burning Ship fractal with an interactive WebGL renderer and navigate its fiery folds and filament structures.",
+      "Zoom into the Burning Ship fractal, compare the whole ship with a little ship, and change its colors in an interactive explorer.",
     imagePath: "/assets/fractal-images/burning-ship.jpg",
   },
   "/barnsley-fern": {
@@ -63,9 +63,9 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
     imagePath: "/assets/fractal-images/fractal-canopy.jpg",
   },
   "/julia-set": {
-    title: "Julia Set",
+    title: "Julia Set Explorer",
     description:
-      "Navigate a vivid Julia Set and compare its structure to the Mandelbrot family through an interactive WebGL fractal view.",
+      "Change the complex constant to reshape a Julia set. Zoom into branching patterns and compare presets in this interactive fractal explorer.",
     imagePath: "/assets/fractal-images/julia-set.jpg",
   },
   "/apollonian-gasket": {

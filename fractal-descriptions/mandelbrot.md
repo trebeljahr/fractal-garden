@@ -1,83 +1,37 @@
 # Mandelbrot Set
 
-You get this fractal by iterating over the equation 
+Zoom into the Mandelbrot set to find spirals, branching edges and smaller versions of its familiar outline. This interactive explorer lets you follow those patterns and change how the colors reveal them.
+
+The large black shape has a heart-shaped body and a round bulb on its left. More bulbs and thin branches line its edge. The colored bands surround that edge, where nearby points can behave very differently.
+
+## What to try
+
+Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
+
+Start in the narrow gap between the main body and the round bulb. Follow a curled edge into the region often called Seahorse Valley. Elsewhere along the boundary, look for smaller Mandelbrot shapes among the branches.
+
+Open **Coloring Studio** and try **Iteration bands** to see steps in the escape time. Switch to **Stripes** or **Orbit trap** to reveal different patterns at the same location. Change **Palette** to compare colors without changing the fractal.
+
+## Bulbs, cycles and smaller copies
+
+Inside the heart-shaped body, repeated calculations settle toward one value. Inside the round bulb, they settle into a two-step cycle. Other bulbs contain longer [repeating cycles](https://complexanalysis.org/web/sec_julia-mandelbrot.html).
+
+Smaller Mandelbrot shapes repeat this organization, with their own bulbs and surrounding branches. Their surrounding detail varies, so different zooms reveal different arrangements of curls.
+
+## What the colors mean
+
+With the default **Smooth escape time** coloring, the colors describe how quickly a point's sequence grows beyond the escape radius. Smooth coloring blends the steps between whole iteration counts. **Orbit trap** uses a different measurement: how close the sequence comes to the origin.
+
+Black marks points that do not escape within the current **Iterations** limit. Some points near the boundary need more steps before they escape. Increase **Iterations** to refine the image there, at the cost of more drawing time. The explorer also limits how far you can zoom.
+
+## The rule behind the image
+
+Each pixel supplies a complex number $c$. Start at zero, then repeatedly square the result and add $c$:
+
 $$
-z_{n+1} = z_{n} ^2 + c 
+z_0 = 0, \qquad z_{n+1} = z_n^2 + c
 $$
 
-for all points $c$ in the complex plane and then coloring every point, depending on how long it took to escape.
+For $c = 0$, the sequence stays at zero. For $c = 1$, it starts $0, 1, 2, 5, 26$ and grows without bound. The Mandelbrot set contains the values of $c$ whose sequences stay bounded forever. A finite image approximates that test.
 
-<br/>
-
-If after iterating a couple of times, the resulting number is still less than 2, the point is in the Mandelbrot set and we color it black. If not, then it isn't in the Mandelbrot Set. It "escaped".
-
-<br/>
-
-If a point escaped, it is colored based on an algorithm called [orbit trapping](https://en.wikipedia.org/wiki/Orbit_trap), which takes into account the distance, i.e. how far the point escaped, and assigns the fraction of those colors to a color palette.
-
-<br/>
-
-This is what all of this looks like in the GLSL shader code, powering the above demo.
-
-<br/>
-
-```GLSL
-precision highp float;
-
-uniform vec2 iResolution;
-
-const float escapeRadius = 4.0;
-const float escapeRadius2 = escapeRadius * escapeRadius;
-const int maxIterations = 40;
-const float invMaxIterations = 1.0 / float(maxIterations);
-
-uniform vec2 u_zoomCenter;
-uniform float u_zoomSize;
-
-vec2 ipow2(vec2 v) {
-    return vec2(v.x * v.x - v.y * v.y, v.x * v.y * 2.0);
-}
-
-// Procedural palette generator by Inigo Quilez.
-// See: http://iquilezles.org/articles/palettes/
-vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
-    return a + b * cos(6.28318 * (c * t + d));
-}
-
-vec3 paletteColor(float t) {
-    vec3 a = vec3(0.5);
-    vec3 b = vec3(0.5);
-    vec3 c = vec3(1.0);
-    vec3 d = vec3(0.0, 0.1, 0.2);
-    return palette(fract(t + 0.5), a, b, c, d);
-}
-
-void main() {
-    // initializing uv coordinate (x,y of the plane) based on resolution
-    vec2 scale = vec2(1.0 / 1.5, 1.0 / 2.0)
-    vec2 uv = gl_FragCoord.xy - iResolution.xy * scale;
-    uv *= 10.0 / min(3.0 * iResolution.x, 4.0 * iResolution.y);
-
-    // calculating point c by combining uv coordinates with u_zoomCenter
-    vec2 z = vec2(0.0);
-    vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
-    int iteration;
-
-    // iterating over z;
-    for(int i = 0; i < maxIterations; i ++ ) {
-        z = ipow2(z) + c;
-        if (dot(z, z) > escapeRadius2) {
-            break;
-        }
-        iteration ++ ;
-    }
-
-    vec3 color = vec3(0.0);
-    float distance2 = dot(z, z);
-    if (distance2 > escapeRadius2) {
-        float nu = log2(log(distance2) / 2.0);
-        float weighted = (float(iteration + 1) - nu) * invMaxIterations
-        float fraction = clamp(weighted, 0.0, 1.0);
-        color = paletteColor(fraction);
-    }
-```
+The [Julia set explorer](/julia-set) keeps $c$ fixed and varies the starting point instead. The [Burning Ship](/burning-ship) changes the rule by taking absolute values before each square.
