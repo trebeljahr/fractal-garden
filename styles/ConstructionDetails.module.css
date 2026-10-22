@@ -1,0 +1,209 @@
+figure.lesson p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+figure.lesson figcaption {
+  font-size: 1.25rem;
+}
+fieldset.stepControls {
+  font-size: 1rem;
+}
+.layers {
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  margin: 1.3rem auto;
+  background: var(--diagram-bg);
+}
+.keptCell {
+  fill: var(--diagram-ink);
+  fill-opacity: 0.85;
+}
+.emptyCell {
+  fill: transparent;
+  stroke: #eee8ce55;
+  stroke-dasharray: 3 3;
+}
+.removedMark {
+  fill: none;
+  stroke: var(--diagram-accent);
+  stroke-width: 2;
+}
+.diagramLabel,
+.diagramValue {
+  fill: var(--diagram-ink);
+  font:
+    14px "Montserrat",
+    sans-serif;
+}
+.diagramValue {
+  font-size: 16px;
+}
+.summary {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 1rem 0 1.5rem;
+  overflow-wrap: anywhere;
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  margin-top: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.checkbox input[type="checkbox"] {
+  flex: 0 0 1.2rem;
+  width: 1.2rem;
+}
+.parentSquare {
+  fill: #eee8ce18;
+  stroke: var(--diagram-ink);
+  stroke-width: 1.5;
+}
+.forkDrawing {
+  max-height: 32rem;
+}
+.triangle {
+  fill: #eee8ce0c;
+  stroke: var(--diagram-ink);
+  stroke-width: 1.5;
+}
+.rightAngle {
+  fill: none;
+  stroke: var(--diagram-ink);
+}
+.angleLabel {
+  fill: var(--diagram-ink);
+  font:
+    10px "Montserrat",
+    sans-serif;
+}
+.leftSquare {
+  fill: #f5c56d33;
+  stroke: var(--diagram-accent);
+  stroke-width: 2;
+}
+.rightSquare {
+  fill: #eee8ce44;
+  stroke: var(--diagram-ink);
+  stroke-width: 2;
+}
+.areaBar {
+  height: 1.3rem;
+  background: var(--diagram-ink);
+  margin-top: 1.5rem;
+}
+.areaBar span {
+  display: block;
+  height: 100%;
+  background: var(--diagram-accent);
+  border-right: 2px solid var(--diagram-bg);
+  box-sizing: border-box;
+}
+.areaComparison p {
+  margin-bottom: 0;
+}
+.fernLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 1fr);
+  gap: 2rem;
+  align-items: center;
+  margin: 1rem 0 1.5rem;
+}
+.fernLayout svg {
+  display: block;
+  width: 100%;
+  max-height: 31rem;
+  background: var(--diagram-bg);
+}
+.fernReference,
+.fernCopy {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+.fernReference {
+  stroke: #eee8ce44;
+}
+.fernCopy {
+  stroke: var(--diagram-accent);
+}
+.fernTrail {
+  fill: none;
+  stroke: var(--diagram-ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.fernPoint {
+  fill: var(--diagram-bg);
+  stroke: var(--diagram-ink);
+  stroke-width: 2;
+}
+.ruleChoices {
+  display: grid;
+  gap: 0.4rem;
+}
+.ruleChoices button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  color: var(--diagram-ink);
+  border: 1px solid #eee8ce55;
+  background: transparent;
+  padding: 0.65rem 0.8rem;
+  font:
+    1rem / 1.4 "Montserrat",
+    sans-serif;
+  cursor: pointer;
+}
+.ruleChoices button[aria-pressed="true"] {
+  border-color: var(--diagram-accent);
+  background: #f5c56d18;
+}
+.ruleChoices button:focus-visible {
+  outline: 2px solid var(--diagram-accent);
+  outline-offset: 3px;
+}
+.reveal,
+.fernCopy {
+  animation: reveal 180ms ease-out;
+}
+@keyframes reveal {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 600px) {
+  .fernLayout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .fernControls {
+    display: contents;
+  }
+  .fernControls p {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  .fernLayout svg {
+    max-height: 24rem;
+  }
+  .ruleChoices button {
+    font-size: 1rem;
+    padding: 0.6rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .fernCopy {
+    animation: none;
+  }
+}

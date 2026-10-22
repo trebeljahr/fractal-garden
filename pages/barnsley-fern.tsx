@@ -5,6 +5,7 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { CLASSIC_FERN_MATRIX } from "../utils/barnsleyFern";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import type { Scalable } from "../utils/scaling";
@@ -27,12 +28,7 @@ type Props = {
 };
 
 const barnsley: Transformation = {
-  matrix: [
-    [0, 0, 0, 0.16, 0, 0, 0.01],
-    [0.85, 0.04, -0.04, 0.85, 0, 1.6, 0.85],
-    [0.2, -0.26, 0.23, 0.22, 0, 1.6, 0.07],
-    [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07],
-  ],
+  matrix: CLASSIC_FERN_MATRIX,
   ranges: {
     x: [-2.1818903790071125, 2.6557747667552816],
     y: [0.02608982485507005, 9.998262444483984],

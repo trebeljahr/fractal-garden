@@ -20,6 +20,10 @@ At each step, the classic fern chooses one of four transformations. A transforma
 
 These probabilities belong to **Classic Barnsley**. The other fern styles use different transformations and probabilities.
 
+<figure data-lesson="fern"></figure>
+
+The highlighted copies show where each rule puts points from the whole fern. Step forward to follow one point through a fixed sequence. The chosen rule changes at each step, while its formula stays the same. The short sequence does not reproduce the probabilities exactly.
+
 Each rule acts on the same point coordinates:
 
 $$

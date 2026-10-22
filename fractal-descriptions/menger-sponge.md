@@ -6,6 +6,8 @@ Rotate the cube to look through its square tunnels. Large openings cross the who
 
 Split a cube into 27 equal cubes in a three-by-three-by-three grid. Remove the central cube and the cube at the center of each of its six faces. Twenty cubes remain. Repeat the same removal inside every remaining cube.
 
+<figure data-lesson="menger"></figure>
+
 A face of the sponge shows the square-hole pattern of the [Sierpinski carpet](/sierpinski-carpet). The tunnels connect those faces through the interior.
 
 Open **Scene Studio** and turn off **Animate growth** to compare levels with **Iterations**. Disable **Auto rotate** when you want to hold a view still. Drag to rotate, and use the scroll wheel to move closer. Compare **Solid faces** with **Wireframe** to see how the smaller blocks fit together.

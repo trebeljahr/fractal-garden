@@ -7,6 +7,7 @@ import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
 import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
+import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
 import OrbitLesson, { isOrbitKind } from "./OrbitLesson";
 
 type HeadingResolverProps = {
@@ -45,6 +46,7 @@ type HastElement = {
     dataConstruction?: unknown;
     dataOrbit?: unknown;
     dataArticleImages?: unknown;
+    dataLesson?: unknown;
   };
   children?: HastElement[];
 };
@@ -115,6 +117,8 @@ const MarkdownRenderers: object = {
     const kind = node?.properties?.dataConstruction;
     const orbit = node?.properties?.dataOrbit;
     const images = node?.properties?.dataArticleImages;
+    const lesson = node?.properties?.dataLesson;
+    if (isDetailKind(lesson)) return <ConstructionDetails key={lesson} kind={lesson} />;
     if (isArticleImageKind(images)) return <ArticleImages kind={images} />;
     if (isOrbitKind(orbit)) return <OrbitLesson key={orbit} kind={orbit} />;
     return isConstructionKind(kind) ? (

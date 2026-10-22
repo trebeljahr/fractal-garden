@@ -6,6 +6,10 @@ Look for squares that split into two smaller squares through a triangular gap. E
 
 Start with one square. Place a right triangle on its top edge, using that edge as the triangle's hypotenuse. Draw a new square on each of the triangle's other sides. Repeat on both new squares.
 
+<figure data-lesson="pythagoras"></figure>
+
+In the small diagram, step forward twice, then move **Triangle angle**. The child squares change size while their combined area stays equal to the parent's.
+
 Open **Pattern Studio** and turn off **Animate growth**. Set **Iterations** to zero to see the first square, then add levels one at a time. Change **Angle** from 45 degrees toward 30 or 60 degrees to compare the two sides.
 
 Use **Fill triangles** and **Fill squares** to distinguish the connecting triangles from the squares. Their outlines remain visible when you turn the fill off.

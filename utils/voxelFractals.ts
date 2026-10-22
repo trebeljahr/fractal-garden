@@ -1,3 +1,4 @@
+import { keepMengerCube } from "./menger";
 import { type Orientation, viewRotation } from "./orientation";
 
 export type Cube = {
@@ -194,13 +195,7 @@ export function generateVicsekFractal3D(iterations: number) {
 }
 
 export function generateMengerSponge(iterations: number) {
-  return generateVoxelFractal(iterations, (x, y, z) => {
-    let zeros = 0;
-    if (x === 0) zeros += 1;
-    if (y === 0) zeros += 1;
-    if (z === 0) zeros += 1;
-    return zeros <= 1;
-  });
+  return generateVoxelFractal(iterations, keepMengerCube);
 }
 
 // The faces of a cube that no neighbouring cube covers. Hidden faces never
