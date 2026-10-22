@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Navbar.module.css";
-import { PAGE_SEO } from "../utils/pageSeo";
+import { getFractalName } from "../utils/pageSeo";
 
 function useLinks() {
   const router = useRouter();
@@ -90,8 +90,8 @@ export const NavElement = () => {
         <a
           className={styles.linkButton}
           href={prev}
-          aria-label={`Previous fractal: ${PAGE_SEO[prev]?.title ?? "Garden"}`}
-          title={PAGE_SEO[prev]?.title}
+          aria-label={`Previous fractal: ${getFractalName(prev)}`}
+          title={getFractalName(prev)}
         >
           <span className="icon-arrow-left">
             <span className="screen-reader-only">
@@ -113,9 +113,9 @@ export const NavElement = () => {
         <a
           className={styles.linkButton}
           href={next}
-          aria-label={`Next fractal: ${PAGE_SEO[next]?.title ?? "Garden"}`}
+          aria-label={`Next fractal: ${getFractalName(next)}`}
         >
-          <span className={styles.nextName}>{PAGE_SEO[next]?.title}</span>
+          <span className={styles.nextName}>{getFractalName(next)}</span>
           <span className="icon-arrow-right">
             <span className="screen-reader-only">
               Arrow Right Icon - When clicked, go to the next fractal in the exhibition.

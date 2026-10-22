@@ -1,5 +1,7 @@
 type SeoEntry = {
   title: string;
+  // Short labels for links and navigation, separate from the document title.
+  name?: string;
   description: string;
   imagePath: string;
   // Only set for images composed at a known size (scripts/generate-og-images.mjs);
@@ -22,6 +24,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   },
   "/mandelbrot": {
     title: "Mandelbrot Set Explorer",
+    name: "Mandelbrot Set",
     description:
       "Zoom into the Mandelbrot set, find spirals and smaller copies, and change coloring and iteration depth in this interactive fractal explorer.",
     imagePath: "/assets/fractal-images/mandelbrot.jpg",
@@ -40,6 +43,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   },
   "/burning-ship": {
     title: "Burning Ship Fractal Explorer",
+    name: "Burning Ship",
     description:
       "Zoom into the Burning Ship fractal, compare the whole ship with a little ship, and change its colors in an interactive explorer.",
     imagePath: "/assets/fractal-images/burning-ship.jpg",
@@ -64,6 +68,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   },
   "/julia-set": {
     title: "Julia Set Explorer",
+    name: "Julia Set",
     description:
       "Change the complex constant to reshape a Julia set. Zoom into branching patterns and compare presets in this interactive fractal explorer.",
     imagePath: "/assets/fractal-images/julia-set.jpg",
@@ -382,4 +387,9 @@ export function getPageSeo(pathname: string) {
       SITE_NAME,
     ].join(", "),
   };
+}
+
+export function getFractalName(path: string) {
+  const entry = PAGE_SEO[path];
+  return entry?.name ?? entry?.title ?? "Garden";
 }

@@ -2,7 +2,7 @@ import Image from "next/legacy/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/RelatedFractals.module.css";
-import { PAGE_SEO } from "../utils/pageSeo";
+import { getFractalName, PAGE_SEO } from "../utils/pageSeo";
 import { getRelatedFractals } from "../utils/relatedFractals";
 
 export function RelatedFractals() {
@@ -24,11 +24,11 @@ export function RelatedFractals() {
                     alt=""
                     layout="fill"
                     objectFit="contain"
-                    sizes="(max-width: 600px) 88px, 128px"
+                    sizes="(max-width: 980px) 44vw, 434px"
                   />
                 </span>
                 <span className={styles.copy}>
-                  <span className={styles.name}>{entry.title}</span>
+                  <span className={styles.name}>{getFractalName(href)}</span>
                   <span className={styles.reason}>{reason}</span>
                 </span>
               </a>
