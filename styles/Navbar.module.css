@@ -15,6 +15,19 @@
   color: #f5f1d1;
 }
 
+.linkButton:focus-visible {
+  outline: 2px solid #f5cc75;
+  outline-offset: 3px;
+}
+.nextName {
+  max-width: 13rem;
+  padding-left: 0.5rem;
+  font:
+    0.85rem "Montserrat",
+    sans-serif;
+  text-align: right;
+}
+
 .navigationElement {
   display: flex;
   justify-content: flex-end;
@@ -22,6 +35,15 @@
   z-index: 10;
   bottom: 20px;
   right: 20px;
+  border-radius: 10px;
+  background: rgba(10, 14, 16, 0.78);
+}
+
+@media (max-width: 600px) {
+  .nextName {
+    max-width: 7rem;
+    font-size: 0.75rem;
+  }
 }
 
 .navigationElement [class^="icon-"] {

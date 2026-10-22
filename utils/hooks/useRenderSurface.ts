@@ -3,6 +3,7 @@ import { calibrate } from "../render/calibrate";
 import { RenderHost } from "../render/host";
 import type { RendererKind } from "../render/registry";
 import type { CalibrationRequest, HostEvent } from "../render/types";
+import { useExplorerPart } from "./useExplorerPart";
 
 type Channel = {
   setParams: (params: unknown) => void;
@@ -10,6 +11,8 @@ type Channel = {
   remeasure: () => void;
   calibrate: (request: CalibrationRequest<unknown>) => void;
   dispose: () => void;
+  snapshotView: () => Promise<unknown>;
+  restoreView: (state: unknown) => void;
 };
 
 /** Asks the renderer how deep this machine can go; a new `id` asks again. */
@@ -37,10 +40,17 @@ function openWorkerChannel(
   }
 
   let worker: Worker | null = null;
+  let sequence = 0;
+  const pending = new Map<number, (state: unknown) => void>();
   try {
     worker = new Worker(new URL("../../workers/render.worker.ts", import.meta.url));
     const offscreen = canvas.transferControlToOffscreen();
-    worker.onmessage = (event: MessageEvent<HostEvent>) => onEvent(event.data);
+    worker.onmessage = (event: MessageEvent<HostEvent>) => {
+      if (event.data.type === "snapshot") {
+        pending.get(event.data.id)?.(event.data.state);
+        pending.delete(event.data.id);
+      } else onEvent(event.data);
+    };
     worker.postMessage({ type: "init", kind, canvas: offscreen, width: 0, height: 0, ratio: 1 }, [
       offscreen,
     ]);
@@ -55,7 +65,27 @@ function openWorkerChannel(
     resize: (width, height, ratio) => active.postMessage({ type: "resize", width, height, ratio }),
     remeasure: () => active.postMessage({ type: "remeasure" }),
     calibrate: (request) => active.postMessage({ type: "calibrate", request }),
-    dispose: () => active.terminate(),
+    snapshotView: () =>
+      new Promise((resolve, reject) => {
+        const id = ++sequence;
+        const timeout = window.setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("The renderer is still busy. Try sharing again in a moment."));
+        }, 2000);
+        pending.set(id, (value) => {
+          window.clearTimeout(timeout);
+          resolve(value);
+        });
+        active.postMessage({ type: "snapshot", id });
+      }),
+    restoreView: (state) => active.postMessage({ type: "restore-view", state }),
+    dispose: () => {
+      pending.forEach((resolve) => {
+        resolve(undefined);
+      });
+      pending.clear();
+      active.terminate();
+    },
   };
 }
 
@@ -131,6 +161,8 @@ export function useRenderSurface<P>({
             handle({ type: "calibrated", reports });
           },
           dispose: () => host.dispose(),
+          snapshotView: async () => host.snapshotView(),
+          restoreView: (state) => host.restoreView(state),
         });
       });
     }
@@ -145,6 +177,19 @@ export function useRenderSurface<P>({
       setCanvas(null);
     };
   }, [kind]);
+
+  useExplorerPart(
+    "renderer",
+    () => channelRef.current?.snapshotView(),
+    (saved) => channelRef.current?.restoreView(saved),
+    connected,
+  );
+
+  useEffect(() => {
+    const reset = () => channelRef.current?.restoreView(0);
+    window.addEventListener("garden:reset-pose", reset);
+    return () => window.removeEventListener("garden:reset-pose", reset);
+  }, []);
 
   useEffect(() => {
     if (!canvas || !width || !height) return;

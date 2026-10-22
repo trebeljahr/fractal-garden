@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { decodeView, finite, isRecord } from "../explorerShare";
 import {
   type CostReport,
   computeCap,
@@ -61,6 +62,17 @@ export function useAdaptiveGrowth({
     setSamples(stored);
     setLoadedKey(storageKey);
     setRenderedLevel(null);
+
+    try {
+      const shared = decodeView(window.location.hash, window.location.pathname)?.parts.config;
+      if (isRecord(shared) && finite(shared.iterations, min, max)) {
+        setCalibrating(false);
+        setIterationsRef.current(Math.round(shared.iterations));
+        return;
+      }
+    } catch {
+      /* Invalid links keep the ordinary opening view. */
+    }
 
     // Open on the deepest level this machine handles: the one found last
     // time, or, on a first visit, the one a calibration sweep finds.

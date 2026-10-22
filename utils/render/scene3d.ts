@@ -1,3 +1,4 @@
+import { finite } from "../explorerShare";
 import type { Orientation } from "../orientation";
 import {
   buildFlakeScene,
@@ -119,6 +120,14 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
   // Accumulated auto-rotation, kept when rotation stops so dragging starts
   // from what is on screen.
   private yawOffset = 0;
+  private drawnYaw = 0;
+
+  snapshotView() {
+    return this.drawnYaw;
+  }
+  restoreView(value: unknown) {
+    if (finite(value, -1e12, 1e12)) this.yawOffset = value;
+  }
 
   update(params: Scene3DParams) {
     const key = specKey(params.spec, params.iterations);
@@ -134,6 +143,7 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
     if (!params || !built) return false;
 
     const { view } = params;
+    this.drawnYaw = this.yawOffset;
     const options = { ...view, rotationY: view.rotationY + this.yawOffset };
     // Both draw functions only use the drawing API OffscreenCanvas shares.
     const target = ctx as CanvasRenderingContext2D;

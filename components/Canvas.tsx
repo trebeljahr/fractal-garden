@@ -68,6 +68,15 @@ export const _WebGLCanvas = ({ setCtx, setCnv, width, height }: WebGLCleanedProp
   }, [setCtx, setCnv]);
 
   useEffect(() => {
+    const beforeExport = () => {
+      // Renderers with a static WebGL frame provide a synchronous redraw.
+      canvasRef.current?.dispatchEvent(new Event("garden:redraw"));
+    };
+    window.addEventListener("garden:before-export", beforeExport);
+    return () => window.removeEventListener("garden:before-export", beforeExport);
+  }, []);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ratio = window.devicePixelRatio || 1;

@@ -33,6 +33,7 @@
 .openedDrawer {
   position: relative;
   padding: 4vw;
+  padding-bottom: max(4vw, 6rem);
   font-size: 1.5rem;
   /* transition: all 1s; */
   /* position: absolute; */

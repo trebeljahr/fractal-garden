@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
+import { FractalPlaces } from "../components/FractalPlaces";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain, radians } from "../utils/ctxHelpers";
+import { finite } from "../utils/explorerShare";
+import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
@@ -106,6 +109,16 @@ const Mandelbulb = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
   const configRef = useRef(config);
   const dragRef = useRef<DragState | null>(null);
+  const drawnRotation = useRef(INITIAL_CONFIG.rotationY);
+
+  useExplorerPart(
+    "bulbRotation",
+    () => drawnRotation.current,
+    (saved) => {
+      if (!finite(saved, -1e12, 1e12)) throw new Error("Invalid rotation");
+      setConfig((old) => ({ ...old, rotationY: saved, autoRotate: false }));
+    },
+  );
 
   useEffect(() => {
     configRef.current = config;
@@ -173,13 +186,14 @@ const Mandelbulb = ({ description }: Props) => {
     const startTime = performance.now();
     let animationId = 0;
 
-    const render = () => {
+    const render = (schedule = true) => {
       const currentConfig = configRef.current;
       const elapsed = (performance.now() - startTime) * 0.001;
       const [bgR, bgG, bgB] = parseHexColor(currentConfig.background);
       const [colorR, colorG, colorB] = parseHexColor(currentConfig.color);
       const animatedRotationY =
         currentConfig.rotationY + (currentConfig.autoRotate ? elapsed * 18 : 0);
+      drawnRotation.current = ((((animatedRotationY + 180) % 360) + 360) % 360) - 180;
 
       gl.uniform2f(resolutionLocation, width * ratio, height * ratio);
       gl.uniform2f(rotationLocation, radians(currentConfig.rotationX), radians(animatedRotationY));
@@ -202,8 +216,10 @@ const Mandelbulb = ({ description }: Props) => {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      animationId = requestAnimationFrame(render);
+      if (schedule) animationId = requestAnimationFrame(() => render());
     };
+    const exportFrame = () => render(false);
+    cnv.addEventListener("garden:redraw", exportFrame);
 
     const handleMouseDown = (event: MouseEvent) => {
       dragRef.current = {
@@ -274,6 +290,7 @@ const Mandelbulb = ({ description }: Props) => {
 
     return () => {
       cancelAnimationFrame(animationId);
+      cnv.removeEventListener("garden:redraw", exportFrame);
       cnv.removeEventListener("mousedown", handleMouseDown);
       cnv.removeEventListener("mouseleave", handleMouseUp);
       cnv.removeEventListener("wheel", handleWheel);
@@ -298,6 +315,44 @@ const Mandelbulb = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel
+          places={
+            <FractalPlaces
+              views={[
+                {
+                  label: "Whole bulb",
+                  detail: "See the eight-fold form from a distance.",
+                  distance: 3,
+                  tilt: 18,
+                  turn: 32,
+                },
+                {
+                  label: "Surface folds",
+                  detail: "Move closer to the ridges and cavities.",
+                  distance: 1.7,
+                  tilt: 28,
+                  turn: 42,
+                },
+                {
+                  label: "Looking down",
+                  detail: "See how the branches meet around the pole.",
+                  distance: 2.4,
+                  tilt: 80,
+                  turn: 0,
+                },
+              ]}
+              onSelect={(place) =>
+                setConfig((old) => ({
+                  ...old,
+                  cameraDistance: place.distance,
+                  rotationX: place.tilt,
+                  rotationY: place.turn,
+                  offsetX: 0,
+                  offsetY: 0,
+                  autoRotate: false,
+                }))
+              }
+            />
+          }
           controlsHint="Power, detail, orbit, and framing for finding the best silhouettes."
           controlsTitle="Mandelbulb Studio"
           data={config}

@@ -8,10 +8,15 @@
   gap: 0.9rem;
   width: min(352px, calc(100vw - 36px));
   pointer-events: none;
+  max-height: calc(100svh - 100px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .panel > * {
   pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .introCard {

@@ -1,7 +1,10 @@
-import { Children, type ReactNode, useEffect, useMemo, useState } from "react";
+import { Children, isValidElement, type ReactNode, useEffect, useMemo, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
+import { type ControlRule, isRecord } from "../utils/explorerShare";
 import { scrollToDescription } from "../utils/scrollToDescription";
+import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
+import { ExplorerTools } from "./ExplorerTools";
 
 type Action = {
   label: string;
@@ -21,7 +24,50 @@ type Props<T> = {
   lines?: string[];
   mode?: PanelMode;
   onUpdate: (newData: T) => void;
+  onRestore?: (newData: T) => void;
+  places?: ReactNode;
+  shareRules?: ControlRule[];
 };
+
+function controlRules(children: ReactNode, data: unknown): ControlRule[] {
+  const rules: ControlRule[] = [];
+  const walk = (nodes: ReactNode) =>
+    Children.forEach(nodes, (child) => {
+      if (!isValidElement(child)) return;
+      const { path, min, max, options } = child.props;
+      if (typeof path === "string") {
+        const kind =
+          child.type === PanelNumber
+            ? "number"
+            : child.type === PanelColor
+              ? "color"
+              : child.type === PanelBoolean
+                ? "boolean"
+                : child.type === PanelSelect
+                  ? "select"
+                  : null;
+        if (kind) rules.push({ path, kind, min: min ?? undefined, max: max ?? undefined, options });
+      }
+      if (child.props.children) walk(child.props.children);
+    });
+  walk(children);
+  // Keep colors from conditional controls too (for example both Penrose tile families).
+  const colors = (value: unknown, prefix = "") => {
+    if (!isRecord(value)) return;
+    for (const [key, field] of Object.entries(value)) {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (
+        typeof field === "string" &&
+        /^#[\da-f]{6}$/i.test(field) &&
+        !rules.some((rule) => rule.path === path)
+      ) {
+        rules.push({ path, kind: "color" });
+      } else if (isRecord(field)) colors(field, path);
+    }
+  };
+  colors(data);
+  return rules;
+}
 
 const PANEL_COPY: Record<
   PanelMode,
@@ -69,6 +115,9 @@ export function ExplorerPanel<T>({
   lines,
   mode = "pattern",
   onUpdate,
+  onRestore = onUpdate,
+  places,
+  shareRules = [],
 }: Props<T>) {
   const defaults = PANEL_COPY[mode];
   const [pageTitle, setPageTitle] = useState("");
@@ -123,6 +172,17 @@ export function ExplorerPanel<T>({
             ))}
           </div>
         ) : null}
+        {places}
+        <ExplorerTools
+          data={data}
+          rules={[
+            ...controlRules(children, data).filter(
+              (rule) => !shareRules.some((override) => override.path === rule.path),
+            ),
+            ...shareRules,
+          ]}
+          onRestore={onRestore}
+        />
       </div>
 
       <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>

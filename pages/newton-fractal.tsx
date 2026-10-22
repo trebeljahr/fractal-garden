@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { WebGLCanvas } from "../components/Canvas";
+import { FractalPlaces } from "../components/FractalPlaces";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import { ViewportOverlay } from "../components/ViewportOverlay";
@@ -86,11 +87,13 @@ const NewtonFractal = ({ description }: Props) => {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     renderRef.current = drawNewton;
+    cnv.addEventListener("garden:redraw", drawNewton);
 
     drawNewton();
 
     return () => {
       renderRef.current = null;
+      cnv.removeEventListener("garden:redraw", drawNewton);
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -104,6 +107,28 @@ const NewtonFractal = ({ description }: Props) => {
         <div className={styles.fullScreen}>
           <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
           <ViewportOverlay
+            places={
+              <FractalPlaces
+                views={[
+                  {
+                    label: "All three basins",
+                    detail: "See the regions around the three roots.",
+                    center: [0, 0] as [number, number],
+                    zoomSize: 2.2,
+                  },
+                  {
+                    label: "Where the basins meet",
+                    detail: "Zoom into the boundary between root colors.",
+                    center: [0, 0] as [number, number],
+                    zoomSize: 0.12,
+                  },
+                ]}
+                onSelect={(place) => {
+                  viewportRef.current = { center: [...place.center], zoomSize: place.zoomSize };
+                  renderRef.current?.();
+                }}
+              />
+            }
             title="Newton Fractal"
             lines={[
               "Drag to pan and use the scroll wheel or a pinch gesture to zoom into the basins.",

@@ -16,15 +16,20 @@ export interface Renderer<P> {
   describe(): { level: number; work: number } | null;
   /** The parameters for another growth level; defaults to replacing `iterations`. */
   withLevel?(params: P, level: number): P;
+  snapshotView?(): unknown;
+  restoreView?(state: unknown): void;
 }
 
 export type HostEvent =
+  | { type: "snapshot"; id: number; state: unknown }
   | { type: "rendered"; level: number }
   | { type: "cost"; report: CostReport }
   | { type: "calibrated"; reports: CostReport[] }
   | { type: "error"; message: string };
 
 export type WorkerRequest =
+  | { type: "snapshot"; id: number }
+  | { type: "restore-view"; state: unknown }
   | {
       type: "init";
       kind: string;

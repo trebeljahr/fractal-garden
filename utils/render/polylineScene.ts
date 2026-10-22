@@ -1,3 +1,4 @@
+import { finite } from "../explorerShare";
 import {
   createEndlessOrbit,
   drawPolyline3D,
@@ -85,6 +86,13 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
   private extend: Extend | undefined;
   private visible = 0;
   private yawOffset = 0;
+
+  snapshotView() {
+    return this.yawOffset;
+  }
+  restoreView(value: unknown) {
+    if (finite(value, -1e12, 1e12)) this.yawOffset = value;
+  }
 
   update(params: PolylineSceneParams) {
     const previous = this.params;

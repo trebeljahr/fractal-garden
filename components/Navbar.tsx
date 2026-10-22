@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Navbar.module.css";
+import { PAGE_SEO } from "../utils/pageSeo";
 
 function useLinks() {
   const router = useRouter();
@@ -86,7 +87,12 @@ export const NavElement = () => {
   return (
     <nav className={styles.navigationElement}>
       <Link legacyBehavior as={prev} href={prev}>
-        <a className={styles.linkButton}>
+        <a
+          className={styles.linkButton}
+          href={prev}
+          aria-label={`Previous fractal: ${PAGE_SEO[prev]?.title ?? "Garden"}`}
+          title={PAGE_SEO[prev]?.title}
+        >
           <span className="icon-arrow-left">
             <span className="screen-reader-only">
               Arrow Left Icon - When clicked, go to the previous fractal in the exhibition.
@@ -95,7 +101,7 @@ export const NavElement = () => {
         </a>
       </Link>
       <Link legacyBehavior as={home} href={home}>
-        <a className={styles.linkButton}>
+        <a href={home} className={styles.linkButton} aria-label="All fractals" title="All fractals">
           <span className="icon-home3">
             <span className="screen-reader-only">
               Home Icon - When clicked, go back to the Home Page of the Exhibition.
@@ -104,7 +110,12 @@ export const NavElement = () => {
         </a>
       </Link>
       <Link legacyBehavior as={next} href={next}>
-        <a className={styles.linkButton}>
+        <a
+          className={styles.linkButton}
+          href={next}
+          aria-label={`Next fractal: ${PAGE_SEO[next]?.title ?? "Garden"}`}
+        >
+          <span className={styles.nextName}>{PAGE_SEO[next]?.title}</span>
           <span className="icon-arrow-right">
             <span className="screen-reader-only">
               Arrow Right Icon - When clicked, go to the next fractal in the exhibition.

@@ -1,5 +1,7 @@
 import { type MutableRefObject, useEffect } from "react";
 import { constrain } from "../ctxHelpers";
+import { readViewport } from "../explorerShare";
+import { useExplorerPart } from "./useExplorerPart";
 
 type Viewport = {
   center: [number, number];
@@ -40,6 +42,20 @@ export function useShaderViewportControls({
   onViewportChange,
   flipY = false,
 }: Params) {
+  useExplorerPart(
+    "viewport",
+    () => viewportRef.current,
+    (saved) => {
+      viewportRef.current = readViewport(
+        saved,
+        minZoomSize,
+        typeof maxZoomSize === "function" ? 1e12 : maxZoomSize,
+      );
+      onViewportChange();
+    },
+    Boolean(canvas),
+  );
+
   useEffect(() => {
     if (!canvas) return;
 

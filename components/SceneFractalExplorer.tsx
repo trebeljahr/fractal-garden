@@ -4,9 +4,11 @@ import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
+import { IDENTITY } from "../utils/orientation";
 import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
+import { FractalPlaces } from "./FractalPlaces";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 
@@ -169,6 +171,44 @@ export function SceneFractalExplorer<V extends string>({
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
+        places={
+          <FractalPlaces
+            views={[
+              {
+                label: "Whole form",
+                detail: "See the shape from a corner.",
+                distance: 6,
+                tilt: rotationX,
+                turn: rotationY,
+              },
+              {
+                label: "Face on",
+                detail: "Look straight through the repeated structure.",
+                distance: 4.5,
+                tilt: 0,
+                turn: 0,
+              },
+              {
+                label: "Close corner",
+                detail: "Move closer to the edges and smaller copies.",
+                distance: 3,
+                tilt: 28,
+                turn: 38,
+              },
+            ]}
+            onSelect={(place) => {
+              setConfig((old) => ({
+                ...old,
+                cameraDistance: place.distance,
+                rotationX: place.tilt,
+                rotationY: place.turn,
+                grab: [...IDENTITY],
+                autoRotate: false,
+              }));
+              window.dispatchEvent(new Event("garden:reset-pose"));
+            }}
+          />
+        }
         controlsHint={controlsHint}
         controlsTitle={controlsTitle}
         data={config}
@@ -176,6 +216,22 @@ export function SceneFractalExplorer<V extends string>({
         lines={[hint]}
         mode="scene"
         onUpdate={handleUpdate}
+        shareRules={[
+          {
+            path: "iterations",
+            kind: "number",
+            min: 0,
+            max: Math.max(
+              ...Object.values<SceneVariant>(variants).map((entry) => entry.maxIterations),
+            ),
+          },
+        ]}
+        onRestore={(saved) =>
+          setConfig({
+            ...saved,
+            iterations: Math.min(saved.iterations, variants[saved.variant].maxIterations),
+          })
+        }
       >
         <PanelColor path="background" />
         <PanelColor path="fillColor" />

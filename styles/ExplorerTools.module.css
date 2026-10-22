@@ -1,0 +1,68 @@
+.tools {
+  border-top: 1px solid rgba(245, 241, 209, 0.12);
+  padding-top: 0.7rem;
+}
+.buttons {
+  display: flex;
+  gap: 1.1rem;
+}
+.buttons button {
+  padding: 0.55rem 0;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  color: var(--yellow-white);
+  font:
+    0.9rem "Montserrat",
+    sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(245, 241, 209, 0.3);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    text-decoration-color 150ms;
+}
+.buttons button:hover {
+  color: #f5cc75;
+  text-decoration-color: currentColor;
+}
+.buttons button:focus-visible {
+  outline: 2px solid #f5cc75;
+  outline-offset: 4px;
+}
+.buttons button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.status {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(245, 241, 209, 0.78);
+}
+.status:empty {
+  display: none;
+}
+.savedLink {
+  display: inline-block;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--yellow-white);
+  text-underline-offset: 0.25em;
+  margin-right: 1rem;
+}
+.tools input {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid rgba(245, 241, 209, 0.3);
+  background: #10171a;
+  color: var(--yellow-white);
+  font-size: 0.85rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .buttons button {
+    transition: none;
+  }
+}

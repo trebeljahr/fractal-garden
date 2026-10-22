@@ -6,6 +6,8 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { constrain } from "../utils/ctxHelpers";
+import { finite, isRecord } from "../utils/explorerShare";
+import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 
@@ -107,6 +109,25 @@ const LogisticMap = ({ description }: Props) => {
   useEffect(() => {
     viewRef.current = view;
   }, [view]);
+
+  useExplorerPart(
+    "logisticView",
+    () => viewRef.current,
+    (saved) => {
+      if (
+        !isRecord(saved) ||
+        !finite(saved.rMin, -100, 100) ||
+        !finite(saved.rMax, -100, 100) ||
+        !finite(saved.xMin, -100, 100) ||
+        !finite(saved.xMax, -100, 100) ||
+        !finite(saved.rMax - saved.rMin, MIN_RANGE, MAX_RANGE) ||
+        !finite(saved.xMax - saved.xMin, MIN_RANGE, MAX_RANGE)
+      ) {
+        throw new Error("Invalid diagram view");
+      }
+      setView({ rMin: saved.rMin, rMax: saved.rMax, xMin: saved.xMin, xMax: saved.xMax });
+    },
+  );
 
   useEffect(() => {
     if (!ctx) return;
@@ -260,6 +281,7 @@ const LogisticMap = ({ description }: Props) => {
           ]}
           mode="formula"
           onUpdate={handleUpdate}
+          onRestore={setConfig}
         >
           <PanelColor path="background" />
           <PanelColor path="color" />

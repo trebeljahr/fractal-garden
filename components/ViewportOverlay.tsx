@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import styles from "../styles/ViewportOverlay.module.css";
 import { scrollToDescription } from "../utils/scrollToDescription";
+import { ExplorerTools } from "./ExplorerTools";
 
 type Action = {
   label: string;
@@ -11,9 +12,10 @@ type Props = {
   title?: string;
   lines: string[];
   actions?: Action[];
+  places?: ReactNode;
 };
 
-export const ViewportOverlay = ({ title, lines, actions = [] }: Props) => {
+export const ViewportOverlay = ({ title, lines, actions = [], places }: Props) => {
   const [visible, setVisible] = useState(true);
   const [pageTitle, setPageTitle] = useState("");
 
@@ -67,6 +69,8 @@ export const ViewportOverlay = ({ title, lines, actions = [] }: Props) => {
           </button>
         ))}
       </div>
+      {places}
+      <ExplorerTools data={{}} rules={[]} onRestore={() => {}} />
     </div>
   );
 };

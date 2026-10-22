@@ -33,7 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Script
             defer
             data-domain="fractal.garden"
-            src="https://plausible.trebeljahr.com/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+            src="https://plausible.trebeljahr.com/js/script.file-downloads.outbound-links.pageview-props.revenue.tagged-events.js"
           />
           <Script id="plausible-init">
             {`

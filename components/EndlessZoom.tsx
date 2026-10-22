@@ -1,5 +1,7 @@
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../styles/EndlessZoom.module.css";
+import { finite, isRecord } from "../utils/explorerShare";
+import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { fixedFromNumber, fixedToNumber, rescale } from "../utils/lsystem/bigfixed";
 import type { ZoomFrame } from "../utils/lsystem/pageZoom";
 import { createRenderer, type Renderer } from "../utils/lsystem/render";
@@ -229,6 +231,78 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   }, [draw, schedule]);
   const requestDrawRef = useRef(requestDraw);
   requestDrawRef.current = requestDraw;
+
+  useExplorerPart(
+    "curve",
+    () => {
+      const view = viewRef.current;
+      if (!view) return undefined;
+      return {
+        zoom: view.zoom,
+        panX: view.panX,
+        panY: view.panY,
+        deepX: view.deepX.toString(),
+        deepY: view.deepY.toString(),
+        deepBits: view.deepBits,
+        frame: view.frame,
+        generation: view.generation,
+        width,
+        height,
+      };
+    },
+    (saved) => {
+      if (
+        !isRecord(saved) ||
+        !isRecord(saved.frame) ||
+        !width ||
+        !height ||
+        !finite(saved.zoom, 1, MAX_ZOOM) ||
+        !finite(saved.panX, -1e9, 1e9) ||
+        !finite(saved.panY, -1e9, 1e9) ||
+        !finite(saved.deepBits, 0, 4096) ||
+        !Number.isInteger(saved.deepBits) ||
+        !finite(saved.generation, 0, 100) ||
+        !Number.isInteger(saved.generation) ||
+        !finite(saved.width, 1, 100000) ||
+        !finite(saved.height, 1, 100000) ||
+        !finite(saved.frame.scale, 1e-100, 1e100) ||
+        !finite(saved.frame.originX, -1e12, 1e12) ||
+        !finite(saved.frame.originY, -1e12, 1e12) ||
+        typeof saved.deepX !== "string" ||
+        !/^-?\d{1,1300}$/.test(saved.deepX) ||
+        typeof saved.deepY !== "string" ||
+        !/^-?\d{1,1300}$/.test(saved.deepY)
+      ) {
+        throw new Error("Invalid curve view");
+      }
+      const ratio = Math.min(width, height) / Math.min(saved.width, saved.height);
+      viewRef.current = {
+        zoom: saved.zoom,
+        panX: saved.panX * ratio,
+        panY: saved.panY * ratio,
+        deepX: BigInt(saved.deepX),
+        deepY: BigInt(saved.deepY),
+        deepBits: saved.deepBits,
+        frame: {
+          scale: saved.frame.scale * ratio,
+          originX: width / 2 + (saved.frame.originX - saved.width / 2) * ratio,
+          originY: height / 2 + (saved.frame.originY - saved.height / 2) * ratio,
+        },
+        generation: saved.generation,
+        spec: specRef.current,
+      };
+      setActive(true);
+      requestDrawRef.current();
+    },
+    Boolean(width && height),
+  );
+
+  useEffect(() => {
+    if (!gl) return;
+    const redraw = () => draw();
+    gl.canvas.addEventListener("garden:redraw", redraw);
+    return () => gl.canvas.removeEventListener("garden:redraw", redraw);
+  }, [gl, draw]);
 
   useEffect(() => {
     requestDraw();

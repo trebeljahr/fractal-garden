@@ -1,0 +1,62 @@
+.places {
+  border-top: 1px solid rgba(245, 241, 209, 0.12);
+  padding-top: 0.25rem;
+  color: var(--yellow-white);
+  font-family: "Montserrat", sans-serif;
+}
+.places summary {
+  padding: 0.75rem 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 0.94rem;
+}
+.places summary::marker {
+  color: #f5cc75;
+}
+.places ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.places li + li {
+  border-top: 1px solid rgba(245, 241, 209, 0.08);
+}
+.places button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  padding: 0.75rem 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: color 150ms;
+}
+.places button > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.places small {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(245, 241, 209, 0.65);
+}
+.places button:hover {
+  color: #f5cc75;
+}
+.places button:focus-visible,
+.places summary:focus-visible {
+  outline: 2px solid #f5cc75;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .places button {
+    transition: none;
+  }
+}

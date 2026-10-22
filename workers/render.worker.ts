@@ -17,6 +17,12 @@ scope.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const message = event.data;
   try {
     switch (message.type) {
+      case "snapshot":
+        emit({ type: "snapshot", id: message.id, state: host?.snapshotView() });
+        break;
+      case "restore-view":
+        host?.restoreView(message.state);
+        break;
       case "init":
         kind = message.kind;
         host = new RenderHost(message.canvas, createRenderer(kind), emit, true);

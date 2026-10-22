@@ -19,6 +19,7 @@ import vertexShader from "../utils/shaders/mandelbrot.vert";
 import { WebGLCanvas } from "./Canvas";
 import { PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
+import { FractalPlaces } from "./FractalPlaces";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 
@@ -34,6 +35,9 @@ type View = {
   label: string;
   center: [number, number];
   zoomSize: number;
+  detail?: string;
+  iterations?: number;
+  parameters?: { preset: string; cReal: number; cImag: number };
 };
 
 type Props<T extends EscapeTimeColoring> = {
@@ -42,6 +46,7 @@ type Props<T extends EscapeTimeColoring> = {
   description: string;
   config: T;
   onUpdate: (newData: T) => void;
+  onRestore: (newData: T) => void;
   initialCenter: [number, number];
   initialZoomSize: number;
   minZoomSize?: number;
@@ -65,6 +70,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   description,
   config,
   onUpdate,
+  onRestore,
   initialCenter,
   initialZoomSize,
   minZoomSize = 0.00005,
@@ -152,9 +158,11 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     renderRef.current = draw;
+    cnv.addEventListener("garden:redraw", draw);
 
     return () => {
       renderRef.current = null;
+      cnv.removeEventListener("garden:redraw", draw);
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);
@@ -170,13 +178,22 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
-        actions={views.map((view) => ({
-          label: view.label,
-          onClick: () => {
-            viewportRef.current = { center: [...view.center], zoomSize: view.zoomSize };
-            renderRef.current?.();
-          },
-        }))}
+        places={
+          views.length > 0 && (
+            <FractalPlaces
+              views={views}
+              onSelect={(view) => {
+                viewportRef.current = { center: [...view.center], zoomSize: view.zoomSize };
+                onRestore({
+                  ...config,
+                  ...view.parameters,
+                  iterations: view.iterations ?? config.iterations,
+                });
+                renderRef.current?.();
+              }}
+            />
+          )
+        }
         controlsHint={controlsHint}
         controlsTitle={controlsTitle}
         data={config}
@@ -184,6 +201,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         lines={lines}
         mode="formula"
         onUpdate={onUpdate}
+        onRestore={onRestore}
       >
         {/* DatFolder clones every child, so drop empty slots first. */}
         {Children.toArray(children)}

@@ -85,6 +85,16 @@ export class RenderHost<P> {
     this.schedule();
   }
 
+  snapshotView() {
+    return this.renderer.snapshotView?.();
+  }
+
+  restoreView(state: unknown) {
+    this.renderer.restoreView?.(state);
+    this.dirty = true;
+    this.schedule();
+  }
+
   /** Measures the current level again, e.g. after timings taken in a hidden tab were dropped. */
   remeasure() {
     this.forceProbe = true;
