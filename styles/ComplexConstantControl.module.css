@@ -166,3 +166,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+@media (min-width: 701px) {
+  .chart {
+    max-width: 210px;
+  }
+}
