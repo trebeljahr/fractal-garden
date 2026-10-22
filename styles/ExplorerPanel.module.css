@@ -142,19 +142,22 @@
 }
 
 .panel :global(.react-dat-gui.exploration-gui li.folder .dg) {
+  overflow: visible;
   background: transparent;
 }
 
 .panel :global(.react-dat-gui.exploration-gui li.folder .title) {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 2;
   padding: 1.05rem 1.15rem 1rem;
   transition: background-color 0.18s ease;
-  background: transparent;
+  background: #091115;
   border-bottom: 1px solid rgba(245, 241, 209, 0.08);
 }
 
 .panel :global(.react-dat-gui.exploration-gui li.folder .title:hover) {
-  background: rgba(245, 204, 117, 0.06);
+  background: linear-gradient(rgba(245, 204, 117, 0.06), rgba(245, 204, 117, 0.06)), #091115;
 }
 
 .panel :global(.react-dat-gui.exploration-gui li.folder.closed .title) {

@@ -66,7 +66,7 @@ function controlRules(children: ReactNode, data: unknown): ControlRule[] {
   return rules;
 }
 
-const CONTROLS_TITLE = "Controls";
+const CONTROLS_TITLE = "Fractal Studio Controls";
 
 const PANEL_COPY: Record<
   PanelMode,
