@@ -1,11 +1,11 @@
 .places {
   border-top: 1px solid rgba(230, 230, 230, 0.12);
-  padding-top: 0.25rem;
+  padding-top: 8px;
   color: #e6e6e6;
   font-family: Arial, Helvetica, sans-serif;
 }
 .places summary {
-  padding: 0.75rem 0;
+  padding: 14px 0;
   min-height: 44px;
   cursor: pointer;
   font-size: 13px;
@@ -24,11 +24,11 @@
 .places button {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 8px;
   width: 100%;
   min-height: 44px;
   border: 0;
-  padding: 0.75rem 0;
+  padding: 14px 0;
   background: none;
   color: inherit;
   font: inherit;
