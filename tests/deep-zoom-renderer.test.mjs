@@ -341,3 +341,23 @@ test("an unrecoverable exact-pixel repair reports failure without replacing the 
     assert.equal(h.visible.length, 1);
     assert.equal(h.worker.jobs.length, 0);
   }));
+
+test("returning to the retained frame clears refinement status without redrawing", () =>
+  harness((h) => {
+    h.state = { ...h.state, view: createViewportAtLog([-0.5, 0], 1) };
+    const original = h.state.view;
+    h.renderer.update();
+    h.tick();
+    h.tick();
+    h.state = { ...h.state, view: createViewportAtLog([-0.75, 0.125], -10) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.statuses.at(-1).message, "Refining detail…");
+    h.state = { ...h.state, view: original };
+    h.renderer.update();
+    h.tick();
+    h.worker.complete();
+    h.tick();
+    assert.equal(h.visible.length, 1);
+    assert.equal(h.statuses.at(-1).message, "Ready");
+  }));

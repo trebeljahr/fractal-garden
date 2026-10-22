@@ -410,7 +410,10 @@ export function createDeepZoomRenderer(
       frame = 0;
       if (destroyed || active || pending) return;
       const next = snapshot();
-      if (shown && shown.key === next.key && sameView(shown.state.view, next.state.view)) return;
+      if (shown && shown.key === next.key && sameView(shown.state.view, next.state.view)) {
+        report(shown.state.view.logZoom < -7 ? "Detail ready" : "Ready");
+        return;
+      }
       active = next;
       try {
         prepare(next);
