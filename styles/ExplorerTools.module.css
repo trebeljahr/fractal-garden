@@ -11,25 +11,24 @@
   min-height: 44px;
   background: none;
   border: 0;
-  color: #e6e6e6;
+  color: var(--explorer-ink);
   font:
-    13px Arial,
-    Helvetica,
+    13px "Montserrat",
     sans-serif;
   text-decoration: underline;
   text-underline-offset: 0.3em;
-  text-decoration-color: rgba(230, 230, 230, 0.3);
+  text-decoration-color: rgba(245, 241, 209, 0.3);
   cursor: pointer;
   transition:
     color 150ms,
     text-decoration-color 150ms;
 }
 .buttons button:hover {
-  color: #ffffff;
+  color: var(--explorer-accent);
   text-decoration-color: currentColor;
 }
 .buttons button:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--explorer-accent);
   outline-offset: 4px;
 }
 .buttons button:disabled {
@@ -40,7 +39,7 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.4;
-  color: rgba(230, 230, 230, 0.78);
+  color: rgba(245, 241, 209, 0.78);
 }
 .status:empty {
   display: none;
@@ -49,7 +48,7 @@
   display: inline-block;
   padding: 0.4rem 0;
   font-size: 12px;
-  color: #e6e6e6;
+  color: var(--explorer-ink);
   text-underline-offset: 0.25em;
   margin-right: 1rem;
 }
@@ -57,9 +56,9 @@
   width: 100%;
   margin-top: 0.6rem;
   padding: 0.6rem;
-  border: 1px solid rgba(230, 230, 230, 0.3);
+  border: 1px solid rgba(245, 241, 209, 0.3);
   background: #10171a;
-  color: #e6e6e6;
+  color: var(--explorer-ink);
   font-size: 12px;
 }
 @media (prefers-reduced-motion: reduce) {

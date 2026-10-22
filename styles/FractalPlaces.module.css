@@ -1,8 +1,8 @@
 .places {
-  border-top: 1px solid rgba(230, 230, 230, 0.12);
+  border-top: 1px solid rgba(245, 241, 209, 0.12);
   padding-top: 8px;
-  color: #e6e6e6;
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--explorer-ink);
+  font-family: "Montserrat", sans-serif;
 }
 .places summary {
   padding: 14px 0;
@@ -11,7 +11,10 @@
   font-size: 13px;
 }
 .places summary::marker {
-  color: #ffffff;
+  color: var(--explorer-accent);
+}
+.places[open] summary {
+  color: var(--explorer-accent);
 }
 .places ul {
   list-style: none;
@@ -19,7 +22,7 @@
   padding: 0;
 }
 .places li + li {
-  border-top: 1px solid rgba(230, 230, 230, 0.08);
+  border-top: 1px solid rgba(245, 241, 209, 0.08);
 }
 .places button {
   display: flex;
@@ -41,10 +44,10 @@
 .places small {
   font-size: 12px;
   line-height: 1.45;
-  color: rgba(230, 230, 230, 0.65);
+  color: #b8c2cb;
 }
 .places button:hover {
-  color: #ffffff;
+  color: var(--explorer-accent);
 }
 .places button[aria-pressed="true"] {
   background: rgba(245, 204, 117, 0.12);
@@ -68,7 +71,7 @@
 }
 .places button:focus-visible,
 .places summary:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--explorer-accent);
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {

@@ -93,11 +93,10 @@
   border: 0;
   border-radius: 3px;
   cursor: pointer;
-  background: #202020;
-  color: #dedede;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
   font:
-    13px / 1.4 Arial,
-    Helvetica,
+    13px / 1.4 "Montserrat",
     sans-serif;
   text-align: center;
   transform: translateX(-50%);
@@ -114,7 +113,7 @@
 }
 
 .learnMore:hover {
-  color: #fff;
+  color: var(--explorer-accent);
 }
 
 .learnMore:hover .caret,
@@ -139,7 +138,7 @@
 }
 
 .learnMore:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--explorer-accent);
   outline-offset: 4px;
 }
 

@@ -4,6 +4,10 @@
   --semi-dark-grey: #252424;
   --dark-grey: #091115;
   --yellow-white: #f5f1d1;
+  --explorer-surface: rgba(9, 17, 21, 0.96);
+  --explorer-field: #15232b;
+  --explorer-accent: #f5cc75;
+  --explorer-ink: #f5f1d1;
 }
 
 @font-face {

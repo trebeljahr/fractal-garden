@@ -574,7 +574,7 @@ export const PanelNumber = ({
               onChange={(event) => updateValue(Number(event.target.value))}
               step={numericStep}
               style={{
-                background: `linear-gradient(90deg, #bcbcbc 0%, #bcbcbc ${sliderPercent}%, #292929 ${sliderPercent}%, #292929 100%)`,
+                background: `linear-gradient(90deg, var(--explorer-accent) 0%, var(--explorer-accent) ${sliderPercent}%, var(--explorer-field) ${sliderPercent}%, var(--explorer-field) 100%)`,
               }}
               type="range"
               value={value}
