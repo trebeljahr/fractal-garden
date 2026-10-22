@@ -28,11 +28,18 @@ export type ZoomStatus = { logZoom: number; iterations: number; message: string;
 type Tile = { x: number; y: number; width: number; height: number };
 type Job = {
   id: number;
-  version: number;
+  frame: Frame;
   view: DeepViewport;
   iterations: number;
   c: [number, number];
   tile?: Tile;
+};
+
+type Frame = {
+  state: RenderState;
+  key: string;
+  width: number;
+  height: number;
 };
 
 export function iterationBudget(view: DeepViewport, requested: number) {
@@ -42,7 +49,7 @@ export function iterationBudget(view: DeepViewport, requested: number) {
   );
 }
 
-/** Worker orbit calculation, GPU perturbation, and progressively repaired tiles. */
+/** Full-resolution frames, repaired offscreen and presented at the renderer's pace. */
 export function createDeepZoomRenderer(
   gl: WebGLRenderingContext,
   formula: EscapeFormula,
@@ -67,32 +74,24 @@ export function createDeepZoomRenderer(
     const shared = escapeShader.slice(0, escapeShader.indexOf("void main()"));
     const deep = compile(define + shared + deepShader);
     const shallow = compile(define + escapeShader);
-    const preview = compile(
-      `
-    precision highp float;
-    uniform sampler2D u_frame;
-    uniform vec2 u_resolution;
-    uniform vec2 u_previousResolution;
-    uniform vec2 u_pan;
-    uniform float u_ratio;
-    void main() {
-      vec2 uv = (2.0*gl_FragCoord.xy-u_resolution)/min(u_resolution.x,u_resolution.y);
-      vec2 old = u_pan+uv*u_ratio;
-      vec2 sampleAt = 0.5+0.5*old*min(u_previousResolution.x,u_previousResolution.y)/u_previousResolution;
-      if (any(lessThan(sampleAt,vec2(0.0))) || any(greaterThan(sampleAt,vec2(1.0)))) {
-        gl_FragColor=vec4(0.02,0.025,0.03,1.0);
-      } else gl_FragColor=texture2D(u_frame,sampleAt);
-    }
-  `,
-    );
-    if (!deep || !shallow || !preview) throw new Error("Could not create the fractal renderer.");
+    const present = compile(`
+      precision highp float;
+      uniform sampler2D u_frame;
+      uniform vec2 u_resolution;
+      void main() {
+        gl_FragColor = texture2D(u_frame, gl_FragCoord.xy / u_resolution);
+      }
+    `);
+    if (!deep || !shallow || !present) throw new Error("Could not create the fractal renderer.");
     const buffer = gl.createBuffer();
     const texture = gl.createTexture();
     const frameTexture = gl.createTexture();
+    const framebuffer = gl.createFramebuffer();
     if (buffer) release.push(() => gl.deleteBuffer(buffer));
     if (texture) release.push(() => gl.deleteTexture(texture));
     if (frameTexture) release.push(() => gl.deleteTexture(frameTexture));
-    if (!buffer || !texture || !frameTexture)
+    if (framebuffer) release.push(() => gl.deleteFramebuffer(framebuffer));
+    if (!buffer || !texture || !frameTexture || !framebuffer)
       throw new Error("Could not allocate the fractal renderer.");
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -103,21 +102,19 @@ export function createDeepZoomRenderer(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, frameTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, frameTexture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.activeTexture(gl.TEXTURE0);
-    const previewPosition = gl.getAttribLocation(preview.program, "aPosition");
-    const previewUniforms = Object.fromEntries(
-      ["frame", "resolution", "previousResolution", "pan", "ratio"].map((name) => [
-        name,
-        gl.getUniformLocation(preview.program, `u_${name}`),
-      ]),
-    );
-    let frameView: DeepViewport | null = null;
-    let frameWidth = 0;
-    let frameHeight = 0;
+    const presentPosition = gl.getAttribLocation(present.program, "aPosition");
+    const presentFrame = gl.getUniformLocation(present.program, "u_frame");
+    const presentResolution = gl.getUniformLocation(present.program, "u_resolution");
+    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+    const maxViewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
     const programs = [shallow, deep].map(({ program }) => ({
       program,
       coloring: getColoringLocations(gl, program),
@@ -143,22 +140,51 @@ export function createDeepZoomRenderer(
     release.push(() => worker.terminate());
     let destroyed = false;
     let frame = 0;
-    let settle: ReturnType<typeof setTimeout> | undefined;
     let repairTimer: ReturnType<typeof setTimeout> | undefined;
-    let version = 0;
     let nextId = 0;
     let pending: Job | null = null;
+    let active: Frame | null = null;
+    let shown: Frame | null = null;
     let reference: ReferenceOrbit | null = null;
     let referenceView: DeepViewport | null = null;
     let uploaded: ReferenceOrbit | null = null;
     let textureWidth = 0;
     let textureHeight = 0;
-    let moving = false;
+    let renderWidth = 0;
+    let renderHeight = 0;
     let repairQueue: Tile[] = [];
 
+    // Navigation can keep changing its target. Work already in flight retains
+    // one immutable camera, palette and pixel grid until the frame is complete.
+    const snapshot = (): Frame => {
+      const state = getState();
+      const ratio = Math.min(
+        window.devicePixelRatio || 1,
+        maxTextureSize / Math.max(1, state.width),
+        maxTextureSize / Math.max(1, state.height),
+        maxViewport[0] / Math.max(1, state.width),
+        maxViewport[1] / Math.max(1, state.height),
+      );
+      const width = Math.max(1, Math.floor(state.width * ratio));
+      const height = Math.max(1, Math.floor(state.height * ratio));
+      return {
+        state: { ...state, view: { ...state.view }, config: { ...state.config }, c: [...state.c] },
+        key: JSON.stringify([state.config, state.c, width, height]),
+        width,
+        height,
+      };
+    };
+    const sameView = (a: DeepViewport, b: DeepViewport) => {
+      const bits = Math.max(a.bits, b.bits);
+      return (
+        a.logZoom === b.logZoom &&
+        rescaleFixed(a.x, a.bits, bits) === rescaleFixed(b.x, b.bits, bits) &&
+        rescaleFixed(a.y, a.bits, bits) === rescaleFixed(b.y, b.bits, bits)
+      );
+    };
     const report = (message: string, error = false) => {
       if (destroyed) return;
-      const state = getState();
+      const state = (shown ?? active)?.state ?? getState();
       onStatus({
         logZoom: state.view.logZoom,
         iterations: iterationBudget(state.view, state.config.iterations),
@@ -166,8 +192,9 @@ export function createDeepZoomRenderer(
         error,
       });
     };
-    const sameParameters = (c: [number, number]) =>
-      c[0] === getState().c[0] && c[1] === getState().c[1];
+    const schedule = () => {
+      if (!destroyed && !frame) frame = requestAnimationFrame(render);
+    };
     const upload = (orbit: ReferenceOrbit) => {
       if (uploaded === orbit) return;
       textureWidth = Math.min(1024, gl.getParameter(gl.MAX_TEXTURE_SIZE));
@@ -189,67 +216,68 @@ export function createDeepZoomRenderer(
       );
       uploaded = orbit;
     };
-    const resize = () => {
-      const { width, height } = getState();
-      // Keep the interaction frame bounded on high-DPI screens. Idle rendering
-      // restores detail; this bounds GPU work without ever lowering coordinate precision.
-      const iterations = iterationBudget(getState().view, getState().config.iterations);
-      const maxPixels = moving
-        ? 110_000 * Math.min(1, 800 / iterations)
-        : 750_000 * Math.min(1, 2400 / iterations);
-      const ratio = Math.min(
-        window.devicePixelRatio || 1,
-        Math.sqrt(maxPixels / Math.max(1, width * height)),
-      );
-      const w = Math.max(1, Math.round(width * ratio));
-      const h = Math.max(1, Math.round(height * ratio));
-      if (gl.canvas.width !== w || gl.canvas.height !== h) {
-        gl.canvas.width = w;
-        gl.canvas.height = h;
+    const prepare = (next: Frame) => {
+      if (renderWidth !== next.width || renderHeight !== next.height) {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, frameTexture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          next.width,
+          next.height,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          null,
+        );
+        gl.activeTexture(gl.TEXTURE0);
+        renderWidth = next.width;
+        renderHeight = next.height;
       }
-      return { w, h };
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
+        throw new Error("Could not allocate a full-resolution fractal frame.");
     };
-    const rememberFrame = () => {
-      gl.activeTexture(gl.TEXTURE1);
-      gl.bindTexture(gl.TEXTURE_2D, frameTexture);
-      gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 0, 0, gl.canvas.width, gl.canvas.height, 0);
-      gl.activeTexture(gl.TEXTURE0);
-      frameView = { ...getState().view };
-      frameWidth = gl.canvas.width;
-      frameHeight = gl.canvas.height;
-    };
-    const previewFrame = () => {
-      if (!frameView) return false;
-      const view = getState().view;
-      const ratio = 2 ** (view.logZoom - frameView.logZoom);
-      const offset = viewportDelta(view, frameView);
-      const x = offset.x[0] === 0 ? 0 : offset.x[0] * 2 ** (offset.x[1] - frameView.logZoom);
-      const y =
-        (offset.y[0] === 0 ? 0 : offset.y[0] * 2 ** (offset.y[1] - frameView.logZoom)) *
-        (formula === "burning-ship" ? -1 : 1);
-      if (!Number.isFinite(x + y + ratio) || Math.max(Math.abs(x), Math.abs(y), ratio) > 10000)
-        return false;
-      const { w, h } = resize();
+    const finish = () => {
+      if (!active) return;
+      const completed = active;
+      active = null;
+      // Parameter edits and resizes invalidate old work. Navigation alone does
+      // not: showing completed frames prevents starvation during a long gesture.
+      if (completed.key !== snapshot().key) {
+        schedule();
+        return;
+      }
+      const { width, height } = completed;
+      // Only resize the visible canvas when its replacement is ready.
+      if (gl.canvas.width !== width) gl.canvas.width = width;
+      if (gl.canvas.height !== height) gl.canvas.height = height;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API
-      gl.useProgram(preview.program);
+      gl.useProgram(present.program);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.enableVertexAttribArray(previewPosition);
-      gl.vertexAttribPointer(previewPosition, 2, gl.FLOAT, false, 0, 0);
-      gl.viewport(0, 0, w, h);
+      gl.enableVertexAttribArray(presentPosition);
+      gl.vertexAttribPointer(presentPosition, 2, gl.FLOAT, false, 0, 0);
+      gl.viewport(0, 0, width, height);
       gl.disable(gl.SCISSOR_TEST);
-      gl.uniform1i(previewUniforms.frame, 1);
-      gl.uniform2f(previewUniforms.resolution, w, h);
-      gl.uniform2f(previewUniforms.previousResolution, frameWidth, frameHeight);
-      gl.uniform2f(previewUniforms.pan, x, y);
-      gl.uniform1f(previewUniforms.ratio, ratio);
+      gl.disable(gl.BLEND);
+      gl.uniform1i(presentFrame, 1);
+      gl.uniform2f(presentResolution, width, height);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      return true;
+      shown = completed;
+      report(completed.state.view.logZoom < -7 ? "Detail ready" : "Ready");
+      // At most one frame is in flight. New input is coalesced into the latest
+      // target, so rendering cost controls movement cadence instead of resolution.
+      schedule();
     };
     const draw = (orbit: ReferenceOrbit | null, orbitView: DeepViewport | null, tile?: Tile) => {
-      const state = getState();
+      if (!active) return false;
+      const state = active.state;
       const isDeep = state.view.logZoom < -7;
       if (isDeep && (!orbit || !orbitView)) return false;
-      const { w, h } = resize();
+      const { width: w, height: h } = active;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
       const { program, coloring, position, uniforms: u } = programs[isDeep ? 1 : 0];
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook
       gl.useProgram(program);
@@ -294,12 +322,11 @@ export function createDeepZoomRenderer(
       }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disable(gl.SCISSOR_TEST);
-      if (!tile) rememberFrame();
       return true;
     };
     const request = (tile?: Tile) => {
-      if (destroyed || pending) return;
-      const state = getState();
+      if (destroyed || pending || !active) return;
+      const state = active.state;
       const bits = precisionForZoom(state.view.logZoom);
       let view = {
         ...state.view,
@@ -308,10 +335,10 @@ export function createDeepZoomRenderer(
         y: rescaleFixed(state.view.y, state.view.bits, bits),
       };
       if (tile) {
-        const size = Math.min(gl.canvas.width, gl.canvas.height);
-        const x = (2 * (tile.x + tile.width / 2) - gl.canvas.width) / size;
+        const size = Math.min(active.width, active.height);
+        const x = (2 * (tile.x + tile.width / 2) - active.width) / size;
         const y =
-          ((2 * (tile.y + tile.height / 2) - gl.canvas.height) / size) *
+          ((2 * (tile.y + tile.height / 2) - active.height) / size) *
           (formula === "burning-ship" ? -1 : 1);
         view = moveViewport(view, x, y);
       }
@@ -328,15 +355,17 @@ export function createDeepZoomRenderer(
       }
       pending = {
         id: ++nextId,
-        version,
+        frame: active,
         view,
         c: [...state.c],
         iterations: iterationBudget(view, state.config.iterations),
         tile,
       };
-      worker.postMessage({ ...pending, formula });
+      const { frame: _frame, ...job } = pending;
+      worker.postMessage({ ...job, formula });
     };
     const inspect = (tile: Tile) => {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
       const data = new Uint8Array(tile.width * tile.height * 4);
       gl.readPixels(tile.x, tile.y, tile.width, tile.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
       const cells = new Map<string, Tile>();
@@ -357,76 +386,74 @@ export function createDeepZoomRenderer(
       repairQueue.push(...Array.from(cells.values()));
     };
     const repairNext = () => {
-      if (destroyed || moving || pending) return;
+      if (destroyed || !active || pending) return;
       const tile = repairQueue.shift();
-      if (tile) {
-        report("Refining detail…");
-        request(tile);
-      } else {
-        rememberFrame();
-        report("Detail ready");
-      }
+      if (tile) request(tile);
+      else finish();
     };
-    const validReference = () =>
+    const inspectFrame = () => {
+      if (!active) return;
+      repairQueue = [];
+      inspect({ x: 0, y: 0, width: active.width, height: active.height });
+      repairNext();
+    };
+    const validReference = (state: RenderState) =>
       reference &&
       referenceView &&
-      sameParameters(reference.c) &&
-      reference.iterations >= iterationBudget(getState().view, getState().config.iterations) &&
-      reference.bits >= Math.ceil(-getState().view.logZoom) + 64;
+      reference.c[0] === state.c[0] &&
+      reference.c[1] === state.c[1] &&
+      reference.iterations >= iterationBudget(state.view, state.config.iterations) &&
+      reference.bits >= Math.ceil(-state.view.logZoom) + 64 &&
+      referenceView.x === rescaleFixed(state.view.x, state.view.bits, referenceView.bits) &&
+      referenceView.y === rescaleFixed(state.view.y, state.view.bits, referenceView.bits);
     const render = () => {
       frame = 0;
-      if (destroyed) return;
-      const state = getState();
-      if (state.view.logZoom >= -7) {
-        draw(null, null);
-        report("Ready");
-        return;
-      }
-      if (!moving || !previewFrame()) {
-        if (validReference()) draw(reference, referenceView);
-      }
-      report("Refining detail…");
-      if (!pending) {
-        const exact =
-          validReference() &&
-          referenceView &&
-          referenceView.x === rescaleFixed(state.view.x, state.view.bits, referenceView.bits) &&
-          referenceView.y === rescaleFixed(state.view.y, state.view.bits, referenceView.bits);
-        if (exact) {
-          if (moving) return;
-          repairQueue = [];
-          inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
-          repairNext();
-        } else request();
+      if (destroyed || active || pending) return;
+      const next = snapshot();
+      if (shown && shown.key === next.key && sameView(shown.state.view, next.state.view)) return;
+      active = next;
+      try {
+        prepare(next);
+        if (next.state.view.logZoom >= -7) {
+          draw(null, null);
+          // Wait for this GPU frame before allowing another one to be queued.
+          gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+          finish();
+        } else {
+          report("Refining detail…");
+          if (validReference(next.state)) {
+            draw(reference, referenceView);
+            inspectFrame();
+          } else request();
+        }
+      } catch (error) {
+        active = null;
+        report(error instanceof Error ? error.message : String(error), true);
       }
     };
     worker.onmessage = (event) => {
       if (destroyed || !pending || event.data.id !== pending.id) return;
       const job = pending;
       pending = null;
+      if (job.frame !== active) {
+        schedule();
+        return;
+      }
       if (event.data.error) {
+        active = null;
         report(event.data.error, true);
         return;
       }
-      if (
-        !sameParameters(job.c) ||
-        (job.tile && job.version !== version) ||
-        job.view.bits < Math.ceil(-getState().view.logZoom) + 64
-      ) {
-        // Never let an old tile or parameter edit overwrite the current view.
-        if (getState().view.logZoom < -7) request();
-        return;
-      }
-      if (getState().view.logZoom >= -7) return;
       if (job.tile) {
         draw(event.data.reference, job.view, job.tile);
         inspect(job.tile);
-        // If even the exact pixel reference fails, stop and expose the failure.
+        // A failed exact-pixel repair must never become a visible frame.
         if (
           job.tile.width === 1 &&
           job.tile.height === 1 &&
           repairQueue.some((t) => t.x === job.tile?.x && t.y === job.tile?.y)
         ) {
+          active = null;
           repairQueue = [];
           report("This point needs more precision. Try a nearby view.", true);
           return;
@@ -436,33 +463,37 @@ export function createDeepZoomRenderer(
         reference = event.data.reference;
         referenceView = job.view;
         draw(reference, referenceView);
-        if (job.version !== version) {
-          request();
-          return;
-        }
-        if (!moving) {
-          repairQueue = [];
-          inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
-          repairNext();
-        }
+        inspectFrame();
       }
     };
     worker.onerror = () => {
       pending = null;
+      active = null;
       report("Could not calculate this view. Reload to restart the renderer.", true);
     };
     const update = () => {
-      version++;
-      moving = true;
-      repairQueue = [];
-      clearTimeout(repairTimer);
-      clearTimeout(settle);
-      if (!frame) frame = requestAnimationFrame(render);
-      settle = setTimeout(() => {
-        moving = false;
-        if (frame) cancelAnimationFrame(frame);
-        render();
-      }, 160);
+      if (destroyed) return;
+      // Do not interrupt a frame for every wheel event: it must be allowed to
+      // finish even under continuous input. Edits to its rendering inputs cancel it.
+      if (active) {
+        const current = active;
+        const next = snapshot();
+        const offset = viewportDelta(next.state.view, active.state.view);
+        const distant =
+          Math.abs(next.state.view.logZoom - active.state.view.logZoom) > 1 ||
+          [offset.x, offset.y].some(
+            ([mantissa, exponent]) =>
+              Math.abs(mantissa) * 2 ** (exponent - current.state.view.logZoom) > 2,
+          );
+        // Let a new destination or a large pan escape a costly repair. Small
+        // gestures still allow the current sharp frame to finish.
+        if (active.key !== next.key || distant) {
+          active = null;
+          repairQueue = [];
+          clearTimeout(repairTimer);
+        }
+      }
+      schedule();
     };
     const redraw = () => {
       // Export hooks are synchronous. Preserve the repaired framebuffer if ready.
@@ -471,10 +502,10 @@ export function createDeepZoomRenderer(
     return {
       update,
       redraw,
+      getViewport: () => (shown ?? active)?.state.view ?? null,
       destroy() {
         destroyed = true;
         cancelAnimationFrame(frame);
-        clearTimeout(settle);
         clearTimeout(repairTimer);
         for (const dispose of release.splice(0).reverse()) dispose();
       },

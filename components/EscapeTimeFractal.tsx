@@ -82,12 +82,14 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
   const [cReal, cImag] = c;
+  const getRenderedViewport = useCallback(() => rendererRef.current?.getViewport() ?? null, []);
 
   useDeepZoomControls({
     canvas: cnv,
     viewportRef,
     maxZoomSize,
     flipY,
+    getRenderedViewport,
     onChange: updateViewport,
   });
 
