@@ -27,47 +27,29 @@
 }
 
 .linkButton {
-  bottom: max(16px, env(safe-area-inset-bottom));
+  bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
   gap: 12px;
-  max-width: calc((100vw - 96px) / 2);
-  min-height: 60px;
+  width: min(160px, var(--explorer-nav-width));
+  justify-content: center;
+  font-size: 13px;
+  height: var(--explorer-nav-height);
   padding: 10px 14px;
   border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 6px;
 }
 
 .previous {
-  left: max(16px, env(safe-area-inset-left));
+  left: max(var(--explorer-nav-gap), env(safe-area-inset-left));
 }
 
 .next {
-  right: max(16px, env(safe-area-inset-right));
+  right: max(var(--explorer-nav-gap), env(safe-area-inset-right));
   text-align: right;
 }
 
-.destination {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.direction {
-  color: var(--explorer-accent);
-  font-size: 11px;
-  line-height: 1.3;
-}
-
-.fractalName {
-  font-size: 14px;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
-.linkButton [class^="icon-"] {
+.linkButton svg {
   flex: 0 0 auto;
   color: var(--explorer-accent);
-  font-size: 22px;
 }
 
 .homeLink:hover,
@@ -88,26 +70,12 @@
   }
 
   .linkButton {
-    bottom: max(8px, env(safe-area-inset-bottom));
     gap: 8px;
-    max-width: calc((100vw - 64px) / 2);
-    padding: 10px;
+    padding: 8px;
   }
 
-  .previous {
-    left: max(8px, env(safe-area-inset-left));
-  }
-
-  .next {
-    right: max(8px, env(safe-area-inset-right));
-  }
-
-  .fractalName {
-    font-size: 12px;
-  }
-
-  .linkButton [class^="icon-"] {
-    font-size: 18px;
+  .linkButton svg {
+    width: 28px;
   }
 }
 

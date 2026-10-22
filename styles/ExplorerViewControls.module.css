@@ -2,9 +2,9 @@
 .restore {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 6px;
-  flex: 0 0 44px;
+  flex: 0 0 auto;
   pointer-events: auto;
 }
 .controls button,
@@ -12,7 +12,7 @@
   display: grid;
   place-items: center;
   width: 44px;
-  height: 44px;
+  height: var(--explorer-control-height);
   padding: 0;
   border: 1px solid rgba(245, 204, 117, 0.25);
   border-radius: 3px;
@@ -23,8 +23,8 @@
     background 150ms,
     color 150ms;
 }
-.controls button:hover,
-.restore button:hover {
+.controls button:hover:not(:disabled),
+.restore button:hover:not(:disabled) {
   background: var(--explorer-field);
   color: var(--explorer-ink);
 }
@@ -55,4 +55,10 @@
   .restore button {
     transition: none;
   }
+}
+
+.controls button:disabled,
+.restore button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

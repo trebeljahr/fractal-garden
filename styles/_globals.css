@@ -4,6 +4,10 @@
   --semi-dark-grey: #252424;
   --dark-grey: #091115;
   --yellow-white: #f5f1d1;
+  --explorer-control-height: 52px;
+  --explorer-nav-height: 52px;
+  --explorer-nav-gap: 16px;
+  --explorer-nav-width: min(280px, calc((100vw - 64px) / 3));
   --explorer-surface: rgba(9, 17, 21, 0.96);
   --explorer-field: #15232b;
   --explorer-accent: #f5cc75;

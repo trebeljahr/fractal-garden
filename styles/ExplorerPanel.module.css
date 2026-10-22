@@ -36,7 +36,7 @@
 }
 
 .viewControlsHost {
-  flex: 0 0 44px;
+  flex: 0 0 auto;
 }
 
 .studioGroup {
@@ -151,7 +151,10 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 1.05rem 1.15rem 1rem;
+  display: flex;
+  align-items: center;
+  height: var(--explorer-control-height);
+  padding: 0 18px;
   transition: background-color 0.18s ease;
   background: #091115;
   border-bottom: 1px solid rgba(245, 241, 209, 0.08);
@@ -168,7 +171,7 @@
 .panel :global(.react-dat-gui.exploration-gui li.folder .title::after) {
   content: "";
   position: absolute;
-  top: 18px;
+  top: calc(var(--explorer-control-height) / 2 - 5px);
   right: 18px;
   width: 7px;
   height: 7px;
@@ -841,14 +844,18 @@
   }
 
   .studio {
-    width: min(320px, calc(100vw - 52px));
+    width: min(320px, calc(100vw - 152px));
     max-height: calc(100svh - 180px);
     z-index: 1;
   }
 
   .studio:has(:global(.folder.closed)) {
     width: max-content;
-    max-width: calc(100vw - 52px);
+    max-width: calc(100vw - 152px);
+  }
+
+  .folderHeading {
+    font-size: 12px;
   }
 
   .studio:has(:global(.folder.closed)) .folderHint {
@@ -856,8 +863,8 @@
   }
 
   .panel :global(.react-dat-gui.exploration-gui li.folder .title) {
-    min-height: 44px;
-    padding: 14px 18px;
+    min-height: var(--explorer-control-height);
+    padding: 0 12px;
   }
 
   .panel :global(.react-dat-gui.exploration-gui .dg.main) {

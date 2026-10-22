@@ -45,6 +45,7 @@ function FullscreenIcon({ active }: { active: boolean }) {
 }
 
 type Props = {
+  animation?: { playing: boolean; onToggle: () => void };
   clean: boolean;
   fullscreen: boolean;
   supported: boolean;
@@ -54,6 +55,7 @@ type Props = {
 };
 
 export function ExplorerViewControls({
+  animation,
   clean,
   fullscreen,
   supported,
@@ -78,6 +80,35 @@ export function ExplorerViewControls({
   const controls = (
     <div className={clean ? styles.restore : styles.controls}>
       <button
+        type="button"
+        disabled={!animation}
+        onClick={animation?.onToggle}
+        aria-label={animation?.playing ? "Pause animation" : "Play animation"}
+        title={
+          animation
+            ? animation.playing
+              ? "Pause animation"
+              : "Play animation"
+            : "This fractal has no automatic animation"
+        }
+        aria-pressed={animation?.playing ?? false}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          {animation?.playing ? <path d="M8 5v14M16 5v14" /> : <path d="m8 4 12 8-12 8Z" />}
+        </svg>
+      </button>
+      <button
         ref={clean ? restoreButton : hideButton}
         type="button"
         onClick={onToggleUI}
@@ -86,17 +117,16 @@ export function ExplorerViewControls({
       >
         <VisibilityIcon hidden={!clean} />
       </button>
-      {supported && (
-        <button
-          type="button"
-          onClick={onToggleFullscreen}
-          aria-label={fullscreenLabel}
-          title={fullscreenLabel}
-          aria-pressed={fullscreen}
-        >
-          <FullscreenIcon active={fullscreen} />
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={!supported}
+        onClick={onToggleFullscreen}
+        aria-label={fullscreenLabel}
+        title={fullscreenLabel}
+        aria-pressed={fullscreen}
+      >
+        <FullscreenIcon active={fullscreen} />
+      </button>
       {error && (
         <p className={styles.error} role="status">
           {error}

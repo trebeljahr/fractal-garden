@@ -81,6 +81,25 @@ function useLinks() {
   return [prev, "/", next];
 }
 
+function NavigationArrow({ previous = false }: { previous?: boolean }) {
+  return (
+    <svg
+      width="32"
+      height="18"
+      viewBox="0 0 32 18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={previous ? "M30 9H2m7-7L2 9l7 7" : "M2 9h28m-7-7 7 7-7 7"} />
+    </svg>
+  );
+}
+
 export const NavElement = () => {
   const [prev, home, next] = useLinks();
 
@@ -96,12 +115,10 @@ export const NavElement = () => {
           className={`${styles.linkButton} ${styles.previous}`}
           href={prev}
           aria-label={`Previous fractal: ${getFractalName(prev)}`}
+          title={`Previous fractal: ${getFractalName(prev)}`}
         >
-          <span className="icon-arrow-left" aria-hidden="true" />
-          <span className={styles.destination}>
-            <span className={styles.direction}>Prev</span>
-            <span className={styles.fractalName}>{getFractalName(prev)}</span>
-          </span>
+          <NavigationArrow previous />
+          <span>Prev</span>
         </a>
       </Link>
       <Link legacyBehavior href={next}>
@@ -109,12 +126,10 @@ export const NavElement = () => {
           className={`${styles.linkButton} ${styles.next}`}
           href={next}
           aria-label={`Next fractal: ${getFractalName(next)}`}
+          title={`Next fractal: ${getFractalName(next)}`}
         >
-          <span className={styles.destination}>
-            <span className={styles.direction}>Next</span>
-            <span className={styles.fractalName}>{getFractalName(next)}</span>
-          </span>
-          <span className="icon-arrow-right" aria-hidden="true" />
+          <span>Next</span>
+          <NavigationArrow />
         </a>
       </Link>
     </nav>

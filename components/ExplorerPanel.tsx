@@ -1,4 +1,4 @@
-import { Children, isValidElement, type ReactNode, useEffect, useState } from "react";
+import { Children, isValidElement, type ReactNode, useEffect, useRef, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
 import { type ControlRule, isRecord } from "../utils/explorerShare";
@@ -102,6 +102,47 @@ export function ExplorerPanel<T>({
   places,
   shareRules = [],
 }: Props<T>) {
+  const animationBeforePause = useRef<Record<string, boolean> | null>(null);
+  const rules = [
+    ...controlRules(children, data).filter(
+      (rule) => !shareRules.some((override) => override.path === rule.path),
+    ),
+    ...shareRules,
+  ];
+  const animationKeys = rules
+    .filter(
+      (rule) =>
+        rule.kind === "boolean" &&
+        ["animateIterations", "autoRotate", "animateTrail", "animateAngle", "paused"].includes(
+          rule.path,
+        ),
+    )
+    .map((rule) => rule.path);
+  const animationData: Record<string, unknown> = isRecord(data) ? data : {};
+  const playing = animationKeys.some((key) =>
+    key === "paused" ? !animationData[key] : animationData[key],
+  );
+  const animation = animationKeys.length
+    ? {
+        playing,
+        onToggle: () => {
+          const next: Record<string, boolean> = {};
+          if (playing) {
+            animationBeforePause.current = {};
+            for (const key of animationKeys) {
+              animationBeforePause.current[key] = Boolean(animationData[key]);
+              next[key] = key === "paused";
+            }
+          } else {
+            for (const key of animationKeys) {
+              next[key] = animationBeforePause.current?.[key] ?? key !== "paused";
+            }
+            animationBeforePause.current = null;
+          }
+          onUpdate({ ...data, ...next });
+        },
+      }
+    : undefined;
   const defaults = PANEL_COPY[mode];
   const [pageTitle, setPageTitle] = useState("");
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
@@ -146,12 +187,8 @@ export function ExplorerPanel<T>({
         <ExplorerTools
           data={data}
           viewControlsHost={viewControlsHost}
-          rules={[
-            ...controlRules(children, data).filter(
-              (rule) => !shareRules.some((override) => override.path === rule.path),
-            ),
-            ...shareRules,
-          ]}
+          rules={rules}
+          animation={animation}
           onRestore={onRestore}
         />
       </aside>

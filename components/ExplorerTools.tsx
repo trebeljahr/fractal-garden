@@ -13,12 +13,19 @@ import { ExplorerContextMenu } from "./ExplorerContextMenu";
 
 type Props<T> = {
   data: T;
+  animation?: { playing: boolean; onToggle: () => void };
   viewControlsHost?: HTMLElement | null;
   rules: ControlRule[];
   onRestore: (data: T) => void;
 };
 
-export function ExplorerTools<T>({ data, rules, onRestore, viewControlsHost }: Props<T>) {
+export function ExplorerTools<T>({
+  data,
+  rules,
+  onRestore,
+  viewControlsHost,
+  animation,
+}: Props<T>) {
   const [message, setMessage] = useState("");
   const [manualLink, setManualLink] = useState("");
   const [sharedLink, setSharedLink] = useState("");
@@ -117,6 +124,7 @@ export function ExplorerTools<T>({ data, rules, onRestore, viewControlsHost }: P
       onCopyLink={copyLink}
       onSavePng={savePng}
       saving={saving}
+      animation={animation}
       viewControlsHost={viewControlsHost}
     >
       <div className={styles.tools}>

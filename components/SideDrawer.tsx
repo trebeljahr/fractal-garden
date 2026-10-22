@@ -14,8 +14,15 @@ export const SideDrawer = ({ description }: Props) => {
       aria-label="About this fractal"
       data-fractal-description-section
     >
-      <button className={styles.learnMore} type="button" onClick={scrollToDescription}>
-        <span>Learn more about this fractal</span>
+      <button
+        className={styles.learnMore}
+        aria-label="Learn more about this fractal"
+        type="button"
+        onClick={scrollToDescription}
+      >
+        <span>
+          Learn more<span className={styles.learnMoreDetail}> about this fractal</span>
+        </span>
         <span className={styles.caret} aria-hidden="true" />
       </button>
       <div

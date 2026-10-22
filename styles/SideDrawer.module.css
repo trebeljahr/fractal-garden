@@ -78,20 +78,20 @@
 
 .learnMore {
   position: absolute;
-  bottom: calc(100% + 28px);
+  bottom: calc(100% + max(var(--explorer-nav-gap), env(safe-area-inset-bottom)));
   left: 50%;
   z-index: 27;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 44px;
-  width: max-content;
+  height: var(--explorer-nav-height);
+  width: var(--explorer-nav-width);
   max-width: calc(100% - 28px);
-  padding: 10px 16px 20px;
-  border: 0;
-  border-radius: 3px;
+  padding: 10px 14px;
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 6px;
   cursor: pointer;
   background: var(--explorer-surface);
   color: var(--explorer-ink);
@@ -103,6 +103,7 @@
 }
 
 .caret {
+  flex: 0 0 8px;
   width: 8px;
   height: 8px;
   border-right: 1px solid currentColor;
@@ -148,7 +149,13 @@
 
 @media (max-width: 700px) {
   .learnMore {
-    bottom: calc(100% + 112px);
+    font-size: 12px;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .learnMoreDetail {
+    display: none;
   }
 }
 
