@@ -19,7 +19,7 @@ export function shouldZoomWheel(
 // A trackpad's momentum belongs to the mode in which the gesture started.
 // Require a quiet gap before handing the wheel from the page to the drawing
 // (or back), so one gesture cannot accidentally do both.
-const MODE_PAUSE_MS = 300;
+const MODE_PAUSE_MS = 120;
 
 export function createZoomWheelGuard(surface: HTMLElement) {
   let mode: boolean | null = null;

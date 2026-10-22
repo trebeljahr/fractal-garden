@@ -69,12 +69,12 @@ test("page-scroll momentum cannot turn into zoom until the wheel pauses", () => 
   target.getBoundingClientRect = () => ({ top: -200, bottom: 600 });
   assert.equal(guard.shouldZoom(event(-100, 0), true), false);
   target.getBoundingClientRect = () => ({ top: 0, bottom: 800 });
-  for (const time of [80, 160, 320, 480, 640]) {
+  for (const time of [40, 80, 160, 240, 320]) {
     const momentum = event(-10, time);
     assert.equal(guard.shouldZoom(momentum, true), false);
     assert.equal(momentum.defaultPrevented, true);
   }
-  assert.equal(guard.shouldZoom(event(-100, 940), true), true);
+  assert.equal(guard.shouldZoom(event(-100, 440), true), true);
   guard.dispose();
 });
 
@@ -84,7 +84,7 @@ test("zoom-out momentum stops at the opening size before page scrolling resumes"
   const atLimit = event(100, 50);
   assert.equal(guard.shouldZoom(atLimit, true), false);
   assert.equal(atLimit.defaultPrevented, true);
-  const newGesture = event(100, 350);
+  const newGesture = event(100, 170);
   assert.equal(guard.shouldZoom(newGesture, true), false);
   assert.equal(newGesture.defaultPrevented, false);
   guard.dispose();
@@ -96,8 +96,24 @@ test("scrolling from outside the drawing also needs a pause before zooming", () 
   const entering = event(-20, 200);
   assert.equal(guard.shouldZoom(entering, true), false);
   assert.equal(entering.defaultPrevented, true);
-  assert.equal(guard.shouldZoom(event(-100, 500), true), true);
+  assert.equal(guard.shouldZoom(event(-100, 320), true), true);
   guard.dispose();
+});
+
+test("a brief pause releases either mode while uninterrupted momentum stays blocked", () => {
+  for (const fromZoom of [false, true]) {
+    const { guard, event } = guardedSurface();
+    assert.equal(guard.shouldZoom(event(100, 0), !fromZoom), fromZoom);
+
+    const momentum = event(100, 119);
+    assert.equal(guard.shouldZoom(momentum, fromZoom), false);
+    assert.equal(momentum.defaultPrevented, true);
+
+    const newGesture = event(100, 239);
+    assert.equal(guard.shouldZoom(newGesture, fromZoom), !fromZoom);
+    assert.equal(newGesture.defaultPrevented, false);
+    guard.dispose();
+  }
 });
 
 test("ordinary wheel zoom starts immediately and preserves direction changes", () => {
