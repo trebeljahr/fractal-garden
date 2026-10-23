@@ -72,7 +72,11 @@ test("singular stem survives deep zoom beyond double precision and float exponen
       console.log(log, method, walker.visited, count);
       assert(count > 0, `${log} ${method}: lost stem`);
       if (method === "chaos") {
-        assert(walker.step(4000).length > 0, "refinement must add new visible dots");
+        assert.equal(
+          walker.step(4000).length,
+          0,
+          "a fully sampled stem must not duplicate occupied pixels",
+        );
       }
     }
   }

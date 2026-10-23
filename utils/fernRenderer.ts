@@ -1,81 +1,124 @@
-import { type DeepViewport, viewportDelta } from "./deepZoom/math";
-import { createFernWalker, type FernMethod } from "./fernViewport";
+import type { DeepViewport } from "./deepZoom/math";
+import {
+  FERN_TILE_SIZE,
+  type FernPointAppend,
+  type FernPointTile,
+  type FernPointView,
+  fernPointTransform,
+  fernTileIntersects,
+  projectFernTile,
+} from "./fernPoints";
+import { createFernSampling, type FernPointMessage, type FernPointRequest } from "./fernSampling";
+import type { FernMethod } from "./fernViewport";
+import { createShaderProgram } from "./shaders/compileShader";
 
-const SETTLE_MS = 80;
-const BLEND_MS = 140;
-const FRAME_BUDGET_MS = 4;
-const OVERSCAN = 1.3;
-
-type Surface = HTMLCanvasElement | OffscreenCanvas;
-type Context = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-type Frame = { canvas: Surface; view: DeepViewport; width: number; height: number };
-type Work = {
-  frame: Frame;
-  ctx: Context;
-  walker: ReturnType<typeof createFernWalker>;
-  complete: boolean;
-};
 export type FernProgress = {
   samples: number;
   visited: number;
   resolution: number;
   complete: boolean;
+  count: number;
 };
-type Options = {
+type Options = FernPointView & {
   matrix: number[][];
-  view: DeepViewport;
-  width: number;
-  height: number;
-  ratio: number;
   method: FernMethod;
   background: string;
   color: string;
   paused: boolean;
-  reducedMotion: boolean;
   onProgress: (progress: FernProgress) => void;
 };
+type GpuTile = FernPointTile & {
+  buffer: WebGLBuffer | null;
+  projection?: { source: FernPointView; points: Float32Array; buffer: WebGLBuffer | null };
+};
+const vertex = `
+attribute vec2 a_point;
+uniform vec2 u_resolution;
+uniform vec2 u_center;
+uniform float u_scale;
+uniform float u_dotSize;
+void main() {
+  vec2 pixel = (a_point - u_center) * u_scale + u_resolution * 0.5;
+  gl_Position = vec4(pixel.x / u_resolution.x * 2.0 - 1.0, 1.0 - pixel.y / u_resolution.y * 2.0, 0.0, 1.0);
+  gl_PointSize = u_dotSize;
+}`;
+const fragment = `
+precision mediump float;
+uniform vec3 u_color;
+void main() {
+  float a = 1.0 - smoothstep(0.4, 0.5, length(gl_PointCoord - vec2(0.5)));
+  gl_FragColor = vec4(u_color, a);
+}`;
+const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
 
-/** Reproject a retained image without turning a deep camera center into a float. */
-export function fernFramePlacement(
-  frame: Pick<Frame, "view" | "width" | "height">,
-  view: DeepViewport,
-  width: number,
-  height: number,
-) {
-  const side = Math.min(width, height);
-  const scale =
-    (side / Math.min(frame.width, frame.height)) * 2 ** (frame.view.logZoom - view.logZoom);
-  const delta = viewportDelta(view, frame.view);
-  const pixels = ([mantissa, exponent]: [number, number]) =>
-    mantissa === 0 ? 0 : (mantissa * 2 ** (exponent - view.logZoom) * side) / 2;
-  return {
-    x: (width - frame.width * scale) / 2 - pixels(delta.x),
-    y: (height - frame.height * scale) / 2 + pixels(delta.y),
-    width: frame.width * scale,
-    height: frame.height * scale,
-  };
-}
-
-/** Keep the last dots visible during gestures; build the next view out of sight. */
+/** Retains point buffers; camera gestures change uniforms and append only missing samples. */
 export class FernViewportRenderer {
   private view: DeepViewport;
-  private current: Frame | null = null;
-  private previous: Frame | null = null;
-  private work: Work | null = null;
+  private tiles = new Map<number, GpuTile>();
+  private gl: WebGLRenderingContext | null;
+  private ctx: CanvasRenderingContext2D | null;
+  private shader: ReturnType<typeof createShaderProgram>;
+  private uniforms: Record<string, WebGLUniformLocation | null> = {};
+  private attribute = 0;
+  private channel: { send: (message: FernPointRequest) => void; dispose: () => void };
   private frameId: number | null = null;
-  private movedAt = -Infinity;
-  private blendAt = 0;
-  private refine = true;
-  private paused: boolean;
+  private query = true;
+  private sequence = 0;
+  private progress: FernProgress = {
+    samples: 0,
+    visited: 0,
+    resolution: 0,
+    count: 0,
+    complete: false,
+  };
   private disposed = false;
 
   constructor(
-    private ctx: CanvasRenderingContext2D,
+    private canvas: HTMLCanvasElement,
     private options: Options,
   ) {
     this.view = { ...options.view };
-    this.paused = options.paused;
-    options.onProgress({ samples: 0, visited: 0, resolution: 0, complete: false });
+    this.gl = canvas.getContext("webgl", { alpha: false, antialias: false });
+    this.ctx = this.gl ? null : canvas.getContext("2d");
+    if (this.gl) {
+      const gl = this.gl;
+      this.shader = createShaderProgram(gl, vertex, fragment);
+      if (!this.shader) throw new Error("Fern point renderer unavailable");
+      this.uniforms = Object.fromEntries(
+        ["resolution", "center", "scale", "dotSize", "color"].map((key) => [
+          key,
+          gl.getUniformLocation(this.shader!.program, `u_${key}`),
+        ]),
+      );
+      this.attribute = gl.getAttribLocation(this.shader.program, "a_point");
+    }
+    let worker: Worker | null = null;
+    try {
+      if (typeof Worker !== "undefined")
+        worker = new Worker(new URL("../workers/fern.worker.ts", import.meta.url));
+    } catch {
+      /* Use the same sampler locally where workers are unavailable. */
+    }
+    if (worker) {
+      worker.onmessage = ({ data }: MessageEvent<FernPointMessage>) => this.receive(data);
+      const active = worker;
+      this.channel = {
+        send: (data) => active.postMessage(data),
+        dispose: () => active.terminate(),
+      };
+    } else {
+      const sampling = createFernSampling((message) => this.receive(message));
+      this.channel = { send: (data) => sampling.receive(data), dispose: () => sampling.dispose() };
+    }
+    this.channel.send({
+      type: "init",
+      matrix: options.matrix,
+      method: options.method,
+      paused: options.paused,
+    });
+    this.resize(options.width, options.height);
+    canvas.addEventListener("garden:redraw", this.paint);
+    window.addEventListener("garden:before-export", this.paint);
     this.schedule();
   }
 
@@ -88,146 +131,215 @@ export class FernViewportRenderer {
     )
       return;
     this.view = { ...view };
-    // Finish an in-flight refinement so continuous gestures cannot starve it.
-    if (this.work?.complete && this.work.frame === this.current) this.work = null;
-    this.refine = true;
-    this.movedAt = performance.now();
-    this.options.onProgress({ samples: 0, visited: 0, resolution: 0, complete: false });
+    this.query = true;
+    this.progress.complete = false;
+    this.options.onProgress(this.progress);
     this.schedule();
   }
 
-  setPaused(paused: boolean) {
-    this.paused = paused;
-    if (!paused) this.schedule();
+  resize(width: number, height: number) {
+    this.options.width = width;
+    this.options.height = height;
+    const ratio = window.devicePixelRatio || 1;
+    const w = Math.round(width * ratio),
+      h = Math.round(height * ratio);
+    if (this.canvas.width !== w) this.canvas.width = w;
+    if (this.canvas.height !== h) this.canvas.height = h;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+    this.query = true;
+    this.progress.complete = false;
+    this.schedule();
   }
+
+  setStyle(color: string, background: string) {
+    this.options.color = color;
+    this.options.background = background;
+    this.schedule();
+  }
+  setPaused(paused: boolean) {
+    this.channel.send({ type: "pause", paused });
+  }
+
+  private receive(message: FernPointMessage) {
+    if (this.disposed) return;
+    if (message.type === "points") {
+      for (const append of message.appends) this.append(append);
+      if (message.id === this.sequence && !this.query)
+        this.progress = {
+          samples: message.samples,
+          visited: message.visited,
+          resolution: message.resolution,
+          count: message.count,
+          complete: message.complete,
+        };
+    } else if (message.type === "projection") {
+      const tile = this.tiles.get(message.id);
+      if (tile) this.project(tile, message.source, message.points);
+    } else
+      for (const id of message.ids) {
+        const tile = this.tiles.get(id);
+        if (tile) {
+          this.gl?.deleteBuffer(tile.buffer);
+          if (tile.projection) this.gl?.deleteBuffer(tile.projection.buffer);
+          this.tiles.delete(id);
+        }
+      }
+    this.schedule();
+  }
+
+  private append(data: FernPointAppend) {
+    let tile = this.tiles.get(data.id);
+    if (!tile) {
+      const buffer = this.gl?.createBuffer() ?? null;
+      tile = { ...data, points: new Float64Array(FERN_TILE_SIZE ** 2 * 2), buffer };
+      this.tiles.set(tile.id, tile);
+      if (this.gl) {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, FERN_TILE_SIZE ** 2 * 8, this.gl.DYNAMIC_DRAW);
+      }
+    }
+    tile.points.set(data.points, data.start * 2);
+    tile.count = data.count;
+    tile.fixed = undefined;
+    if (tile.projection) {
+      this.gl?.deleteBuffer(tile.projection.buffer);
+      tile.projection = undefined;
+    }
+    if (this.gl) {
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tile.buffer);
+      this.gl.bufferSubData(this.gl.ARRAY_BUFFER, data.start * 8, new Float32Array(data.points));
+    }
+  }
+
+  private project(tile: GpuTile, source: FernPointView, points: Float32Array) {
+    if (tile.projection) this.gl?.deleteBuffer(tile.projection.buffer);
+    const buffer = this.gl?.createBuffer() ?? null;
+    if (this.gl) {
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, points, this.gl.STATIC_DRAW);
+    }
+    tile.projection = { source, points, buffer };
+  }
+
+  private schedule() {
+    if (!this.disposed && this.frameId === null) this.frameId = requestAnimationFrame(this.draw);
+  }
+  private draw = () => {
+    this.frameId = null;
+    if (this.disposed) return;
+    if (this.query) {
+      this.query = false;
+      this.channel.send({
+        type: "view",
+        id: ++this.sequence,
+        view: this.view,
+        width: this.options.width,
+        height: this.options.height,
+      });
+    }
+    this.paint();
+    this.options.onProgress(this.progress);
+  };
+
+  private paint = () => {
+    if (this.disposed) return;
+    const target = { view: this.view, width: this.options.width, height: this.options.height };
+    const { width, height } = target;
+    const gl = this.gl;
+    if (gl && this.shader) {
+      const color = rgb(this.options.color),
+        background = rgb(this.options.background);
+      gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      gl.clearColor(background[0], background[1], background[2], 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      // biome-ignore lint/correctness/useHookAtTopLevel: WebGL method, not a React hook
+      gl.useProgram(this.shader.program);
+      gl.disable(gl.DEPTH_TEST);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.uniform2f(this.uniforms.resolution, width, height);
+      gl.uniform3f(this.uniforms.color, color[0], color[1], color[2]);
+      // A dot remains one CSS pixel at every magnification; it never becomes a scaled bitmap block.
+      gl.uniform1f(this.uniforms.dotSize, window.devicePixelRatio || 1);
+      gl.enableVertexAttribArray(this.attribute);
+      for (const tile of Array.from(this.tiles.values())) {
+        let transform = fernPointTransform(tile, target),
+          buffer = tile.buffer,
+          count = tile.count;
+        if (transform.scale > 1024 || !Number.isFinite(transform.scale)) {
+          if (!fernTileIntersects(tile, target)) continue;
+          const previous = tile.projection?.source;
+          if (
+            !previous ||
+            previous.width !== width ||
+            previous.height !== height ||
+            previous.view.x !== this.view.x ||
+            previous.view.y !== this.view.y ||
+            previous.view.bits !== this.view.bits ||
+            previous.view.logZoom !== this.view.logZoom
+          )
+            this.project(tile, target, projectFernTile(tile, target));
+          const projection = tile.projection!;
+          transform = fernPointTransform({ ...projection.source, x: 0, y: 0 }, target);
+          buffer = projection.buffer;
+          count = projection.points.length / 2;
+        }
+        if (
+          !count ||
+          ![transform.centerX, transform.centerY, transform.scale].every(Number.isFinite) ||
+          transform.scale <= 0
+        )
+          continue;
+        const span =
+          tile.projection && buffer === tile.projection.buffer
+            ? Math.max(tile.projection.source.width, tile.projection.source.height)
+            : FERN_TILE_SIZE;
+        const left = width / 2 - transform.centerX * transform.scale,
+          top = height / 2 - transform.centerY * transform.scale;
+        if (
+          left > width ||
+          top > height ||
+          left + span * transform.scale < 0 ||
+          top + span * transform.scale < 0
+        )
+          continue;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.vertexAttribPointer(this.attribute, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform2f(this.uniforms.center, transform.centerX, transform.centerY);
+        gl.uniform1f(this.uniforms.scale, transform.scale);
+        gl.drawArrays(gl.POINTS, 0, count);
+      }
+      gl.disableVertexAttribArray(this.attribute);
+    } else if (this.ctx) {
+      const ctx = this.ctx,
+        ratio = window.devicePixelRatio || 1;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.fillStyle = this.options.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = this.options.color;
+      for (const tile of Array.from(this.tiles.values())) {
+        const points = projectFernTile(tile, target);
+        for (let i = 0; i < points.length; i += 2) ctx.fillRect(points[i], points[i + 1], 1, 1);
+      }
+    }
+  };
 
   dispose() {
     this.disposed = true;
     if (this.frameId !== null) cancelAnimationFrame(this.frameId);
-    this.frameId = null;
-    this.work = null;
-    this.current = null;
-    this.previous = null;
-  }
-
-  private schedule() {
-    if (this.disposed || this.frameId !== null) return;
-    this.frameId = requestAnimationFrame(this.draw);
-  }
-
-  private begin() {
-    const { width, height, ratio, matrix, method, background } = this.options;
-    const w = Math.ceil(width * OVERSCAN),
-      h = Math.ceil(height * OVERSCAN);
-    const canvas =
-      typeof OffscreenCanvas === "undefined"
-        ? Object.assign(document.createElement("canvas"), {
-            width: Math.round(w * ratio),
-            height: Math.round(h * ratio),
-          })
-        : new OffscreenCanvas(Math.round(w * ratio), Math.round(h * ratio));
-    const ctx = canvas.getContext("2d") as Context;
-    if (!ctx) throw new Error("Fern drawing context unavailable");
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = this.options.color;
-    const view = {
-      ...this.view,
-      logZoom: this.view.logZoom + Math.log2(Math.min(w, h) / Math.min(width, height)),
-    };
-    this.work = {
-      frame: { canvas, view, width: w, height: h },
-      ctx,
-      // A camera gesture must not choose a different random fern.
-      walker: createFernWalker(matrix, view, w, h, method, 42),
-      complete: false,
-    };
-    this.refine = false;
-  }
-
-  private paint(frame: Frame, alpha = 1) {
-    const { width, height } = this.options;
-    const p = fernFramePlacement(frame, this.view, width, height);
-    if (![p.x, p.y, p.width, p.height].every(Number.isFinite) || p.width <= 0 || p.height <= 0)
-      return;
-    this.ctx.globalAlpha = alpha;
-    this.ctx.drawImage(frame.canvas, p.x, p.y, p.width, p.height);
-  }
-
-  private needsDetail() {
-    if (!this.current) return true;
-    const { width, height } = this.options;
-    const p = fernFramePlacement(this.current, this.view, width, height);
-    const scale = p.width / this.current.width;
-    return (
-      !Number.isFinite(scale) ||
-      scale > 1.5 ||
-      scale < 2 / 3 ||
-      p.x > -16 ||
-      p.y > -16 ||
-      p.x + p.width < width + 16 ||
-      p.y + p.height < height + 16
-    );
-  }
-
-  private draw = () => {
-    this.frameId = null;
-    if (this.disposed) return;
-    const now = performance.now();
-    if (this.refine && !this.work && (now - this.movedAt >= SETTLE_MS || this.needsDetail()))
-      this.begin();
-    const work = this.work;
-    if (work && (!work.complete || !this.paused)) {
-      const start = performance.now();
-      do {
-        const points = work.walker.step(128);
-        for (let i = 0; i < points.length; i += 2)
-          work.ctx.fillRect(points[i], points[i + 1], 1, 1);
-        work.complete =
-          !work.walker.pending &&
-          (this.options.method === "deterministic" ||
-            work.walker.samples >= 300000 ||
-            work.walker.tiles === 0);
-      } while (
-        (!work.complete || (!this.paused && work.walker.tiles > 0)) &&
-        performance.now() - start < FRAME_BUDGET_MS
-      );
-      // Show the opening picture progressively. Later views replace it only
-      // when their traversal is finished, never partway down the fern.
-      if (!this.current) this.current = work.frame;
+    this.channel.dispose();
+    this.canvas.removeEventListener("garden:redraw", this.paint);
+    window.removeEventListener("garden:before-export", this.paint);
+    for (const tile of Array.from(this.tiles.values())) {
+      this.gl?.deleteBuffer(tile.buffer);
+      if (tile.projection) this.gl?.deleteBuffer(tile.projection.buffer);
     }
-    if (work?.complete && this.current !== work.frame && !this.previous) {
-      this.previous = this.options.reducedMotion ? null : this.current;
-      this.current = work.frame;
-      this.blendAt = performance.now();
+    this.tiles.clear();
+    if (this.gl && this.shader) {
+      this.gl.deleteProgram(this.shader.program);
+      this.gl.deleteShader(this.shader.vert);
+      this.gl.deleteShader(this.shader.frag);
     }
-    if (work?.complete && this.current === work.frame && this.refine) this.work = null;
-    const { width, height, ratio, background } = this.options;
-    this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    this.ctx.globalAlpha = 1;
-    this.ctx.fillStyle = background;
-    this.ctx.fillRect(0, 0, width, height);
-    if (this.previous) {
-      const t = Math.min(1, (performance.now() - this.blendAt) / BLEND_MS);
-      this.paint(this.previous);
-      if (this.current) this.paint(this.current, t * t * (3 - 2 * t));
-      if (t === 1) this.previous = null;
-    } else if (this.current) this.paint(this.current);
-    this.ctx.globalAlpha = 1;
-    if (work)
-      this.options.onProgress({
-        samples: work.walker.samples,
-        visited: work.walker.visited,
-        resolution: work.walker.resolution,
-        complete: work.complete && !this.refine && !this.previous && this.current === work.frame,
-      });
-    if (
-      this.refine ||
-      this.previous ||
-      (this.work?.complete && this.current !== this.work.frame) ||
-      (this.work && (!this.work.complete || (!this.paused && this.work.walker.tiles > 0)))
-    )
-      this.schedule();
-  };
+  }
 }

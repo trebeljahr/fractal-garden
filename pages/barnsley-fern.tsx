@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
@@ -11,7 +10,6 @@ import { FernViewportRenderer } from "../utils/fernRenderer";
 import { type FernMethod, fernBounds, fernOpeningSpan } from "../utils/fernViewport";
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { getDescription } from "../utils/readFiles";
 
 type Config = {
@@ -33,9 +31,8 @@ const BarnsleyFern = ({ description }: Props) => {
     method: "chaos",
   });
   const { width, height } = useFractalViewportSize();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const renderer = useRef<FernViewportRenderer | null>(null);
-  const reducedMotion = useReducedMotion();
   const view = useRef<DeepViewport>(createViewport([0, 0], 1));
   const bounds = useMemo(
     () => fernBounds(FERN_PRESETS[config.fernToUse].matrix),
@@ -64,77 +61,73 @@ const BarnsleyFern = ({ description }: Props) => {
   }, [opening, config.fernToUse, width, height]);
 
   useDeepZoomControls({
-    canvas: ctx?.canvas ?? null,
+    canvas,
     viewportRef: view,
     maxZoomSize: span,
     flipY: false,
     onChange: () => {
-      if (ctx) ctx.canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
+      if (canvas) canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
       renderer.current?.setView(view.current);
     },
   });
 
   useEffect(() => {
-    if (!ctx) return;
+    if (!canvas) return;
     const reset = () => {
       view.current = opening;
-      ctx.canvas.dataset.fernLogZoom = "0";
+      canvas.dataset.fernLogZoom = "0";
       setConfig((old) => ({ ...old, paused: true }));
       renderer.current?.setView(view.current);
     };
-    ctx.canvas.setAttribute(
+    canvas.setAttribute(
       "aria-label",
       "Interactive fern. Drag to pan; scroll or pinch to reveal new dots; double-click to reset.",
     );
-    ctx.canvas.addEventListener("dblclick", reset);
+    canvas.addEventListener("dblclick", reset);
     window.addEventListener("garden:reset-pose", reset);
     return () => {
-      ctx.canvas.removeEventListener("dblclick", reset);
+      canvas.removeEventListener("dblclick", reset);
       window.removeEventListener("garden:reset-pose", reset);
     };
-  }, [ctx, opening]);
+  }, [canvas, opening]);
 
-  // Pause changes continue the same dot sequence rather than restarting it.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: paused is updated in the following effect
+  const latest = useRef({ width, height, config });
+  latest.current = { width, height, config };
   useEffect(() => {
-    if (!ctx || !width || !height || !initialized.current) return;
-    ctx.canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
-    ctx.canvas.dataset.fernMethod = config.method;
-    const active = new FernViewportRenderer(ctx, {
+    const { width, height, config: initial } = latest.current;
+    if (!canvas || !width || !height) return;
+    const active = new FernViewportRenderer(canvas, {
       matrix: FERN_PRESETS[config.fernToUse].matrix,
       view: view.current,
       width,
       height,
-      ratio: window.devicePixelRatio || 1,
       method: config.method,
-      background: config.background,
-      color: config.color,
-      paused: config.paused,
-      reducedMotion,
-      onProgress: ({ samples, visited, resolution, complete }) => {
-        ctx.canvas.dataset.fernSamples = String(samples);
-        ctx.canvas.dataset.fernVisited = String(visited);
-        ctx.canvas.dataset.fernResolution = String(resolution);
-        ctx.canvas.dataset.fernComplete = String(complete);
+      background: initial.background,
+      color: initial.color,
+      paused: initial.paused,
+      onProgress: ({ samples, visited, resolution, complete, count }) => {
+        canvas.dataset.fernSamples = String(samples);
+        canvas.dataset.fernVisited = String(visited);
+        canvas.dataset.fernResolution = String(resolution);
+        canvas.dataset.fernComplete = String(complete);
+        canvas.dataset.fernPoints = String(count);
       },
     });
     renderer.current = active;
+    canvas.dataset.fernLogZoom = String(previousOpening.current.logZoom - view.current.logZoom);
+    canvas.dataset.fernMethod = config.method;
     return () => {
       active.dispose();
       if (renderer.current === active) renderer.current = null;
     };
-  }, [
-    config.background,
-    config.color,
-    config.fernToUse,
-    config.method,
-    ctx,
-    width,
-    height,
-    opening,
-    reducedMotion,
-  ]);
+  }, [canvas, config.fernToUse, config.method]);
 
+  useEffect(() => {
+    if (width && height) renderer.current?.resize(width, height);
+  }, [width, height]);
+  useEffect(() => {
+    renderer.current?.setStyle(config.color, config.background);
+  }, [config.color, config.background]);
   useEffect(() => {
     renderer.current?.setPaused(config.paused);
   }, [config.paused]);
@@ -173,7 +166,7 @@ const BarnsleyFern = ({ description }: Props) => {
         className={styles.viewport}
         style={{ background: config.background }}
       >
-        <Canvas setCtx={setCtx} width={width} height={height} />
+        {width && height && <canvas ref={setCanvas} />}
       </div>
       <SideDrawer description={description} />
       <NavElement />

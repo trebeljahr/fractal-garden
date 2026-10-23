@@ -28,7 +28,12 @@ async function check(page, baseURL, output) {
     const state = () => canvas.evaluate((c) => ({ ...c.dataset }));
     const drawing = () =>
       canvas.evaluate((c) => {
-        const pixels = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+        c.dispatchEvent(new Event("garden:redraw"));
+        const gl = c.getContext("webgl");
+        const pixels = gl
+          ? new Uint8Array(c.width * c.height * 4)
+          : c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+        if (gl) gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         let count = 0,
           distance = Infinity,
           point = null;
@@ -38,12 +43,13 @@ async function check(page, baseURL, output) {
             const i = (y * c.width + x) * 4;
             if (pixels[i + 1] < pixels[i] + 30) continue;
             count++;
-            const next = (x - c.width * 0.54) ** 2 + (y - c.height * 0.48) ** 2;
+            const screenY = gl ? c.height - 1 - y : y;
+            const next = (x - c.width * 0.54) ** 2 + (screenY - c.height * 0.48) ** 2;
             if (next < distance) {
               distance = next;
               point = {
                 x: rect.left + ((x + 0.5) * rect.width) / c.width,
-                y: rect.top + ((y + 0.5) * rect.height) / c.height,
+                y: rect.top + ((screenY + 0.5) * rect.height) / c.height,
               };
             }
           }

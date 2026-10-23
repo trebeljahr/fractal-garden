@@ -71,6 +71,7 @@ export function createFernWalker(
   height: number,
   method: FernMethod,
   seed = 42,
+  coverage?: Uint8Array,
 ) {
   const bounds = fernBounds(matrix);
   const { bits } = view;
@@ -101,12 +102,12 @@ export function createFernWalker(
     large.length = 0;
     large.push({ a: one, b: ZERO, c: ZERO, d: one, x: -view.x, y: -view.y });
     tiles.length = 0;
-    occupied.fill(0);
+
     cursor = 0;
     passVisits = 0;
     samples = 0;
   };
-  const occupied = new Uint8Array(Math.ceil(width) * Math.ceil(height));
+  const occupied = coverage ?? new Uint8Array(Math.ceil(width) * Math.ceil(height));
   const stride = Math.ceil(width);
   // Once every pixel in a subtree's clipped enclosure is drawn, further
   // addresses cannot add pixels. This also collapses overlapping stem images.
@@ -150,9 +151,11 @@ export function createFernWalker(
   const plot = (t: Affine<number>, x: number, y: number, out: number[]) => {
     const sx = width / 2 + t.x + t.a * x + t.b * y;
     const sy = height / 2 - t.y - t.c * x - t.d * y;
-    if (sx >= 0 && sx < width && sy >= 0 && sy < height) out.push(Math.floor(sx), Math.floor(sy));
-    if (sx >= 0 && sx < width && sy >= 0 && sy < height)
-      occupied[Math.floor(sy) * stride + Math.floor(sx)] = 1;
+    if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+      const index = Math.floor(sy) * stride + Math.floor(sx);
+      if (!occupied[index]) out.push(sx, sy);
+      occupied[index] = 1;
+    }
     samples++;
   };
   return {
