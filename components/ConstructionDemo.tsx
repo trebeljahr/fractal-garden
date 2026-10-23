@@ -1,6 +1,11 @@
-import { useId, useState } from "react";
+import { type CSSProperties, useId, useState } from "react";
 import styles from "../styles/ConstructionDemo.module.css";
-import { canopyBranches, carpetHoles, kochEdge } from "../utils/constructionDiagrams";
+import {
+  canopyBranches,
+  carpetHoles,
+  circleContacts,
+  kochEdge,
+} from "../utils/constructionDiagrams";
 import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket";
 import { LessonSteps } from "./lessons/LessonFrame";
 
@@ -35,19 +40,31 @@ function Drawing({ kind, step, angle }: { kind: ConstructionKind; step: number; 
     );
   }
   if (kind === "koch") {
-    const points = kochEdge(step);
+    const points = kochEdge(Math.max(0, step - 1));
     const path = points
-      .map((p, i) => `${i ? "L" : "M"}${40 + p.x * 400},${230 + p.y * 400}`)
-      .join(" ");
-    const highlight = points
-      .slice(0, step ? 5 : 2)
       .map((p, i) => `${i ? "L" : "M"}${40 + p.x * 400},${230 + p.y * 400}`)
       .join(" ");
     return (
       <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M40 230H440" className={styles.guide} />
-        <path d={path} className={styles.line} />
-        <path d={highlight} className={styles.newLine} />
+        <path d={path} className={step ? styles.guide : styles.line} />
+        {step > 0 &&
+          points.slice(1).map((end, index) => {
+            const start = points[index];
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            return (
+              <g
+                key={`${step}:${start.x}:${start.y}`}
+                transform={`translate(${40 + start.x * 400} ${230 + start.y * 400}) rotate(${(Math.atan2(dy, dx) * 180) / Math.PI}) scale(${Math.hypot(dx, dy) * 400})`}
+              >
+                <polyline
+                  points={`0,0 ${1 / 3},0 0.5,${-Math.sqrt(3) / 6} ${2 / 3},0 1,0`}
+                  className={styles.replacement}
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            );
+          })}
       </g>
     );
   }
@@ -61,24 +78,42 @@ function Drawing({ kind, step, angle }: { kind: ConstructionKind; step: number; 
             y1={branch.start.y}
             x2={branch.end.x}
             y2={branch.end.y}
-            className={branch.depth === step ? styles.newLine : styles.line}
+            pathLength={1}
+            className={
+              branch.depth === step ? `${styles.newLine} ${styles.growingBranch}` : styles.line
+            }
             style={{ strokeWidth: 0.045 * 0.7 ** branch.depth }}
           />
         ))}
       </g>
     );
   }
+  const circles = buildApollonianGasket(step);
   return (
     <g transform="translate(240 160) scale(140)" fill="none">
-      {buildApollonianGasket(step).map((circle) => (
+      {circles.map((circle) => (
         <circle
           key={`${circle.x}:${circle.y}:${circle.radius}`}
           cx={circle.x}
           cy={circle.y}
           r={circle.radius}
           className={circle.depth === step && step > 0 ? styles.newCircle : styles.circle}
+          style={{ transformOrigin: `${circle.x}px ${circle.y}px` } as CSSProperties}
         />
       ))}
+      {circles
+        .filter((circle) => circle.depth === step && step > 0)
+        .flatMap((circle) =>
+          circleContacts(circle, circles).map((point) => (
+            <circle
+              key={`${circle.x}:${circle.y}:${point.x}:${point.y}`}
+              cx={point.x}
+              cy={point.y}
+              r={Math.min(0.012, circle.radius * 0.14)}
+              className={styles.contact}
+            />
+          )),
+        )}
     </g>
   );
 }
@@ -91,37 +126,49 @@ function caption(kind: ConstructionKind, step: number) {
   if (kind === "koch")
     return step === 0
       ? "Start with one straight edge. The snowflake starts with three edges around a triangle."
-      : `${4 ** step} segments replace the original edge. Total length is ${((4 / 3) ** step).toFixed(2)} times the starting length. Amber shows one group of four new segments.`;
+      : `${4 ** step} segments replace the original edge. Total length is ${((4 / 3) ** step).toFixed(2)} times the starting length. Each dashed edge becomes four amber segments.`;
   if (kind === "canopy")
     return step === 0
       ? "Start with one trunk."
       : `${2 ** step} new branches grow at the tips. Each is 62% as long as its parent. Amber marks the newest branches.`;
   return step === 0
     ? "Start with three touching circles inside an outer circle."
-    : `${4 * 3 ** (step - 1)} new circles fit into the gaps. Each touches three existing circles. Amber marks this step's additions.`;
+    : `${4 * 3 ** (step - 1)} new circles fit into the gaps. Amber marks this step's additions; dots mark where they touch older circles.`;
 }
 
 export default function ConstructionDemo({ kind }: { kind: ConstructionKind }) {
   const [step, setStep] = useState(0);
+  const [forward, setForward] = useState(false);
   const [angle, setAngle] = useState(50);
   const id = useId();
   const example = EXAMPLES[kind];
   const description = caption(kind, step);
+  const changeStep = (next: number) => {
+    setForward(next > step);
+    setStep(next);
+  };
   return (
-    <figure className={styles.demo} data-construction-demo={kind}>
+    <figure className={styles.demo} data-construction-demo={kind} data-motion={forward}>
       <figcaption id={`${id}-title`} className={styles.title}>
         {example.title}
       </figcaption>
       <div className={styles.explanation}>
         <svg viewBox="0 0 480 320" role="img" aria-labelledby={`${id}-title ${id}-summary`}>
           <title>{`${example.title}, step ${step}`}</title>
-          <Drawing key={step} kind={kind} step={step} angle={angle} />
+          <Drawing kind={kind} step={step} angle={angle} />
         </svg>
         <p id={`${id}-summary`} aria-live="polite" aria-atomic="true">
           {description}
         </p>
       </div>
-      <LessonSteps step={step} max={example.max} onChange={setStep} label={example.title} />
+      <LessonSteps
+        key={angle}
+        step={step}
+        max={example.max}
+        onChange={changeStep}
+        label={example.title}
+        duration={example.max * 1500}
+      />
       {kind === "canopy" && (
         <label className={styles.angle}>
           <span>
@@ -133,7 +180,10 @@ export default function ConstructionDemo({ kind }: { kind: ConstructionKind }) {
             min={20}
             max={100}
             value={angle}
-            onChange={(event) => setAngle(Number(event.target.value))}
+            onChange={(event) => {
+              setForward(false);
+              setAngle(Number(event.target.value));
+            }}
           />
         </label>
       )}

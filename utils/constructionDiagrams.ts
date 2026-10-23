@@ -2,6 +2,21 @@ export type Point = { x: number; y: number };
 export type Hole = Point & { size: number; depth: number };
 export type Branch = { start: Point; end: Point; depth: number };
 
+type TangentCircle = Point & { radius: number; bend: number; depth: number };
+
+export function circleContacts(circle: TangentCircle, circles: TangentCircle[]): Point[] {
+  return circles.flatMap((parent) => {
+    if (parent.depth >= circle.depth) return [];
+    const dx = parent.x - circle.x;
+    const dy = parent.y - circle.y;
+    const distance = Math.hypot(dx, dy);
+    const gap = parent.bend < 0 ? parent.radius - circle.radius : parent.radius + circle.radius;
+    if (!distance || Math.abs(distance - gap) > 1e-8) return [];
+    const scale = (circle.radius / distance) * (parent.bend < 0 ? -1 : 1);
+    return [{ x: circle.x + dx * scale, y: circle.y + dy * scale }];
+  });
+}
+
 // Small, bounded diagrams use mathematical coordinates, independent of the
 // fullscreen renderers' adaptive depth, camera and animation state.
 export function carpetHoles(step: number): Hole[] {

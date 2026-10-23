@@ -63,6 +63,11 @@
   stroke: var(--diagram-accent);
   stroke-width: 0.014;
 }
+.contact {
+  fill: var(--diagram-accent);
+  stroke: var(--diagram-bg);
+  stroke-width: 0.004;
+}
 .controls {
   display: flex;
   align-items: center;
@@ -180,7 +185,55 @@
 .newLine,
 .newCircle,
 .cut {
-  animation: new-step 180ms ease-out;
+  animation: new-step 650ms ease-out both;
+}
+.growingBranch {
+  stroke-dasharray: 1;
+  animation-name: grow-line;
+}
+.newCircle {
+  animation-name: grow-circle;
+}
+.cut {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-name: grow-circle;
+}
+.replacement {
+  stroke: var(--diagram-accent);
+  stroke-width: 2.5;
+  transform-origin: 0 0;
+  animation: replace-edge 650ms ease-in-out both;
+}
+.demo[data-motion="false"] .newLine,
+.demo[data-motion="false"] .newCircle,
+.demo[data-motion="false"] .cut,
+.demo[data-motion="false"] .replacement {
+  animation: none;
+}
+@keyframes grow-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes grow-circle {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes replace-edge {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 @keyframes new-step {
   from {
@@ -193,7 +246,8 @@
 @media (prefers-reduced-motion: reduce) {
   .newLine,
   .newCircle,
-  .cut {
+  .cut,
+  .replacement {
     animation: none;
   }
 }

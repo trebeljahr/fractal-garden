@@ -66,6 +66,7 @@ function ConstructionSurface({ spec, level }: { spec: ConstructionSpec; level: n
 function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [compare, setCompare] = useState(true);
   const frame = useRef<HTMLDivElement>(null);
   const max = Math.max(0, spec.max - spec.min);
   const selected = Math.min(step, max);
@@ -81,15 +82,33 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
 
   return (
     <LessonFrame title="Watch the construction" kind="full-construction">
-      <p>Use Play or the step slider to see how the shape forms.</p>
-      <div
-        ref={frame}
-        className={styles.frame}
-        role="img"
-        aria-label={`Fractal construction at level ${level}`}
-        data-construction-level={level}
-      >
-        {visible && <ConstructionSurface spec={spec} level={level} />}
+      <p>Step forward to see each replacement. Compare it with the level before.</p>
+      <div ref={frame} className={compare && selected > 0 ? styles.comparison : styles.single}>
+        {compare && selected > 0 && (
+          <div key="previous" className={styles.previous}>
+            <p>Before · level {level - 1}</p>
+            <div
+              className={styles.frame}
+              role="img"
+              aria-label={`Previous construction at level ${level - 1}`}
+            >
+              {visible && <ConstructionSurface spec={spec} level={level - 1} />}
+            </div>
+          </div>
+        )}
+        <div key="current" className={styles.current}>
+          <p>
+            {selected ? "Now" : "Start"} · level {level}
+          </p>
+          <div
+            className={styles.frame}
+            role="img"
+            aria-label={`Fractal construction at level ${level}`}
+            data-construction-level={level}
+          >
+            {visible && <ConstructionSurface spec={spec} level={level} />}
+          </div>
+        </div>
       </div>
       <p aria-live="polite" aria-atomic="true">
         Construction level {level}
@@ -99,8 +118,16 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
         step={selected}
         max={max}
         onChange={setStep}
-        duration={max * (spec.stepDelay ?? 950)}
+        duration={max * Math.max(1500, spec.stepDelay ?? 0)}
       />
+      <label className={styles.compareControl}>
+        <input
+          type="checkbox"
+          checked={compare}
+          onChange={(event) => setCompare(event.target.checked)}
+        />
+        Compare with previous level
+      </label>
     </LessonFrame>
   );
 }

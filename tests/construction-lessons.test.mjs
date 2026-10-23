@@ -6,7 +6,12 @@ import {
   chooseFernRule,
   traceFern,
 } from "../utils/barnsleyFern.ts";
-import { canopyBranches, carpetHoles, kochEdge } from "../utils/constructionDiagrams.ts";
+import {
+  canopyBranches,
+  carpetHoles,
+  circleContacts,
+  kochEdge,
+} from "../utils/constructionDiagrams.ts";
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
 import { traceTeachingOrbit } from "../utils/orbitLesson.ts";
 import { pythagorasFork } from "../utils/pythagorasFork.ts";
@@ -73,6 +78,24 @@ test("new Apollonian circles stay enclosed and touch at least three older circle
         ) < 1e-8,
     );
     assert.ok(touches.length >= 3);
+  }
+});
+
+test("contact markers lie on both the new circle and its older neighbor, including the enclosure", () => {
+  const circles = buildApollonianGasket(3);
+  for (const circle of circles.filter((c) => c.depth > 0)) {
+    const contacts = circleContacts(circle, circles);
+    assert.ok(contacts.length >= 3);
+    for (const point of contacts) {
+      close(Math.hypot(point.x - circle.x, point.y - circle.y), circle.radius);
+      assert.ok(
+        circles.some(
+          (parent) =>
+            parent.depth < circle.depth &&
+            Math.abs(Math.hypot(point.x - parent.x, point.y - parent.y) - parent.radius) < 1e-8,
+        ),
+      );
+    }
   }
 });
 test("orbit lesson shows bounded cycles and stops after an escaping iterate", () => {

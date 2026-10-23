@@ -22,7 +22,9 @@ function Steps({
   max: number;
   onChange: (value: number) => void;
 }) {
-  return <LessonSteps step={step} max={max} onChange={onChange} label={name} />;
+  return (
+    <LessonSteps step={step} max={max} onChange={onChange} label={name} duration={max * 1500} />
+  );
 }
 
 function MengerLesson() {
@@ -60,6 +62,7 @@ function MengerLesson() {
                     width="39"
                     height="39"
                     className={removed ? styles.emptyCell : styles.keptCell}
+                    style={{ animationDelay: `${index * 120}ms` }}
                   />
                   {removed && showRemoved && (
                     <path
@@ -114,6 +117,7 @@ function squareCenter(points: ForkPoint[]) {
 
 function PythagorasLesson() {
   const [step, setStep] = useState(0);
+  const [forward, setForward] = useState(false);
   const [angle, setAngle] = useState(45);
   const id = useId();
   const title = "One square becomes two branches";
@@ -133,7 +137,11 @@ function PythagorasLesson() {
     { x: tip.x + v.x, y: tip.y + v.y },
   ]);
   return (
-    <figure className={`${base.demo} ${styles.lesson}`} data-detail-lesson="pythagoras">
+    <figure
+      className={`${base.demo} ${styles.lesson}`}
+      data-detail-lesson="pythagoras"
+      data-motion={forward}
+    >
       <figcaption id={`${id}-title`} className={base.title}>
         {title}
       </figcaption>
@@ -153,7 +161,7 @@ function PythagorasLesson() {
             area 1
           </text>
           {step > 0 && (
-            <g key={`triangle:${step}`} className={styles.reveal}>
+            <g key="triangle">
               <polygon points={forkPoints(fork.triangle)} className={styles.triangle} />
               <polyline points={corner} className={styles.rightAngle} />
               <path
@@ -166,9 +174,28 @@ function PythagorasLesson() {
             </g>
           )}
           {step > 1 && (
-            <g key={`children:${step}`} className={styles.reveal}>
-              <polygon points={forkPoints(fork.left)} className={styles.leftSquare} />
-              <polygon points={forkPoints(fork.right)} className={styles.rightSquare} />
+            <g key="children">
+              {[fork.left, fork.right].map((square, index) => {
+                const anchor = forkPoints([square[0]]).replace(",", " ");
+                const dx = square[1].x - square[0].x;
+                const dy = square[1].y - square[0].y;
+                const size = Math.hypot(dx, dy) * 120;
+                return (
+                  <g
+                    key={index === 0 ? "left" : "right"}
+                    transform={`translate(${anchor}) rotate(${(-Math.atan2(dy, dx) * 180) / Math.PI})`}
+                  >
+                    <rect
+                      x={0}
+                      y={-size}
+                      width={size}
+                      height={size}
+                      className={index === 0 ? styles.leftSquare : styles.rightSquare}
+                      style={{ animationDelay: `${index * 180}ms` }}
+                    />
+                  </g>
+                );
+              })}
               <text x={left.x} y={left.y + 5} textAnchor="middle" className={styles.diagramValue}>
                 {fork.leftArea.toFixed(2)}
               </text>
@@ -186,7 +213,16 @@ function PythagorasLesson() {
               : `The child areas equal ${(fork.leftArea * 100).toFixed(1)}% and ${(fork.rightArea * 100).toFixed(1)}% of the parent's area. Together they have area 1.`}
         </p>
       </div>
-      <Steps name={title} step={step} max={2} onChange={setStep} />
+      <Steps
+        key={angle}
+        name={title}
+        step={step}
+        max={2}
+        onChange={(next) => {
+          setForward(next > step);
+          setStep(next);
+        }}
+      />
       <label className={base.angle}>
         <span>
           Triangle angle <output>{angle}°</output>
@@ -198,7 +234,10 @@ function PythagorasLesson() {
           max={75}
           value={angle}
           disabled={step === 0}
-          onChange={(event) => setAngle(Number(event.target.value))}
+          onChange={(event) => {
+            setForward(false);
+            setAngle(Number(event.target.value));
+          }}
         />
       </label>
       {step === 2 && (
@@ -288,7 +327,30 @@ function FernLesson() {
               .join(" ")}
             className={styles.fernTrail}
           />
-          <circle cx={position.x} cy={position.y} r="5" className={styles.fernPoint} />
+          {previous && (
+            <g>
+              <line
+                x1={fernPosition(previous).x}
+                y1={fernPosition(previous).y}
+                x2={position.x}
+                y2={position.y}
+                pathLength={1}
+                className={styles.fernJump}
+              />
+              <circle
+                cx={fernPosition(previous).x}
+                cy={fernPosition(previous).y}
+                r="3"
+                className={styles.fernPrevious}
+              />
+            </g>
+          )}
+          <g
+            className={styles.fernCursor}
+            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+          >
+            <circle r="5" className={styles.fernPoint} />
+          </g>
         </svg>
         <div className={styles.fernControls}>
           <fieldset className={styles.ruleChoices}>

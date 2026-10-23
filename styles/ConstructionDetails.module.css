@@ -23,6 +23,7 @@ fieldset.stepControls {
   fill: transparent;
   stroke: #eee8ce55;
   stroke-dasharray: 3 3;
+  animation: remove-cell 650ms ease-out both;
 }
 .removedMark {
   fill: none;
@@ -70,6 +71,7 @@ fieldset.stepControls {
   fill: #eee8ce0c;
   stroke: var(--diagram-ink);
   stroke-width: 1.5;
+  animation: reveal 650ms ease-out both;
 }
 .rightAngle {
   fill: none;
@@ -85,11 +87,36 @@ fieldset.stepControls {
   fill: #f5c56d33;
   stroke: var(--diagram-accent);
   stroke-width: 2;
+  animation: grow-square 650ms ease-out both;
 }
 .rightSquare {
-  fill: #eee8ce44;
-  stroke: var(--diagram-ink);
+  fill: #f5c56d18;
+  stroke: var(--diagram-accent);
   stroke-width: 2;
+  animation: grow-square 650ms ease-out both;
+}
+.lesson[data-motion="false"] .triangle,
+.lesson[data-motion="false"] .leftSquare,
+.lesson[data-motion="false"] .rightSquare {
+  animation: none;
+}
+@keyframes grow-square {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes remove-cell {
+  from {
+    fill: var(--diagram-accent);
+    fill-opacity: 0.85;
+  }
+  to {
+    fill: transparent;
+    fill-opacity: 0;
+  }
 }
 .areaBar {
   height: 1.3rem;
@@ -142,6 +169,16 @@ fieldset.stepControls {
   stroke: var(--diagram-ink);
   stroke-width: 2;
 }
+.fernCursor {
+  transition: transform 650ms ease-in-out;
+}
+.fernPrevious {
+  fill: var(--diagram-ink);
+}
+.fernJump {
+  stroke: var(--diagram-ink);
+  stroke-width: 1.5;
+}
 .ruleChoices {
   display: grid;
   gap: 0.4rem;
@@ -184,7 +221,7 @@ fieldset.stepControls {
 }
 .reveal,
 .fernCopy {
-  animation: reveal 180ms ease-out;
+  animation: reveal 650ms ease-out;
 }
 @keyframes reveal {
   from {
@@ -219,7 +256,14 @@ fieldset.stepControls {
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .fernCopy {
+  .fernCopy,
+  .emptyCell,
+  .triangle,
+  .leftSquare,
+  .rightSquare {
     animation: none;
+  }
+  .fernCursor {
+    transition: none;
   }
 }

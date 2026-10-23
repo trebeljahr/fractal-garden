@@ -15,3 +15,42 @@
   width: 100% !important;
   height: auto !important;
 }
+
+.comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: center;
+  gap: 1.5rem;
+}
+.single,
+.comparison {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.comparison .frame {
+  margin-top: 0.5rem;
+}
+.previous p {
+  color: #eee8ceaa;
+}
+.current p {
+  color: #f5c56d;
+}
+.compareControl {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 44px;
+  margin-top: 0.8rem;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.compareControl input {
+  accent-color: #f5c56d;
+}
+@media (max-width: 600px) {
+  .comparison {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+}
