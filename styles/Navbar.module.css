@@ -9,7 +9,7 @@
   align-content: center;
   gap: 5px 8px;
   text-decoration: none;
-  text-align: left;
+  text-align: right;
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
@@ -28,7 +28,7 @@
   grid-row: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -61,7 +61,7 @@
 .next {
   grid-template-columns: 40px minmax(0, auto);
   right: max(8px, env(safe-area-inset-right));
-  text-align: right;
+  text-align: left;
 }
 
 .next .preview {
@@ -74,7 +74,7 @@
 }
 
 .next .direction {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .linkButton svg {
