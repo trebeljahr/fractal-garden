@@ -6,11 +6,13 @@ import {
   buildGridFrame,
   type FlightCamera,
   flightBasis,
+  flightRootBounds,
   MAX_VOXEL_DEPTH,
   PATTERNS,
   type VoxelPattern,
 } from "./camera";
 import { flightDetailDepth, flightResolution } from "./resolution";
+import { flightScreenBounds } from "./view";
 
 export type FlightStyle = {
   background: string;
@@ -55,6 +57,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     gl.texParameteri(gl.TEXTURE_2D, name, gl.NEAREST);
   for (const name of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T])
     gl.texParameteri(gl.TEXTURE_2D, name, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, MAX_VOXEL_DEPTH, 2, 0, gl.RGBA, gl.FLOAT, null);
   const names = [
     "resolution",
     "pixelAngle",
@@ -82,10 +85,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     names.map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
   );
   let previous: FlightCamera | undefined, previousPattern: VoxelPattern | undefined;
-  let frame = buildGridFrame(
-    { position: [BigInt(0), BigInt(0), BigInt(0)], bits: 160, level: 0, yaw: 0, pitch: 0 },
-    "menger",
-  );
+  let frame: ReturnType<typeof buildGridFrame> | undefined;
   return {
     draw(
       camera: FlightCamera,
@@ -107,7 +107,25 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.useProgram(shader.program);
       gl.viewport(0, 0, w, h);
       const nextAtmosphere = flightAtmosphere(camera.level, camera.viewLevel ?? camera.level);
+      const basis = flightBasis(camera);
+      const visible = flightScreenBounds(
+        flightRootBounds(camera),
+        basis,
+        w,
+        h,
+        nextAtmosphere.farDistance,
+      );
+      const background = rgb(style.background);
+      // Clear the full canvas before clipping the expensive ray traversal.
+      // Looking away from the root needs neither a render grid nor a draw.
+      gl.disable(gl.SCISSOR_TEST);
+      if (!visible || visible.width !== w || visible.height !== h) {
+        gl.clearColor(...background, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+      if (!visible) return;
       if (
+        !frame ||
         previous?.position !== camera.position ||
         previous?.level !== camera.level ||
         previous?.viewLevel !== camera.viewLevel ||
@@ -121,13 +139,13 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
           nextAtmosphere.farDistance,
         );
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(
+        gl.texSubImage2D(
           gl.TEXTURE_2D,
           0,
-          gl.RGBA,
+          0,
+          0,
           MAX_VOXEL_DEPTH,
           2,
-          0,
           gl.RGBA,
           gl.FLOAT,
           frame.texture,
@@ -135,7 +153,6 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previous = camera;
         previousPattern = pattern;
       }
-      const basis = flightBasis(camera);
       gl.uniform2f(u.resolution, w, h);
       const detail = flightResolution(
         frame.clearance,
@@ -158,13 +175,16 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.uniform3f(u.forward, ...basis.forward);
       gl.uniform3f(u.right, ...basis.right);
       gl.uniform3f(u.up, ...basis.up);
-      gl.uniform3f(u.background, ...rgb(style.background));
+      gl.uniform3f(u.background, ...background);
       gl.uniform3f(u.fill, ...rgb(style.fillColor));
       gl.uniform3f(u.stroke, ...rgb(style.strokeColor));
       gl.uniform1i(u.faces, style.showFaces ? 1 : 0);
       gl.uniform1i(u.wire, style.showWireframe ? 1 : 0);
       gl.uniform1f(u.lineWidth, style.lineWidth);
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(visible.x, visible.y, visible.width, visible.height);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disable(gl.SCISSOR_TEST);
     },
     destroy() {
       gl.deleteBuffer(buffer);

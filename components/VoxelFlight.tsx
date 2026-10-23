@@ -81,7 +81,7 @@ export function VoxelFlight({
     "voxelCamera",
     () => serializeFlightCamera(cameraRef.current),
     (saved) => {
-      cameraRef.current = restoreFlightCamera(saved);
+      cameraRef.current = restoreFlightCamera(saved, latest.current.pattern);
       dirty.current = true;
     },
   );
@@ -156,8 +156,11 @@ export function VoxelFlight({
       dirty.current = true;
     };
     const move = (motion: Vec3) => {
-      cameraRef.current = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
-      dirty.current = true;
+      const next = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
+      if (next !== cameraRef.current) {
+        cameraRef.current = next;
+        dirty.current = true;
+      }
     };
     const draw = () => {
       if (!renderer || gl.isContextLost()) return;

@@ -79,13 +79,15 @@ async function check(page, baseURL) {
   const position = (point) =>
     point.map((p) => ((BigInt(Math.round(p * 1e9)) * (1n << 600n)) / 1000000000n).toString(16));
   const results = [];
-  for (const [route, deep, slow, boost] of [
+  for (const [route, deep, slow, boost, passage = 0] of [
     ["menger-sponge", false, false, false],
     ["mosely-snowflake", false, false, false],
     ["vicsek-fractal-3d", false, false, false],
     ["menger-sponge", false, true, false],
     ["menger-sponge", false, false, true],
     ["menger-sponge", true, false, false],
+    ["mosely-snowflake", false, false, false, 1],
+    ["mosely-snowflake", false, true, false, 2],
   ]) {
     await page.goto(`${baseURL}/${route}`);
     await page.getByRole("button", { name: "Explore inside", exact: true }).click();
@@ -107,7 +109,9 @@ async function check(page, baseURL) {
         ? [one - one / scale, one - one / scale, one + (22n * one) / (10n * scale)].map((p) =>
             p.toString(16),
           )
-        : position([0.4, 0.4, 1.000001]),
+        : passage
+          ? position([0, 1 - 3 ** (1 - passage), 1 - 3 ** (1 - passage)])
+          : position([0.4, 0.4, 1.000001]),
     };
     const hash = await page.evaluate(
       ({ route, parts }) =>
@@ -121,7 +125,15 @@ async function check(page, baseURL) {
     await page.goto(`${baseURL}/${route}${hash}`);
     await page.waitForFunction(() => window.__flightMotion.length > 0);
     const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
-    const name = deep ? "deep" : slow ? "slow-frames" : boost ? "boost" : route;
+    const name = passage
+      ? `snowflake-passage-${passage}`
+      : deep
+        ? "deep"
+        : slow
+          ? "slow-frames"
+          : boost
+            ? "boost"
+            : route;
     await canvas.screenshot({ path: `/private/tmp/stable-flight-${name}-before.png` });
     await canvas.focus();
     await page.evaluate(
@@ -133,7 +145,7 @@ async function check(page, baseURL) {
     );
     if (boost) await page.keyboard.down("Shift");
     await page.keyboard.down("d");
-    await page.waitForTimeout(slow ? 1100 : 900);
+    await page.waitForTimeout(passage ? 450 : slow ? 1100 : 900);
     await page.keyboard.up("d");
     if (boost) await page.keyboard.up("Shift");
     await page.evaluate(() => {
@@ -161,7 +173,7 @@ async function check(page, baseURL) {
           2,
       );
       const speed = Math.hypot(...delta) / ((after.time - before.time) / 1000);
-      maxSpeedError = Math.max(maxSpeedError, Math.abs(speed - (boost ? 3 : 0.75)));
+      maxSpeedError = Math.max(maxSpeedError, Math.abs(speed - (boost ? 3 : 0.75) / 3 ** passage));
       assert(
         after.camera.viewLevel === parts.voxelCamera.viewLevel,
         `${name}: flight changed exploration scale`,
@@ -185,10 +197,71 @@ async function check(page, baseURL) {
     results.push({
       name,
       samples: frames.length,
+      expectedSpeed: (boost ? 3 : 0.75) / 3 ** passage,
       maxSpeedError,
       renderLevels: [...new Set(frames.map((f) => f.camera.level))],
       explorationScale: parts.voxelCamera.viewLevel,
       idleRedraws: 0,
+    });
+  }
+  // A hidden subpixel passage must behave as a wall under real held input.
+  for (const variant of ["lighter", "heavier"]) {
+    const parts = await capture();
+    const one = 1n << 600n,
+      scale = 3n ** 10n;
+    parts.config.variant = variant;
+    parts.voxelCamera = {
+      kind: "voxel-flight",
+      bits: 600,
+      level: 0,
+      viewLevel: 0,
+      yaw: 0,
+      pitch: 0,
+      position: [(2n * one) / scale, one - one / scale, one + one / 10000n].map((p) =>
+        p.toString(16),
+      ),
+    };
+    const hash = await page.evaluate(
+      (parts) =>
+        "#view=" +
+        btoa(
+          JSON.stringify({
+            version: 1,
+            path: "/mosely-snowflake",
+            parts,
+          }),
+        )
+          .replaceAll("+", "-")
+          .replaceAll("/", "_")
+          .replaceAll("=", ""),
+      parts,
+    );
+    await page.goto(`${baseURL}/mosely-snowflake${hash}`);
+    await page.waitForFunction(() => window.__flightMotion.length > 0);
+    const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
+    await canvas.focus();
+    await page.keyboard.down("w");
+    await page.waitForTimeout(250);
+    const stopped = await capture();
+    const draws = await page.evaluate(() => window.__flightMotion.length);
+    await page.waitForTimeout(250);
+    await page.keyboard.up("w");
+    const z = BigInt("0x" + stopped.voxelCamera.position[2]);
+    assert(z > one, `${variant}: entered visible front wall`);
+    assert(
+      draws === (await page.evaluate(() => window.__flightMotion.length)),
+      `${variant}: blocked flight redrew`,
+    );
+    await page.keyboard.down("s");
+    await page.waitForTimeout(100);
+    await page.keyboard.up("s");
+    const retreat = await capture();
+    assert(BigInt("0x" + retreat.voxelCamera.position[2]) > z, `${variant}: could not retreat`);
+    results.push({
+      name: `${variant}-wall`,
+      stoppedOutside: true,
+      blockedRedraws: 0,
+      retreat: true,
     });
   }
   // Wheel zoom selects the scale explicitly; a copied view must retain it.

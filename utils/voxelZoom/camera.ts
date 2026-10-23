@@ -95,6 +95,17 @@ export type GridFrame = {
   clearance: number;
 };
 
+/** Camera-relative root bounds shared by visibility and traversal. */
+export function flightRootBounds(camera: FlightCamera, precise = false) {
+  const coordinate = precise ? localDouble : localFloat;
+  const one = BigInt(1) << BigInt(camera.bits);
+  const scale = powers[camera.level];
+  return {
+    low: camera.position.map((p) => coordinate((-one - p) * scale, camera.bits + 1)) as Vec3,
+    high: camera.position.map((p) => coordinate((one - p) * scale, camera.bits + 1)) as Vec3,
+  };
+}
+
 /** Exact global address, camera-relative float geometry. No huge world coordinate reaches the GPU. */
 export function buildGridFrame(
   camera: FlightCamera,
@@ -116,16 +127,11 @@ function gridFrame(
   upload = true,
   viewDistance = LOCAL_COORDINATE_LIMIT,
 ): GridFrame {
-  const coordinate = geometry && !upload ? localDouble : localFloat;
+  const coordinate = !geometry || !upload ? localDouble : localFloat;
   const one = BigInt(1) << BigInt(camera.bits);
   const denominator = one * BigInt(2);
   const localScale = powers[camera.level];
-  const low = camera.position.map((p) =>
-    coordinate((-one - p) * localScale, camera.bits + 1),
-  ) as Vec3;
-  const high = camera.position.map((p) =>
-    coordinate((one - p) * localScale, camera.bits + 1),
-  ) as Vec3;
+  const { low, high } = flightRootBounds(camera, !geometry || !upload);
   const outside = Math.hypot(...low.map((v, axis) => Math.max(v, -high[axis], 0)));
   let clearance = outside;
   const levels: GridLevel[] = [];
@@ -206,55 +212,95 @@ function gridFrame(
   return { levels, texture, low, high, clearance: Math.max(outside, clearance) };
 }
 
-/** Sweep a straight flight segment through hierarchical empty cells. Unlike
- * clearance-sized balls, this can travel parallel to a nearby wall at full speed. */
-function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, distance: number) {
-  const frame = gridFrame(camera, pattern, camera.level + 10, true, false);
+// A stable aperture floor prevents flight through subpixel holes that the
+// renderer shows as a wall. Explicit zoom makes smaller passages accessible.
+export const FLIGHT_COLLISION_DEPTH = 8;
+export const FLIGHT_WALL_MARGIN = 1e-5;
+
+/** Sweep through empty cells, spending travel time at each passage's scale.
+ * The first removed ancestor sets speed, so skimming a wall does not cause
+ * clearance-dependent crawling. Outside the root, use the selected zoom. */
+function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, time: number) {
+  const viewLevel = camera.viewLevel ?? camera.level;
+  const unit = 3 ** (camera.level - viewLevel);
+  const frame = gridFrame(
+    camera,
+    pattern,
+    Math.ceil(viewLevel) + FLIGHT_COLLISION_DEPTH,
+    true,
+    false,
+  );
+  const maximum = time * unit;
   let near = 0,
-    far = distance;
+    far = Infinity,
+    normalAxis = 2;
   for (let axis = 0; axis < 3; axis++) {
     if (Math.abs(ray[axis]) < 1e-15) {
-      if (frame.low[axis] > 0 || frame.high[axis] < 0) return distance;
+      if (frame.low[axis] > 0 || frame.high[axis] < 0) return maximum;
       continue;
     }
     const a = frame.low[axis] / ray[axis],
       b = frame.high[axis] / ray[axis];
-    near = Math.max(near, Math.min(a, b));
+    const entry = Math.min(a, b);
+    if (entry > near) {
+      near = entry;
+      normalAxis = axis;
+    }
     far = Math.min(far, Math.max(a, b));
   }
-  if (far <= near) return distance;
-  let t = near;
-  const margin = Math.min(1e-8, distance * 1e-6);
+  if (far <= near) return maximum;
+  const margin = (axis: number) =>
+    (FLIGHT_WALL_MARGIN * unit) / Math.max(1e-12, Math.abs(ray[axis]));
+  if (near > maximum + margin(normalAxis)) return maximum;
+  let t = near,
+    remaining = time - near / unit;
+  let requestedEnd: number | undefined = remaining < 0 ? maximum : undefined;
+  const stopped = () => Math.min(requestedEnd ?? maximum, Math.max(0, t - margin(normalAxis)));
   for (let step = 0; step < 512; step++) {
-    const epsilon = Math.max(1e-14, Math.abs(t) * 1e-13);
+    const epsilon = Math.max(unit * 1e-13, Math.abs(t) * 1e-13);
     const point = ray.map((v) => v * (t + epsilon));
     let empty = false;
     for (const { plane, width, digit } of frame.levels) {
-      // Resolve collision detail well below a pixel without dividing far-away
-      // coordinates by cells smaller than double-precision position accuracy.
       if (width < epsilon * 4) break;
       const cell = point.map((p, axis) => Math.floor((p - plane[axis]) / width));
       const child = cell.map((c, axis) => (((digit[axis] + c) % 3) + 3) % 3) as Vec3;
       if (keepVoxel(pattern, child)) continue;
-      let jump = Infinity;
+      if (requestedEnd !== undefined) return requestedEnd;
+      let exit = far;
+      let exitAxis = normalAxis;
       for (let axis = 0; axis < 3; axis++) {
         if (Math.abs(ray[axis]) < 1e-15) continue;
         const edge = plane[axis] + (cell[axis] + Number(ray[axis] > 0)) * width;
-        jump = Math.min(jump, (edge - point[axis]) / ray[axis]);
+        const crossing = edge / ray[axis];
+        if (crossing < exit) {
+          exit = crossing;
+          exitAxis = axis;
+        }
       }
-      t += Math.max(epsilon, jump + epsilon);
+      const speed = Math.min(unit, width);
+      const travel = Math.max(0, exit - t);
+      if (remaining * speed < travel) {
+        const end = t + remaining * speed;
+        if (exit - end > margin(exitAxis)) return end;
+        // Probe the adjoining cell before allowing an endpoint within the
+        // face margin. An open neighbour leaves the requested travel intact.
+        requestedEnd = end;
+      }
+      remaining -= travel / speed;
+      t = Math.max(exit, t + epsilon);
+      normalAxis = exitAxis;
       empty = true;
       break;
     }
-    if (!empty) return Math.max(0, t - margin);
-    if (t >= far) return distance;
+    if (!empty) return stopped();
+    if (t >= far) return requestedEnd ?? far + Math.max(0, remaining) * unit;
   }
-  // Unresolved segments stop conservatively, rather than crossing geometry.
-  return Math.max(0, t - margin);
+  // An unresolved segment stops; it never jumps over unexamined geometry.
+  return stopped();
 }
 
-/** Constant displacement in the explicit exploration scale. Geometry only
- * clips a segment that would actually hit a surface; it never sets velocity. */
+/** Motion is elapsed travel at the selected zoom. Smaller recursive passages
+ * reduce speed, independently of precision, frame rate and wall clearance. */
 export function moveFlightCamera(
   camera: FlightCamera,
   pattern: VoxelPattern,
@@ -274,12 +320,8 @@ export function moveFlightCamera(
   // beside a wall cannot shrink a long, unobstructed movement segment.
   const collisionLevel = Math.floor(viewLevel);
   const collisionCamera = { ...camera, level: collisionLevel };
-  const distance = flightTravel(
-    collisionCamera,
-    pattern,
-    direction,
-    magnitude * 3 ** (collisionLevel - viewLevel),
-  );
+  const distance = flightTravel(collisionCamera, pattern, direction, magnitude);
+  if (distance < 1e-12 * 3 ** (collisionLevel - viewLevel)) return camera;
   let level = camera.level;
   const bits = Math.max(camera.bits, bitsForLevel(level), bitsForLevel(collisionLevel));
   const position = camera.position.map(
@@ -302,7 +344,7 @@ export function moveFlightCamera(
   };
 }
 
-/** Wheel dolly follows local detail; ordinary flight uses its own stable scale. */
+/** Wheel dolly follows local clearance and explicitly changes the viewing scale. */
 function moveFlightCameraByClearance(
   camera: FlightCamera,
   pattern: VoxelPattern,
@@ -399,7 +441,7 @@ export function dollyFlightCamera(camera: FlightCamera, pattern: VoxelPattern, a
 export function serializeFlightCamera(camera: FlightCamera) {
   return { ...camera, kind: "voxel-flight", position: camera.position.map((p) => p.toString(16)) };
 }
-export function restoreFlightCamera(value: unknown): FlightCamera {
+export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): FlightCamera {
   if (
     !isRecord(value) ||
     value.kind !== "voxel-flight" ||
@@ -421,11 +463,28 @@ export function restoreFlightCamera(value: unknown): FlightCamera {
   const limit = BigInt(64) << BigInt(value.bits);
   if (position.some((p) => p < -limit || p > limit))
     throw new Error("Exploration camera is out of range.");
+  let viewLevel = value.viewLevel ?? value.level;
+  if (pattern) {
+    const one = BigInt(1) << BigInt(value.bits);
+    if (position.every((p) => p >= -one && p <= one)) {
+      let depth = 1;
+      for (; depth <= MAX_VOXEL_DEPTH; depth++) {
+        const digit = position.map((p) =>
+          modulo3(floorDiv((p + one) * powers[depth], one * BigInt(2))),
+        ) as Vec3;
+        if (!keepVoxel(pattern, digit)) break;
+      }
+      // Older links can start inside a hole hidden by the new aperture floor.
+      // Reveal that hole before navigating, instead of trapping the camera.
+      if (depth > MAX_FLIGHT_LEVEL + FLIGHT_COLLISION_DEPTH) return initialFlightCamera(pattern);
+      viewLevel = Math.max(viewLevel, depth - FLIGHT_COLLISION_DEPTH);
+    }
+  }
   return {
     position,
     bits: value.bits,
     level: value.level,
-    viewLevel: value.viewLevel ?? value.level,
+    viewLevel,
     yaw: value.yaw,
     pitch: value.pitch,
   };

@@ -22,6 +22,7 @@ const {
   keepVoxel,
   PATTERNS,
   flightBasis,
+  FLIGHT_WALL_MARGIN,
 } = require("../utils/voxelZoom/camera.ts");
 const { fixedToFloatExp } = require("../utils/deepZoom/math.ts");
 const {
@@ -311,16 +312,19 @@ test("large flight segments cannot tunnel through retained front faces", () => {
     const after = moveFlightCamera(before, pattern, [0, 0, 5]);
     assert.ok(after.position[2] >= 1n << BigInt(after.bits), `${pattern}: crossed the face`);
     assert.ok(
-      Math.abs(worldDelta(before, after)[2] + 2.2) < 1e-6,
+      Math.abs(worldDelta(before, after)[2] + 2.2 - 2 * FLIGHT_WALL_MARGIN) < 1e-7,
       `${pattern}: did not reach the face`,
     );
   }
 });
 
-test("long travel down a narrow empty tunnel keeps full speed beside its wall", () => {
-  const before = cameraAt([1 / 3 - 1e-6, 0, 3.2]);
-  const after = moveFlightCamera(before, "menger", [0, 0, 5]);
-  assert.ok(Math.abs(worldDelta(before, after)[2] + 10) < 1e-6);
+test("long flight integrates passage speed without crawling beside its wall", () => {
+  for (const x of [0, 1 / 3 - 1e-6]) {
+    const before = cameraAt([x, 0, 3.2]);
+    const after = moveFlightCamera(before, "menger", [0, 0, 5]);
+    // 1.1 exterior units + one interior unit at 1/3 speed + 0.9 exterior units.
+    assert.ok(Math.abs(worldDelta(before, after)[2] + 6) < 1e-6);
+  }
 });
 
 test("view-bounded render grids skip only ancestors constant throughout visible space", () => {
@@ -358,5 +362,112 @@ test("view-bounded render grids skip only ancestors constant throughout visible 
         `${pattern}: culling changed visible geometry`,
       );
     }
+  }
+});
+
+const passageCamera = (pattern, depth, viewLevel = 0) => {
+  const parent = pattern === "menger" ? [2, 2, 2] : pattern === "vicsek" ? [1, 1, 2] : [1, 2, 2];
+  const gap = pattern === "vicsek" || pattern === "mosely-heavy" ? [2, 2, 2] : [1, 1, 1];
+  const one = 1n << 600n;
+  return {
+    ...initialFlightCamera(pattern),
+    bits: 600,
+    level: depth,
+    viewLevel,
+    position: gap.map((digit, axis) => {
+      let coordinate = -one + (BigInt(2 * digit + 1) * one) / 3n;
+      for (let i = 1; i < depth; i++)
+        coordinate = (coordinate + BigInt(2 * (parent[axis] - 1)) * one) / 3n;
+      return coordinate;
+    }),
+  };
+};
+
+test("each smaller recursive passage slows flight by its physical scale", () => {
+  for (const pattern of PATTERNS) {
+    for (const depth of [1, 2, 4, 7]) {
+      const before = passageCamera(pattern, depth);
+      const after = moveFlightCamera(before, pattern, [0.03, 0, 0]);
+      assert.ok(
+        Math.abs(worldDelta(before, after)[0] * 3 ** depth - 0.06) < 1e-8,
+        `${pattern}, ${depth}`,
+      );
+      assert.equal(after.viewLevel, before.viewLevel);
+      const zoomed = passageCamera(pattern, depth, depth + 1);
+      const moved = moveFlightCamera(zoomed, pattern, [0.03, 0, 0]);
+      assert.ok(Math.abs(worldDelta(zoomed, moved)[0] * 3 ** (depth + 1) - 0.06) < 1e-8);
+    }
+  }
+});
+
+test("passage speed integrates consistently across entry, exit and slow frames", () => {
+  for (const rate of [1, 4, 30, 120]) {
+    const before = cameraAt([0, 0, 3.2]);
+    let after = before;
+    for (let i = 0; i < rate; i++) after = moveFlightCamera(after, "menger", [0, 0, 5 / rate]);
+    assert.ok(Math.abs(worldDelta(before, after)[2] + 6) < 1e-7, `rate=${rate}`);
+  }
+});
+
+test("snowflake flight cannot slip through a subpixel opening in a visible wall", () => {
+  const one = 1n << 600n,
+    scale = 3n ** 10n;
+  for (const pattern of ["mosely-light", "mosely-heavy"]) {
+    const before = {
+      ...initialFlightCamera(pattern),
+      bits: 600,
+      position: [(2n * one) / scale, one - one / scale, (32n * one) / 10n],
+    };
+    const after = moveFlightCamera(before, pattern, [0, 0, 5]);
+    assert.ok(after.position[2] > one, `${pattern}: crossed rendered front wall`);
+    const blocked = moveFlightCamera(after, pattern, [0, 0, 5]);
+    assert.equal(blocked, after, "holding forward at the wall does not invalidate rendering");
+    const retreat = moveFlightCamera(after, pattern, [0, 0, -0.1]);
+    assert.ok(retreat.position[2] > after.position[2], "wall contact still permits retreat");
+  }
+});
+
+test("diagonal boosted flight stops on the near side of a retained face", () => {
+  for (const pattern of PATTERNS) {
+    const target = pattern === "vicsek" ? [0, 0] : pattern === "menger" ? [0.8, 0.8] : [0, 0.8];
+    const before = cameraAt([target[0] - 1 / 300, target[1] - 1 / 300, 1.1]);
+    const after = moveFlightCamera(before, pattern, [0.1, 0.1, 3]);
+    const one = 1n << BigInt(after.bits);
+    assert.ok(after.position[2] > one, pattern);
+  }
+});
+
+test("ending just short of a wall still respects its face margin", () => {
+  const before = cameraAt([0, 0, 3.2]);
+  for (const amount of [1.1 - 1e-12, 1.1, 2]) {
+    const after = moveFlightCamera(before, "vicsek", [0, 0, amount]);
+    assert.ok(Math.abs(worldDelta(before, after)[2] + 2.2 - 2 * FLIGHT_WALL_MARGIN) < 1e-7);
+  }
+});
+
+test("restored subpixel cavities select enough scale to remain navigable", () => {
+  for (const pattern of PATTERNS) {
+    const hidden = passageCamera(pattern, 10);
+    const restored = restoreFlightCamera(serializeFlightCamera(hidden), pattern);
+    assert.equal(restored.viewLevel, 2);
+    assert.ok(moveFlightCamera(restored, pattern, [0.03, 0, 0]).position[0] > restored.position[0]);
+  }
+});
+
+test("wheel entry into fine snowflake holes first selects sufficient detail", () => {
+  const { dollyFlightCamera, FLIGHT_COLLISION_DEPTH } = require("../utils/voxelZoom/camera.ts");
+  const one = 1n << 600n,
+    scale = 3n ** 10n;
+  for (const pattern of ["mosely-light", "mosely-heavy"]) {
+    let camera = {
+      ...initialFlightCamera(pattern),
+      bits: 600,
+      position: [(2n * one) / scale, one - one / scale, (32n * one) / 10n],
+    };
+    for (let i = 0; i < 40 && camera.position[2] >= one; i++)
+      camera = dollyFlightCamera(camera, pattern, 1);
+    assert.ok(camera.position[2] < one, "zoom can enter a real opening");
+    assert.ok(camera.viewLevel + FLIGHT_COLLISION_DEPTH >= 10);
+    assert.ok(flightClearance(camera, pattern) > 0, "zoom stays outside retained solid");
   }
 });

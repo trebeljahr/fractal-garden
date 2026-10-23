@@ -53,13 +53,40 @@ void main() {
     for (int attempt = 0; attempt < 2; attempt++) {
       t = max(0.0, near);
       normal = rootNormal;
+      int retainedLevels = 0;
+      vec3 retainedLow = vec3(-1e30);
+      vec3 retainedHigh = vec3(1e30);
+      float retainedWidth = 1.0;
+      bool retainedOutline = false;
+      vec3 retainedOutlineLow = vec3(0.0);
+      float retainedOutlineWidth = 1.0;
       if (far > t) {
         for (int stepIndex = 0; stepIndex < 512; stepIndex++) {
             if (t >= far) break;
             footprint = max(u_nearFootprint, t * u_pixelAngle) * (attempt == 0 ? 1.0 : 8.0);
             vec3 p = ray * (t + footprint * 0.025);
+            // Empty-cell jumps often stay inside the same retained parents.
+            // Reuse that prefix until the sample leaves their shared bounds.
+            // A growing pixel cone must still visit its new detail/edge cutoff.
+            float inset = footprint * 0.05;
+            if (retainedLevels > 0 && (
+                any(lessThanEqual(p, retainedLow + vec3(inset))) ||
+                any(greaterThanEqual(p, retainedHigh - vec3(inset))) ||
+                retainedWidth < footprint ||
+                (retainedOutline && retainedOutlineWidth <= footprint * 6.0))) {
+                retainedLevels = 0;
+                retainedLow = vec3(-1e30);
+                retainedHigh = vec3(1e30);
+                retainedOutline = false;
+            }
+            if (retainedOutline) {
+                local = (p - retainedOutlineLow) / retainedOutlineWidth;
+                cellSize = retainedOutlineWidth;
+            }
             bool empty = false;
-            for (int level = 0; level < 256; level++) {
+            int firstLevel = retainedLevels;
+            for (int offset = 0; offset < 256; offset++) {
+                int level = firstLevel + offset;
                 if (level >= u_levels) break;
                 float x = (float(level) + 0.5) / 256.0;
                 vec4 grid = texture2D(u_grid, vec2(x, 0.25));
@@ -82,9 +109,16 @@ void main() {
                     empty = true;
                     break;
                 }
+                retainedLevels = level + 1;
+                retainedLow = max(retainedLow, low);
+                retainedHigh = min(retainedHigh, low + vec3(size));
+                retainedWidth = size;
                 if (size > footprint * 6.0) {
                     local = (p - low) / size;
                     cellSize = size;
+                    retainedOutline = true;
+                    retainedOutlineLow = low;
+                    retainedOutlineWidth = size;
                 }
             }
             if (!empty) { hit = true; break; }

@@ -118,6 +118,60 @@ PATTERNS.forEach((pattern, index) => {
     expected,
   });
 });
+// Start inside a removed grandchild, surrounded by two retained ancestors.
+// Rays cross repeated empty cells while reusing that parent occupancy prefix.
+for (const [pattern, index, parent, hole] of [
+  ["mosely-light", 2, [1, 0, 0], [1, 1, 1]],
+  ["mosely-heavy", 3, [1, 1, 1], [0, 0, 0]],
+]) {
+  const one = 1n << 160n;
+  const address = parent.map((digit, axis) => digit * 12 + hole[axis]);
+  const position = address.map((digit) => (2 * digit + 1) / 27 - 1);
+  const camera = {
+    position: address.map((digit) => (BigInt(2 * digit + 1 - 27) * one) / 27n),
+    bits: 160,
+    level: 0,
+    viewLevel: 0,
+    yaw: 0.63,
+    pitch: 0.27,
+  };
+  const frame = buildGridFrame(camera, pattern, 3);
+  const basis = flightBasis(camera);
+  const cubes = generators[index](3);
+  const expected = [];
+  for (const y of [12, 19, 26, 32, 38, 45, 52])
+    for (const x of [12, 19, 26, 32, 38, 45, 52]) {
+      const uv = [(2 * (x + 0.5) - 65) / 65, (2 * (y + 0.5) - 65) / 65];
+      const direction = basis.forward.map(
+        (value, axis) => value + 0.58 * (uv[0] * basis.right[axis] + uv[1] * basis.up[axis]),
+      );
+      const length = Math.hypot(...direction);
+      const ray = direction.map((value) => value / length);
+      let distance = Infinity;
+      for (const cube of cubes) {
+        const low = [cube.x, cube.y, cube.z].map(
+          (value, axis) => (value - cube.size / 2 - position[axis]) / 2,
+        );
+        const high = low.map((value) => value + cube.size / 2);
+        const hit = intersect(low, high, ray);
+        if (hit !== null) distance = Math.min(distance, hit);
+      }
+      expected.push({
+        x,
+        y,
+        hit: Number.isFinite(distance),
+        distance: Number.isFinite(distance) ? distance : null,
+        brightness: null,
+      });
+    }
+  fixtures.push({
+    name: `${pattern} interior cavity`,
+    pattern: index,
+    frame: { ...frame, texture: Array.from(frame.texture) },
+    basis,
+    expected,
+  });
+}
 for (const [name, pattern, index, position, yaw, pitch] of [
   ["Menger corner at 3^-150", "menger", 0, [1, 1, 1], -Math.PI / 4, -Math.asin(1 / Math.sqrt(3))],
   ["Vicsek face at 3^-150", "vicsek", 1, [1, 0, 0], -Math.PI / 2, 0],
