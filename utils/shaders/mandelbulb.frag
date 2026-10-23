@@ -4,6 +4,7 @@ uniform vec2 u_resolution;
 uniform mat3 u_basis;
 uniform vec3 u_target;
 uniform float u_scale;
+uniform float u_fogDistanceScale;
 uniform float u_cameraDistance;
 uniform float u_power;
 uniform float u_detail;
@@ -188,6 +189,8 @@ void main() {
     vec3 surface = albedo * light + 0.25 * specular;
     surface = pow(surface, vec3(1.0 / 2.2));
 
-    float fog = exp(-0.08 * totalDistance * totalDistance);
-    gl_FragColor = vec4(mix(background, surface, fog), 1.0);
+    float distance = totalDistance * u_fogDistanceScale;
+    float fog = clamp((1.0 - exp(-4.0 * max(0.0, distance - 0.2 / 96.0))) /
+        (1.0 - exp(-4.0 * (1.0 - 0.2 / 96.0))), 0.0, 1.0);
+    gl_FragColor = vec4(mix(surface, background, fog), 1.0);
 }

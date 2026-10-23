@@ -312,6 +312,7 @@ export function drawPolyline3D(
 ): { x: number; y: number } | null {
   const { points } = polyline;
   const spatial = options.spatialCamera;
+  const depthBins = spatial ? 128 : DEPTH_BINS;
   const spatialTarget = spatial
     ? cameraTarget(spatial).map((v) => relativeNumber(v, spatial.bits, 0))
     : [0, 0, 0];
@@ -353,7 +354,7 @@ export function drawPolyline3D(
   // Counting sort of segment indices into depth bins.
   const segmentCount = count - 1;
   const segmentBins = new Uint8Array(segmentCount);
-  const binStarts = new Uint32Array(DEPTH_BINS + 1);
+  const binStarts = new Uint32Array(depthBins + 1);
 
   let visibleSegments = 0;
 
@@ -363,18 +364,26 @@ export function drawPolyline3D(
       continue;
     }
     const depth = (projected[i * 3 + 2] + projected[i * 3 + 5]) / 2;
-    const t = Math.min(Math.max((depth + 1) / 2, 0), 0.9999);
-    const bin = Math.floor(t * DEPTH_BINS);
+    const t = Math.min(
+      Math.max(
+        spatial
+          ? 1 - Math.log2(1 + Math.max(0, CAMERA_DISTANCE - depth)) / Math.log2(129)
+          : (depth + 1) / 2,
+        0,
+      ),
+      0.9999,
+    );
+    const bin = Math.floor(t * depthBins);
     segmentBins[i] = bin;
     binStarts[bin + 1]++;
     visibleSegments++;
   }
 
-  for (let bin = 0; bin < DEPTH_BINS; bin++) {
+  for (let bin = 0; bin < depthBins; bin++) {
     binStarts[bin + 1] += binStarts[bin];
   }
 
-  const cursor = binStarts.slice(0, DEPTH_BINS);
+  const cursor = binStarts.slice(0, depthBins);
   const sorted = new Uint32Array(visibleSegments);
   for (let i = 0; i < segmentCount; i++) {
     if (segmentBins[i] === CLIPPED) continue;
@@ -388,16 +397,27 @@ export function drawPolyline3D(
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
-  for (let bin = 0; bin < DEPTH_BINS; bin++) {
+  for (let bin = 0; bin < depthBins; bin++) {
     const start = binStarts[bin];
     const end = binStarts[bin + 1];
     if (start === end) continue;
 
-    const t = (bin + 0.5) / DEPTH_BINS;
+    const t = (bin + 0.5) / depthBins;
     const r = Math.round(far[0] + (near[0] - far[0]) * t);
     const g = Math.round(far[1] + (near[1] - far[1]) * t);
     const b = Math.round(far[2] + (near[2] - far[2]) * t);
-    const alpha = options.farAlpha + (1 - options.farAlpha) * t;
+    let alpha = options.farAlpha + (1 - options.farAlpha) * t;
+    if (spatial) {
+      const distance =
+        ((2 ** ((1 - t) * Math.log2(129)) - 1) *
+          2 ** ((spatial.atmosphereZoom ?? spatial.zoom) - spatial.zoom)) /
+        96;
+      const fog = Math.min(
+        1,
+        (1 - Math.exp(-4 * Math.max(0, distance - 0.2 / 96))) / (1 - Math.exp(-4 * (1 - 0.2 / 96))),
+      );
+      alpha *= 1 - fog;
+    }
 
     ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
     ctx.beginPath();

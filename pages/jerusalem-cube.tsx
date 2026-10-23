@@ -16,8 +16,6 @@ const VARIANTS: Record<Variant, SceneVariant> = {
 const JerusalemCube = ({ description }: Props) => (
   <SceneFractalExplorer
     description={description}
-    // Renamed when only the surface started being drawn: budgets timed on the
-    // slower renderer would otherwise keep capping the growth.
     storageKey="jerusalem-cube-surface"
     title="Jerusalem Cube"
     hint="Drag to rotate. Scroll to zoom."

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
+import { useConstructionRegistration } from "../../components/FractalConstruction";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { SpatialExplorer } from "../../components/SpatialExplorer";
 import styles from "../../styles/Fullscreen.module.css";
-import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../../utils/render/polylineScene";
@@ -52,23 +52,29 @@ const HilbertCurve3D = ({ description }: Props) => {
     [config],
   );
 
-  const { containerRef } = useFractalRenderer({
-    kind: "polylineScene",
-    storageKey: "hilbert-curve-3d",
-    config,
-    setConfig,
-    params,
-    constructionParams: (settings) => ({
-      source: { kind: "hilbert3d" as const, order: settings.iterations },
-      config: settings,
-    }),
-    width,
-    height,
-    min: MIN_ITERATIONS,
-    max: MAX_ITERATIONS,
-    stepDelay: 1200,
-    holdDelay: 2400,
-  });
+  useConstructionRegistration(
+    useMemo(
+      () =>
+        width && height
+          ? {
+              kind: "polylineScene" as const,
+              identity: "hilbert-curve-3d",
+              params,
+              config,
+              width,
+              height,
+              min: MIN_ITERATIONS,
+              max: MAX_ITERATIONS,
+              stepDelay: 1200,
+              makeParams: (settings: Record<string, unknown>) => ({
+                source: { kind: "hilbert3d", order: settings.iterations },
+                config: settings,
+              }),
+            }
+          : null,
+      [params, config, width, height],
+    ),
+  );
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -88,6 +94,8 @@ const HilbertCurve3D = ({ description }: Props) => {
             <PanelBoolean path="autoRotate" />
             <PanelColor path="background" />
             <PanelColor path="nearColor" label="Near color" />
+            <PanelColor path="farColor" label="Far color" />
+            <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
             <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
           </>
         }
@@ -126,7 +134,6 @@ const HilbertCurve3D = ({ description }: Props) => {
           />
         )}
       </div>
-      <div ref={containerRef} style={{ display: "none" }} aria-hidden />
       <SideDrawer description={description} />
       <NavElement />
     </main>

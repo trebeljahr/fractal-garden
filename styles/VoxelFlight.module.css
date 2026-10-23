@@ -141,3 +141,21 @@
     transition: none;
   }
 }
+
+.navigationGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+@media (max-width: 700px) {
+  .navigationGroup {
+    gap: 4px;
+    min-width: 0;
+    justify-content: end;
+  }
+  .navigationGroup .navigation {
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}

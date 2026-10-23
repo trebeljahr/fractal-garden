@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
-import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
-import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
+import type { SceneSpec } from "../utils/render/scene3d";
 import type { VoxelPattern } from "../utils/voxelZoom/camera";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
+import { useConstructionRegistration } from "./FractalConstruction";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 import { SpatialExplorer } from "./SpatialExplorer";
@@ -42,7 +42,7 @@ type Config<V extends string> = {
 
 type Props<V extends string> = {
   description: string;
-  /** Names this fractal's cached performance budget. */
+  /** Identifies this fractal’s independent construction state. */
   storageKey: string;
   title: string;
   hint: string;
@@ -61,9 +61,8 @@ type Props<V extends string> = {
 const INITIAL_CAMERA_DISTANCE = 6;
 
 /**
- * Orbitable, auto-rotating 3D fractal page. Geometry is built and drawn on a
- * worker. The opening depth adapts to this machine; construction playback
- * lives in the explanation below.
+ * Recursive 3D exploration with independent finite construction playback.
+ * Register the lesson without allocating a second, hidden exploration renderer.
  */
 export function SceneFractalExplorer<V extends string>({
   description,
@@ -111,63 +110,69 @@ export function SceneFractalExplorer<V extends string>({
           : null;
   const exploring = pattern !== null;
   const maxIterations = variant.maxIterations;
-  const iterations = Math.min(config.iterations, maxIterations);
   const variantOptions = Object.keys(variants) as V[];
 
-  const params = useMemo<Scene3DParams>(
-    () => ({
-      spec: variant.spec,
-      iterations,
-      view: {
-        rotationX: config.rotationX,
-        rotationY: config.rotationY,
-        grab: config.grab,
-        cameraDistance: config.cameraDistance,
-        background: config.background,
-        fillColor: config.fillColor,
-        strokeColor: config.strokeColor,
-        lineWidth: config.lineWidth,
-        showFaces: config.showFaces,
-        showWireframe: config.showWireframe,
-        doubleSided: variant.doubleSided,
-        autoRotate: config.autoRotate,
-        rotationSpeed,
-      },
-    }),
-    [
-      variant,
-      iterations,
-      config.rotationX,
-      config.rotationY,
-      config.grab,
-      config.cameraDistance,
-      config.background,
-      config.fillColor,
-      config.strokeColor,
-      config.lineWidth,
-      config.showFaces,
-      config.showWireframe,
-      config.autoRotate,
+  const construction = useMemo(() => {
+    const view = {
+      rotationX,
+      rotationY,
+      cameraDistance: INITIAL_CAMERA_DISTANCE,
+      background: config.background,
+      fillColor: config.fillColor,
+      strokeColor: config.strokeColor,
+      showFaces: config.showFaces,
+      showWireframe: config.showWireframe,
+      lineWidth: config.lineWidth,
+      autoRotate: false,
       rotationSpeed,
-    ],
-  );
-
-  const { containerRef } = useFractalRenderer({
-    kind: "scene3d",
-    storageKey: `${storageKey}:${config.variant}`,
-    config,
-    setConfig,
-    params,
-    constructionMax: (settings) => variants[settings.variant].maxIterations,
-    constructionParams: (settings) => ({
-      spec: variants[settings.variant].spec,
-      iterations: settings.iterations,
-      view: { ...settings, doubleSided: variants[settings.variant].doubleSided, rotationSpeed },
-    }),
+    };
+    return width && height
+      ? {
+          kind: "scene3d" as const,
+          identity: `${storageKey}:${config.variant}`,
+          params: {
+            spec: variant.spec,
+            iterations: 0,
+            view: { ...view, doubleSided: variant.doubleSided },
+          },
+          config: { ...view, variant: config.variant, iterations: 0 },
+          width,
+          height,
+          min: 0,
+          max: Math.max(
+            ...Object.values<SceneVariant>(variants).map((entry) => entry.maxIterations),
+          ),
+          maxForConfig: (settings: Record<string, unknown>) =>
+            variants[settings.variant as V].maxIterations,
+          makeParams: (settings: Record<string, unknown>) => ({
+            spec: variants[settings.variant as V].spec,
+            iterations: settings.iterations,
+            view: {
+              ...settings,
+              doubleSided: variants[settings.variant as V].doubleSided,
+              rotationSpeed,
+            },
+          }),
+        }
+      : null;
+  }, [
+    variant,
+    variants,
+    storageKey,
+    config.variant,
     width,
     height,
-    max: maxIterations,
-  });
+    rotationX,
+    rotationY,
+    rotationSpeed,
+    config.background,
+    config.fillColor,
+    config.strokeColor,
+    config.showFaces,
+    config.showWireframe,
+    config.lineWidth,
+  ]);
+  useConstructionRegistration(construction);
 
   useEffect(() => {
     if (config.iterations <= maxIterations) return;
@@ -188,13 +193,15 @@ export function SceneFractalExplorer<V extends string>({
         introTitle={title}
         lines={exploring ? [] : ["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
         places={
-          <button
-            className={flightStyles.navigation}
-            type="button"
-            onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
-          >
-            Reset view
-          </button>
+          exploring && (
+            <button
+              className={flightStyles.navigation}
+              type="button"
+              onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
+            >
+              Reset view
+            </button>
+          )
         }
         explorationControls={
           exploring ? (
@@ -223,6 +230,13 @@ export function SceneFractalExplorer<V extends string>({
             </>
           ) : (
             <>
+              <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
+              <PanelSelect
+                path="occlusion"
+                label="Corner shading"
+                options={["off", "soft", "minecraft"]}
+                optionLabels={["Off", "Soft", "Strong"]}
+              />
               <PanelColor path="background" />
               <PanelColor path="fillColor" />
               <PanelColor path="strokeColor" />
@@ -304,7 +318,6 @@ export function SceneFractalExplorer<V extends string>({
           />
         )}
       </div>
-      <div ref={containerRef} style={{ display: "none" }} aria-hidden />
       {exploring && flightWidth && flightHeight && (
         <VoxelFlight
           key={config.variant}

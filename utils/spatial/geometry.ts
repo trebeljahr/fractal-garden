@@ -36,6 +36,11 @@ export type SpatialStyle = {
   lineWidth: number;
   autoRotate: boolean;
   cameraDistance: number;
+  nearColor?: string;
+  farColor?: string;
+  farAlpha?: number;
+  lighting?: "classic" | "depth";
+  occlusion?: "off" | "soft" | "minecraft";
 };
 export type SpatialRequest = {
   spec: SceneSpec | { kind: "hilbert3d" };
@@ -46,9 +51,13 @@ export type SpatialRequest = {
   maxVertices?: number;
   pixelSize?: number;
   maxDepth?: number;
+  /** Include nearby surfaces behind the eye for flight collision. */
+  flight?: boolean;
 };
 export type SpatialGeometry = {
   vertices: Float32Array;
+  collision?: Float32Array;
+  pixelSize?: number;
   depth: number;
   visited: number;
   leaves: number;
@@ -154,8 +163,8 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
     one = BigInt(1) << BigInt(bits),
     target = cameraTarget(camera),
     rotation = rotationOf(style);
-  const maxVertices = request.maxVertices ?? 120000,
-    pixelSize = request.pixelSize ?? 6;
+  const maxVertices = request.maxVertices ?? 240000,
+    pixelSize = request.pixelSize ?? 1.5;
   const output: number[] = [];
   let deepest = 0,
     visited = 0,
@@ -172,6 +181,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
     const p = local(node.center),
       r = number(node.size) * bound,
       d = CAMERA_DISTANCE - p[2];
+    if (request.flight) return Math.hypot(p[0], p[1], d) <= r + 24;
     if (d + r < NEAR_PLANE || d - r > FAR_PLANE) return false;
     // Plane tests avoid projecting corners behind the camera.
     const tx = width / Math.min(width, height) / (2 * FOCAL_SCALE),
@@ -186,23 +196,33 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
       r = number(node.size) * bound;
     return (
       (r * 2 * FOCAL_SCALE * Math.min(width, height)) /
-        Math.max(NEAR_PLANE, CAMERA_DISTANCE - p[2] - r) <=
+        Math.max(
+          NEAR_PLANE,
+          (request.flight
+            ? Math.hypot(p[0], p[1], CAMERA_DISTANCE - p[2])
+            : CAMERA_DISTANCE - p[2]) - r,
+        ) <=
       pixelSize
     );
   };
-  const face = (points: BigVec3[], doubleSided = false) => {
+  const face = (points: BigVec3[], doubleSided = false, padding = 0) => {
     const p = points.map(local),
       a = p[0],
       b = p[1],
       c = p[2];
     let normal = norm(cross(b.map((v, i) => v - a[i]) as Vec3, c.map((v, i) => v - a[i]) as Vec3));
     const facing = normal[0] * -a[0] + normal[1] * -a[1] + normal[2] * (CAMERA_DISTANCE - a[2]);
-    if (facing <= 0 && !doubleSided) return;
+    if (facing <= 0 && !doubleSided && !request.flight) return;
     if (facing < 0) normal = normal.map((v) => -v) as Vec3;
     for (let i = 1; i < p.length - 1; i++) {
       const edge = [1, Number(i === p.length - 2), Number(i === 1)];
       [p[0], p[i], p[i + 1]].forEach((v, j) => {
-        output.push(...v, ...normal, ...[0, 1, 2].map((k) => Number(j === k)), ...edge);
+        output.push(
+          ...v,
+          ...(request.flight ? [padding, 0, 0] : normal),
+          ...[0, 1, 2].map((k) => Number(j === k)),
+          ...edge,
+        );
       });
     }
   };
@@ -369,7 +389,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
       if (!visible(node, 2)) return;
       if (budget(node) || small(node, 2)) {
         leaves++;
-        face(node.points!, spec.start === "triangle");
+        face(node.points!, spec.start === "triangle", number(node.size) * 2);
         return;
       }
       const [a, b, c] = node.points!,
@@ -437,12 +457,16 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
       if (!visible(node, 3)) return;
       if (budget(node) || small(node, 3)) {
         leaves++;
-        face([
-          add(sub(node.center, node.u), node.v),
-          sub(sub(node.center, node.u), node.v),
-          sub(add(node.center, node.u), node.v),
-          add(add(node.center, node.u), node.v),
-        ]);
+        face(
+          [
+            add(sub(node.center, node.u), node.v),
+            sub(sub(node.center, node.u), node.v),
+            sub(add(node.center, node.u), node.v),
+            add(add(node.center, node.u), node.v),
+          ],
+          false,
+          number(node.size) * 3,
+        );
         return;
       }
       const u = div(node.u, 3),
@@ -509,12 +533,26 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
 }
 
 /** A full frame always contains every surviving branch; a cap raises screen tolerance uniformly. */
-export function buildSpatialFrame(request: SpatialRequest): SpatialGeometry {
-  let pixelSize = request.pixelSize ?? 6;
+function completeSpatialFrame(request: SpatialRequest): SpatialGeometry {
+  let pixelSize = request.pixelSize ?? 1.5;
   for (let attempt = 0; attempt < 14; attempt++) {
     const result = buildSpatialGeometry({ ...request, pixelSize });
-    if (!result.limited) return result;
+    if (!result.limited) return { ...result, pixelSize };
     pixelSize *= 2;
   }
   throw new Error("Spatial refinement could not fit its geometry budget");
+}
+
+/** Render only visible detail; keep a separate, bounded shell for movement in any direction. */
+export function buildSpatialFrame(request: SpatialRequest): SpatialGeometry {
+  const result = completeSpatialFrame({ ...request, flight: false });
+  if (request.flight && request.spec.kind !== "hilbert3d") {
+    result.collision = completeSpatialFrame({
+      ...request,
+      flight: true,
+      pixelSize: 24,
+      maxVertices: 36000,
+    }).vertices;
+  }
+  return result;
 }

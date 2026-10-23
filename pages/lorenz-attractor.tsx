@@ -67,7 +67,7 @@ const LorenzAttractor = ({ description }: Props) => {
     height,
   });
 
-  useSpatialControls({
+  const { navigation } = useSpatialControls({
     canvas,
     view: config,
     setView: setConfig,
@@ -95,6 +95,7 @@ const LorenzAttractor = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
+      {navigation}
       <ExplorerPanel
         data={config}
         introTitle="Lorenz Attractor"

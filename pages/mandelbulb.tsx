@@ -13,8 +13,13 @@ import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
-import { INITIAL_SPATIAL_CAMERA, rotationOf } from "../utils/spatial/camera";
-import { bulbTarget, MAX_BULB_ZOOM, pickBulbPoint } from "../utils/spatial/mandelbulb";
+import { INITIAL_SPATIAL_CAMERA, inverseRotate, rotationOf } from "../utils/spatial/camera";
+import {
+  bulbDistance,
+  bulbTarget,
+  MAX_BULB_ZOOM,
+  pickBulbPoint,
+} from "../utils/spatial/mandelbulb";
 
 type Props = {
   description: string;
@@ -105,12 +110,24 @@ const Mandelbulb = ({ description }: Props) => {
   cameraRef.current = camera;
   const redraw = useRef<(schedule?: boolean) => void>(() => {});
   const [contextVersion, setContextVersion] = useState(0);
-  useSpatialControls({
+  const { navigation } = useSpatialControls({
     canvas: cnv,
     view: config,
     setView: setConfig,
     identity: "mandelbulb",
     maxZoom: MAX_BULB_ZOOM,
+    eyeDistance: config.cameraDistance * 2,
+    clearance: (camera, view) => {
+      const scale = 0.5 * 2 ** -camera.zoom;
+      const target = bulbTarget(camera, view);
+      const offset = inverseRotate([0, 0, view.cameraDistance * 2 * scale], rotationOf(view));
+      const eye = target.map((v, i) => v + offset[i]) as Vec3;
+      return Math.max(
+        0,
+        bulbDistance(eye, view.power, Math.min(48, view.detail + Math.ceil(camera.zoom * 2))) /
+          scale,
+      );
+    },
     controlled: { camera, setCamera },
     pick: (x, y) => pickBulbPoint(camera, config, x, y, width ?? 1, height ?? 1),
   });
@@ -153,6 +170,7 @@ const Mandelbulb = ({ description }: Props) => {
     const basisLocation = gl.getUniformLocation(program, "u_basis");
     const targetLocation = gl.getUniformLocation(program, "u_target");
     const scaleLocation = gl.getUniformLocation(program, "u_scale");
+    const fogLocation = gl.getUniformLocation(program, "u_fogDistanceScale");
     const cameraDistanceLocation = gl.getUniformLocation(program, "u_cameraDistance");
     const powerLocation = gl.getUniformLocation(program, "u_power");
     const detailLocation = gl.getUniformLocation(program, "u_detail");
@@ -214,6 +232,7 @@ const Mandelbulb = ({ description }: Props) => {
       );
       gl.uniform3fv(targetLocation, bulbTarget(spatial, currentConfig));
       gl.uniform1f(scaleLocation, 0.5 * 2 ** -spatial.zoom);
+      gl.uniform1f(fogLocation, 2 ** ((spatial.atmosphereZoom ?? spatial.zoom) + 1) / 96);
       cnv.dataset.zoom = String(spatial.zoom);
       gl.uniform1f(cameraDistanceLocation, currentConfig.cameraDistance);
       gl.uniform1f(powerLocation, currentConfig.power);
@@ -279,6 +298,7 @@ const Mandelbulb = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
+      {navigation}
       <ExplorerPanel
         data={config}
         introTitle="Mandelbulb"

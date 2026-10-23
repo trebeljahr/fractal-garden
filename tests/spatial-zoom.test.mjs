@@ -316,3 +316,139 @@ test("Mandelbulb surface picking anchors the shader's camera", () => {
     );
   assert.ok(bulbDistance(world, 8, 14) < 0.002);
 });
+
+test("flight look and precision changes preserve the eye even at deep fixed-point scales", () => {
+  const { reframeSpatialEye } = require("../utils/spatial/flight.ts");
+  const from = moveSpatialCamera(INITIAL_SPATIAL_CAMERA, [0.2, -0.3, 0.4], 180);
+  const rotation = viewRotation(35, -70);
+  const next = reframeSpatialEye(from, IDENTITY, rotation, 184);
+  const eye = reframeSpatialPoint([0, 0, 6], from, IDENTITY, next, rotation);
+  assert.ok(Math.hypot(eye[0], eye[1], eye[2] - 6) < 1e-10);
+});
+
+test("boosted flight cannot cross the collision shell and diagonal speed is normalized", () => {
+  const { advanceSpatialFlight } = require("../utils/spatial/flight.ts");
+  const advance = (motion, clearance = 0.01) =>
+    advanceSpatialFlight({
+      camera: INITIAL_SPATIAL_CAMERA,
+      rotation: IDENTITY,
+      clearance,
+      motion,
+      elapsed: 0.5,
+      speed: 3,
+      boost: true,
+    }).camera;
+  const origin = [0, 0, 6];
+  const displacement = (next) => {
+    const eye = reframeSpatialPoint([0, 0, 6], next, IDENTITY, INITIAL_SPATIAL_CAMERA, IDENTITY);
+    return Math.hypot(...eye.map((v, i) => v - origin[i]));
+  };
+  assert.ok(displacement(advance([0, 0, -1])) <= 0.0020000001);
+  assert.ok(
+    Math.abs(displacement(advance([1, 1, -1])) - displacement(advance([0, 0, -1]))) < 1e-10,
+  );
+  assert.ok(displacement(advance([0, 0, -1], 0)) < 1e-10);
+  assert.ok(advance([0, 0, -1]).zoom > 0);
+});
+
+test("collision distance includes triangle interiors, edges and corners", () => {
+  const { closestTrianglePoint } = require("../utils/spatial/flight.ts");
+  const a = [0, 0, 0],
+    b = [1, 0, 0],
+    c = [0, 1, 0];
+  assert.deepEqual(closestTrianglePoint([0.25, 0.25, 1], a, b, c), [0.25, 0.25, 0]);
+  assert.deepEqual(closestTrianglePoint([1, 1, 0], a, b, c), [0.5, 0.5, 0]);
+  assert.deepEqual(closestTrianglePoint([-1, -1, 0], a, b, c), a);
+});
+
+test("flight collision retains nearby surfaces behind the eye independently of visible triangles", () => {
+  const { meshClearance } = require("../utils/spatial/flight.ts");
+  // Eye at z=1.1, looking away from the seed cube. It is still a nearby obstacle.
+  const frame = buildSpatialFrame({
+    spec: { kind: "jerusalem" },
+    style: { ...style, rotationX: 0, rotationY: 180 },
+    camera: moveSpatialCamera(INITIAL_SPATIAL_CAMERA, [0, 0, 7.1]),
+    width: 160,
+    height: 120,
+    flight: true,
+  });
+  assert.ok(frame.collision?.length > 0);
+  assert.ok(Number.isFinite(meshClearance(frame.collision)));
+  assert.ok(frame.collision.length / 12 < 36000);
+  assert.equal(frame.limited, false);
+});
+
+test("flight atmosphere eases independently of collision precision and round-trips through links", () => {
+  const { advanceSpatialFlight } = require("../utils/spatial/flight.ts");
+  const next = advanceSpatialFlight({
+    camera: INITIAL_SPATIAL_CAMERA,
+    rotation: IDENTITY,
+    clearance: 0.00001,
+    motion: [0, 0, -1],
+    elapsed: 0.05,
+    speed: 1,
+  }).camera;
+  assert.ok(next.atmosphereZoom >= 0 && next.atmosphereZoom < next.zoom);
+  assert.ok(next.atmosphereVelocity > 0);
+  assert.deepEqual(readSpatialCamera(JSON.parse(JSON.stringify(next))), next);
+  assert.throws(() => readSpatialCamera({ ...next, atmosphereZoom: NaN }));
+});
+
+test("deep trajectory depth keeps separate colors after coordinates leave the seed bounds", () => {
+  const { drawPolyline3D } = require("../utils/polyline3d.ts");
+  const strokes = [];
+  const context = {
+    fillRect() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    stroke() {
+      strokes.push(this.strokeStyle);
+    },
+  };
+  drawPolyline3D(
+    context,
+    320,
+    240,
+    {
+      points: Float64Array.from([
+        -0.1, -0.1, -0.3, 0.1, -0.1, -0.3, -0.1, 0.1, -0.6, 0.1, 0.1, -0.6,
+      ]),
+      count: 4,
+      breaks: Uint8Array.from([0, 0, 1, 0]),
+    },
+    4,
+    {
+      ...style,
+      rotationX: 0,
+      rotationY: 0,
+      spatialCamera: moveSpatialCamera(INITIAL_SPATIAL_CAMERA, [0, 0, 0], 4),
+      nearColor: "#ff0000",
+      farColor: "#0000ff",
+      farAlpha: 0.3,
+    },
+  );
+  assert.equal(strokes.length, 2);
+  assert.notEqual(strokes[0], strokes[1]);
+});
+
+test("flight look stays upright and height keys move vertically while looking up", () => {
+  const { advanceSpatialFlight, lookSpatialRotation } = require("../utils/spatial/flight.ts");
+  const rotation = lookSpatialRotation(IDENTITY, 200, -400);
+  assert.equal(rotation[1], 0);
+  const next = advanceSpatialFlight({
+    camera: INITIAL_SPATIAL_CAMERA,
+    rotation,
+    clearance: 2,
+    motion: [0, 1, 0],
+    elapsed: 0.1,
+    speed: 1,
+  }).camera;
+  const eye = reframeSpatialPoint([0, 0, 6], INITIAL_SPATIAL_CAMERA, rotation, next, rotation);
+  const moved = require("../utils/spatial/camera.ts").inverseRotate(
+    [eye[0], eye[1], eye[2] - 6],
+    rotation,
+  );
+  assert.ok(Math.abs(moved[0]) < 1e-10 && Math.abs(moved[2]) < 1e-10);
+  assert.ok(moved[1] < 0);
+});

@@ -1,16 +1,15 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
+import flightStyles from "../styles/VoxelFlight.module.css";
 import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import type { SceneSpec } from "../utils/render/scene3d";
-import { createShaderProgram } from "../utils/shaders/compileShader";
 import {
   CAMERA_DISTANCE,
-  FAR_PLANE,
-  FOCAL_SCALE,
   INITIAL_SPATIAL_CAMERA,
-  NEAR_PLANE,
+  reframeSpatialPoint,
   rotationOf,
   spatialFrameTransform,
 } from "../utils/spatial/camera";
+import { meshClearance } from "../utils/spatial/flight";
 import {
   buildSpatialFrame,
   type SpatialGeometry,
@@ -18,13 +17,8 @@ import {
   type SpatialStyle,
 } from "../utils/spatial/geometry";
 import { pickSpatialPoint } from "../utils/spatial/picking";
+import { createSpatialRenderer } from "../utils/spatial/renderer";
 
-const vertex = `attribute vec3 position; attribute vec3 normal; attribute vec3 bary; attribute vec3 edges; uniform vec2 scale; uniform mat3 frame; uniform vec3 shift; uniform float magnification; varying vec3 n; varying vec3 b; varying vec3 e;
-void main(){vec3 p=frame*(position*magnification)+shift;float d=${CAMERA_DISTANCE.toFixed(1)}-p.z;gl_Position=vec4(p.xy*scale,${((FAR_PLANE + NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)}*d-${((2 * FAR_PLANE * NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)},d);n=frame*normal;b=bary;e=edges;}`;
-const fragment = `#extension GL_OES_standard_derivatives : enable
-precision highp float; varying vec3 n; varying vec3 b; varying vec3 e; uniform vec3 fill; uniform vec3 stroke; uniform float wire; uniform float faces; uniform float lineWidth;
-void main(){vec3 w=max(fwidth(b)*max(lineWidth,.5),vec3(.000001));vec3 a=smoothstep(vec3(0.),w,b);float edge=min(min(mix(1.,a.x,e.x),mix(1.,a.y,e.y)),mix(1.,a.z,e.z));if(faces<.5&&(wire<.5||edge>.9))discard;float shade=.35+.75*max(.2,dot(normalize(n),normalize(vec3(-.5,.75,1.))));gl_FragColor=vec4(mix(stroke,fill,wire>.5?edge:1.)*shade,1.);}`;
-const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
 export function SpatialExplorer<T extends SpatialStyle>({
   spec,
   style,
@@ -38,15 +32,32 @@ export function SpatialExplorer<T extends SpatialStyle>({
   width: number;
   height: number;
 }) {
+  const [error, setError] = useState("");
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const geometry = useRef<SpatialGeometry | null>(null);
   const geometryFrame = useRef<SpatialRequest | null>(null);
   const currentFrame = useRef({ camera: INITIAL_SPATIAL_CAMERA, style });
-  const { camera } = useSpatialControls({
+  const { camera, flying, navigation } = useSpatialControls({
     canvas,
     view: style,
     setView: setStyle,
     identity: JSON.stringify(spec),
+    clearance:
+      spec.kind === "hilbert3d"
+        ? undefined
+        : (camera, style) => {
+            const frame = geometryFrame.current,
+              data = geometry.current;
+            if (!frame || !data?.collision) return null;
+            const eye = reframeSpatialPoint(
+              [0, 0, CAMERA_DISTANCE],
+              camera,
+              rotationOf(style),
+              frame.camera,
+              rotationOf(frame.style),
+            );
+            return meshClearance(data.collision, eye) * 2 ** (camera.zoom - frame.camera.zoom);
+          },
     pick: (x, y) => {
       const frame = geometryFrame.current,
         live = currentFrame.current;
@@ -80,82 +91,56 @@ export function SpatialExplorer<T extends SpatialStyle>({
       pending: SpatialRequest | null = null,
       sequence = 0;
     let activeRequest: SpatialRequest | null = null;
-    let uploaded: SpatialGeometry | null = null;
     const gl = canvas.getContext("webgl", {
       alpha: false,
       antialias: true,
       preserveDrawingBuffer: true,
     });
-    if (!gl) return;
-    let output: ReturnType<typeof createShaderProgram>,
-      buffer: WebGLBuffer | null = null;
+    if (!gl) {
+      setError("Exploration needs WebGL. The construction below is still available.");
+      return;
+    }
+    let renderer: ReturnType<typeof createSpatialRenderer> | undefined;
     const init = () => {
-      output = undefined;
-      buffer = null;
-      gl.getExtension("OES_standard_derivatives");
-      output = createShaderProgram(gl, vertex, fragment);
-      buffer = gl.createBuffer();
+      renderer = undefined;
+      try {
+        renderer = createSpatialRenderer(gl);
+        setError("");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not start this view.");
+      }
     };
     init();
     const draw = () => {
-      if (disposed || gl.isContextLost() || !output || !buffer) return;
-      const { style, width, height } = latest.current,
-        ratio = Math.min(window.devicePixelRatio || 1, 2);
-      if (
-        canvas.width !== Math.round(width * ratio) ||
-        canvas.height !== Math.round(height * ratio)
-      ) {
-        canvas.width = Math.round(width * ratio);
-        canvas.height = Math.round(height * ratio);
-      }
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(...(rgb(style.background) as [number, number, number]), 1);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      const data = geometry.current;
-      if (!data) return;
-      // biome-ignore lint/correctness/useHookAtTopLevel: WebGL useProgram is not a React hook.
-      gl.useProgram(output.program);
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      if (uploaded !== data) {
-        gl.bufferData(gl.ARRAY_BUFFER, data.vertices, gl.DYNAMIC_DRAW);
-        uploaded = data;
-      }
-      const old = geometryFrame.current!,
+      if (disposed || gl.isContextLost() || !renderer) return;
+      const { style, width, height } = latest.current;
+      const data = geometry.current,
+        old = geometryFrame.current,
         live = currentFrame.current;
-      const transform = spatialFrameTransform(
-        old.camera,
-        rotationOf(old.style),
-        live.camera,
-        rotationOf(live.style),
-      );
-      gl.uniformMatrix3fv(gl.getUniformLocation(output.program, "frame"), false, transform.matrix);
-      gl.uniform3fv(gl.getUniformLocation(output.program, "shift"), transform.offset);
-      gl.uniform1f(gl.getUniformLocation(output.program, "magnification"), transform.scale);
-      ["position", "normal", "bary", "edges"].forEach((name, i) => {
-        const a = gl.getAttribLocation(output!.program, name);
-        gl.enableVertexAttribArray(a);
-        gl.vertexAttribPointer(a, 3, gl.FLOAT, false, 48, i * 12);
-      });
-      gl.uniform2f(
-        gl.getUniformLocation(output.program, "scale"),
-        (2 * FOCAL_SCALE * Math.min(width, height)) / width,
-        (2 * FOCAL_SCALE * Math.min(width, height)) / height,
-      );
-      gl.uniform3fv(gl.getUniformLocation(output.program, "fill"), rgb(style.fillColor));
-      gl.uniform3fv(gl.getUniformLocation(output.program, "stroke"), rgb(style.strokeColor));
-      gl.uniform1f(
-        gl.getUniformLocation(output.program, "wire"),
-        Number(style.showWireframe && style.lineWidth > 0),
-      );
-      gl.uniform1f(gl.getUniformLocation(output.program, "faces"), Number(style.showFaces));
-      gl.uniform1f(gl.getUniformLocation(output.program, "lineWidth"), style.lineWidth * ratio);
-      gl.enable(gl.DEPTH_TEST);
-      gl.depthFunc(gl.LEQUAL);
-      gl.drawArrays(gl.TRIANGLES, 0, data.vertices.length / 12);
-      canvas.dataset.renderZoom = String(geometryFrame.current?.camera.zoom ?? 0);
-      canvas.dataset.detailDepth = String(data.depth);
-      canvas.dataset.leaves = String(data.leaves);
-      canvas.dataset.limited = String(data.limited);
+      const transform = old
+        ? spatialFrameTransform(
+            old.camera,
+            rotationOf(old.style),
+            live.camera,
+            rotationOf(live.style),
+          )
+        : undefined;
+      try {
+        renderer.draw(
+          data,
+          transform,
+          style,
+          width,
+          height,
+          2 ** ((live.camera.atmosphereZoom ?? live.camera.zoom) - live.camera.zoom) / 96,
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not draw this view.");
+      }
+      canvas.dataset.renderZoom = String(old?.camera.zoom ?? 0);
+      canvas.dataset.detailDepth = String(data?.depth ?? 0);
+      canvas.dataset.leaves = String(data?.leaves ?? 0);
+      canvas.dataset.limited = String(data?.limited ?? false);
     };
     drawRef.current = draw;
     const accept = (result: SpatialGeometry) => {
@@ -168,12 +153,25 @@ export function SpatialExplorer<T extends SpatialStyle>({
       worker = new Worker(new URL("../workers/spatial.worker.ts", import.meta.url));
       worker.onmessage = (event: MessageEvent<{ result?: SpatialGeometry; error?: string }>) => {
         busy = false;
-        if (event.data.error) console.error(event.data.error);
+        if (event.data.error) setError(event.data.error);
+        if (event.data.result) {
+          if (renderer) setError("");
+          accept(event.data.result);
+        }
         if (pending) {
           const next = pending;
           pending = null;
           send(next);
-        } else if (event.data.result) accept(event.data.result);
+        }
+      };
+      worker.onerror = (event) => {
+        event.preventDefault();
+        const request = pending ?? activeRequest;
+        worker?.terminate();
+        worker = null;
+        busy = false;
+        pending = null;
+        if (request) send(request);
       };
     } catch {
       worker = null;
@@ -189,7 +187,11 @@ export function SpatialExplorer<T extends SpatialStyle>({
         busy = true;
         worker.postMessage({ id: ++sequence, request });
       } else {
-        accept(buildSpatialFrame(request));
+        try {
+          accept(buildSpatialFrame(request));
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Could not build this view.");
+        }
       }
     };
     requestRef.current = send;
@@ -197,7 +199,6 @@ export function SpatialExplorer<T extends SpatialStyle>({
       e.preventDefault();
     };
     const restored = () => {
-      uploaded = null;
       init();
       draw();
     };
@@ -215,22 +216,24 @@ export function SpatialExplorer<T extends SpatialStyle>({
       canvas.removeEventListener("webglcontextrestored", restored);
       canvas.removeEventListener("garden:redraw", draw);
       window.removeEventListener("garden:before-export", draw);
-      if (output) {
-        gl.deleteProgram(output.program);
-        gl.deleteShader(output.vert);
-        gl.deleteShader(output.frag);
-      }
-      if (buffer) gl.deleteBuffer(buffer);
+      renderer?.destroy();
+      queueMicrotask(() => {
+        if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
+      });
     };
   }, [canvas]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: Colors redraw existing buffers; only the listed view fields change geometry.
   useEffect(() => {
     if (!ready) return;
-    requestRef.current({ spec, camera, style, width, height });
+    const request = { spec, camera, style, width, height, flight: flying };
+    requestRef.current({ ...request, pixelSize: geometry.current?.pixelSize });
+    const idle = window.setTimeout(() => requestRef.current(request), 300);
+    return () => window.clearTimeout(idle);
   }, [
     ready,
     spec,
     camera,
+    flying,
     style.rotationX,
     style.rotationY,
     style.grab,
@@ -254,12 +257,25 @@ export function SpatialExplorer<T extends SpatialStyle>({
     return () => cancelAnimationFrame(frame);
   }, [style.autoRotate, setStyle]);
   return (
-    <canvas
-      ref={setCanvas}
-      data-spatial-explorer
-      data-zoom={camera.zoom}
-      aria-label="Drag to rotate. Shift-drag to pan. Scroll or pinch to zoom. Double-click to reset."
-      style={{ width, height, display: "block", background: style.background }}
-    />
+    <>
+      {navigation}
+      {error && (
+        <output role="alert" className={flightStyles.error} data-fractal-chrome>
+          {error}
+        </output>
+      )}
+      <canvas
+        ref={setCanvas}
+        data-spatial-explorer
+        data-zoom={camera.zoom}
+        data-flying={flying}
+        aria-label={
+          flying
+            ? "Explore the fractal interior. Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
+            : "Drag to rotate. Shift-drag to pan. Scroll or pinch to zoom. Double-click to reset."
+        }
+        style={{ width, height, display: "block", background: style.background }}
+      />
+    </>
   );
 }

@@ -62,7 +62,7 @@ const RosslerAttractor = ({ description }: Props) => {
     height,
   });
 
-  useSpatialControls({
+  const { navigation } = useSpatialControls({
     canvas,
     view: config,
     setView: setConfig,
@@ -90,6 +90,7 @@ const RosslerAttractor = ({ description }: Props) => {
 
   return (
     <main className={styles.fullScreen}>
+      {navigation}
       <ExplorerPanel
         data={config}
         introTitle="Rössler Attractor"

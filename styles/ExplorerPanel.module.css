@@ -965,3 +965,9 @@
   min-height: 2.7rem;
   padding: 0 0.85rem 0 0.8rem;
 }
+
+@media (max-width: 700px) {
+  .headerControls .studioGroup:has([data-spatial-navigation]) .studio {
+    grid-column: auto;
+  }
+}

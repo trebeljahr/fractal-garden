@@ -4,7 +4,13 @@ import { type Orientation, viewRotation } from "../orientation";
 
 export type Vec3 = [number, number, number];
 export type BigVec3 = [bigint, bigint, bigint];
-export type SpatialCamera = { target: [string, string, string]; bits: number; zoom: number };
+export type SpatialCamera = {
+  target: [string, string, string];
+  bits: number;
+  zoom: number;
+  atmosphereZoom?: number;
+  atmosphereVelocity?: number;
+};
 export const MAX_SPATIAL_ZOOM = 240;
 export const INITIAL_SPATIAL_CAMERA: SpatialCamera = {
   target: ["0", "0", "0"],
@@ -26,6 +32,11 @@ export function readSpatialCamera(value: unknown): SpatialCamera {
     !value.target.every((v) => typeof v === "string" && /^-?\d{1,160}$/.test(v))
   )
     throw new Error("Invalid spatial camera");
+  if (
+    (value.atmosphereZoom !== undefined && !finite(value.atmosphereZoom, 0, MAX_SPATIAL_ZOOM)) ||
+    (value.atmosphereVelocity !== undefined && !finite(value.atmosphereVelocity, -1000, 1000))
+  )
+    throw new Error("Invalid flight atmosphere");
   const camera = value as SpatialCamera;
   if (camera.bits < Math.ceil(camera.zoom) + 128) throw new Error("Insufficient camera precision");
   const limit = BigInt(1000000) << BigInt(camera.bits);
@@ -55,7 +66,7 @@ export function moveSpatialCamera(
     (v, i) =>
       rescaleFixed(v, camera.bits, bits) + fixedFromNumber(delta[i] * 2 ** -camera.zoom, bits),
   );
-  return { target: target.map(String) as SpatialCamera["target"], bits, zoom };
+  return { ...camera, target: target.map(String) as SpatialCamera["target"], bits, zoom };
 }
 export function inverseRotate(point: Vec3, rotation: Orientation): Vec3 {
   return [0, 1, 2].map(
