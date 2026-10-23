@@ -16,6 +16,7 @@ const {
   flightBasis,
   PATTERNS,
 } = require("../utils/voxelZoom/camera.ts");
+const { flightAtmosphere } = require("../utils/voxelZoom/atmosphere.ts");
 const { flightResolution } = require("../utils/voxelZoom/resolution.ts");
 const {
   generateMengerSponge,
@@ -134,6 +135,7 @@ for (const [name, pattern, index, position, yaw, pitch] of [
     basis = flightBasis(camera);
   fixtures.push({
     name,
+    level: 150,
     pattern: index,
     frame: { ...frame, texture: Array.from(frame.texture) },
     basis,
@@ -157,6 +159,7 @@ for (const [name, pattern, index, position, yaw, pitch] of [
   const frame = buildGridFrame(camera, "menger", 153);
   fixtures.push({
     name: "Menger nested copy at 3^-150",
+    level: 150,
     pattern: 0,
     frame: { ...frame, texture: Array.from(frame.texture) },
     basis: flightBasis(camera),
@@ -174,13 +177,49 @@ for (const fixture of fixtures.slice(0, 4)) {
     name: `${fixture.name} distant geometry at zoom level 8`,
     frame: { ...frame, texture: Array.from(frame.texture) },
     distanceScale,
+    level: camera.level,
     expected: fixture.expected.map((ray) => ({
       ...ray,
       distance: ray.distance === null ? null : ray.distance * distanceScale,
     })),
   });
 }
-for (const fixture of fixtures) fixture.detail = flightResolution(fixture.frame.clearance, 65, 65);
+// Independent slabs exercise the fog ramp and fixed world-space clipping plane.
+for (const distance of [0.5, 1, 4, 8, 15.9, 16, 20]) {
+  const t = distance / 2;
+  fixtures.push({
+    name: `atmosphere slab at world distance ${distance}`,
+    pattern: 0,
+    frame: {
+      levels: [],
+      texture: new Array(2048).fill(0),
+      low: [-1, -1, -t - 0.01],
+      high: [1, 1, -t],
+      clearance: t,
+    },
+    basis: flightBasis(initialFlightCamera()),
+    expected: [
+      {
+        x: 32,
+        y: 32,
+        hit: distance < 16,
+        distance: t,
+        brightness: 0.38 + (0.62 * 0.6) / Math.hypot(-0.5, 0.8, 0.6) + 0.15,
+      },
+    ],
+  });
+}
+for (const fixture of fixtures) {
+  fixture.detail = flightResolution(fixture.frame.clearance, 65, 65);
+  fixture.atmosphere = flightAtmosphere(fixture.level ?? 0);
+  fixture.expected = fixture.expected.map((ray) => {
+    if (!ray.hit || ray.brightness == null) return ray;
+    // Independent smoothstep in physical world units; no shader traversal reused.
+    const distance = (ray.distance * 2) / 3 ** (fixture.level ?? 0);
+    const x = Math.max(0, Math.min(1, (distance - 1) / 15));
+    return { ...ray, brightness: ray.brightness * (1 - x * x * (3 - 2 * x)) };
+  });
+}
 async function check(payload) {
   const canvas = document.createElement("canvas");
   canvas.width = 65;
@@ -230,6 +269,9 @@ async function check(payload) {
       const { frame, basis } = fixture;
       gl.uniform1f(u("pixelAngle"), fixture.detail.pixelAngle);
       gl.uniform1f(u("nearFootprint"), fixture.detail.nearFootprint);
+      gl.uniform1f(u("farDistance"), fixture.atmosphere.farDistance);
+      gl.uniform1f(u("fogDistanceScale"), fixture.atmosphere.fogDistanceScale);
+      gl.uniform1f(u("fogStart"), fixture.atmosphere.fogStart);
       gl.uniform1f(u("checkDistanceScale"), fixture.distanceScale ?? 1);
       gl.texImage2D(
         gl.TEXTURE_2D,

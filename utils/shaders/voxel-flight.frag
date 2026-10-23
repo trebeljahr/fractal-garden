@@ -2,6 +2,9 @@ precision highp float;
 uniform vec2 u_resolution;
 uniform float u_pixelAngle;
 uniform float u_nearFootprint;
+uniform float u_farDistance;
+uniform float u_fogDistanceScale;
+uniform float u_fogStart;
 uniform sampler2D u_grid;
 uniform int u_levels;
 uniform int u_pattern;
@@ -35,7 +38,7 @@ void main() {
     vec3 entry = min(a, b);
     vec3 exitAt = max(a, b);
     float near = max(max(entry.x, entry.y), entry.z);
-    float far = min(min(exitAt.x, exitAt.y), exitAt.z);
+    float far = min(u_farDistance, min(min(exitAt.x, exitAt.y), exitAt.z));
     vec3 normal = entry.x >= entry.y && entry.x >= entry.z ? vec3(-sign(ray.x), 0.0, 0.0)
         : entry.y >= entry.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
     float t = max(0.0, near);
@@ -103,6 +106,10 @@ void main() {
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
+        // Fixed world-space atmosphere: detail resolution alone adapts compute.
+        // Normalize distance before smoothstep so deep camera units stay safe.
+        float fog = smoothstep(u_fogStart, 1.0, t * u_fogDistanceScale);
+        color = mix(color, u_background, fog);
     }
     gl_FragColor = vec4(color, 1.0);
 }

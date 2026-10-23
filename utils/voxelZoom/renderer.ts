@@ -1,6 +1,7 @@
 import { createShaderProgram } from "../shaders/compileShader";
 import vertex from "../shaders/mandelbrot.vert";
 import fragment from "../shaders/voxel-flight.frag";
+import { flightAtmosphere } from "./atmosphere";
 import {
   buildGridFrame,
   type FlightCamera,
@@ -9,7 +10,6 @@ import {
   PATTERNS,
   type VoxelPattern,
 } from "./camera";
-
 import { flightResolution } from "./resolution";
 
 export type FlightStyle = {
@@ -59,6 +59,9 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     "resolution",
     "pixelAngle",
     "nearFootprint",
+    "farDistance",
+    "fogDistanceScale",
+    "fogStart",
     "grid",
     "levels",
     "pattern",
@@ -129,6 +132,10 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       const detail = flightResolution(frame.clearance, w, h);
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);
+      const atmosphere = flightAtmosphere(camera.level);
+      gl.uniform1f(u.farDistance, atmosphere.farDistance);
+      gl.uniform1f(u.fogDistanceScale, atmosphere.fogDistanceScale);
+      gl.uniform1f(u.fogStart, atmosphere.fogStart);
       gl.uniform1i(u.grid, 0);
       gl.uniform1i(u.levels, frame.levels.length);
       gl.uniform1i(u.pattern, PATTERNS.indexOf(pattern));
