@@ -18,7 +18,9 @@ const {
   restorePatternCamera,
   patternModel,
   buildPatternGeometry,
+  carpetDetailOpacity,
 } = require("../utils/recursiveZoom.ts");
+const { RecursiveZoomRenderer } = require("../utils/render/recursiveZoom.ts");
 const { fixedFromNumber, fixedToNumber } = require("../utils/lsystem/bigfixed.ts");
 const { prepareZoom } = require("../utils/lsystem/zoom.ts");
 const { DEFAULT_SPEC } = require("../utils/lsystem/spec.ts");
@@ -143,6 +145,69 @@ test("zooming a low construction depth still adds pixel-sized detail", () => {
   const camera = movePatternCamera(initialPatternCamera(pattern), 1000, 800, 2);
   const geometry = buildPatternGeometry(pattern, camera, 1000, 800);
   assert.ok(geometry.generation >= 5);
+});
+
+test("new carpet holes gain contrast continuously across generation boundaries", () => {
+  const camera = initialPatternCamera(patterns[0]);
+  const atSize = (size, depth = 5) => ({ ...camera, zoom: (size * 3 ** (depth + 1)) / 640 });
+  for (const depth of [5, 499]) {
+    assert.ok(carpetDetailOpacity(3, atSize(2, depth), 1000, 800, depth) < 1e-20);
+    assert.ok(Math.abs(carpetDetailOpacity(3, atSize(4, depth), 1000, 800, depth) - 0.5) < 1e-10);
+    assert.ok(Math.abs(carpetDetailOpacity(3, atSize(6, depth), 1000, 800, depth) - 1) < 1e-10);
+    const samples = [1.9999, 2, 2.0001, 3, 4, 5, 6].map((size) =>
+      carpetDetailOpacity(3, atSize(size, depth), 1000, 800, depth),
+    );
+    assert.deepEqual(
+      samples,
+      [...samples].sort((a, b) => a - b),
+    );
+    assert.ok(samples[2] - samples[0] < 1e-8);
+  }
+  assert.equal(carpetDetailOpacity(3, atSize(2), 1000, 800, 2), 1);
+});
+
+test("leaving the finite carpet view introduces automatic detail without a jump", () => {
+  const camera = initialPatternCamera(patterns[0]);
+  assert.equal(carpetDetailOpacity(1, camera, 1000, 800, 1), 0);
+  assert.ok(carpetDetailOpacity(1, { ...camera, zoom: 1.000001 }, 1000, 800, 1) < 1e-9);
+  assert.equal(carpetDetailOpacity(1, { ...camera, zoom: 1.2 }, 1000, 800, 1), 1);
+  const geometry = buildPatternGeometry(
+    { ...patterns[0], config: { ...base, iterations: 5 } },
+    camera,
+    1000,
+    800,
+  );
+  assert.equal(polygonCount(geometry), 4682);
+  assert.ok(geometry.visited < 6000, "empty leaf squares need no arithmetic or visits");
+});
+
+test("the carpet renderer uses spatial opacity and stops drawing once the camera stops", (t) => {
+  const fills = [];
+  const previous = globalThis.Path2D;
+  globalThis.Path2D = class {
+    rect() {}
+  };
+  t.after(() => {
+    if (previous === undefined) delete globalThis.Path2D;
+    else globalThis.Path2D = previous;
+  });
+  const ctx = {
+    globalAlpha: 0.8,
+    fillRect() {},
+    fill() {
+      fills.push(this.globalAlpha);
+    },
+  };
+  const renderer = new RecursiveZoomRenderer();
+  const camera = { ...initialPatternCamera(patterns[0]), zoom: (4 * 3 ** 6) / 640 };
+  renderer.update({ pattern: patterns[0], camera });
+  assert.equal(renderer.draw(ctx, 1000, 800), false);
+  assert.ok(Math.abs(fills.at(-1) - 0.4) < 1e-10);
+  assert.equal(ctx.globalAlpha, 0.8);
+  const first = [...fills];
+  fills.length = 0;
+  assert.equal(renderer.draw(ctx, 1000, 800), false);
+  assert.deepEqual(fills, first, "idle frames cannot reveal delayed dots");
 });
 
 test("overlapping T-square variants coarsen the complete view within budget", () => {

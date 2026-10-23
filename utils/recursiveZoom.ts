@@ -183,6 +183,31 @@ export type PatternGeometry = {
   limited: boolean;
 };
 
+// A new carpet generation starts with two-pixel holes. Reveal them over one
+// factor-of-three zoom interval, so crossing a depth boundary adds no contrast.
+// The selected finite construction stays opaque; only automatic detail fades.
+export function carpetDetailOpacity(
+  iterations: number,
+  camera: PatternCamera,
+  width: number,
+  height: number,
+  depth: number,
+): number {
+  if (depth < iterations) return 1;
+  const smooth = (value: number) => {
+    const t = Math.max(0, Math.min(1, value));
+    return t * t * (3 - 2 * t);
+  };
+  // Log space avoids overflow/underflow when the root is hundreds of orders
+  // larger than a hole. Camera precision itself remains fixed point.
+  const holePixels = Math.exp(
+    Math.log(camera.frame * Math.min(width, height)) +
+      Math.log(camera.zoom) -
+      (depth + 1) * Math.log(3),
+  );
+  return smooth((holePixels - 2) / 4) * smooth((camera.zoom - 1) / 0.2);
+}
+
 // Clip after converting exact, view-relative vertices. Square edges stay
 // axis-aligned even when their corners are hundreds of orders apart.
 function clipPolygon(input: number[], width: number, height: number): number[] {
@@ -278,11 +303,48 @@ export function buildPatternGeometry(
     group.push(polygon);
     result.paths.set(depth, group);
   };
+  // Exact arithmetic is needed to locate a deep viewport, not to subdivide
+  // screen-sized squares. Descend in fixed point until local coordinates fit
+  // comfortably on screen, then carve the visible carpet using ordinary pixels.
+  const carvePixels = (x: number, y: number, size: number, depth: number) => {
+    if (result.limited) return;
+    const half = size / 2;
+    if (x - half > width + 8 || x + half < -8 || y - half > height + 8 || y + half < -8) return;
+    if (++result.visited > 120000) {
+      result.limited = true;
+      return;
+    }
+    const square = (length: number, groupDepth: number) => {
+      const h = length / 2;
+      const left = Math.max(-8, x - h);
+      const right = Math.min(width + 8, x + h);
+      const top = Math.max(-8, y - h);
+      const bottom = Math.min(height + 8, y + h);
+      if (right <= left || bottom <= top) return;
+      const group = result.paths.get(groupDepth) ?? [];
+      group.push([left, top, right, top, right, bottom, left, bottom]);
+      result.paths.set(groupDepth, group);
+    };
+    if (depth === 0) square(size, -1);
+    if (depth >= generation || size < 2) return;
+    const third = size / 3;
+    square(third, depth);
+    // Leaves contain no further holes. Avoid visiting all eight just to stop.
+    if (depth + 1 >= generation || third < 2) return;
+    for (let row = -1; row <= 1; row++)
+      for (let column = -1; column <= 1; column++)
+        if (row !== 0 || column !== 0)
+          carvePixels(x + column * third, y + row * third, third, depth + 1);
+  };
   const walk = (x: bigint, y: bigint, size: bigint, depth: number) => {
     if (result.limited) return;
     const radius = mul(size, reach);
     if (x - radius > halfW || x + radius < -halfW || y - radius > halfH || y + radius < -halfH)
       return;
+    if (mode === "holes" && pixel(size) <= Math.max(width, height) * 4) {
+      carvePixels(pixel(x) + width / 2, pixel(y) + height / 2, pixel(size), depth);
+      return;
+    }
     // T-square descendants overlap their parents. Filled subtrees hidden
     // inside an ancestor contribute no pixels, even millions of levels in.
     if (

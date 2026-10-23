@@ -1,5 +1,6 @@
 import {
   buildPatternGeometry,
+  carpetDetailOpacity,
   type PatternCamera,
   type PatternModel,
   patternModel,
@@ -37,9 +38,20 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
     ctx.lineWidth = "lineWidth" in config ? config.lineWidth : 1;
     // Depth order matters for T-square overlaps. Carpet holes use one fill.
     const groups = Array.from(geometry.paths).sort(([a], [b]) => a - b);
+    const opacity = ctx.globalAlpha;
     for (const [depth, polygons] of groups) {
+      ctx.globalAlpha =
+        opacity *
+        (pattern.kind === "carpet"
+          ? carpetDetailOpacity(config.iterations, camera, width, height, depth)
+          : 1);
+      if (!ctx.globalAlpha) continue;
       const path = new Path2D();
       for (const points of polygons) {
+        if (pattern.kind === "carpet") {
+          path.rect(points[0], points[1], points[2] - points[0], points[5] - points[1]);
+          continue;
+        }
         path.moveTo(points[0], points[1]);
         for (let i = 2; i < points.length; i += 2) path.lineTo(points[i], points[i + 1]);
         path.closePath();
@@ -58,6 +70,7 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
       if (fill) ctx.fill(path);
       if (stroke) ctx.stroke(path);
     }
+    ctx.globalAlpha = opacity;
     this.work = geometry.visited;
     return false;
   }
