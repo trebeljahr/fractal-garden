@@ -1,0 +1,45 @@
+.comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+.seed {
+  margin: 0;
+  min-width: 0;
+}
+.seed figcaption {
+  padding: 0.5rem 0;
+  font:
+    500 1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.seed canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 0.92;
+  background: #10151a;
+}
+.guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+  cursor: pointer;
+}
+.guide input {
+  accent-color: #f5c56d;
+  width: 18px;
+  height: 18px;
+}
+.note {
+  color: #c1c2bd;
+}
+@media (max-width: 600px) {
+  .comparison {
+    gap: 1rem;
+  }
+}

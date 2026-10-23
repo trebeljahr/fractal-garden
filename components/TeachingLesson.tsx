@@ -6,6 +6,7 @@ const NewtonLesson = dynamic(() => import("./lessons/NewtonLesson"));
 const LogisticLesson = dynamic(() => import("./lessons/LogisticLesson"));
 const AttractorLesson = dynamic(() => import("./lessons/AttractorLesson"));
 const DlaLesson = dynamic(() => import("./lessons/DlaLesson"));
+const SierpinskiSeedsLesson = dynamic(() => import("./lessons/SierpinskiSeedsLesson"));
 const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
 
 const LESSONS = [
@@ -18,6 +19,7 @@ const LESSONS = [
   "rossler",
   "dla",
   "penrose",
+  "sierpinski-seeds",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -42,6 +44,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <AttractorLesson system="rossler" />;
     case "dla":
       return <DlaLesson />;
+    case "sierpinski-seeds":
+      return <SierpinskiSeedsLesson />;
     case "penrose":
       return <PenroseLesson />;
   }
