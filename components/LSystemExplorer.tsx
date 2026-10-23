@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import styles from "../styles/LSystemExplorer.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { fixedFromNumber, rescale } from "../utils/lsystem/bigfixed";
@@ -32,7 +33,11 @@ import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
 
-type Props = { presets: Preset[]; viewControlsHost?: HTMLElement | null };
+type Props = {
+  presets: Preset[];
+  viewControlsHost?: HTMLElement | null;
+  editorControlsHost?: HTMLElement | null;
+};
 
 type Field = { kind: "axiom" } | { kind: "rule"; index: number };
 
@@ -146,13 +151,14 @@ function sameSpec(a: LSystemSpec, b: LSystemSpec) {
   return encodeSpec(a) === encodeSpec(b);
 }
 
-export const LSystemExplorer = ({ presets, viewControlsHost }: Props) => {
+export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost }: Props) => {
   const [spec, setSpec] = useState<LSystemSpec>(presets[0].spec);
   const [presetSlug, setPresetSlug] = useState(presets[0].slug);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
   const [shownIterations, setShownIterations] = useState<number | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const editorToggleRef = useRef<HTMLButtonElement>(null);
   const [uiVisible, setUiVisible] = useState(true);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [notice, setNotice] = useState("");
@@ -292,7 +298,7 @@ export const LSystemExplorer = ({ presets, viewControlsHost }: Props) => {
     if (!width || !height) return null;
     // On wide screens fit the drawing into the space beside the open panel.
     const offset = panelOpen && uiVisible && width > 900 ? PANEL_WIDTH + 24 : 0;
-    return { x: offset, y: 0, width: width - offset, height };
+    return { x: 0, y: 0, width: width - offset, height };
   }, [width, height, panelOpen, uiVisible]);
 
   // Endless zoom for 2D systems. A second worker redraws only the visible
@@ -748,32 +754,37 @@ export const LSystemExplorer = ({ presets, viewControlsHost }: Props) => {
         )}
       </ExplorerContextMenu>
 
-      {!panelOpen && (
-        <button
-          className={styles.reopen}
-          onClick={() => setPanelOpen(true)}
-          type="button"
-          data-fractal-chrome
-        >
-          Edit rules
-        </button>
-      )}
+      {editorControlsHost &&
+        createPortal(
+          <button
+            ref={editorToggleRef}
+            className={styles.editorToggle}
+            onClick={() => setPanelOpen((open) => !open)}
+            type="button"
+            aria-expanded={panelOpen}
+            aria-controls="lsystem-editor"
+          >
+            L-System Studio Controls
+            <span className={styles.chevron} aria-hidden="true" />
+          </button>,
+          editorControlsHost,
+        )}
 
       <aside
+        id="lsystem-editor"
         className={styles.panel}
         hidden={!panelOpen}
         aria-label="L-system editor"
         data-fractal-chrome
+        onKeyDown={(event) => {
+          if (event.key !== "Escape" || event.defaultPrevented) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setPanelOpen(false);
+          editorToggleRef.current?.focus();
+        }}
       >
-        <header className={styles.header}>
-          <div>
-            <p className={styles.title}>L-System Explorer</p>
-            <p className={styles.subtitle}>Write rewriting rules and watch them grow.</p>
-          </div>
-          <button className={styles.ghost} onClick={() => setPanelOpen(false)} type="button">
-            Hide
-          </button>
-        </header>
+        <p className={styles.subtitle}>Write rewriting rules and watch them grow.</p>
 
         {linkErrors.length > 0 && (
           <ul className={styles.errors}>
@@ -913,7 +924,7 @@ export const LSystemExplorer = ({ presets, viewControlsHost }: Props) => {
           )}
         </section>
 
-        <details className={styles.section} open>
+        <details className={styles.section}>
           <summary className={styles.summary}>Symbols</summary>
           <p className={styles.hint}>
             The turtle reads the final string from left to right. Click a symbol to type it into the

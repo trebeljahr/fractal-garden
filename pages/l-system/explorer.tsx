@@ -6,6 +6,7 @@ import { LSystemExplorer, type Preset } from "../../components/LSystemExplorer";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import editorStyles from "../../styles/LSystemExplorer.module.css";
 import { normalizeSpec } from "../../utils/lsystem/spec";
 import { getDescription } from "../../utils/readFiles";
 
@@ -44,10 +45,23 @@ export async function getStaticProps() {
 
 const LSystemExplorerPage = ({ description, presets }: Props) => {
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
+  const [editorControlsHost, setEditorControlsHost] = useState<HTMLDivElement | null>(null);
   return (
     <main className={styles.lSystem}>
-      <FractalHeader title="L-System Explorer" controls={<div ref={setViewControlsHost} />} />
-      <LSystemExplorer presets={presets} viewControlsHost={viewControlsHost} />
+      <FractalHeader
+        title="L-System Explorer"
+        controls={
+          <div className={editorStyles.headerControls} data-fractal-studio>
+            <div ref={setViewControlsHost} />
+            <div ref={setEditorControlsHost} />
+          </div>
+        }
+      />
+      <LSystemExplorer
+        presets={presets}
+        viewControlsHost={viewControlsHost}
+        editorControlsHost={editorControlsHost}
+      />
       <SideDrawer description={description} />
       <NavElement />
     </main>

@@ -18,14 +18,14 @@
 
 .panel {
   position: absolute;
-  top: calc(var(--explorer-header-height) + 12px);
-  left: 18px;
+  top: var(--explorer-header-height);
+  right: 0;
   z-index: 26;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 12px;
   box-sizing: border-box;
-  width: min(392px, calc(100vw - 36px));
+  width: min(392px, 100vw);
   max-height: calc(
     100svh -
     var(--explorer-header-height) -
@@ -34,15 +34,13 @@
     24px
   );
   overflow-y: auto;
-  padding: 1.1rem 1.1rem 1.2rem;
+  overscroll-behavior: contain;
+  padding: 14px;
   border: 1px solid rgba(245, 241, 209, 0.14);
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at top right, rgba(245, 204, 117, 0.14), transparent 36%),
-    linear-gradient(180deg, rgba(11, 20, 25, 0.9), rgba(7, 12, 15, 0.93));
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
-  color: var(--yellow-white);
+  border-bottom-color: rgba(245, 204, 117, 0.32);
+  border-radius: 0 0 4px 4px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
   scrollbar-width: thin;
   scrollbar-color: rgba(245, 241, 209, 0.22) transparent;
@@ -52,35 +50,18 @@
   display: none;
 }
 
-@media screen and (max-width: 640px) {
-  .panel {
-    top: calc(var(--explorer-header-height) + 12px);
-    bottom: auto;
-    left: 10px;
-    width: calc(100vw - 20px);
-    max-height: min(58svh, calc(100svh - 250px));
-  }
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
 .title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: 0.02em;
-  color: var(--yellow-white);
+  color: var(--explorer-ink);
 }
 
 .subtitle {
-  margin: 0.35rem 0 0;
-  font-size: 0.92rem;
+  margin: 0;
+  font-size: 12px;
   color: rgba(245, 241, 209, 0.72);
 }
 
@@ -97,8 +78,11 @@ details.section {
 }
 
 .summary {
+  composes: button from "./ExplorerButton.module.css";
+  padding: 8px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 13px;
   color: rgba(245, 241, 209, 0.85);
   list-style-position: inside;
 }
@@ -108,20 +92,20 @@ details[open] > .summary {
 }
 
 .label {
-  font-size: 0.85rem;
+  font-size: 12px;
   letter-spacing: 0.02em;
   color: rgba(245, 241, 209, 0.78);
 }
 
 .labelHint {
   margin-left: 0.35rem;
-  font-size: 0.78rem;
+  font-size: 11px;
   color: rgba(245, 241, 209, 0.48);
 }
 
 .hint {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 12px;
   line-height: 1.45;
   color: rgba(245, 241, 209, 0.6);
 }
@@ -135,13 +119,13 @@ details[open] > .summary {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  height: 2.4rem;
+  height: 36px;
   padding: 0 0.7rem;
   border: 1px solid rgba(245, 241, 209, 0.12);
-  border-radius: 10px;
-  background: rgba(4, 8, 10, 0.54);
-  color: var(--yellow-white);
-  font-size: 0.95rem;
+  border-radius: 3px;
+  background: var(--explorer-field);
+  color: var(--explorer-ink);
+  font-size: 13px;
   transition:
     border-color 0.18s ease,
     background-color 0.18s ease;
@@ -162,14 +146,14 @@ textarea.code {
 
 .code:focus,
 .number:focus {
-  outline: none;
   border-color: rgba(245, 204, 117, 0.45);
-  background: rgba(10, 16, 20, 0.82);
-  box-shadow: 0 0 0 1px rgba(245, 204, 117, 0.14);
+  background: var(--explorer-field);
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -2px;
 }
 
 .picker {
-  height: 2.4rem;
+  height: 36px;
 }
 
 .rules {
@@ -190,7 +174,7 @@ textarea.code {
   padding: 0;
   text-align: center;
   font-weight: 600;
-  color: #f5cc75;
+  color: var(--explorer-accent);
 }
 
 .weight {
@@ -214,7 +198,7 @@ textarea.code {
 }
 
 .chance {
-  font-size: 0.72rem;
+  font-size: 11px;
   color: rgba(245, 241, 209, 0.55);
 }
 
@@ -225,7 +209,7 @@ textarea.code {
 }
 
 .symbolGroupTitle {
-  font-size: 0.75rem;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(245, 241, 209, 0.5);
@@ -238,7 +222,7 @@ textarea.code {
 }
 
 .symbolRow .chip {
-  flex: 0 0 2rem;
+  flex: 0 0 32px;
 }
 
 .arrow {
@@ -247,10 +231,10 @@ textarea.code {
 
 .remove {
   flex: 0 0 auto;
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 999px;
+  border-radius: 3px;
   background: transparent;
   color: rgba(245, 241, 209, 0.55);
   font-size: 1.2rem;
@@ -263,15 +247,16 @@ textarea.code {
 }
 
 .chip {
-  min-width: 2rem;
-  height: 2rem;
+  composes: button from "./ExplorerButton.module.css";
+  min-width: 32px;
+  height: 32px;
   padding: 0 0.45rem;
   border: 1px solid rgba(245, 241, 209, 0.14);
-  border-radius: 8px;
+  border-radius: 3px;
   background: rgba(245, 241, 209, 0.06);
-  color: var(--yellow-white);
+  color: var(--explorer-ink);
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  font-size: 0.95rem;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -293,22 +278,22 @@ textarea.code {
 
 .slider input[type="range"] {
   width: 100%;
-  accent-color: #f5cc75;
+  accent-color: var(--explorer-accent);
 }
 
 .valueBox {
   display: flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.85rem;
+  font-size: 12px;
   color: rgba(245, 241, 209, 0.6);
 }
 
 .number {
   width: 5.2rem;
-  height: 2rem;
+  height: 32px;
   padding: 0 0.45rem;
-  font-size: 0.85rem;
+  font-size: 12px;
 }
 
 .row {
@@ -326,7 +311,7 @@ textarea.code {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.88rem;
+  font-size: 13px;
   color: rgba(245, 241, 209, 0.8);
 }
 
@@ -344,17 +329,17 @@ textarea.code {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.85rem;
+  font-size: 12px;
   color: rgba(245, 241, 209, 0.8);
   cursor: pointer;
 }
 
 .color input {
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid rgba(245, 241, 209, 0.2);
-  border-radius: 8px;
+  border-radius: 3px;
   background: transparent;
   cursor: pointer;
 }
@@ -365,22 +350,22 @@ textarea.code {
   gap: 0.35rem;
   padding-top: 0.85rem;
   border-top: 1px solid rgba(245, 241, 209, 0.08);
-  font-size: 0.8rem;
+  font-size: 12px;
   color: rgba(245, 241, 209, 0.65);
 }
 
 .warning {
   margin: 0;
-  font-size: 0.8rem;
-  color: #f5cc75;
+  font-size: 12px;
+  color: var(--explorer-accent);
 }
 
 .errors {
   margin: 0;
   padding: 0.6rem 0.8rem 0.6rem 1.6rem;
-  border-radius: 12px;
+  border-radius: 3px;
   background: rgba(252, 54, 107, 0.12);
-  font-size: 0.82rem;
+  font-size: 12px;
   color: #ffb3c6;
 }
 
@@ -390,40 +375,44 @@ textarea.code {
   gap: 0.5rem;
 }
 
+.primary {
+  composes: button from "./ExplorerButton.module.css";
+}
+
+.ghost {
+  composes: button from "./ExplorerButton.module.css";
+}
+
 .primary,
 .ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  padding: 0.55rem 0.95rem;
+  border-radius: 3px;
+  min-height: 32px;
+  padding: 6px 10px;
   font-family: "Montserrat", sans-serif;
-  font-size: 0.88rem;
+  font-size: 13px;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
 }
 
 .ghost {
   align-self: flex-start;
   border: 1px solid rgba(245, 241, 209, 0.16);
-  background: rgba(245, 241, 209, 0.08);
-  color: var(--yellow-white);
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
 }
 
 .primary {
   border: 1px solid rgba(245, 204, 117, 0.5);
   background: rgba(245, 204, 117, 0.22);
-  color: var(--yellow-white);
+  color: var(--explorer-ink);
 }
 
 .ghost:hover,
 .primary:hover {
-  transform: translateY(-1px);
-  border-color: rgba(245, 241, 209, 0.35);
+  border-color: var(--explorer-accent);
 }
 
 .ghost:disabled,
@@ -435,23 +424,8 @@ textarea.code {
 
 .notice {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 12px;
   color: #91fc8e;
-}
-
-.reopen {
-  position: absolute;
-  top: calc(var(--explorer-header-height) + 12px);
-  left: 18px;
-  z-index: 26;
-  border: 1px solid rgba(245, 241, 209, 0.2);
-  border-radius: 999px;
-  padding: 0.7rem 1.1rem;
-  background: rgba(7, 12, 15, 0.85);
-  color: var(--yellow-white);
-  font-family: "Montserrat", sans-serif;
-  font-size: 0.95rem;
-  cursor: pointer;
 }
 
 .dialog {
@@ -461,9 +435,9 @@ textarea.code {
   box-sizing: border-box;
   padding: 1.4rem;
   border: 1px solid rgba(245, 241, 209, 0.16);
-  border-radius: 20px;
-  background: #0b1419;
-  color: var(--yellow-white);
+  border-radius: 4px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
 }
 
@@ -483,9 +457,83 @@ textarea.code {
   overflow: auto;
   margin: 0.4rem 0;
   padding: 0.7rem 0.8rem;
-  border-radius: 10px;
-  background: rgba(4, 8, 10, 0.7);
-  font-size: 0.78rem;
+  border-radius: 3px;
+  background: var(--explorer-field);
+  font-size: 11px;
   line-height: 1.45;
   color: rgba(245, 241, 209, 0.85);
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.editorToggle {
+  composes: button from "./ExplorerButton.module.css";
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 264px;
+  height: var(--explorer-control-height);
+  padding: 0 18px;
+  border-radius: 3px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  cursor: pointer;
+}
+
+.chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid var(--explorer-accent);
+  border-bottom: 1px solid var(--explorer-accent);
+  transform: rotate(45deg);
+}
+
+.editorToggle[aria-expanded="true"] .chevron {
+  transform: rotate(225deg);
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -2px;
+}
+
+@media (max-width: 700px) {
+  .headerControls {
+    display: grid;
+    gap: 8px;
+  }
+
+  .editorToggle {
+    width: 100%;
+  }
+
+  .panel {
+    max-height: min(
+      58svh,
+      calc(100svh - var(--explorer-header-height) - var(--explorer-nav-height) - 24px)
+    );
+  }
+
+  .code,
+  .number,
+  .picker,
+  .primary,
+  .ghost,
+  .chip,
+  .remove {
+    min-height: var(--explorer-control-height);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel *,
+  .dialog * {
+    transition: none;
+  }
 }
