@@ -16,4 +16,4 @@ The ordinary snowflake adds triangles instead and finishes with eight fifths of 
 
 ## Sources and notes
 
-1. <span id="koch-anti-snowflake-source-1"></span> Brian J. McCartin, [Mysteries of the Equilateral Triangle](https://www.m-hikari.com/mccartin-2.pdf), Hikari, 2010, page 58. Describes the inward anti-snowflake and its area 2/5, alongside the ordinary snowflake’s 8/5. The four-piece rule and its inward orientation match this explorer. [Back](#koch-anti-snowflake-ref-1)
+1. <span id="koch-anti-snowflake-source-1"></span> Brian J. McCartin, [Mysteries of the Equilateral Triangle](https://www.m-hikari.com/mccartin-2.pdf), Hikari, 2010, page 58. Describes the inward anti-snowflake and its area 2/5, alongside the ordinary snowflake’s 8/5. [Back](#koch-anti-snowflake-ref-1)

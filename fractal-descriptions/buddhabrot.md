@@ -18,4 +18,4 @@ Melinda Green developed the method in 1993. Lori Gardi later supplied the name.
 
 ## Sources and notes
 
-1. <span id="buddhabrot-source-1"></span> Melinda Green, [The Buddhabrot Technique](https://superliminal.com/fractals/bbrot/), creator's account of the method developed in 1993. Describes escaping-orbit accumulation, Gardi's naming, and separate color-channel thresholds. Sampling, reflection and exposure details above describe this explorer. [Back](#buddhabrot-ref-1)
+1. <span id="buddhabrot-source-1"></span> Melinda Green, [The Buddhabrot Technique](https://superliminal.com/fractals/bbrot/), creator's account of the method developed in 1993. Describes escaping-orbit accumulation, Gardi's naming, and separate color-channel thresholds. [Back](#buddhabrot-ref-1)

@@ -22,4 +22,4 @@ F draws forward. Plus and minus turn in opposite directions. Other patterns call
 
 ## Sources and notes
 
-1. <span id="quadratic-koch-island-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain Koch-style edge replacement and turtle words. The eighteen-step rule, six-step span and signed-area balance are direct calculations from this explorer’s rule. [Back](#quadratic-koch-island-ref-1)
+1. <span id="quadratic-koch-island-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on line replacement and drawing instructions, sections 1.1–1.3. [Back](#quadratic-koch-island-ref-1)

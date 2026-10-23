@@ -16,4 +16,4 @@ Neel Shrestha developed a way to fold this construction in paper. His origami mo
 
 ## Sources and notes
 
-1. <span id="quadratic-koch-3d-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Original folding method and thirteen-square generator. The face count, area growth and total bump height are calculations from this explorer’s generator. [Back](#quadratic-koch-3d-ref-1)
+1. <span id="quadratic-koch-3d-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Origami folding method and thirteen-square replacement. [Back](#quadratic-koch-3d-ref-1)

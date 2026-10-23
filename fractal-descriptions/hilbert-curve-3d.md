@@ -14,5 +14,5 @@ There is more than one way to arrange the eight smaller routes. This page uses J
 
 ## Sources and notes
 
-1. <span id="hilbert-curve-3d-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and sections 2–3 establish the cube-subdivision framework and the classification’s scope. Counts above come from the local grid size. [Back](#hilbert-curve-3d-ref-1)
-2. <span id="hilbert-curve-3d-source-2"></span> John Skilling, [Programming the Hilbert curve](https://doi.org/10.1063/1.1751381), AIP Conference Proceedings 707, 381–387, 2004. This is the method identified in the garden’s generateHilbertCurve3D implementation. [Back](#hilbert-curve-3d-ref-2)
+1. <span id="hilbert-curve-3d-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and sections 2–3 establish the cube-subdivision framework and the classification’s scope. [Back](#hilbert-curve-3d-ref-1)
+2. <span id="hilbert-curve-3d-source-2"></span> John Skilling, [Programming the Hilbert curve](https://doi.org/10.1063/1.1751381), AIP Conference Proceedings 707, 381–387, 2004. Algorithm for ordering grid points along a Hilbert curve. [Back](#hilbert-curve-3d-ref-2)

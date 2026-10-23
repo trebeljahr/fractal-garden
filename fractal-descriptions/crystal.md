@@ -8,12 +8,12 @@ For one replacement, draw forward twice. Turn 90 degrees and draw one step. Turn
 
 Five drawing steps finish three step lengths ahead. Shortening each new step to one third keeps the ends of the original side fixed.
 
-The pen travels five thirds of the old distance, but it draws only four different small edges. The sideways edge is drawn twice. A count of drawing instructions therefore differs from a count of visible edges.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
+The pen travels five thirds of the old distance, but it draws only four different small edges. The sideways edge is drawn twice. A count of drawing instructions therefore differs from a count of visible edges.
 
-The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.
+The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
 
 “Crystal” is the preset's name. The rule describes a geometric path, not the physical growth of a crystal.
 
 ## Sources and notes
 
-1. <span id="crystal-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.2–1.3 supply the rewriting method. The five-stroke count, three-unit span and first-stage overlap are direct calculations from the local preset. [Back](#crystal-ref-1)
+1. <span id="crystal-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on replacing letters and reading them as drawing instructions, sections 1.2–1.3. [Back](#crystal-ref-1)

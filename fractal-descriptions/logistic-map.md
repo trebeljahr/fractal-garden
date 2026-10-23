@@ -21,4 +21,4 @@ The branches in the picture show these lasting cycles. A limited calculation can
 ## Sources and notes
 
 1. <span id="logistic-map-source-1"></span> Robert M. May, [Simple Mathematical Models with Very Complicated Dynamics](https://ned.ipac.caltech.edu/level5/Sept01/May/May_contents.html), *Nature* 261 (1976), 459–467. Original review, reproduced by Caltech's NASA/IPAC Extragalactic Database. [Back](#logistic-map-ref-1)
-2. <span id="logistic-map-source-2"></span> May, [section 3](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html) and [section 4](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). Gives stability tests, period doubling, and the three-cycle window. The example at r = 2 and the change of coordinates follow directly from the rule shown here. [Back](#logistic-map-ref-2)
+2. <span id="logistic-map-source-2"></span> May, [section 3](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html) and [section 4](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). Gives stability tests, period doubling, and the three-cycle window. [Back](#logistic-map-ref-2)

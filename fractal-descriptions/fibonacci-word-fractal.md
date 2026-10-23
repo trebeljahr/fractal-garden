@@ -16,4 +16,4 @@ Changing the angle keeps the digit sequence and turn choices fixed, but changes 
 
 ## Sources and notes
 
-1. <span id="fibonacci-word-fractal-source-1"></span> Alexis Monnerot-Dumaine, [The Fibonacci Word Fractal](https://mathcurve.com/fractals/fibonacci/The_Fibonacci_word_fractal.pdf), HAL manuscript hal-00367972, 2009, sections 1–4 and 6.1. Supplies the odd-even drawing rule, forbidden words and concatenation/reflection relationship. Our seed 0 shifts the manuscript’s word numbering. [Back](#fibonacci-word-fractal-ref-1)
+1. <span id="fibonacci-word-fractal-source-1"></span> Alexis Monnerot-Dumaine, [The Fibonacci Word Fractal](https://mathcurve.com/fractals/fibonacci/The_Fibonacci_word_fractal.pdf), HAL manuscript hal-00367972, 2009, sections 1–4 and 6.1. Supplies the odd-even drawing rule, forbidden words and concatenation/reflection relationship. [Back](#fibonacci-word-fractal-ref-1)

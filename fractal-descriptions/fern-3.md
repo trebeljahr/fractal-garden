@@ -20,4 +20,4 @@ The segment count goes from 1 to 9 to 81. Dividing each new segment's length by 
 
 ## Sources and notes
 
-1. <span id="fern-3-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 supplies the branching interpretation. The nine-stroke count and three-stroke stem are direct derivations from the preset. [Back](#fern-3-ref-1)
+1. <span id="fern-3-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 supplies the branching interpretation. [Back](#fern-3-ref-1)

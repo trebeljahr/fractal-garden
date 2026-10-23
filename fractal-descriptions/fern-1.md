@@ -21,4 +21,4 @@ Repeated replacement adds smaller branching arrangements throughout the plant. T
 
 ## Sources and notes
 
-1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. The step counts follow directly from this preset’s rules. [Back](#fern-1-ref-1)
+1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. [Back](#fern-1-ref-1)

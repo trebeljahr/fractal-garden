@@ -14,5 +14,5 @@ This arrangement has a practical use in circuits. Every endpoint at the same dep
 
 ## Sources and notes
 
-1. <span id="h-tree-source-1"></span> Direct derivation from this page’s alternating binary construction. The two coordinate series are independent; at r² = 1/2 each spans an interval. Their sums give width L/(1−r²) and height Lr/(1−r²). [Back](#h-tree-ref-1)
+1. <span id="h-tree-source-1"></span> Calculation for the alternating horizontal and vertical lines above. The two coordinate series are independent; at r² = 1/2 each spans an interval. Their sums give width L/(1−r²) and height Lr/(1−r²). [Back](#h-tree-ref-1)
 2. <span id="h-tree-source-2"></span> Princeton University, [COS 126 Recursive Graphics Assignment](https://www.cs.princeton.edu/courses/archive/fall02/cs126/assignments/htree.html), 2002. Explains H-tree circuit layouts with equal wire lengths from the central clock to exposed endpoints. [Back](#h-tree-ref-2)

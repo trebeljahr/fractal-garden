@@ -16,4 +16,4 @@ The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a
 
 ## Sources and notes
 
-1. <span id="quadratic-snowflake-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain edge replacement and turtle interpretation. The five-step rule, starting square and inward bumps describe this explorer’s preset. The linked 3D page implements its own face-replacement construction. [Back](#quadratic-snowflake-ref-1)
+1. <span id="quadratic-snowflake-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on line replacement and drawing instructions, sections 1.1–1.3. [Back](#quadratic-snowflake-ref-1)

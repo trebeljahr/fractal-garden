@@ -16,4 +16,4 @@ Penrose tilings cover an area without gaps. Their connection to fractals is the 
 
 ## Sources and notes
 
-1. <span id="penrose-tiling-source-1"></span> Tilings Encyclopedia, Bielefeld University, [Penrose Rhomb](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/), Matching rules, substitution, golden-ratio inflation and Fibonacci matrix entries. The triangle counts follow this page’s P2 half-tile rule. [Back](#penrose-tiling-ref-1)
+1. <span id="penrose-tiling-source-1"></span> Tilings Encyclopedia, Bielefeld University, [Penrose Rhomb](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/), Matching rules, substitution, golden-ratio inflation and Fibonacci matrix entries. [Back](#penrose-tiling-ref-1)

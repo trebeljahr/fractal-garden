@@ -8,12 +8,12 @@ To draw one replacement, go forward two steps. Make three right-angle turns with
 
 Making each new step one third as long keeps the ends of the old side in place. Seven one-third-length lines replace one line, so the distance drawn increases by $7/3$ each round.
 
-The route includes some repeated drawing. After the square loop, the next forward step follows part of a line already drawn. In the first replacement, seven drawing steps produce only six distinct small edges.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
+The route includes some repeated drawing. After the square loop, the next forward step follows part of a line already drawn. In the first replacement, seven drawing steps produce only six distinct small edges.
 
 This distinction matters when measuring the pattern. The distance traveled by the pen includes repeated lines. The length of the visible set counts each line once.
 
-The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.
+The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
 ## Sources and notes
 
-1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.2–1.3 explain parallel rewriting and turtle interpretation. Step counts, finishing position and repeated edges follow directly from this explorer’s rule. [Back](#board-ref-1)
+1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on replacing letters and reading them as drawing instructions, sections 1.2–1.3. [Back](#board-ref-1)

@@ -18,4 +18,4 @@ Use outlines to see the individual squares, including the parts hidden in a fill
 
 ## Sources and notes
 
-1. <span id="t-square-fractal-source-1"></span> Kival Ngaokrajang and OEIS contributors, [A227621 — T-square perimeters](https://oeis.org/A227621), 2013 onward. Rounded perimeter sequence and explicit first-stage exposed-edge calculation. Square counts, area sums and the enclosing box follow directly from this explorer’s rule. [Back](#t-square-fractal-ref-1)
+1. <span id="t-square-fractal-source-1"></span> Kival Ngaokrajang and OEIS contributors, [A227621 — T-square perimeters](https://oeis.org/A227621), 2013 onward. Rounded perimeter sequence and explicit first-stage exposed-edge calculation. [Back](#t-square-fractal-ref-1)

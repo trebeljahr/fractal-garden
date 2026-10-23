@@ -16,4 +16,4 @@ Changing a turn angle changes the geometry while leaving the string unchanged. M
 
 ## Sources and notes
 
-1. <span id="l-system-explorer-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain parallel rewriting and turtle interpretation; sections 1.5–1.6 extend them to spatial and branching structures. Example counts are calculated from the stated productions. [Back](#l-system-explorer-ref-1)
+1. <span id="l-system-explorer-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain parallel rewriting and turtle interpretation; sections 1.5–1.6 extend them to spatial and branching structures. [Back](#l-system-explorer-ref-1)

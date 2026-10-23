@@ -14,4 +14,4 @@ The [Hilbert curve](/l-system/hilbert-curve) also fills a region, but divides a 
 
 ## Sources and notes
 
-1. <span id="gosper-curve-source-1"></span> Bielefeld University, [Gosper Curve Substitution Tiling](https://tilings.math.uni-bielefeld.de/substitution/gosper_curve/), Tilings Encyclopedia. Confirms Gosper’s attribution, the substitution and inflation factor √7. The local stroke count follows from the displayed productions. [Back](#gosper-curve-ref-1)
+1. <span id="gosper-curve-source-1"></span> Bielefeld University, [Gosper Curve Substitution Tiling](https://tilings.math.uni-bielefeld.de/substitution/gosper_curve/), Tilings Encyclopedia. Confirms Gosper’s attribution, the substitution and inflation factor √7. [Back](#gosper-curve-ref-1)

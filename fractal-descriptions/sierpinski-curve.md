@@ -18,4 +18,4 @@ The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the
 
 ## Sources and notes
 
-1. <span id="sierpinski-curve-source-1"></span> Carlos A. Grande, [Compact reactor architectures designed with fractals — supporting information](https://www.rsc.org/suppdata/d1/re/d1re00107h/d1re00107h1.pdf), Reaction Chemistry & Engineering, 2021, table S1. Lists the same Square curve production, with axiom X+F+X. The counts above use this garden’s four-F, two-X seed. [Back](#sierpinski-curve-ref-1)
+1. <span id="sierpinski-curve-source-1"></span> Carlos A. Grande, [Compact reactor architectures designed with fractals — supporting information](https://www.rsc.org/suppdata/d1/re/d1re00107h/d1re00107h1.pdf), Reaction Chemistry & Engineering, 2021, table S1. Table S1 lists this replacement under “Square curve”, starting from `X+F+X`. [Back](#sierpinski-curve-ref-1)

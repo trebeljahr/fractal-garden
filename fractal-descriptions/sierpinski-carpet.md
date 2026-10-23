@@ -18,4 +18,4 @@ The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. Eac
 
 ## Sources and notes
 
-1. <span id="sierpinski-carpet-source-1"></span> Mario Bonk, [Uniformization of Sierpiński carpets in the plane](https://arxiv.org/pdf/1009.4094), Inventiones Mathematicae 186 (2011), 559–665, Corollary 1.2 and §12. Standard carpet construction and connectedness. The area fraction follows directly from this explorer’s eight-of-nine rule. [Back](#sierpinski-carpet-ref-1)
+1. <span id="sierpinski-carpet-source-1"></span> Mario Bonk, [Uniformization of Sierpiński carpets in the plane](https://arxiv.org/pdf/1009.4094), Inventiones Mathematicae 186 (2011), 559–665, Corollary 1.2 and §12. Standard carpet construction and connectedness. [Back](#sierpinski-carpet-ref-1)

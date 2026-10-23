@@ -18,4 +18,4 @@ Physical fractal trees are also used to study water flow through canopies. Johns
 
 ## Sources and notes
 
-1. <span id="fractal-canopy-source-1"></span> Kunlun Bai, Charles Meneveau, Joseph Katz and the Laboratory for Experimental Fluid Dynamics, [Fractal Canopy](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/), Johns Hopkins University. Physical tree model, five generations and refractive-index-matched flow measurements. Branch counts and length sums follow directly from this explorer’s rule. [Back](#fractal-canopy-ref-1)
+1. <span id="fractal-canopy-source-1"></span> Kunlun Bai, Charles Meneveau, Joseph Katz and the Laboratory for Experimental Fluid Dynamics, [Fractal Canopy](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/), Johns Hopkins University. Physical tree model, five generations and refractive-index-matched flow measurements. [Back](#fractal-canopy-ref-1)

@@ -21,4 +21,4 @@ The main drawing uses an equivalent notation where F draws and X/Y control later
 
 ## Sources and notes
 
-1. <span id="sierpinski-arrowhead-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Figure 1.10 and section 1.4 describe a recursive route through the Sierpiński gasket. The equivalent letter rules, line counts and display rotations describe this explorer. [Back](#sierpinski-arrowhead-ref-1)
+1. <span id="sierpinski-arrowhead-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Figure 1.10 and section 1.4 describe a recursive route through the Sierpiński gasket. [Back](#sierpinski-arrowhead-ref-1)

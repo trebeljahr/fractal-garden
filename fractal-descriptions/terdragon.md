@@ -16,4 +16,4 @@ Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-
 
 ## Sources and notes
 
-1. <span id="terdragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 3 gives the terdragon’s three contraction maps, each of modulus 1/√3, and its ternary revolving sequences. The vector sum, stroke count and display counter-rotation are direct derivations from the renderer. [Back](#terdragon-ref-1)
+1. <span id="terdragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 3 gives the terdragon’s three contraction maps, each of modulus 1/√3, and its ternary revolving sequences. [Back](#terdragon-ref-1)

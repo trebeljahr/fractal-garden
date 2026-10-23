@@ -23,4 +23,4 @@ The first replacement draws one forward step. The second draws eleven. The diffe
 
 ## Sources and notes
 
-1. <span id="fern-2-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains the bracketed turtle method. Symbol counts and the distinction between expanding tips and unchanged F strokes follow from the local rules. [Back](#fern-2-ref-1)
+1. <span id="fern-2-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains the bracketed turtle method. [Back](#fern-2-ref-1)

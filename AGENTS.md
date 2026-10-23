@@ -56,6 +56,12 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
   authors, linked titles and verified publication details. Label calculations
   derived directly from this implementation; do not attribute them to a paper
   that only supplies a general method.
+- A paper's footnote describes only what that paper supports. Never append claims
+  about this site's renderer, presets or calculations to a paper's citation. Put
+  a necessary calculation note in its own numbered entry, labelled “Calculation”
+  or “Diagram construction”. If the article already shows the calculation, do
+  not repeat its provenance in a footnote. Label general-method references as
+  background and place them beside the method, not beside this site's numbers.
 - Distinguish finite drawings from their limits, strokes from distinct edges,
   counted area from covered area, surfaces from enclosed solids, and similarity
   exponents from proved dimensions. State conjectures and estimates as such.

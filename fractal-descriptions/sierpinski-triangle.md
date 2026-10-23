@@ -18,5 +18,5 @@ The pattern also appears in Pascal's triangle. Color the odd numbers and leave t
 
 ## Sources and notes
 
-1. <span id="sierpinski-triangle-source-1"></span> Michael Barnsley, John E. Hutchinson and Örjan Stenflo, [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314), 2003 preprint, Figure 1 and introductory contraction discussion. Seed independence and fish example; this page uses its own drawing. [Back](#sierpinski-triangle-ref-1)
+1. <span id="sierpinski-triangle-source-1"></span> Michael Barnsley, John E. Hutchinson and Örjan Stenflo, [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314), 2003 preprint, Figure 1 and introductory contraction discussion. Repeated smaller copies approach the same set regardless of the starting shape; Figure 1 uses a fish. [Back](#sierpinski-triangle-ref-1)
 2. <span id="sierpinski-triangle-source-2"></span> Andrew Granville, [Arithmetic Properties of Binomial Coefficients I: Binomial coefficients modulo prime powers](https://dms.umontreal.ca/~andrew/Binomial/intro.html), Canadian Mathematical Society Conference Proceedings 20 (1997), 253–276. Lucas’ theorem and its cellular-automaton interpretation. [Back](#sierpinski-triangle-ref-2)

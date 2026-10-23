@@ -16,4 +16,4 @@ This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus 
 
 ## Sources and notes
 
-1. <span id="levy-curve-source-1"></span> Paul Duvall and James Keesling, [The Hausdorff dimension of the boundary of the Lévy dragon](https://arxiv.org/pdf/math/9907145), arXiv:math/9907145, 1999. Sections 4–5 prove nonempty interior, the open set condition and zero-area overlap between pieces, then compute the boundary dimension using a 752-state matrix. Stroke and length counts above follow directly from the local rule. [Back](#levy-curve-ref-1)
+1. <span id="levy-curve-source-1"></span> Paul Duvall and James Keesling, [The Hausdorff dimension of the boundary of the Lévy dragon](https://arxiv.org/pdf/math/9907145), arXiv:math/9907145, 1999. Sections 4–5 prove nonempty interior, the open set condition and zero-area overlap between pieces, then compute the boundary dimension using a 752-state matrix. [Back](#levy-curve-ref-1)

@@ -14,4 +14,4 @@ Finite paths leave gaps inside each repeated region. Increasing the level makes 
 
 ## Sources and notes
 
-1. <span id="twindragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 1 gives the Twindragon’s two-map complex representation. Donald Knuth’s [Recreational Computer Science](https://cs.stanford.edu/~knuth/recreational-cs.pdf), Joint Mathematics Meetings lecture slides, 2024, describes the binary complex-base digit tile. The two-colour route and translation vectors come from this page’s renderer. [Back](#twindragon-ref-1)
+1. <span id="twindragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 1 gives the Twindragon’s two-map complex representation. Donald Knuth’s [Recreational Computer Science](https://cs.stanford.edu/~knuth/recreational-cs.pdf), Joint Mathematics Meetings lecture slides, 2024, describes the binary complex-base digit tile. [Back](#twindragon-ref-1)
