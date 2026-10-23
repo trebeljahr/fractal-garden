@@ -1,8 +1,8 @@
 # Newton Fractal
 
-Newton's method improves a guess at where a function equals zero. Draw a tangent at your guess on the graph. The tangent meets the horizontal axis at a new guess. Repeat from there.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
+Choose a starting guess. Draw a straight line that touches the curve there and follows its slope. Where the line crosses the bottom axis is your next guess. Repeat from there.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
 
-The little diagram starts with this graph construction. Once a guess is close enough to a simple root, each step roughly doubles its number of correct digits.
+This is Newton's method for finding a **root**, where the curve meets zero. Near a root where the curve isn't flat, each step roughly doubles the number of correct digits.
 
 <figure data-lesson="newton"></figure>
 
@@ -12,7 +12,7 @@ Nearby guesses often reach the same root, making the broad patches of color. Alo
 
 All three colored regions share a boundary. However closely you zoom at a boundary point, you can find starts leading to each of the three roots.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup> That is why a border between two colors keeps revealing pieces of the third.
 
-At zero the calculation divides by zero, and nearby guesses can jump a long way. The renderer stops after 48 steps. If it hasn't found a root, it uses the root nearest the final guess for coloring. Those unresolved pixels can therefore have a misleading color.
+The computer stops after 48 steps. A guess that still hasn't reached a root gets the color of the nearest one. Some pixels near the borders can have the wrong color for this reason.
 
 ## Sources and notes
 

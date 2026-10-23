@@ -19,6 +19,19 @@ export function tetrahedra(depth: number): Point3[][] {
   return cells;
 }
 
+export function tetrahedronProjection(point: Point3, triangular: boolean): Point2 {
+  return triangular ? [point[0], (point[1] - point[2]) / Math.sqrt(2)] : [point[0], point[1]];
+}
+
+export function tetrahedronPieces(depth: number, triangular: boolean) {
+  const perCorner = 4 ** Math.max(0, depth - 1);
+  return tetrahedra(depth).map((vertices, index) => ({
+    vertices,
+    corner: depth === 0 ? 0 : Math.floor(index / perCorner),
+    shadow: hull(vertices.map((point) => tetrahedronProjection(point, triangular))),
+  }));
+}
+
 export function hull(points: Point2[]): Point2[] {
   const sorted = Array.from(
     new Map(points.map((p) => [p.map((v) => v.toFixed(10)).join(","), p])).values(),
@@ -84,7 +97,7 @@ export function projectionPolygons(
   const polygons =
     kind === "tetrahedron"
       ? (cells as Point3[][]).map((cell) =>
-          hull(cell.map((p) => (alternate ? [p[0], (p[1] - p[2]) / Math.sqrt(2)] : [p[0], p[1]]))),
+          hull(cell.map((p) => tetrahedronProjection(p, alternate))),
         )
       : (cells as Cube[]).map((cube) =>
           alternate ? sliceCube(cube, offset) : hull(cubeCorners(cube).map((p) => [p[0], p[1]])),

@@ -15,9 +15,7 @@ Both letters draw forward. The two rules make the three-part replacement face in
 
 Each replacement triples the segment count. Halving the new segment lengths keeps the distance between the endpoints fixed. Repeating the construction approaches the same set as the [Sierpinski triangle](/l-system/sierpinski-triangle), but through a continuous path instead of removing filled triangles.
 
-The path's overall orientation alternates between odd and even stages. This page rotates alternate stages to keep them in comparable positions.
-
-The main drawing uses an equivalent notation where F draws and X/Y control later replacements. It produces the same segment counts: 1, 3, 9, 27.
+The path points in a different direction on alternate steps. The diagram rotates it back so you can compare the stages.
 
 ## Sources and notes
 

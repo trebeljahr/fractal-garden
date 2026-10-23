@@ -8,7 +8,7 @@ The original line is the long side of a right triangle. The two new lines are it
 
 Their combined length is about 1.414 times the old length. Each round doubles the line count and increases the total distance drawn by that same factor.
 
-Every finite version is made from straight line segments. In the infinite limit, the image contains a region with area.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup> The small loops and overlaps become dense enough to include the region's interior, not only its edge.
+Every drawing you can make leaves gaps between its lines. In the infinite limit, the curve fills a region.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
 
 The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It changes which direction the smaller pieces face, producing a different outline.
 

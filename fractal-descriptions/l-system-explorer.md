@@ -10,9 +10,9 @@ Every replacement uses the old string. A letter added during this round waits un
 
 Brackets let the route branch. In `F[+F]F`, the first F draws a stem. The opening bracket saves its endpoint and direction. Plus turns and the next F draws a side branch. The closing bracket returns to the saved position without drawing. The final F continues the stem.
 
-A letter can also have a replacement without drawing anything. X is often used this way to mark where more instructions will appear. This separates future branching positions from the F lines already present.
+A letter can also have a replacement without drawing anything. X is often used this way to mark where more instructions will appear. The F lines stay in the string while X gets replaced again.
 
-Changing a turn angle changes the geometry while leaving the string unchanged. Moving a bracket changes which position and direction are restored, so it can attach a branch somewhere else.
+Try changing the angle to spread the branches apart. Then move a bracket to change where a branch starts.
 
 ## Sources and notes
 

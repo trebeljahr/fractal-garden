@@ -19,7 +19,7 @@ A Y replacement leaves three Y positions: one on the continuing stem and two on 
 
 Old F instructions stay unchanged. New length is added through the X and Y replacements. In [Fern 1](/l-system/fern-1), by comparison, each old F becomes two F steps as well.
 
-The first replacement draws one forward step. The second draws eleven. The difference comes from applying both letter rules to the previous string, rather than adding the same small branch once per level.
+The first replacement draws one forward step. The second draws eleven because every X and Y in the old string gets replaced at once.
 
 ## Sources and notes
 

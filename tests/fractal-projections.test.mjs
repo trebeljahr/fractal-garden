@@ -12,7 +12,12 @@ require.extensions[".ts"] = (m, f) =>
     }).outputText,
     f,
   );
-const { projectionPolygons, sliceCube } = require("../utils/fractalProjections.ts");
+const {
+  projectionPolygons,
+  sliceCube,
+  tetrahedronPieces,
+  tetrahedronProjection,
+} = require("../utils/fractalProjections.ts");
 const { generateMengerSponge } = require("../utils/voxelFractals.ts");
 const area = (p) =>
   Math.abs(
@@ -70,5 +75,45 @@ test("central cube slice is a regular hexagon, and out-of-cube cuts are empty", 
     assert.ok(polys.length > 0);
     assert.ok(!polys.some((p) => inside(p, 0, 0)), "The centre tunnel must remain empty");
     assert.ok(polys.flat(2).every(Number.isFinite));
+  }
+});
+
+test("colored copies preserve their identity when two shadows overlap", () => {
+  const square = tetrahedronPieces(1, false);
+  const triangle = tetrahedronPieces(1, true);
+  assert.equal(square.length, 4);
+  assert.equal(new Set(square.map((piece) => JSON.stringify(piece.shadow))).size, 4);
+  assert.notDeepEqual(triangle[0].vertices, triangle[1].vertices);
+  assert.deepEqual(triangle[0].shadow, triangle[1].shadow);
+  assert.equal(new Set(triangle.map((piece) => JSON.stringify(piece.shadow))).size, 3);
+  for (const triangular of [false, true]) {
+    const pieces = tetrahedronPieces(3, triangular);
+    for (let corner = 0; corner < 4; corner++) {
+      const group = pieces.filter((piece) => piece.corner === corner);
+      assert.equal(group.length, 16);
+      for (const piece of group) {
+        assert.ok(
+          piece.vertices.every((point) =>
+            point.every(
+              (value, axis) =>
+                Math.abs(
+                  value -
+                    square[corner].vertices.reduce((sum, vertex) => sum + vertex[axis] / 4, 0),
+                ) <=
+                0.5 + 1e-10,
+            ),
+          ),
+        );
+      }
+    }
+  }
+});
+test("viewing arrows follow directions that disappear in the matching shadows", () => {
+  for (const triangular of [false, true]) {
+    const point = [0.2, -0.3, 0.7];
+    const shifted = triangular ? [0.2, 1.7, 2.7] : [0.2, -0.3, 2.7];
+    const a = tetrahedronProjection(point, triangular);
+    const b = tetrahedronProjection(shifted, triangular);
+    assert.ok(a.every((value, axis) => Math.abs(value - b[axis]) < 1e-10));
   }
 });

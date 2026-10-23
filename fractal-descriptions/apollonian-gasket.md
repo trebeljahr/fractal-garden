@@ -12,7 +12,7 @@ The circle sizes are determined by their neighbors. For any three touching circl
 
 The calculation uses **curvature**, which is one divided by a circle's radius. A smaller circle has a larger curvature. The enclosing circle gets a negative sign because it surrounds the others.
 
-There are two circles tangent to the same three fixed circles. If one is known, the other's curvature is twice the sum of the three fixed curvatures minus the known circle's curvature.
+Two different circles can touch the same three circles. If you know one, you can calculate the other. Add the three fixed circles' curvatures, double the result, then subtract the known circle's curvature.
 
 This also explains a number pattern. Start with curvatures $-1,2,2,3$, and the rule always produces whole numbers: doubling, adding and subtracting whole numbers can't create a fraction.<sup><a id="apollonian-gasket-ref-2" href="#apollonian-gasket-source-2">2</a></sup> The equal-circle start shown here uses different curvatures.
 

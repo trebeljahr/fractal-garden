@@ -1,34 +1,16 @@
 import { useId, useMemo, useState } from "react";
 import styles from "../styles/ProjectionLesson.module.css";
-import { encodeView } from "../utils/explorerShare";
 import { type ProjectionKind, projectionPolygons } from "../utils/fractalProjections";
+import TetrahedronShadows from "./TetrahedronShadows";
 
 const COPY = {
   menger: {
     title: "Menger shadow and cross-section",
-    modes: ["Face-on shadow", "Diagonal slice"],
-    captions: [
-      "This view combines cubes at every depth along the direction perpendicular to a face. Their projected squares form a Sierpiński carpet.",
-      "This view shows only material in a diagonal plane through the center. The six-pointed stars are holes in that section.",
-    ],
-    path: "/menger-sponge",
+    modes: ["Shadow", "Cross-section"],
   },
   vicsek: {
-    title: "Seven cubes cast a five-square cross",
-    modes: ["Face-on shadow"],
-    captions: [
-      "The front, centre and back cubes overlap in projection. Seven cubes become five visible squares at every level.",
-    ],
-    path: "/vicsek-fractal-3d",
-  },
-  tetrahedron: {
-    title: "One tetrahedron, two different shadows",
-    modes: ["Filled square", "Triangular gasket"],
-    captions: [
-      "Look through the midpoints of opposite edges. Four half-size shadows tile the square, leaving no holes.",
-      "Look parallel to an edge. Two corner copies project to the same place, leaving three half-size triangular copies.",
-    ],
-    path: "/sierpinski-tetrahedron",
+    title: "Cross-shaped shadow",
+    modes: ["Shadow"],
   },
 } as const;
 export function isProjectionKind(value: unknown): value is ProjectionKind {
@@ -36,12 +18,16 @@ export function isProjectionKind(value: unknown): value is ProjectionKind {
 }
 
 export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
+  return kind === "tetrahedron" ? <TetrahedronShadows /> : <CubeProjectionLesson kind={kind} />;
+}
+
+function CubeProjectionLesson({ kind }: { kind: "menger" | "vicsek" }) {
   const [depth, setDepth] = useState(2),
     [mode, setMode] = useState(0);
   const id = useId(),
     copy = COPY[kind];
   const polygons = useMemo(() => projectionPolygons(kind, depth, mode === 1), [kind, depth, mode]);
-  const link = `${copy.path}${encodeView(copy.path, { config: { variant: kind === "tetrahedron" ? "tetrahedron" : "default", navigation: "orbit", iterations: depth, autoRotate: false, animateIterations: false, rotationX: 0, rotationY: 0, grab: [1, 0, 0, 0, 1, 0, 0, 0, 1], cameraDistance: 6 }, renderer: 0 })}`;
+
   return (
     <figure className={styles.lesson} aria-labelledby={`${id}-title`} data-projection-lesson={kind}>
       <figcaption id={`${id}-title`} className={styles.title}>
@@ -49,7 +35,7 @@ export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
       </figcaption>
       <div className={styles.controls}>
         {copy.modes.length > 1 && (
-          <fieldset aria-label="Projection or slice">
+          <fieldset aria-label="View">
             {copy.modes.map((label, i) => (
               <button
                 key={label}
@@ -63,7 +49,7 @@ export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
           </fieldset>
         )}
         <label htmlFor={`${id}-depth`}>
-          Subdivisions <output>{depth}</output>
+          Step <output>{depth}</output>
         </label>
         <input
           id={`${id}-depth`}
@@ -75,42 +61,11 @@ export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
           onChange={(e) => setDepth(Number(e.target.value))}
         />
       </div>
-      <svg
-        viewBox="-1.9 -1.7 3.8 3.4"
-        role="img"
-        aria-label={`${copy.modes[mode]} at ${depth} subdivisions`}
-      >
+      <svg viewBox="-1.9 -1.7 3.8 3.4" role="img" aria-label={`${copy.modes[mode]}, step ${depth}`}>
         <g transform="scale(1,-1)" fill="currentColor">
           <path d={polygons.map((p) => `M${p.map((v) => v.join(",")).join("L")}Z`).join("")} />
         </g>
       </svg>
-      <p aria-live="polite">{copy.captions[mode]}</p>
-      <p className={styles.note}>
-        This diagram uses{" "}
-        {kind === "menger" && mode === 1
-          ? "the material in one plane through the sponge"
-          : "parallel viewing lines, so nearer parts do not appear larger"}
-        . The full explorer uses perspective.
-      </p>
-      <a
-        href={link}
-        onClick={(event) => {
-          if (
-            event.button !== 0 ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-          )
-            return;
-          event.preventDefault();
-          history.pushState(null, "", link);
-          dispatchEvent(new HashChangeEvent("hashchange"));
-          window.scrollTo(0, 0);
-        }}
-      >
-        Open the {kind === "tetrahedron" ? "tetrahedron" : "cube"} explorer
-      </a>
     </figure>
   );
 }

@@ -18,7 +18,7 @@ The exact rule is:
 F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
 ```
 
-F draws forward. Plus and minus turn in opposite directions. Other patterns called quadratic Koch islands use different replacements, so their counts and sizes can differ from this version.
+F draws forward. Plus and minus turn in opposite directions.
 
 ## Sources and notes
 

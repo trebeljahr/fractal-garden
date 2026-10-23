@@ -12,7 +12,7 @@ The first replacement removes three triangles, each with one ninth of the starti
 
 Adding all these decreasing amounts gives three fifths of the original area. Two fifths remains in the infinite anti-snowflake.
 
-The ordinary snowflake adds triangles instead and finishes with eight fifths of the starting area. The same segment sizes can therefore increase the edge length while changing the enclosed area in opposite directions.
+The ordinary snowflake adds those triangles and ends with 60% more area than it started with.
 
 ## Sources and notes
 

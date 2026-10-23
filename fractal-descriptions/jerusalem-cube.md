@@ -8,12 +8,11 @@ Eric Baird devised this construction in 2010.<sup><a id="jerusalem-cube-ref-1" h
 
 The two sizes have to fit together. Along each edge there is a corner cube, an edge cube, then another corner cube. Their widths must add up to the original edge's length.
 
-The corner width is about 41.4% of the original. The edge width is about 17.2%. More exactly, these ratios are $r=\sqrt2-1$ and $r^2$, so $2r+r^2=1$.
+The corner cubes are about 41.4% as wide as the original. The edge cubes are about 17.2%. Two corner cubes and one edge cube add up to the full width.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
 
-Every smaller cube repeats this arrangement. Since there are two sizes, one replacement can create details at two different scales. The level control accounts for this: a corner copy counts as one level of shrinking, while an edge copy counts as two.
-
-The [Menger sponge](/menger-sponge) also replaces a cube with twenty cubes. All of its copies have the same width. That difference in sizes produces a different arrangement of openings.
+Repeat the arrangement inside the smaller cubes. The little edge cubes are already as small as a corner cube will be after two steps. The level control counts them as two steps for that reason.
 
 ## Sources and notes
 
 1. <span id="jerusalem-cube-source-1"></span> Eric Baird, [Jerusalem Cube](https://www.coroflot.com/erkdemon/Jerusalem-Cube), creator’s portfolio. Baird states that he devised it in 2010, before his 2011 blog description. [Back](#jerusalem-cube-ref-1)
+2. <span id="jerusalem-cube-source-2"></span> Calculation. This explorer uses r = √2 − 1 for a corner cube and r² for an edge cube. Their widths fit because 2r + r² = 1. [Back](#jerusalem-cube-ref-2)

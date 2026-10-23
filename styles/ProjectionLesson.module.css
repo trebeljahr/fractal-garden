@@ -27,7 +27,8 @@
   gap: 0.6rem;
   flex-wrap: wrap;
 }
-.controls button {
+.controls button,
+.copyControls button {
   min-height: 44px;
   padding: 0.65rem 0.8rem;
   color: inherit;
@@ -40,7 +41,9 @@
     border-color 150ms;
 }
 .controls button:hover,
-.controls button[aria-pressed="true"] {
+.controls button[aria-pressed="true"],
+.copyControls button:hover,
+.copyControls button[aria-pressed="true"] {
   background: #f5c56d22;
   border-color: #f5c56d;
 }
@@ -51,7 +54,7 @@
 }
 .controls button:focus-visible,
 .controls input:focus-visible,
-.lesson a:focus-visible {
+.copyControls button:focus-visible {
   outline: 2px solid #f5c56d;
   outline-offset: 3px;
 }
@@ -65,12 +68,57 @@
 .lesson p {
   margin: 1rem 0;
 }
-.lesson .note {
-  font-size: 1.3rem;
-  color: #c1c2bd;
-}
 @media (prefers-reduced-motion: reduce) {
-  .controls button {
+  .controls button,
+  .copyControls button {
     transition: none;
+  }
+}
+
+.views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.viewLabel {
+  padding: 0.6rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.diagramLabel,
+.copyLabel {
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  fill: #eee8ce;
+}
+.copyLabel {
+  font-size: 16px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  stroke: #10151a;
+  stroke-width: 3px;
+  paint-order: stroke;
+}
+.copyControls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  margin-inline: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-size: 1.4rem;
+}
+.swatch {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.5em;
+}
+@media (max-width: 620px) {
+  .views {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

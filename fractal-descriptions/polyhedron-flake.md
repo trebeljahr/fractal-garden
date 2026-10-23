@@ -8,7 +8,7 @@ An **octahedron** has eight triangular faces and six corners. This version makes
 
 A **dodecahedron** has twelve faces and twenty corners. Its twenty copies are about 28% of the original width. An **icosahedron** has twenty faces and twelve corners. Its twelve copies are about 38% of the original width.
 
-The copy sizes explain a difference that the counts alone miss. For these copy sizes, twenty small dodecahedra retain about 42% of the old volume. Twelve larger icosahedra retain about 67%.
+Twenty small dodecahedra keep about 42% of the old volume. Twelve larger icosahedra keep about 67%. So more copies can still mean less material, if each copy is small enough.
 
 Repeating either replacement reduces the total volume toward zero. The number of solids increases, but their individual volumes decrease faster.
 

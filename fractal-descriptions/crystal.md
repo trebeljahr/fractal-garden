@@ -8,11 +8,9 @@ For one replacement, draw forward twice. Turn 90 degrees and draw one step. Turn
 
 Five drawing steps finish three step lengths ahead. Shortening each new step to one third keeps the ends of the original side fixed.
 
-The pen travels five thirds of the old distance, but it draws only four different small edges. The sideways edge is drawn twice. A count of drawing instructions therefore differs from a count of visible edges.
+The pen travels five thirds of the old distance, but it draws only four different small edges. The sideways edge is drawn twice.
 
 The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
-
-“Crystal” is the preset's name. The rule describes a geometric path, not the physical growth of a crystal.
 
 ## Sources and notes
 

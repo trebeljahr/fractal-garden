@@ -8,11 +8,11 @@ This is the **heavier** version. The **lighter** version also removes the center
 
 In either version, the number of cubes increases while their combined volume decreases. Each heavier step keeps $19/27$ of the previous volume. Each lighter step keeps $18/27$.
 
-From a corner-to-corner diagonal, a cube projects onto a hexagon. Under the heavier replacement rule, the smaller hexagons overlap to produce a [Koch snowflake](/l-system/koch-snowflake). The infinite shadow is filled, despite the solid having zero limiting volume.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup>
+Look toward one corner of a cube. Its outline is a hexagon. From this direction, the heavier snowflake's smaller cubes overlap in the view. Their combined shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake) as you repeat the construction.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup>
 
 <figure data-article-images="mosely-koch"></figure>
 
-The lighter version leaves holes in that projection. Some viewing lines pass through the removed corners and center without meeting any remaining cube. The filled-snowflake result applies to the heavier version.
+The lighter version has holes in its shadow. With the center cube removed too, you can see all the way through some parts.
 
 Jeannine Mosely and Margaret Wertheim documented a physical model assembled from roughly 49,000 business cards in 2011–2012.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> The folded modules represent a finite stage of this cube replacement.
 

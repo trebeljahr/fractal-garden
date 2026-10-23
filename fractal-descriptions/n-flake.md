@@ -10,7 +10,7 @@ The triangle version is the [Sierpinski triangle](/l-system/sierpinski-triangle)
 
 The **center** option adds another polygon between the corner copies. For squares, the four half-size corner squares already fill the original square. Adding a fifth square in the center covers some of the same area again.
 
-For hexagons, the center copy fits between the six corner copies without overlapping their interiors. Adding it fills a gap that would otherwise remain. The two settings therefore produce different shapes even though the corner copies stay in the same positions.
+For hexagons, the center copy fits between the six corner copies without overlapping their interiors. Adding it fills a gap that would otherwise remain.
 
 ## Sources and notes
 

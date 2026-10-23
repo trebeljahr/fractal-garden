@@ -10,9 +10,6 @@ A flat view can hide the separation between lines. Two segments that appear to c
 
 Each finite path consists of line segments with space between them. In the infinite limit, the route reaches every point of the cube. The [2D Hilbert curve](/l-system/hilbert-curve) reaches every point of a square by the same nested subdivision.
 
-There is more than one way to arrange the eight smaller routes. This page uses John Skilling's method to choose their orientations and order.<sup><a id="hilbert-curve-3d-ref-2" href="#hilbert-curve-3d-source-2">2</a></sup>
-
 ## Sources and notes
 
 1. <span id="hilbert-curve-3d-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and sections 2–3 establish the cube-subdivision framework and the classification’s scope. [Back](#hilbert-curve-3d-ref-1)
-2. <span id="hilbert-curve-3d-source-2"></span> John Skilling, [Programming the Hilbert curve](https://doi.org/10.1063/1.1751381), AIP Conference Proceedings 707, 381–387, 2004. Algorithm for ordering grid points along a Hilbert curve. [Back](#hilbert-curve-3d-ref-2)

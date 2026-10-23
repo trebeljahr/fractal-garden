@@ -16,7 +16,7 @@ Brackets save a branch's starting position and direction. Closing the bracket re
 
 There are nine F steps in the replacement. On the next round, every one of those steps receives the whole replacement. A two-step side branch therefore receives two copies in succession, while a one-step branch receives one.
 
-The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. This makes the smaller branch arrangements visible without making the entire plant three times taller at every round.
+The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. The plant stays the same height as more branches appear.
 
 ## Sources and notes
 

@@ -11,7 +11,7 @@ export const PATH_LESSONS = {
   crystal: {
     title: "Out along a line, then back",
     max: 3,
-    idea: "Go forward twice, step sideways, walk back, then go forward once more.",
+    idea: "Draw forward twice, draw one step sideways, draw back over it, then draw forward once more.",
     detail: "Five drawing steps make four different edges because one edge is drawn twice.",
     takeaway: "The pen travels farther than the length of the separate lines you see.",
   },
@@ -29,7 +29,7 @@ export const PATH_LESSONS = {
     max: 4,
     idea: "Y makes the main forks. X adds pairs of short side branches.",
     detail:
-      "Old F steps stay the same length in the string. X and Y add all the new drawing steps.",
+      "Old F instructions stay unchanged. The X and Y replacements add the new drawing steps.",
     takeaway:
       "Follow a Y fork, then an X branch. The two rules give different parts of the plant their shapes.",
   },
@@ -45,8 +45,9 @@ export const PATH_LESSONS = {
     max: 4,
     idea: "Two side branches leave the stem. Then the continuing tip turns.",
     detail:
-      "Brackets bring the side branches back to the fork. The last turn sits outside them, so it stays.",
-    takeaway: "Move that last turn inside the brackets and the continuing tip loses its bend.",
+      "Closing a bracket returns to the fork. The final turn has no brackets, so it changes the continuing stem.",
+    takeaway:
+      "Move the final turn inside the previous bracket. Closing the bracket then undoes the turn, so the main stem continues straight.",
   },
   "gosper-curve": {
     title: "Seven smaller routes join up",
@@ -113,7 +114,7 @@ export const PATH_LESSONS = {
     max: 3,
     idea: "Four equal lines replace one. Change the bend and watch the notch sharpen.",
     detail: "The old ends stay in place. Sharper notches need longer lines between those ends.",
-    takeaway: "As the lines get longer, neighboring spikes crowd together.",
+    takeaway: "At sharper angles, neighboring notches come closer together.",
   },
   "fibonacci-word-fractal": {
     title: "Digit positions and turn directions",

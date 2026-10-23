@@ -10,11 +10,6 @@ The comparison starts a second calculation just 0.001 away in one coordinate. Bo
 
 This is sensitivity to the starting conditions. If the starting values are only approximately known, their later values can become difficult to predict. The separation doesn't increase at every moment: the two points can move closer together before separating again.
 
-Warwick Tucker proved that the classic equations support a chaotic attractor. His proof used calculations with bounds on their errors, rather than relying on the appearance of a plotted trail.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
-
-The explorer approximates the motion in small time steps. **Time step** sets their size and **Steps** sets their number. Halve the first and double the second to compare the same duration with finer calculations. Changing the model parameters can produce different behavior, including motion that isn't chaotic.
-
 ## Sources and notes
 
 1. <span id="lorenz-attractor-source-1"></span> Edward N. Lorenz, [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf), *Journal of the Atmospheric Sciences* 20 (1963), 130–141, especially section 5. Derives the three-variable convection model and identifies its variables. [Back](#lorenz-attractor-ref-1)
-2. <span id="lorenz-attractor-source-2"></span> Warwick Tucker, [A Rigorous ODE Solver and Smale's 14th Problem](https://research.monash.edu/en/publications/a-rigorous-ode-solver-and-smales-14th-problem/), *Foundations of Computational Mathematics* 2 (2002), 53–117. Reports the proof with directed rounding and interval arithmetic. [Back](#lorenz-attractor-ref-2)

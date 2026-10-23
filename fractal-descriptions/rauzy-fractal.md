@@ -14,11 +14,11 @@ The first strings are `1`, `12`, `1213` and `1213121`. Each replacement uses the
 
 Read a `1` as a step along the x direction, a `2` along y and a `3` along z. This produces a staircase in three-dimensional space. Every digit adds one step and one new corner.
 
-The staircase extends approximately along one overall direction. Project its corners onto a plane, looking along that direction with parallel viewing lines. This removes the overall forward displacement. The remaining sideways positions stay within a bounded region.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
+Look along the staircase, toward its far end. The steps now appear beside one another rather than stretching away into the distance. The diagram plots each corner as a dot in this end-on view. Those dots stay within a fixed area even as the staircase gets longer.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
 
-Longer strings add more points to that region. Including their limit points gives the Rauzy tile. The colors separate the points by the next digit in the string, dividing the tile into three pieces.
+Longer strings add more dots and fill out the Rauzy tile. Each dot's color comes from the next digit in the string: one color for 1, another for 2, another for 3.
 
-Translated copies of this tile fit together to cover the plane.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup> The [Fibonacci word fractal](/l-system/fibonacci-word-fractal) also uses a replacement string, but interprets its digits as turns in a flat drawing instead of projecting a three-dimensional staircase.
+Copies of the finished tile fit together without gaps. You can slide them into place without turning them.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
 
 ## Sources and notes
 

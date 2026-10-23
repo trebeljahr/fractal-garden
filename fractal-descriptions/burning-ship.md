@@ -12,7 +12,7 @@ Start at zero. Fold, square, add the number chosen by the pixel, and repeat. Som
 
 The small diagram uses the usual upward direction for positive vertical coordinates. The main image flips that display direction, which puts the hull below the masts.
 
-That fold makes a large difference near the edges. Zoom along a mast to find smaller ships. Their centers correspond to calculations that return to zero after a repeating number of steps, giving researchers a way to locate them.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
+Zoom along a mast to find smaller ship-shaped regions. At their centers, the calculation returns to zero after a fixed number of steps. The same sequence then repeats without escaping.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
 
 A black pixel means the calculation hasn't escaped within the chosen limit. The computer cannot wait forever, so slowly escaping points can still look black.
 

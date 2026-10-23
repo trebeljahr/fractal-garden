@@ -28,7 +28,7 @@ export default function DlaLesson() {
   const [replay, setReplay] = useState(0);
   const [step, setStep] = useState(0);
   const id = useId();
-  const { seed, frames } = REPLAYS[replay];
+  const { frames } = REPLAYS[replay];
   const current = frames[step];
   const position = center(current.point);
   const contacts = dlaContactCells(current.point, DLA_LESSON_CLUSTER);
@@ -49,10 +49,10 @@ export default function DlaLesson() {
     setStep(0);
   };
   return (
-    <LessonFrame title="Follow one walker until it sticks" kind="dla">
+    <LessonFrame title="Follow one particle until it sticks" kind="dla">
       <p>
-        A cream cell stays frozen. The outlined amber dot walks one grid cell per step. Each move
-        chooses one of four directions.
+        The cream square stays fixed. Each step moves the amber particle one square up, down, left
+        or right, chosen randomly.
       </p>
       <fieldset className={common.options} aria-label="Random walk replay">
         {REPLAYS.map((item, index) => (
@@ -159,8 +159,7 @@ export default function DlaLesson() {
             {description}
           </p>
           <p>
-            The eight outlined neighbors count as contact. A diagonal touch counts too. With
-            sticking chance 1, the first touch freezes the walker.
+            The particle stops when it touches the cream square. Touching at a corner counts too.
           </p>
           <p className={styles.legend}>
             <span>Cream square: frozen seed</span>
@@ -175,12 +174,8 @@ export default function DlaLesson() {
       </div>
       <LessonSteps label="DLA walker" step={step} max={frames.length - 1} onChange={setStep} />
       <p>
-        Walk {replay + 1} replays random seed {seed}. The three examples include a walk that leaves
-        the window. They do not measure the chance of sticking.
-      </p>
-      <p>
-        This small model uses only unit moves and a fixed window. The full explorer releases new
-        walkers and speeds up distant moves with longer jumps.
+        Each Walk button replays one set of random moves. One of the three particles leaves the
+        picture before touching the cream square.
       </p>
     </LessonFrame>
   );

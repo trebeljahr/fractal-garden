@@ -44,7 +44,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       ? "Move the starting point"
       : kind === "burning-ship"
         ? "Fold before squaring"
-        : "Follow one point's orbit";
+        : "Follow the results";
   const update = (part: keyof ComplexPoint, next: number) => {
     setValue((old) => ({ ...old, [part]: next }));
     setStep(0);
@@ -118,8 +118,8 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           </p>
           {current.folded && (
             <p>
-              Before squaring, absolute values give {format(current.folded)}. The dashed amber line
-              shows this fold.
+              Flip any negative coordinates to positive before squaring. This gives{" "}
+              {format(current.folded)}. The dashed amber line shows the change.
             </p>
           )}
           <p>
@@ -145,16 +145,16 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         label={title}
       />
       <fieldset className={styles.parameters}>
-        <legend>{kind === "julia" ? "Starting point z₀" : "Parameter c"}</legend>
+        <legend>{kind === "julia" ? "Starting point z₀" : "Number to add (c)"}</legend>
         {(["real", "imaginary"] as const).map((part) => (
           <label key={part} className={styles.angle}>
             <span>
-              {part === "real" ? "Real part" : "Imaginary part"}
+              {part === "real" ? "Horizontal (real)" : "Vertical (imaginary)"}
               <output>{value[part].toFixed(2)}</output>
             </span>
             <input
               type="range"
-              aria-label={`${kind === "julia" ? "Starting point" : "Parameter c"} ${part}`}
+              aria-label={`${kind === "julia" ? "Starting point" : "Number to add (c)"} ${part}`}
               min={part === "real" ? -2 : -1}
               max={1}
               step={0.01}

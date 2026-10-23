@@ -27,14 +27,14 @@ const format = (point: NewtonPoint) =>
 
 function stopDescription(state: NewtonState, step: number) {
   if (state.reason === "root")
-    return `Within 0.0008 of root ${state.root + 1}. This meets the numerical stopping threshold.`;
+    return `This guess is within 0.0008 of root ${state.root + 1}. The calculation stops here.`;
   if (state.reason === "slope")
-    return "The derivative is zero or too small for this update. The trace stops before dividing by it.";
+    return "The calculation would divide by zero or a number too close to it, so it stops here.";
   if (state.reason === "unstable")
-    return "The trace stops because a value exceeds its numerical limit. This does not identify a root.";
+    return "The numbers are too large for this diagram to keep calculating. It stops without finding a root.";
   if (state.reason === "limit")
-    return `No root met the tolerance within ${step} updates. This short trace does not decide what happens later.`;
-  return "Take the next step to apply the same update again.";
+    return `After ${step} steps, the guess still is not close enough to a root. More steps might give a different result.`;
+  return "Take the next step to calculate a new guess.";
 }
 
 function realPosition(x: number, y: number) {
@@ -210,19 +210,19 @@ export default function NewtonLesson() {
     setStep(0);
   };
   return (
-    <LessonFrame title="Follow the next root estimate" kind="newton">
+    <LessonFrame title="Improve a guess" kind="newton">
       <fieldset className={common.options} aria-label="Newton lesson view">
         <button type="button" aria-pressed={mode === "real"} onClick={() => setView("real")}>
-          Real tangent
+          Graph view
         </button>
         <button type="button" aria-pressed={mode === "complex"} onClick={() => setView("complex")}>
-          Complex orbit
+          Three roots
         </button>
       </fieldset>
       <p>
         {mode === "real"
-          ? "A tangent gives a local straight-line approximation to the curve. Its crossing of the x-axis gives the next estimate."
-          : "Apply the same Newton update to a complex starting point. The three roots stay fixed while the point moves."}
+          ? "The straight line touches the curve at your guess and follows its slope. Where it meets the bottom axis is your next guess."
+          : "Choose a starting point. Each step gives a new guess at one of the three roots marked in the picture."}
       </p>
       {mode === "real" ? (
         <RealPlot state={current} next={next} id={id} />
@@ -306,8 +306,8 @@ export default function NewtonLesson() {
         </>
       )}
       <p>
-        This lesson takes at most twelve updates. Reaching a tolerance is a numerical result, not a
-        proof of exact equality.
+        This diagram stops after twelve steps or when a guess is close enough to a root. The
+        displayed decimals are rounded.
       </p>
     </LessonFrame>
   );

@@ -17,7 +17,7 @@ The brackets make branches possible. At an opening bracket, save the current pos
 
 The brackets inside brackets repeat that process within a branch. Every X adds four new X positions. Each existing F becomes FF, so the earlier stems become longer strings of drawing steps too.
 
-Repeated replacement adds smaller branching arrangements throughout the plant. The final picture comes from the placement of those branches and the turn angle. Changing the angle changes their positions without changing the instructions.
+Change the angle to spread the branches apart or bring them closer together. The letter rules stay the same.
 
 ## Sources and notes
 

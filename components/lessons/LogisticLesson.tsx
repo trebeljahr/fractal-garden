@@ -53,10 +53,10 @@ export default function LogisticLesson() {
     setStep(0);
   };
   return (
-    <LessonFrame title="Follow one value through the map" kind="logistic">
+    <LessonFrame title="Repeat the calculation" kind="logistic">
       <p>
-        One iteration moves vertically to the curve, then horizontally to the diagonal. The diagonal
-        feeds the new value back as the next input.
+        Start at a number on the bottom axis. Go up to the curve to find the answer. Go across to
+        the diagonal to use that answer as the next starting number.
       </p>
       <fieldset className={shared.options} aria-label="Logistic example">
         {PRESETS.map((preset) => (
@@ -181,8 +181,8 @@ export default function LogisticLesson() {
         approached at r = 3.2. At r = 3.9, this short trace looks irregular.
       </p>
       <p>
-        Thirty-two steps cannot prove long-term behavior. The large bifurcation image discards early
-        values and stacks later values for many choices of r.
+        The large picture repeats this calculation for many values of r. It leaves out the early
+        answers and plots the later ones.
       </p>
     </LessonFrame>
   );

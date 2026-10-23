@@ -12,9 +12,6 @@ In this diagram the particle sticks on its first contact. In the full explorer, 
 
 A point seed lets the cluster extend in all directions. A line seed gives it an extended base. Coloring by arrival time shows which parts formed first and where particles are attaching now.
 
-Witten and Sander introduced the model in 1981. It was inspired by iron aggregates, although Witten later found that those particles joined through a different process.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup> This is a model of random motion and sticking, rather than a rule for every branching structure in nature.
-
 ## Sources and notes
 
 1. <span id="diffusion-limited-aggregation-source-1"></span> T. A. Witten Jr. and L. M. Sander, [Diffusion-Limited Aggregation, a Kinetic Critical Phenomenon](https://doi.org/10.1103/PhysRevLett.47.1400), *Physical Review Letters* 47 (1981), 1400–1403. Original random-walk construction and shielding explanation. [Back](#diffusion-limited-aggregation-ref-1)
-2. <span id="diffusion-limited-aggregation-source-2"></span> Thomas A. Witten Jr., [Fractal Growth: A Continuing Mystery](https://garfield.library.upenn.edu/classics1993/A1993KX31200001.pdf), *Current Contents* 18, 3 May 1993. Creator's retrospective reports dimension near 1.7 and explains why the motivating iron aggregates required a different model. [Back](#diffusion-limited-aggregation-ref-2)

@@ -50,7 +50,7 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
       })
       .join(" ");
   const direction = system.plus < 0 ? "clockwise" : "counterclockwise";
-  const title = "Read the rule, walk the path";
+  const title = "Follow the drawing instructions";
   const changeRewrites = (value: number) => {
     setRewrites(value);
     setStep(0);
@@ -58,8 +58,8 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
   return (
     <LessonFrame title={title} kind={`lsystem-${preset}`}>
       <p>
-        Rewriting builds the instruction word. Stepping reads one symbol at a time. The arrow shows
-        the turtle's position and direction.
+        First replace the letters using the rules below. Then follow the new instructions one at a
+        time. The arrow shows where the next line starts and which way it points.
       </p>
       <div className={styles.ruleRow}>
         <span>

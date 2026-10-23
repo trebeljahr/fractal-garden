@@ -33,10 +33,10 @@ function BuddhabrotLesson() {
     .map((p, i) => `${i ? "L" : "M"}${plot(p).join(",")}`)
     .join(" ");
   return (
-    <LessonFrame title="Count the places escaping orbits visit" kind="buddhabrot">
+    <LessonFrame title="Plot the route of an escaping calculation" kind="buddhabrot">
       <p>
-        A Mandelbrot image colors the starting parameter. A Buddhabrot counts the intermediate
-        positions of escaping orbits.
+        Choose a number below. Follow the results of squaring and adding it. If they escape, their
+        positions add dots to the second picture.
       </p>
       <div className={styles.options}>
         {["c = 0", "c = −1", "c = 0.3 + 0.6i"].map((name, i) => (
@@ -66,8 +66,8 @@ function BuddhabrotLesson() {
       </svg>
       <p>
         {orbit.escaped
-          ? `This orbit escapes after ${orbit.points.length} updates. Its in-frame positions contribute to the count below.`
-          : "This orbit stays within the escape radius for all 80 updates. It contributes no visits to this sample."}
+          ? `This orbit escapes after ${orbit.points.length} updates. The positions shown here add dots to the picture below.`
+          : "The results have not escaped after 80 steps. They add no dots to the picture below."}
       </p>
       <svg
         viewBox="0 0 480 320"
@@ -94,12 +94,12 @@ function BuddhabrotLesson() {
       </svg>
       <LessonSteps step={step} max={20} onChange={setStep} label="Orbit accumulation" />
       <p aria-live="polite">
-        {step * 100} sampled parameters · {escaped} escaping orbits. Brighter cells receive more
-        visits, with logarithmic brightness.
+        {step * 100} numbers tested · {escaped} escaped. A square gets brighter each time a
+        calculation visits it.
       </p>
       <p>
-        Long-lived escaping orbits can visit many regions before leaving. Their repeated visits
-        reveal structure that escape-time coloring hides.
+        Some calculations take many steps before escaping. They can add dots in many parts of the
+        picture.
       </p>
     </LessonFrame>
   );
@@ -126,10 +126,10 @@ function MandelbulbLesson() {
     a = project(input),
     b = project(output);
   return (
-    <LessonFrame title="Raise a radius and multiply two angles" kind="mandelbulb">
+    <LessonFrame title="Move a point using the power rule" kind="mandelbulb">
       <p>
-        A complex power multiplies one angle. The Mandelbulb extends that idea to two spherical
-        angles and a radius.
+        The hollow dot marks the starting point. Play the diagram to see how the power rule changes
+        its distance from the center and its direction.
       </p>
       <svg
         viewBox="0 0 480 320"
@@ -186,13 +186,10 @@ function MandelbulbLesson() {
         Radius: 0.900 → {(radius ** power).toFixed(3)}. Polar angle: {latitude}° →{" "}
         {latitude * power}°. Longitude: 34.4° → {(((phi * 180) / Math.PI) * power).toFixed(1)}°.
       </p>
+      <p>The amber dot moves from the start to the result of one power calculation.</p>
       <p>
-        The hollow point marks the input. Amber shows the transformation. The connecting motion
-        illustrates the power operation, not successive fractal iterates.
-      </p>
-      <p>
-        The full recurrence adds the original point after each power operation. Repeating that rule
-        separates escaping points from the bulb.
+        To make the full Mandelbulb, add the original point after this calculation. Repeat both
+        steps and check whether the results escape.
       </p>
     </LessonFrame>
   );
@@ -232,10 +229,10 @@ function RauzyLesson() {
   const points = data.points.slice(0, count);
   const colors = ["#f2a65a", "#5ec2b7", "#c06c9e"];
   return (
-    <LessonFrame title="An infinite word leaves a bounded trace" kind="rauzy">
+    <LessonFrame title="Look along the staircase" kind="rauzy">
       <p>
-        The substitution 1 → 12, 2 → 13, 3 → 1 creates a staircase in three dimensions. Its sideways
-        deviations form this tile.
+        The digits give steps in three directions, making a staircase. This picture looks along the
+        staircase and marks each corner with a dot.
       </p>
       <p className={extra.readout}>
         {Array.from(data.word.slice(0, 36), (n) => n + 1).join(" ")} …
@@ -294,16 +291,12 @@ function RauzyLesson() {
         </button>
       </div>
       <p aria-live="polite">
-        {count.toLocaleString()} projected corners. Orange, teal and rose identify the next letters
-        1, 2 and 3.
+        {count.toLocaleString()} corners shown. The next digit gives each dot its color: orange for
+        1, teal for 2, rose for 3.
       </p>
       <p>
-        The projection removes the staircase’s average growing direction. The remaining coordinates
-        stay bounded while new corners fill the three subtiles.
-      </p>
-      <p>
-        The tile has area. Its rough boundary carries the fractal detail, unlike a dust whose entire
-        interior disappears.
+        Choose First 80 steps to follow the dots in order. Choose Fill the tile to add more dots and
+        see the whole shape.
       </p>
     </LessonFrame>
   );

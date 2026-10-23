@@ -60,24 +60,21 @@ export default function PenroseLesson() {
   const qLabel = q && labelPosition(q);
   const summary =
     step === 0
-      ? `Start with one ${kind === "acute" ? "acute half-kite" : "obtuse half-dart"}. Its boundary stays fixed as the pieces get smaller.`
-      : `${acute} acute ${acute === 1 ? "half" : "halves"} and ${obtuse} obtuse ${obtuse === 1 ? "half" : "halves"} fill the same parent. Each step divides the triangles without changing their total area.`;
+      ? `Start with one ${kind === "acute" ? "narrow" : "wide"} triangle.`
+      : `${acute} narrow ${acute === 1 ? "triangle" : "triangles"} and ${obtuse} wide ${obtuse === 1 ? "triangle" : "triangles"} fill the original triangle. Its outside edges stay in place.`;
   const choose = (next: PenroseLessonParent) => {
     setKind(next);
     setStep(0);
   };
   return (
-    <LessonFrame title="Keep the boundary, divide the pieces" kind="penrose">
-      <p>
-        Choose a starting triangle. Acute triangles have all angles below 90 degrees; obtuse
-        triangles have one angle above 90 degrees.
-      </p>
+    <LessonFrame title="Divide a triangle into smaller triangles" kind="penrose">
+      <p>Choose a narrow or wide triangle, then step through its divisions.</p>
       <fieldset className={common.options} aria-label="Penrose parent triangle">
         <button type="button" aria-pressed={kind === "acute"} onClick={() => choose("acute")}>
-          Acute half-kite
+          Narrow triangle
         </button>
         <button type="button" aria-pressed={kind === "obtuse"} onClick={() => choose("obtuse")}>
-          Obtuse half-dart
+          Wide triangle
         </button>
       </fieldset>
       <div className={common.grid}>
@@ -125,24 +122,24 @@ export default function PenroseLesson() {
             {summary}
           </p>
           <p className={styles.legend}>
-            <span className={styles.acuteKey}>Amber: acute</span>
-            <span>Cream: obtuse</span>
+            <span className={styles.acuteKey}>Amber: narrow</span>
+            <span>Cream: wide</span>
             <span>Dashed line: original boundary</span>
           </p>
           {step > 0 && (
             <p>
               {kind === "acute"
-                ? "First split: mark P on AB with AP : PB = φ : 1, and Q on CA with CQ : QA = φ : 1. Join C to P, then P to Q."
-                : "First split: mark P on BC with BP : PC = φ : 1, then join A to P."}{" "}
-              φ is about 1.618. {step > 1 && "The marked points still show the first split."}
+                ? "Mark P on AB, making AP about 1.618 times PB. Mark Q on CA, making CQ about 1.618 times QA. Join C to P, then P to Q."
+                : "Mark P on BC, making BP about 1.618 times PC. Join A to P."}{" "}
+              {step > 1 && "The marked points still show the first division."}
             </p>
           )}
         </div>
       </div>
       <LessonSteps label="Penrose subdivision" step={step} max={3} onChange={setStep} />
       <p>
-        An acute half becomes two acute halves and one obtuse half. An obtuse half becomes one of
-        each. Repeat these divisions inside every new triangle.
+        A narrow triangle becomes two narrow triangles and one wide triangle. A wide triangle
+        becomes one of each. Repeat inside every new triangle.
       </p>
     </LessonFrame>
   );

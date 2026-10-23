@@ -1,23 +1,16 @@
 # Sierpinski Tetrahedron
 
-A tetrahedron is a triangular pyramid with four triangular faces. Replace it with four half-size copies, one at each corner. Neighboring copies touch at the midpoints of the original edges.
-
-The removed center is an octahedron, a solid with eight triangular faces. Repeat the replacement inside each remaining tetrahedron.
+A tetrahedron is a pyramid with a triangular base. Replace it with four half-size copies, one at each corner. The copies touch at their corners, leaving an opening in the center. Repeat inside each copy.
 
 <figure data-construction-player="sierpinski-tetrahedron"></figure>
 
-Halving every edge divides a solid's volume by eight. Four copies therefore retain half the original volume. Each further step halves the remaining volume again.
+Each copy has half the width, half the height and half the depth. That gives it one eighth of the original volume. Four copies add up to half the volume, so every step removes half of what remains.
 
-The **square pyramid** option has a square base and uses five half-size corner copies. It is a different construction.
-
-The same tetrahedron can produce very different shadows. Viewed along the line between the midpoints of opposite edges, its four copies project onto the four quarters of a square. They fill that square at every step.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
-
-Viewed parallel to an edge, two copies overlap in the projection. The three visible positions produce a stretched [Sierpinski triangle](/l-system/sierpinski-triangle) instead.
+The holes don't always appear in a shadow. From one direction, the shadow is a filled square.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup> From another, it has the holes of a [Sierpinski triangle](/l-system/sierpinski-triangle).<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> The colors below identify the same four copies in the solid and its shadow. Select a copy to highlight it in both drawings.
 
 <figure data-projection="tetrahedron"></figure>
 
-These shadows use parallel viewing lines. The perspective view in the main explorer makes nearer parts appear larger, so its outline can differ.
-
 ## Sources and notes
 
-1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007. Square projections of the Sierpinski tetrahedron, including all finite stages. [Back](#sierpinski-tetrahedron-ref-1)
+1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007, pp. 1–2. Proves the square parallel projection at every finite stage and in the limit. [Back](#sierpinski-tetrahedron-ref-1)
+2. <span id="sierpinski-tetrahedron-source-2"></span> Diagram construction. Calculated from the four corner positions used here. The square view looks along the z direction; the triangular view looks along (0, 1, 1), making the first two copies overlap exactly. Both use parallel viewing lines, as with a distant light. [Back](#sierpinski-tetrahedron-ref-2)

@@ -8,15 +8,13 @@ The rules shrink, turn and move coordinates. One sends a point onto the stem. On
 
 The fern's outline comes from where those copies fit. The computer chooses a rule randomly, but every choice still lands inside one of the four copies. After enough moves, dots appear throughout the fern.
 
-The Classic Barnsley preset uses the tip rule 85% of the time. The stem gets 1%, and the two side rules get 7% each. Most steps therefore use the tip rule, with occasional steps into a side copy or onto the stem.
+The Classic Barnsley preset uses the tip rule 85% of the time. The stem gets 1%, and the two side rules get 7% each.
 
 <figure data-lesson="fern"></figure>
 
 Choose **All four maps** to remove the random choice. Now every step applies all four rules to the whole previous picture. You see the smaller copies directly. Repeat that process and it approaches the same fern.<sup><a id="barnsley-fern-ref-2" href="#barnsley-fern-source-2">2</a></sup>
 
 The two methods place dots differently along the way. Changing the positive probabilities changes how heavily the random method fills each region, but the four fixed rules still determine the same final shape.<sup><a id="barnsley-fern-ref-3" href="#barnsley-fern-source-3">3</a></sup>
-
-Zoom into a leaflet to see copies inside it. The explorer adds extra dots in the visible region so small details remain readable. That changes dot density in the zoomed view.
 
 ## Sources and notes
 

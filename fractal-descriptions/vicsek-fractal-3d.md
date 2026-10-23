@@ -8,11 +8,9 @@ The seven remaining cubes form a three-dimensional cross. Repeat this replacemen
 
 Every step multiplies the number of cubes by seven and divides their width by three. Dividing the width by three divides the volume by 27. The combined volume is therefore $7/27$ of the previous step's volume.
 
-Seen straight along one arm, the front cube hides the center and back cubes. Only five square positions remain visible: the center and four side squares. Repeating the projection at smaller scales produces the plus-shaped [2D Vicsek fractal](/vicsek-fractal-2d).
+Look straight along one arm. The front cube hides the center and back cubes, so you see five squares arranged as a plus sign. Repeat the construction and the shadow becomes the plus-shaped [2D Vicsek fractal](/vicsek-fractal-2d).
 
 <figure data-projection="vicsek"></figure>
-
-This cross also loses exposed surface area as the steps continue. Although there are more faces, each face is much smaller. Their total area tends to zero. The [Menger sponge](/menger-sponge) has a different arrangement of cubes, and its exposed area increases instead.
 
 ## Sources and notes
 

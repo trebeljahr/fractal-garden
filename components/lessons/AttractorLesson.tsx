@@ -87,23 +87,22 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
     <LessonFrame title="Motion over time" kind={system}>
       <p>
         Each step adds {config.batchSteps * config.dt}{" "}
-        {config.batchSteps * config.dt === 1 ? "unit" : "units"} of model time. The motion is
-        approximated with {config.batchSteps} small numerical updates per batch.
+        {config.batchSteps * config.dt === 1 ? "unit" : "units"} of time to the trail.
       </p>
-      <fieldset className={shared.options} aria-label="Trajectory projection">
+      <fieldset className={shared.options} aria-label="View">
         <button
           type="button"
           aria-pressed={projection === "xz"}
           onClick={() => setProjection("xz")}
         >
-          x–z projection
+          x–z view
         </button>
         <button
           type="button"
           aria-pressed={projection === "xy"}
           onClick={() => setProjection("xy")}
         >
-          x–y projection
+          x–y view
         </button>
       </fieldset>
       <div className={shared.grid}>
@@ -132,15 +131,15 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
         </svg>
         <div id={`${id}-summary`} aria-live="polite" aria-atomic="true">
           <p>
-            {index} integration steps. Model time t = {(index * config.dt).toFixed(2)}.
+            {index} updates. Time = {(index * config.dt).toFixed(2)}.
           </p>
           {step > 0 && (
             <p>
-              Bold segments: current batch, t = {(batchStart * config.dt).toFixed(2)} to{" "}
+              Bold line: latest section, time = {(batchStart * config.dt).toFixed(2)} to{" "}
               {(index * config.dt).toFixed(2)}.
             </p>
           )}
-          <p>Reference (x, y, z) = ({coordinates(current)}).</p>
+          <p>First point (x, y, z) = ({coordinates(current)}).</p>
           {compare && (
             <p>
               Distance between the two points in 3D:{" "}
@@ -164,14 +163,12 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
         Compare a nearby start: x₀ + 0.001
       </label>
       <p>
-        Cream follows the reference start ({config.start.join(", ")}). Dashed amber follows the
-        nearby start. Bold segments show the current batch; fainter lines show earlier motion. Both
-        paths use the same scale. Their separation can increase or decrease.
+        Cream follows the first point. Dashed amber follows the nearby point. The bold lines show
+        the latest section. Fainter lines show the earlier trail.
       </p>
       <p>
         Each view shows two coordinates from the same three-coordinate calculation. Switch views to
-        see changes in the other direction. The computer approximates the motion in time steps of{" "}
-        {config.dt}; a short section of the trail cannot establish its behavior forever.
+        see changes in the other direction.
       </p>
     </LessonFrame>
   );

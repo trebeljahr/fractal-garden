@@ -8,7 +8,7 @@ const IMAGES = {
       name: "mosely-koch-opening",
       alt: "A dark Koch snowflake opening surrounded by blue recursive cube walls inside the Mosely snowflake",
       caption:
-        "From the central cavity, a view along a body diagonal reveals a Koch-shaped opening.",
+        "Looking toward a corner from inside the snowflake reveals this Koch-shaped opening.",
       href: MOSELY_KOCH_LINK,
       width: 1200,
       height: 750,
@@ -76,7 +76,7 @@ const IMAGES = {
     {
       name: "barnsley-classic",
       alt: "Barnsley fern formed by dots along its stem and leaflets",
-      caption: "Four coordinate transformations place dots on the stem and leaflets.",
+      caption: "Each dot moves to a new place using one of four rules.",
     },
   ],
 } as const;

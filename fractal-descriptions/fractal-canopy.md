@@ -8,13 +8,13 @@ The diagram uses two branches per tip so the effect of the angle is easier to co
 
 <figure data-construction="canopy"></figure>
 
-Changing the angle changes where the branches point. Changing the length ratio changes how far each generation extends. These controls affect different parts of the construction.
+Increase the angle to spread the branches apart. Increase the length ratio to make the new branches longer.
 
 With the Classic settings, a generation has three times as many branches, each 60% as long. Its combined branch length is $3\times0.6=1.8$ times the previous generation's length.
 
-Along one route from the trunk, though, the lengths keep decreasing. Their sum is at most two and a half times the trunk length. The tree can fit within a bounded space while the sum across all its branches keeps increasing.
+Follow just one route from the trunk to a tip. Its branches keep getting shorter. Even if you could follow it forever, the distance would be at most two and a half trunk lengths.
 
-Physical fractal trees are also used to study water flow through canopies. Johns Hopkins researchers use models with five generations and three branches at each fork.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
+Researchers at Johns Hopkins build physical trees with five generations and three branches at each fork. They put them in water to study how a canopy changes the flow.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
 ## Sources and notes
 
