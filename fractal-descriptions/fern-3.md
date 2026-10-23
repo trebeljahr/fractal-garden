@@ -1,24 +1,22 @@
 # Fern 3
 
-One stem carries two pairs of branches. The lower pair is longer. The upper pair is shorter. Now grow that whole little plant on every line.
+Each line in this fern is replaced by a three-step stem with two pairs of side branches. The first pair has two steps per branch. The second pair has one step per branch.
 
-Start with F and use:
+Start with F and apply:
 
 ```text
 F → F[+FF][-FF]F[-F][+F]F
 ```
 
-F draws forward. Plus and minus turn by 22.5 degrees. Brackets save a fork's position and direction, then return there without drawing.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
+F draws forward. Plus and minus turn by 22.5 degrees.
 
 <figure data-construction-player="fern-3"></figure>
 
-The three F steps outside brackets continue up the stem. The first pair of side branches gets two steps each. The second gets one each.
+Brackets save a branch's starting position and direction. Closing the bracket restores them without drawing a return line, so the main stem continues from the same junction.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
 
-Count them: nine steps replace one. On the next round, all nine grow the same pattern. The step count goes 1, 9, 81, 729.
+There are nine F steps in the replacement. On the next round, every one of those steps receives the whole replacement. A two-step side branch therefore receives two copies in succession, while a one-step branch receives one.
 
-Shortening each new step to one third keeps the main stem's height fixed. The total distance drawn still triples each round. Some branches overlap, so that total can exceed the length of the separate lines you see.
-
-[Fern 2](/l-system/fern-2) uses different letters for its stem and leaflets. This one gives every line the same job.
+The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. This makes the smaller branch arrangements visible without making the entire plant three times taller at every round.
 
 ## Sources and notes
 

@@ -1,8 +1,6 @@
 # Rauzy Fractal
 
-Turn a string of numbers into a walk. Then look at the walk from a direction that hides its forward motion. A compact shape appears.
-
-Start with `1` and replace the digits:
+The Rauzy construction begins with a string. Start at `1` and replace every digit using:
 
 ```text
 1 → 12
@@ -10,21 +8,17 @@ Start with `1` and replace the digits:
 3 → 1
 ```
 
-The strings begin `1`, `12`, `1213`, `1213121`. Their lengths are 1, 2, 4, 7, 13. After the first three, each length adds the previous three.
+The first strings are `1`, `12`, `1213` and `1213121`. Each replacement uses the whole previous string.
 
 <figure data-investigation="rauzy"></figure>
 
-## Three directions make a flat tile
+Read a `1` as a step along the x direction, a `2` along y and a `3` along z. This produces a staircase in three-dimensional space. Every digit adds one step and one new corner.
 
-Read each `1` as a step along x. A `2` steps along y. A `3` steps along z. The string becomes a staircase in three-dimensional space.
+The staircase extends approximately along one overall direction. Project its corners onto a plane, looking along that direction with parallel viewing lines. This removes the overall forward displacement. The remaining sideways positions stay within a bounded region.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
 
-The staircase moves roughly along one overall direction. Project along that direction onto a plane. Although the staircase keeps going, its projected corners stay in a bounded patch. Include all the points they approach, and you get the Rauzy tile.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
+Longer strings add more points to that region. Including their limit points gives the Rauzy tile. The colors separate the points by the next digit in the string, dividing the tile into three pieces.
 
-The colors group corners by the next digit in the walk. Those groups become three smaller pieces of the tile. Each uses a different shrink ratio.
-
-Copies of the finished tile can cover the plane without gaps. Gérard Rauzy introduced the connection between this shape and its number sequence in 1982.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
-
-The [Fibonacci word fractal](/l-system/fibonacci-word-fractal) also draws from a replacement string. It uses two digits and turns on a flat plane instead of projecting a three-directional walk.
+Translated copies of this tile fit together to cover the plane.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup> The [Fibonacci word fractal](/l-system/fibonacci-word-fractal) also uses a replacement string, but interprets its digits as turns in a flat drawing instead of projecting a three-dimensional staircase.
 
 ## Sources and notes
 

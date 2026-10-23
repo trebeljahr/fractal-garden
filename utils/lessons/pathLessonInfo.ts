@@ -16,7 +16,7 @@ export const PATH_LESSONS = {
     takeaway: "The pen travels farther than the length of the separate lines you see.",
   },
   "fern-1": {
-    title: "Remember the fork",
+    title: "Saved branch positions",
     max: 4,
     idea: "An opening bracket saves your place and direction. A closing bracket returns there without drawing.",
     detail:
@@ -38,7 +38,7 @@ export const PATH_LESSONS = {
     max: 3,
     idea: "One line becomes a stem with four side branches. Nine drawing steps replace one.",
     detail: "The lower branches each get two steps. The upper branches each get one.",
-    takeaway: "Every new line grows this same little plant on the next round.",
+    takeaway: "Every new F receives the complete nine-step replacement on the next round.",
   },
   "fern-4": {
     title: "Watch the continuing tip bend",
@@ -87,10 +87,10 @@ export const PATH_LESSONS = {
     takeaway: "Each X adds eight F steps and four new X symbols for the next round.",
   },
   "koch-anti-snowflake": {
-    title: "Cut the bumps inward",
+    title: "Inward triangular notches",
     max: 3,
     idea: "Each old line becomes four shorter lines. The starting triangle sends the bumps inward.",
-    detail: "Each cut removes area while making the outline longer.",
+    detail: "Each replacement removes area and increases the outline’s length.",
     takeaway: "Compare the ordinary Koch snowflake: the bumps point outward there.",
   },
   "quadratic-koch-island": {
@@ -105,7 +105,7 @@ export const PATH_LESSONS = {
     title: "One bump on each side",
     max: 3,
     idea: "Eight steps replace a straight line. They finish four little step lengths ahead.",
-    detail: "One bump adds area outside the island. The other cuts the same amount inside it.",
+    detail: "One bump adds area outside the island. The other removes the same amount inside it.",
     takeaway: "The route doubles in length each round while those area changes balance.",
   },
   "cesaro-fractal": {
@@ -116,7 +116,7 @@ export const PATH_LESSONS = {
     takeaway: "As the lines get longer, neighboring spikes crowd together.",
   },
   "fibonacci-word-fractal": {
-    title: "Count the digits as you walk",
+    title: "Digit positions and turn directions",
     max: 10,
     idea: "Replace 0 with 01 and 1 with 0. Every digit draws one step.",
     detail:

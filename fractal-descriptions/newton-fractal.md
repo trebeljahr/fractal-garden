@@ -1,32 +1,18 @@
 # Newton Fractal
 
-Make a guess. Improve it. Repeat until you find an answer.
+Newton's method improves a guess at where a function equals zero. Draw a tangent at your guess on the graph. The tangent meets the horizontal axis at a new guess. Repeat from there.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
 
-Newton's method finds where a function equals zero. On a graph, draw the tangent at your guess. Where that line crosses the horizontal axis becomes your next guess.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
+The little diagram starts with this graph construction. Once a guess is close enough to a simple root, each step roughly doubles its number of correct digits.
 
 <figure data-lesson="newton"></figure>
 
-This picture solves $z^3=1$. There are three answers when $z$ can be a complex number. Each pixel starts from a different guess and gets the color of the answer it approaches.
+The main picture applies the same calculation to $z^3-1$. With complex numbers, there are three roots. Each pixel supplies a starting guess, and its color shows which root the calculation approaches.
 
-The update rule is:
+Nearby guesses often reach the same root, making the broad patches of color. Along the borders, a tiny move can send a guess toward a different root.
 
-$$
-z_{n+1}=z_n-\frac{z_n^3-1}{3z_n^2}.
-$$
+All three colored regions share a boundary. However closely you zoom at a boundary point, you can find starts leading to each of the three roots.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup> That is why a border between two colors keeps revealing pieces of the third.
 
-Close to an answer, it works fast. Roughly speaking, the number of correct digits doubles with each step once the guess is close enough.
-
-## Why do three colors keep meeting?
-
-Zoom into a border. Between two colors, pieces of the third keep appearing. All three regions share the same boundary. However closely you inspect a boundary point, starting guesses for all three answers are nearby.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup>
-
-Grant Sanderson's [animated explanation](https://www.youtube.com/watch?v=-RdOwhmqP5s) builds this picture from the tangent method.
-
-There is a trap at zero: the update divides by zero. Nearby guesses can make enormous jumps before coming back toward an answer.
-
-The renderer stops after 48 updates. If a pixel has not settled, it gets the color of the answer nearest its last position. That color is an estimate of where it might finish.
-
-The [Julia explorer](/julia-set) makes another picture by repeatedly applying a rule to each starting point.
+At zero the calculation divides by zero, and nearby guesses can jump a long way. The renderer stops after 48 steps. If it hasn't found a root, it uses the root nearest the final guess for coloring. Those unresolved pixels can therefore have a misleading color.
 
 ## Sources and notes
 

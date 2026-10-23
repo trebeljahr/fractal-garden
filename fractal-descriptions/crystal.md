@@ -1,24 +1,18 @@
 # Crystal
 
-Draw a square. On each side, take a small step sideways, then walk back along that same step. Repeat the pattern on every line.
+Crystal replaces each side of a square with a short path containing an out-and-back line. The same replacement is then applied to every line in that path.
 
-Here is the rule:
-
-```text
-F → FF+F++F+F
-```
-
-F draws forward. Each plus turns 90 degrees. Two plus signs turn you around. The starting square is `F+F+F+F`.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
+For one replacement, draw forward twice. Turn 90 degrees and draw one step. Turn 180 degrees and draw back along that step. Turn 90 degrees again and draw forward once.
 
 <figure data-construction-player="crystal"></figure>
 
-One replacement goes forward twice, steps sideways, comes back, then moves forward once more. Five drawing steps finish three step lengths from the start.
+Five drawing steps finish three step lengths ahead. Shortening each new step to one third keeps the ends of the original side fixed.
 
-Make the new steps one third as long to keep the square the same size. The distance travelled grows by $5/3$ each round.
+The pen travels five thirds of the old distance, but it draws only four different small edges. The sideways edge is drawn twice. A count of drawing instructions therefore differs from a count of visible edges.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
 
-But the pen covers some lines twice. In the first replacement, five steps draw only four different edges. Counting instructions does not tell you how many separate lines you can see.
+The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.
 
-“Crystal” is this pattern's name. It does not simulate a growing mineral. The [Board](/l-system/board) takes a lap around a little square instead of going straight out and back.
+“Crystal” is the preset's name. The rule describes a geometric path, not the physical growth of a crystal.
 
 ## Sources and notes
 

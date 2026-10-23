@@ -1,26 +1,18 @@
 # Terdragon
 
-Replace one line with three. Turn 120 degrees one way between the first two, then 120 degrees back between the last two. Repeat on every new line.
+The Terdragon replaces a line with three lines. Draw forward, turn 120 degrees and draw again, then turn 120 degrees in the opposite direction and draw once more.
 
-The line count grows 1, 3, 9, 27. The bends make a winding path on a triangular grid.
+Repeat this replacement on every line in the new path.
 
 <figure data-construction-player="terdragon"></figure>
 
-The drawing rule is:
+The first and third steps point in the old direction. The middle step points 120 degrees away. Together, the three equal steps finish $\sqrt3$ step lengths from the start, about 1.732.<sup><a id="terdragon-ref-1" href="#terdragon-source-1">1</a></sup>
 
-```text
-F → F+F-F
-```
+To keep the endpoint distance fixed, make each new step $1/\sqrt3$ of the old length. The number of lines triples each round while their lengths decrease by this factor.
 
-F draws forward. Plus and minus turn in opposite directions.
+The replacement also changes the overall direction between the endpoints by 30 degrees. The page rotates each new stage back so that the endpoints remain horizontally aligned.
 
-Those three steps finish about 1.732 step lengths from the start. Make each new step $1/\sqrt3$ of the old length to keep the distance between the ends fixed.<sup><a id="terdragon-ref-1" href="#terdragon-source-1">1</a></sup>
-
-The route's overall direction turns by 30 degrees with each round. The renderer turns it back so the ends stay horizontally aligned.
-
-Every point in the infinite shape can be described by choosing one of three smaller pieces, then one of its three pieces, and so on. That sequence works like an address inside the fractal.
-
-The [Dragon curve](/l-system/dragon-curve) uses two pieces and right-angle turns. The [Twindragon](/l-system/twindragon) joins two dragons end to end.
+Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-system/dragon-curve) instead uses two new lines and 90-degree turns.
 
 ## Sources and notes
 

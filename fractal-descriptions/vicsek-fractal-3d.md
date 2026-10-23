@@ -1,30 +1,18 @@
 # 3D Vicsek Fractal
 
-Split a cube into 27 little cubes. Keep the middle cube and the six cubes touching its faces. They make a cross pointing in six directions.
+Divide a cube into 27 equal cubes. Keep the center cube and the six cubes touching its faces. Remove the other twenty.
 
-Repeat inside all seven cubes.
+The seven remaining cubes form a three-dimensional cross. Repeat this replacement inside each of them.
 
 <figure data-construction-player="vicsek-fractal-3d"></figure>
 
-Each round keeps only $7/27$ of the previous volume. The arms gain smaller arms while the volume falls toward zero.
+Every step multiplies the number of cubes by seven and divides their width by three. Dividing the width by three divides the volume by 27. The combined volume is therefore $7/27$ of the previous step's volume.<sup><a id="vicsek-fractal-3d-ref-1" href="#vicsek-fractal-3d-source-1">1</a></sup>
 
-The copies get smaller by a factor of three. Their number grows by a factor of seven.<sup><a id="vicsek-fractal-3d-ref-1" href="#vicsek-fractal-3d-source-1">1</a></sup>
-
-## Seven cubes make a five-square shadow
-
-Look straight down one arm with parallel viewing rays. The front, middle and back cubes overlap in the middle of the shadow. Four others make the arms of a plus sign.
-
-Repeat at smaller sizes and the shadow follows the [2D Vicsek fractal's](/vicsek-fractal-2d) plus-shaped rule.
+Seen straight along one arm, the front cube hides the center and back cubes. Only five square positions remain visible: the center and four side squares. Repeating the projection at smaller scales produces the plus-shaped [2D Vicsek fractal](/vicsek-fractal-2d).
 
 <figure data-projection="vicsek"></figure>
 
-The full shape keeps three straight lines through its center. They run along the three cube directions, right through all the smaller crosses.
-
-## Even the surface area shrinks
-
-The [Menger sponge](/menger-sponge) gains exposed area as you cut it. This cross eventually loses it.
-
-At the first round, there are more exposed faces than before, but they are much smaller. Count the exposed little faces at each stage and their total area tends to zero. The infinite shape is not an ordinary solid with an ordinary skin.
+This cross also loses exposed surface area as the steps continue. Although there are more faces, each face is much smaller. Their total area tends to zero. The [Menger sponge](/menger-sponge) has a different arrangement of cubes, and its exposed area increases instead.
 
 ## Sources and notes
 

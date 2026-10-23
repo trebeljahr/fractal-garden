@@ -1,22 +1,16 @@
 # Twindragon
 
-Draw a [dragon curve](/l-system/dragon-curve). Make another copy and turn it halfway around the midpoint between the two ends.
+Make two copies of a [dragon curve](/l-system/dragon-curve). Rotate the second by 180 degrees around the midpoint between the first curve's endpoints.
 
-The second dragon starts where the first ends. It finishes where the first began. Together they make a closed route.
+The second curve starts at the first curve's end and finishes at its start. The two paths therefore form a closed route.
 
 <figure data-construction-player="twindragon"></figure>
 
-The two colors help you follow the two paths. Each follows the dragon rules, `F → F+G` and `G → F-G`, with right-angle turns. Both letters draw forward.
+Each path follows the same dragon rules. Every step doubles its segment count. The two colors distinguish the original copy from the rotated copy.
 
-At early stages, there are gaps between the lines. In the infinite limit, the paths cover a tile's inside as well as its outline.
+The infinite paths cover a region, including its interior. Copies of that region fit together to cover the plane.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup> The tiling view repeats the paired curves in two perpendicular directions.
 
-Copies of that tile fit together to cover the plane. The tiling view repeats the paired dragons sideways and along the direction between their ends.
-
-## A tile made from zeros and ones
-
-There is another way to describe the same tile: use binary digits with a complex-number base. Adding each digit chooses one of two smaller copies, shrunk and turned by 45 degrees.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup>
-
-The digits become an address for a point inside the tile. The [Terdragon](/l-system/terdragon) uses a related three-piece construction.
+Finite paths leave gaps inside each repeated region. Increasing the level makes the segments smaller and the gaps harder to see. The completely filled tile describes the infinite limit.
 
 ## Sources and notes
 

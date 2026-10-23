@@ -91,7 +91,7 @@ export const GEOMETRY_LESSONS = {
     max: 2,
     idea: "Split each square face into nine cells. Replace the center cell with the five exposed faces of a small cube.",
     detail:
-      "Eight flat squares and five bump faces replace the old square. All thirteen have one ninth of its area.",
+      "Adding the cube covers one square and exposes five new faces. Nine visible squares become thirteen.",
     takeaway:
       "The face count grows by 13, and the total face area grows by 13/9 at each replacement.",
   },

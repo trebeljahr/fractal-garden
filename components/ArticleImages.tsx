@@ -18,12 +18,12 @@ const IMAGES = {
     {
       name: "carpet-depth-1",
       alt: "Sierpinski carpet with one central square removed",
-      caption: "One cut removes the middle ninth.",
+      caption: "After one step, the center square is removed.",
     },
     {
       name: "carpet-depth-3",
       alt: "Sierpinski carpet with three generations of square holes",
-      caption: "Three cuts repeat the same hole inside every remaining square.",
+      caption: "After three steps, holes of three sizes are visible.",
     },
   ],
   menger: [
@@ -35,7 +35,7 @@ const IMAGES = {
     {
       name: "menger-level-2",
       alt: "Menger sponge with smaller tunnels in its walls",
-      caption: "The next step repeats those openings inside each surviving block.",
+      caption: "The next step removes seven smaller cubes inside each remaining cube.",
     },
   ],
   mandelbrot: [
@@ -49,12 +49,13 @@ const IMAGES = {
     {
       name: "julia-rabbit",
       alt: "Julia set using the Rabbit spiral parameter",
-      caption: "Rabbit spiral chooses one constant for the whole image.",
+      caption: "The Rabbit spiral preset uses the same value of c for every pixel.",
     },
     {
       name: "julia-sea-spiral",
       alt: "Julia set using the Sea spiral parameter",
-      caption: "Sea spiral changes the constant. Every pixel now follows the new rule.",
+      caption:
+        "The Sea spiral preset changes c for the entire image, producing a different Julia set.",
     },
   ],
   "burning-ship": [
@@ -75,7 +76,7 @@ const IMAGES = {
     {
       name: "barnsley-classic",
       alt: "Barnsley fern formed by dots along its stem and leaflets",
-      caption: "The same transformations produce the stem and repeated leaflets.",
+      caption: "Four coordinate transformations place dots on the stem and leaflets.",
     },
   ],
 } as const;

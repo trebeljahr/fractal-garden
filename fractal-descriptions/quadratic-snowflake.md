@@ -1,26 +1,18 @@
 # Quadratic Snowflake
 
-Take a straight line and put a square bump in its middle. Five little lines now connect the same two ends.
+Replace the middle third of a straight line with three sides of a small square. The first and last thirds stay straight. Five lines now connect the original endpoints.
 
-Repeat on every line. Each bump grows smaller bumps of its own.<sup><a id="quadratic-snowflake-ref-1" href="#quadratic-snowflake-source-1">1</a></sup>
+Apply the same replacement to every new line.<sup><a id="quadratic-snowflake-ref-1" href="#quadratic-snowflake-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-snowflake"></figure>
 
-This version starts with a square whose sides each contain two drawing steps. The first round puts two bumps along each side, pointing into the square.
+This page starts with a square whose sides each contain two drawing steps. The first replacement therefore puts two square-shaped notches along each side. Their orientation makes them point inward.
 
-Each new step is one third as long. Five steps replace one, so the total route grows by $5/3$ each round.
+Every new line is one third as long as the line it replaces. Five one-third-length lines make the route $5/3$ as long. Repeating this increases the total distance drawn while the original square's corners remain fixed.
 
-The rule is:
+The rule is `F → F+F-F-F+F`. F draws forward and each turn is 90 degrees. The three middle F steps form the three sides of the small square.
 
-```text
-F → F+F-F-F+F
-```
-
-F draws forward. Plus and minus turn by 90 degrees. The middle three F steps walk around three sides of the little square.
-
-The [Minkowski sausage](/l-system/minkowski-sausage) adds a matching bump on the opposite side of each edge. This rule has only one bump.
-
-The [quadratic Koch surface](/quadratic-koch-3d) moves the idea into space, putting little cube-shaped bumps on square faces.
+The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a surface. It puts small cubes onto square faces instead of changing a flat line.
 
 ## Sources and notes
 

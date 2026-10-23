@@ -1,24 +1,18 @@
 # Polyhedron Flake
 
-Put a smaller solid at every corner of a larger one. Repeat inside each little solid. The corner shapes multiply while gaps open between them.
+Choose a solid. Replace it with one smaller copy at each corner. Each copy keeps the original orientation, and the next step repeats the replacement inside it.
 
 <figure data-construction-player="polyhedron-flake"></figure>
 
-Choose an **octahedron**, the eight-faced shape. It has six corners, so each round makes six half-size copies. Each copy keeps the same orientation as its parent.
+An **octahedron** has eight triangular faces and six corners. This version makes six half-size copies. The gaps between them are small tetrahedra, which are removed at every step.
 
-The **dodecahedron** has twelve faces and twenty corners. Its twenty copies are about 28% as wide as their parent.
+A **dodecahedron** has twelve faces and twenty corners. Its twenty copies are about 28% of the original width. An **icosahedron** has twenty faces and twelve corners. Its twelve copies are about 38% of the original width.
 
-The **icosahedron** has twenty faces and twelve corners. Its twelve copies are about 38% as wide.
+The copy sizes explain a difference that the counts alone miss. Twenty small dodecahedra retain about 42% of the old volume. Twelve larger icosahedra retain about 67%. These percentages are calculated from this explorer's copy counts and sizes.<sup><a id="polyhedron-flake-ref-1" href="#polyhedron-flake-source-1">1</a></sup>
 
-## More copies can leave more space
+Repeating either replacement reduces the total volume toward zero. The number of solids increases, but their individual volumes decrease faster.
 
-Twenty sounds denser than twelve. But the twenty dodecahedron copies are much smaller. They keep about 42% of the old volume. The twelve icosahedron copies keep about 67%.
-
-These volume fractions come from the copy counts and sizes in this explorer.<sup><a id="polyhedron-flake-ref-1" href="#polyhedron-flake-source-1">1</a></sup>
-
-All three rules keep losing volume. After infinitely many rounds, zero volume remains, despite the repeated structure.
-
-The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses four half-size corner copies. Eight half-size corner cubes would fill their parent cube completely. The [Menger sponge](/menger-sponge) leaves gaps by using a different cube arrangement.
+The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses the same corner-copy construction with four half-size tetrahedra.
 
 ## Sources and notes
 

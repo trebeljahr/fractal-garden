@@ -3,11 +3,6 @@
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
 }
-.title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
 .workspace {
   /* Only the interactive workspace extends beyond the article column. */
   width: calc(100vw - 8vw);
@@ -116,11 +111,4 @@
   .step span {
     font-size: 11px;
   }
-}
-
-.explanation {
-  max-width: 900px;
-  margin: 0 auto 1rem;
-  font-size: 1.6rem;
-  line-height: 1.6;
 }

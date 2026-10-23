@@ -1,32 +1,20 @@
 # Burning Ship Fractal
 
-Look for the hull near the bottom and the thin masts above it. Zoom into a mast, and you can find smaller ships.
+The [Mandelbrot set](/mandelbrot) repeatedly squares a point and adds a fixed number. The Burning Ship inserts one extra step before squaring: make both coordinates nonnegative.
 
-The rule starts like the [Mandelbrot set](/mandelbrot): begin at zero, square, add a number $c$, and repeat. But before each square, make both coordinates positive or zero. A point to the left flips right. A point below zero flips above it.
-
-That extra fold changes the whole picture. Michael Michelitsch and Otto Rössler introduced it in 1992.<sup><a id="burning-ship-ref-1" href="#burning-ship-source-1">1</a></sup>
+A point left of the vertical axis flips to the right. A point below the horizontal axis flips upward. Points in all four quarters fold into the top-right quarter before the next calculation.<sup><a id="burning-ship-ref-1" href="#burning-ship-source-1">1</a></sup>
 
 <figure data-article-images="burning-ship"></figure>
 
-Each pixel chooses a different $c$. If its moving point runs away, the pixel gets a color. The color records how quickly it escapes.
-
-The rule, written in one line, is:
-
-$$
-z_{n+1}=\left(|\operatorname{Re}(z_n)|+i|\operatorname{Im}(z_n)|\right)^2+c.
-$$
-
-The bars mean “ignore the minus sign.” The two parts inside the brackets are the point's horizontal and vertical coordinates.
+Start at zero. Fold, square, add the number chosen by the pixel, and repeat. Some choices send the results away without bound. The color shows how long the escape takes.
 
 <figure data-orbit="burning-ship"></figure>
 
-The main image flips the usual vertical direction to put the ship upright. The small orbit diagram keeps the usual mathematical direction, with positive values upward.
+The small diagram uses the usual upward direction for positive vertical coordinates. The main image flips that display direction, which puts the hull below the masts.
 
-Small ships appear around values of $c$ whose journeys return to zero. Those returns give researchers a way to find their centers.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
+That fold makes a large difference near the edges. Zoom along a mast to find smaller ships. Their centers correspond to calculations that return to zero after a repeating number of steps, giving researchers a way to locate them.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
 
-A black pixel means no escape was found before the time limit. Some points need longer, so a black pixel is not proof that it stays forever.
-
-The [Julia explorer](/julia-set) keeps $c$ fixed and changes the starting point instead.
+A black pixel means the calculation hasn't escaped within the chosen limit. The computer cannot wait forever, so slowly escaping points can still look black.
 
 ## Sources and notes
 

@@ -56,8 +56,8 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       </figcaption>
       <p className={styles.lessonIntro}>
         {kind === "julia"
-          ? "Keep c fixed and move z₀. Each starting point corresponds to a different pixel in the Julia image."
-          : "Choose c, then follow z from zero. Each value of c corresponds to a different pixel in the main image."}
+          ? "Keep the added number c fixed and change the starting point z₀. Each start is one pixel in the Julia image."
+          : "Choose the number c to add at each step. The calculation starts at zero. Each choice of c is one pixel in the main image."}
       </p>
       <div className={styles.explanation}>
         <svg viewBox="0 0 480 320" role="img" aria-labelledby={`${id}-title ${id}-summary`}>
@@ -124,15 +124,15 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           )}
           <p>
             {escaped
-              ? "This orbit escaped past radius 4."
+              ? "The point is now more than 4 units from zero."
               : step === lastStep
-                ? "No escape in these 12 steps. This short test does not prove that the orbit stays bounded forever."
-                : "Inside radius 4 so far. Take another step to see what happens."}
+                ? "The point stayed within distance 4 for these 12 steps. It may still escape after more steps."
+                : "The point is still within distance 4 of zero. Take the next step to calculate its new position."}
           </p>
           {latest.clipped && (
             <p>
-              The amber point marks the direction of the full coordinate shown above; its distance
-              is clipped.
+              The result is too far away to fit in the diagram. The amber point shows its direction,
+              and the coordinates above give its actual position.
             </p>
           )}
         </div>
@@ -164,9 +164,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           </label>
         ))}
         <p className={styles.lessonIntro}>
-          {kind === "julia" ? `Fixed c = ${format(c)}.` : "Starting point z₀ = 0."} This lesson
-          stops after an escape beyond radius 4. Points beyond radius 4.65 are shown at that outer
-          radius. The main image uses radius 256 for its escape coloring.
+          {kind === "julia" ? `Fixed c = ${format(c)}.` : "Starting point z₀ = 0."} This diagram
+          stops when the distance from zero exceeds 4. Very distant results are drawn near the outer
+          edge; their printed coordinates give the full position.
         </p>
       </fieldset>
     </figure>

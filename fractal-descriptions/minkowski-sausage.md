@@ -1,28 +1,19 @@
 # Minkowski Sausage
 
-Take a straight line. Add one square bump on one side and another on the other side. Repeat the pattern on every new line.
+Replace a straight line with eight smaller lines arranged in right-angle steps. One square-shaped detour lies on each side of the old line.
 
-Eight little lines replace one. Each is one quarter as long, so the total route doubles in length.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
+The replacement finishes four step lengths ahead, facing the original direction. Giving each new step one quarter of the old length keeps both endpoints in place.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
 
 <figure data-construction-player="minkowski-sausage"></figure>
 
-The drawing rule is:
+Eight quarter-length lines have twice the length of one original line. The total distance drawn therefore doubles at every step.
 
-```text
-F → F+F-F-FF+F+F-F
-```
+The island option applies this rule around a square. One detour extends outside an old edge. The other extends inside it. Their equal areas cancel when calculating the signed area of the closed route: outward area is added and inward area is subtracted.
 
-F draws forward. Plus and minus turn by 90 degrees. The route finishes four little step lengths ahead, facing the way it started.
+This makes the boundary longer without changing that signed area. The [quadratic snowflake](/l-system/quadratic-snowflake) uses one square-shaped detour per replacement, without the matching detour on the other side.
 
-Start with a square to make the island version. One bump adds area outside an edge. The other removes the same amount inside it. The outline gets longer while those two changes cancel.
-
-## A longer wire in a smaller span
-
-Researchers use versions of this route in antenna designs. The bends fit more wire between two endpoints. A 2008 study simulated an antenna based on the first replacement stage.<sup><a id="minkowski-sausage-ref-2" href="#minkowski-sausage-source-2">2</a></sup>
-
-The [quadratic snowflake](/l-system/quadratic-snowflake) uses one square bump per replacement. It has no matching bump on the opposite side.
+The rule is `F → F+F-F-FF+F+F-F`, with 90-degree turns. Every F draws one forward step.
 
 ## Sources and notes
 
 1. <span id="minkowski-sausage-source-1"></span> Fawwaz J. Jibrael, Faez F. Shareef and Wafaa S. Mummo, [Small Size and Dual Band of a Quadratic Koch Dipole Fractal Antenna Design](https://thescipub.com/pdf/ajassp.2008.1804.1807.pdf), American Journal of Applied Sciences 5(12), 1804–1807, 2008. Figure 1 and the accompanying text specify eight quarter-scale pieces and similarity dimension 1.5. The signed-area cancellation follows from the local rule. [Back](#minkowski-sausage-ref-1)
-2. <span id="minkowski-sausage-source-2"></span> Jibrael, Shareef and Mummo, [same paper](https://thescipub.com/pdf/ajassp.2008.1804.1807.pdf), 2008, antenna design and results. Reports numerical simulations in 4NEC2 for a first-stage quadratic Koch dipole. [Back](#minkowski-sausage-ref-2)

@@ -1,20 +1,16 @@
 # 3D Hilbert Curve
 
-Can one path visit every little cube in a box without jumping?
-
-Split the box into eight cubes. Put a smaller path inside each. Turn the paths so the end of one meets the start of the next. Repeat inside every smaller cube.<sup><a id="hilbert-curve-3d-ref-1" href="#hilbert-curve-3d-source-1">1</a></sup>
+Divide a cube into eight smaller cubes. Put a path inside each one, then turn the paths so that each endpoint connects to the next path's start. Repeat inside the smaller cubes.<sup><a id="hilbert-curve-3d-ref-1" href="#hilbert-curve-3d-source-1">1</a></sup>
 
 <figure data-construction-player="hilbert-curve-3d"></figure>
 
-The first grid has 8 stops. The next has 64, then 512. Each stop connects to a neighbor one grid step away.
+The first grid has two positions in each direction, making eight positions altogether. The next has four in each direction, making sixty-four. The route visits each position once, moving one grid step between neighbors.
 
-Rotate the drawing. Lines that seem to cross in a flat view can sit at different depths.
+A flat view can hide the separation between lines. Two segments that appear to cross may be at different depths. Rotating the cube makes that separation visible.
 
-Every finite path leaves space around its lines. After infinitely many rounds, the path reaches every point in the box. A line can fill a volume when you take that limit.
+Each finite path consists of line segments with space between them. In the infinite limit, the route reaches every point of the cube. The [2D Hilbert curve](/l-system/hilbert-curve) reaches every point of a square by the same nested subdivision.
 
-There are many ways to join the eight smaller routes. Haverkort counted more than ten million versions under one set of requirements. This page uses John Skilling's method to choose its particular route.<sup><a id="hilbert-curve-3d-ref-2" href="#hilbert-curve-3d-source-2">2</a></sup>
-
-The [2D Hilbert curve](/l-system/hilbert-curve) makes the same connection problem easier to follow, with four squares instead of eight cubes.
+There is more than one way to arrange the eight smaller routes. This page uses John Skilling's method to choose their orientations and order.<sup><a id="hilbert-curve-3d-ref-2" href="#hilbert-curve-3d-source-2">2</a></sup>
 
 ## Sources and notes
 

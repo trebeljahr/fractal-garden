@@ -256,7 +256,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
   "/jerusalem-cube": {
     title: "Jerusalem Cube",
     description:
-      "Rotate a 3D Jerusalem Cube and watch cross-shaped cuts split every cube into corner and edge cubes scaled by √2 − 1.",
+      "Explore a Jerusalem Cube made of smaller cubes at its corners and edges. Each cube repeats the same cross-shaped openings.",
     imagePath: "/assets/fractal-images/jerusalem-cube.jpg",
   },
   "/quadratic-koch-3d": {

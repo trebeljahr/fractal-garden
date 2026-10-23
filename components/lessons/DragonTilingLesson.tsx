@@ -9,9 +9,9 @@ import { LessonFrame } from "./LessonFrame";
 const COLORS = ["#f5c56d", "#7ec9bb", "#d68fa3", "#97ade0"];
 const VIEWS = ["One dragon", "Fit four together", "Tile the plane"];
 const EXPLANATIONS = [
-  "One dragon, filled with tiny squares. Each square has one short piece of the path across it.",
-  "Turn three copies by a quarter, half and three-quarter turn. All four start at the same point.",
-  "Repeat the group in diagonal rows. The edges fit together, with no gaps between the tiles.",
+  "Each path segment joins opposite corners of a filled square. These squares form one tile.",
+  "The four copies start at one point. They are rotated by 0, 90, 180 and 270 degrees.",
+  "The four-tile groups repeat in diagonal rows, with no gaps between their boundaries.",
 ];
 
 export default function DragonTilingLesson() {
@@ -30,10 +30,10 @@ export default function DragonTilingLesson() {
   const size = view === 2 ? 4.6 : 3.1 + separation / 80;
   const spread = 1 + separation / 140;
   const explanation = separation
-    ? "The tiles are pulled apart. Slide them back together to see how their edges meet."
+    ? "The tiles are separated to show their boundaries. Set Pull apart to zero to join them."
     : EXPLANATIONS[view];
   return (
-    <LessonFrame title="A floor made of dragons" kind="dragon-tiling">
+    <LessonFrame title="Dragon tiles" kind="dragon-tiling">
       <fieldset className={shared.options} aria-label="Dragon tiling view">
         {VIEWS.map((label, index) => (
           <button
@@ -119,8 +119,8 @@ export default function DragonTilingLesson() {
         {showPath ? "Hide the path" : "Show the path"}
       </button>
       <p>
-        These tiles use tiny squares to fill out the path. More detail makes the squares smaller and
-        brings their edges closer to the dragon.
+        Increasing Detail adds shorter path segments and smaller squares around them. The filled
+        regions approach the limiting dragon tile as their segment lengths decrease.
       </p>
     </LessonFrame>
   );

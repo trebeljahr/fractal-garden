@@ -1,42 +1,29 @@
 # Mandelbrot Set
 
-Start with zero. Square it, add a number, and repeat. Does the result stay nearby or run away?
+Choose a number to add. Start at zero, square the current result, add your chosen number, and do it again.
 
-Try adding zero each time. Nothing moves. Try adding $-1$ and the numbers bounce between zero and $-1$. Try adding $1$:
+If you choose $1$, the results are:
 
 $$
 0\to1\to2\to5\to26\to\cdots
 $$
 
-That one runs away.
+The results increase without limit. Choose $-1$ instead and you get $0,-1,0,-1,\ldots$. It repeats forever without growing.
 
 <figure data-article-images="mandelbrot"></figure>
 
-Each pixel tries a different number $c$. The rule is:
+The Mandelbrot picture applies this test to complex numbers. A complex number has two coordinates, which lets us place each choice on the screen. Each pixel's coordinates supply a different number to add.
 
-$$
-z_{n+1}=z_n^2+c.
-$$
+A choice belongs to the Mandelbrot set if its results stay within some fixed distance of zero, however many steps are taken. The computer repeats the calculation a limited number of times. If the results escape, it colors the pixel by how long that took. If they haven't escaped yet, it leaves the pixel black.
 
-A complex number gives a position in two directions, so this test makes a whole picture. The Mandelbrot set contains the choices of $c$ whose journeys stay bounded forever.
-
-## What are the bulbs?
-
-Inside the main heart-shaped body, the moving point settles toward one position. Inside the round bulb on its left, it settles into a two-position cycle.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
-
-The diagram follows the cycle at $c=-1$.
+The calculation is usually written as $z_{n+1}=z_n^2+c$. Here $c$ is the number that pixel chooses, and $z_n$ is the current result.
 
 <figure data-orbit="mandelbrot"></figure>
 
-Zoom along the edge to find smaller copies of the main shape. Their surrounding threads differ. The picture repeats familiar shapes without repeating every detail exactly.
+The round bulb to the left of the main body contains choices that settle toward a two-value repeat. At its center, $c=-1$ gives the exact $0,-1$ repeat above. Inside the heart-shaped body, the results instead settle toward one value.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-That edge is so intricate that its fractal dimension is two. Mitsuhiro Shishikura proved this. It does not mean the edge becomes a filled patch.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
-
-**Smooth escape time** colors how quickly a point runs away. Black means it did not escape before the time limit. A slow escape can still hide there.
-
-The [Julia explorer](/julia-set) keeps $c$ fixed and tries different starting points. The [Burning Ship](/burning-ship) adds a fold before every square.
+The [Julia explorer](/julia-set) changes the test: every pixel uses the same number to add, but starts from a different position. That is why choosing a new $c$ there changes the whole picture.
 
 ## Sources and notes
 
 1. <span id="mandelbrot-source-1"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), especially section 5 on the main cardioid and limbs. The two-cycle at $-1$ follows by substitution. [Back](#mandelbrot-ref-1)
-2. <span id="mandelbrot-source-2"></span> Mitsuhiro Shishikura, [The Hausdorff Dimension of the Boundary of the Mandelbrot Set and Julia Sets](https://arxiv.org/abs/math/9201282), 1991 preprint, published in *Annals of Mathematics* 147 (1998), 225–267. Proves the boundary has Hausdorff dimension two. [Back](#mandelbrot-ref-2)

@@ -1,28 +1,20 @@
 # Pythagoras Tree
 
-Put a right triangle on top of a square, with its longest side against the square. Build a new square on each of the triangle's other sides.
+Start with a square. Rest a right triangle on its top edge, with the triangle's longest side against the square. Build a square on each of the two free sides.
 
-Repeat on both new squares. Two squares become four, then eight. The tree starts to curl around itself.
+Each new square gets the same triangle and pair of squares. Repeating this makes the tree's forks.
 
 <figure data-construction-player="pythagoras"></figure>
 
-## Two squares share one square's area
+The right angle controls the sizes. Pythagoras' theorem says the areas of the two new squares add up to the area of their parent. When the triangle’s two shorter sides have equal length, the two new squares match. Tilt the triangle and one grows while the other shrinks.
 
-Pythagoras' theorem says the two small squares have the same combined area as the square beneath them.
+That gives every generation the same combined area. The first square has area one, its two children together have area one, their four children together have area one, and so on.
 
-Change the triangle's angle. One child grows while the other shrinks, but their combined area stays the same. At 45 degrees, they match. At 30 degrees, one has three times the area of the other.
+Adding those areas gives an ever-growing sum. But the squares start to overlap. Once a new square lands on an old one, some of its area is counted again.
 
-## Why the areas do not add up
+For the equal-branch tree, everything fits inside a rectangle six starting squares wide and four high.<sup><a id="pythagoras-tree-ref-1" href="#pythagoras-tree-source-1">1</a></sup> The covered area therefore stays finite. Toby Cathcart Burn calculated it as about 14.613 times the starting square's area, counting each covered spot once.<sup><a id="pythagoras-tree-ref-2" href="#pythagoras-tree-source-2">2</a></sup>
 
-Every generation adds the starting square's area again. That sum grows forever. Yet the symmetric tree fits inside a rectangle only six starting squares wide and four high.<sup><a id="pythagoras-tree-ref-1" href="#pythagoras-tree-source-1">1</a></sup>
-
-The squares must overlap. Adding their individual areas counts the same patches many times.
-
-Toby Cathcart Burn calculated the area covered by the endless symmetric tree: about 14.613 times the starting square's area. His exact answer is a fraction with more than a hundred digits in each part.<sup><a id="pythagoras-tree-ref-2" href="#pythagoras-tree-source-2">2</a></sup>
-
-That answer counts the squares alone. Fill the triangular gaps or change the fork angle, and you get a different area.
-
-The [T-square fractal](/t-square-fractal) also piles up overlapping squares. The [fractal canopy](/fractal-canopy) grows lines instead.
+The [T-square fractal](/t-square-fractal) has the same overlap problem, but places four new squares at corners instead of two above a triangle.
 
 ## Sources and notes
 

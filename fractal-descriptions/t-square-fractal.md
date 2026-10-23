@@ -1,24 +1,20 @@
 # T-Square Fractal
 
-Draw a square. Center a half-size square on each corner. Keep the old square and repeat on every new one.
+Start with a square. Place a half-size square with its center on each corner. Keep the original square, then repeat on the four new ones.
 
-The squares spread outward. Smaller squares fill some gaps and overlap others.
+The next step adds sixteen squares. The step after that adds sixty-four. Smaller squares extend the outline and overlap parts of earlier squares.
 
 <figure data-construction-player="t-square-fractal"></figure>
 
-Each new square makes four more. The number added goes 1, 4, 16, 64. Outlines let you see squares that a filled picture hides.
+Four half-size squares have the same combined area as their parent. Each generation therefore adds the starting square's area again, if we add the areas of the squares separately.
 
-## How can the area keep growing?
+That total counts overlaps more than once. The area covered by the drawing is smaller because a position covered by several squares still occupies only one position.
 
-Four half-size squares have the same combined area as one parent square. So every generation adds the starting square's area again, if you count every square separately.
+At the half-size setting, the entire drawing fits inside a square twice as wide as the starting square. Its covered area cannot exceed that box, however many squares are added.
 
-But many squares cover the same places. Adding their areas counts those places more than once.
+The outline also needs a separate count. Edges covered by another square are inside the shape. They don't contribute to its perimeter. The first replacement doubles a unit square's exposed perimeter from 4 to 8.<sup><a id="t-square-fractal-ref-1" href="#t-square-fractal-source-1">1</a></sup>
 
-At the default half-size setting, the whole picture fits inside a square twice as wide as the start. Its covered area cannot grow beyond that box.
-
-The outside edge also differs from the sum of every square's four sides. Hidden edges do not count toward the outline. The first round doubles a unit square's outside perimeter from 4 to 8.<sup><a id="t-square-fractal-ref-1" href="#t-square-fractal-source-1">1</a></sup>
-
-Change the size ratio to change how far the branches reach and how much they overlap. The [Pythagoras tree](/pythagoras-tree) has the same area-counting puzzle, with two new squares at each fork.
+Use outlines to see the individual squares, including the parts hidden in a filled drawing.
 
 ## Sources and notes
 

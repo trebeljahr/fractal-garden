@@ -1,27 +1,23 @@
 # Sierpinski Arrowhead
 
-Can you draw the [Sierpinski triangle](/l-system/sierpinski-triangle) with one continuous path?
-
-The arrowhead does it by replacing each part with three smaller parts. The path bends around triangular gaps that keep appearing at smaller sizes.<sup><a id="sierpinski-arrowhead-ref-1" href="#sierpinski-arrowhead-source-1">1</a></sup>
+The arrowhead is one connected path whose smaller parts surround triangular gaps. Each segment is replaced by three segments, and each turn is 60 degrees.<sup><a id="sierpinski-arrowhead-ref-1" href="#sierpinski-arrowhead-source-1">1</a></sup>
 
 <figure data-construction-player="sierpinski-arrowhead"></figure>
 
-One way to write the instructions starts with A:
+One notation starts with A and uses:
 
 ```text
 A → B-A-B
 B → A+B+A
 ```
 
-Both letters draw forward. Plus and minus turn by 60 degrees. A and B choose opposite ways to bend the three-part route.
+Both letters draw forward. The two rules make the three-part replacement face in opposite directions. This lets neighboring pieces connect while leaving the larger triangular gaps open.
 
-Each round triples the number of lines. Each new line is half as long, keeping the distance between the ends fixed.
+Each replacement triples the segment count. Halving the new segment lengths keeps the distance between the endpoints fixed. Repeating the construction approaches the same set as the [Sierpinski triangle](/l-system/sierpinski-triangle), but through a continuous path instead of removing filled triangles.
 
-The main drawing uses an equivalent set of instructions with extra letters that do not draw. It makes the same number of lines: 1, 3, 9, 27.
+The path's overall orientation alternates between odd and even stages. This page rotates alternate stages to keep them in comparable positions.
 
-The whole pattern changes direction between odd and even rounds. The page rotates alternate stages so you can compare them in the same position.
-
-The [Sierpinski curve](/l-system/sierpinski-curve) shares the name but winds around square gaps instead.
+The main drawing uses an equivalent notation where F draws and X/Y control later replacements. It produces the same segment counts: 1, 3, 9, 27.
 
 ## Sources and notes
 

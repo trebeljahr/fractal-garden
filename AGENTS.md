@@ -14,7 +14,7 @@ Rico's correction, 2026-10-23: explain things simply, with the patience needed
 for a five-year-old and the brevity of Derek Sivers. Fewer words, chosen well.
 Assume no mathematical background. Respect the reader; do not use baby talk.
 
-- Start with something the reader can see, draw, cut, fold or try. Explain one
+- Start with something the reader can see, draw, remove, rotate or try. Explain one
   step at a time. Build the picture before introducing a name or equation.
 - Use ordinary spoken English, concrete nouns and active verbs. Keep sentences
   short, but vary their rhythm. Keep the words needed to make them easy to read.
@@ -31,6 +31,15 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
 - Information density means useful understanding per word. It does not mean
   maximum facts, symbols or technical terms per sentence. Do not turn these
   articles into compressed research summaries.
+- Use literal geometric operations. Say which square is removed, which line is
+  replaced and how a size changes. Do not describe a screen operation as cutting
+  paper. Physical folding belongs only where an actual paper construction applies.
+- No lyrical or personified explanations such as "every square creates eight
+  places for the next cut", "numbers take a journey" or "a rule grows a plant".
+  A short sentence can still be vague. Explain the intermediate step that makes
+  the next sentence follow; do not fill that gap with a pleasant-sounding phrase.
+- The shared construction player has no stock heading or injected summary.
+  Construction explanations belong in the article, in the relevant sequence.
 
 ### Accuracy and sources
 

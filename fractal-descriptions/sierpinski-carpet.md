@@ -1,32 +1,20 @@
 # Sierpinski Carpet
 
-Divide a square into nine little squares. Remove the middle one. Do the same inside each of the eight squares left behind.
-
-A hole appears inside every smaller square. Repeat, and smaller holes appear around those holes.<sup><a id="sierpinski-carpet-ref-1" href="#sierpinski-carpet-source-1">1</a></sup>
+Divide a square into a three-by-three grid and remove the center square. Repeat this for each of the eight remaining squares. After the second step, there is one large hole and eight smaller holes.<sup><a id="sierpinski-carpet-ref-1" href="#sierpinski-carpet-source-1">1</a></sup>
 
 <figure data-construction-player="carpet"></figure>
 
-## How much is left?
+The next step removes the center of each of the 64 remaining squares. This adds 64 holes, each one third as wide as the eight holes added before them.
 
-Each round keeps eight ninths of the previous area. After $n$ rounds, the fraction left is:
-
-$$
-A_n=\left(\frac89\right)^n.
-$$
-
-Keep going forever and that fraction falls to zero. The carpet still contains points, including the whole outside border. Zero area does not mean nothing remains.
-
-We keep the borders of the holes too. The endless carpet stays connected, even though no filled patch survives.
+Every remaining square is treated the same way. The pattern inside any of the first eight squares is therefore a one-third-size copy of the whole carpet.
 
 <figure data-article-images="carpet"></figure>
 
-## Find it on a cube
+Each step removes one ninth of the area still present. After one step, eight ninths remains. After two, it is eight ninths of eight ninths, or $64/81$. Repeatedly multiplying by $8/9$ sends the remaining area toward zero.
 
-Each outer face of the [Menger sponge](/menger-sponge) is a Sierpinski carpet. Look straight at a face with parallel viewing rays, and the sponge's shadow has that pattern too.
+The edges of the removed squares are retained. The outside border is also retained. These borders remain connected in the infinite carpet, although no filled patch remains.
 
-A diagonal cut through the sponge gives six-pointed star holes instead. A shadow combines everything along your line of sight. A slice shows only one flat cut. The Menger page lets you compare them.
-
-The [2D Vicsek fractal](/vicsek-fractal-2d) starts with the same nine-square grid but keeps only five squares each round.
+The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. Each outside face of the sponge has this carpet pattern.
 
 ## Sources and notes
 

@@ -1,28 +1,24 @@
 # Quadratic Koch Island
 
-Start with a square. Replace each side with a winding path of eighteen little lines. Add that same winding path to every new line.
+This version starts with a square and replaces each side with an eighteen-segment path. Every turn is 90 degrees, so the smaller lines remain on a square grid.
 
-The turns are all right angles. Bumps grow on both sides of each old edge.
+The same replacement is repeated on each of those eighteen segments.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-koch-island"></figure>
 
-One replacement takes eighteen steps but finishes only six step lengths ahead. Make each new step one sixth as long to keep the old corners in place.
+Eight steps point along the original side and two point backward. Four point to each side. The sideways steps cancel, and the forward steps exceed the backward ones by six.
 
-Eighteen times one sixth is three. The total distance around the route triples each round.
+The replacement therefore finishes six step lengths ahead. Make each new step one sixth of the original length to keep its endpoints fixed.
 
-The detours on opposite sides of an edge balance their signed areas. “Signed” means an inward patch subtracts what an outward patch adds. This balance preserves the closed route's signed area even as the route gets longer.
+Eighteen segments at one-sixth length have three times the old length. Every replacement triples the distance drawn around the route.
 
-## The eighteen-step rule
-
-Start with `F-F-F-F` and replace F with:
+The exact rule is:
 
 ```text
 F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
 ```
 
-F draws forward. Plus and minus turn by 90 degrees. This is one of several patterns called quadratic Koch islands.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
-
-The [Minkowski sausage](/l-system/minkowski-sausage) uses eight lines per replacement. The [quadratic snowflake](/l-system/quadratic-snowflake) uses five.
+F draws forward. Plus and minus turn in opposite directions. Other patterns called quadratic Koch islands use different replacements, so their counts and sizes can differ from this version.
 
 ## Sources and notes
 

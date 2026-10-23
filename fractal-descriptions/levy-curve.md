@@ -1,22 +1,18 @@
 # Lévy Curve
 
-Replace a straight line with two equal lines that meet at a right angle. Keep the old ends in place. Repeat on both new lines, bending each the same way.
-
-A C-shaped curve starts to curl around itself.
+Replace a straight line with two equal lines meeting at a right angle. Keep the original endpoints fixed. Repeat on both new lines, placing each replacement on the same side of its line.
 
 <figure data-construction-player="levy-curve"></figure>
 
-Two lines replace one, so the count doubles each round. Each new line is about 71% as long as the old line. Together, they make a longer route between the same ends.
+The original line is the long side of a right triangle. The two new lines are its equal shorter sides. Each must be $1/\sqrt2$ times the old length, about 71%, for the endpoints to stay fixed.
 
-At any finite stage, you draw only lines. In the infinite limit, the curve fills a region with area.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
+Their combined length is about 1.414 times the old length. Each round doubles the line count and increases the total distance drawn by that same factor.
 
-Even its outer edge is hard to describe. Duvall and Keesling needed a table with 752 rows to track how the pieces meet.
+Every finite version is made from straight line segments. In the infinite limit, the image contains a region with area.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup> The small loops and overlaps become dense enough to include the region's interior, not only its edge.
 
-## Draw it from symbols
+The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It changes which direction the smaller pieces face, producing a different outline.
 
-Start with F and replace it with `-F++F-`. F draws forward. Each turn is 45 degrees. The double plus makes the right-angle corner.
-
-The [Dragon curve](/l-system/dragon-curve) shrinks its lines by the same amount but turns its pieces differently. Compare how the two paths pack themselves into the plane.
+This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus signs make the right angle between the new lines.
 
 ## Sources and notes
 

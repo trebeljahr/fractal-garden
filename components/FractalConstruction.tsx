@@ -171,13 +171,7 @@ function ConstructionSurface({
   return <div ref={containerRef} className={styles.surface} />;
 }
 
-function ConstructionSequence({
-  spec,
-  children,
-}: {
-  spec: ConstructionSpec;
-  children?: ReactNode;
-}) {
+function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const controls = useContext(ControlsContext);
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -296,8 +290,6 @@ function ConstructionSequence({
   const inputProgress = max ? (selected / max) * 100 : 0;
   return (
     <figure className={styles.demo} data-teaching-lesson="full-construction">
-      <figcaption className={styles.title}>Build the fractal</figcaption>
-      {children && <div className={styles.explanation}>{children}</div>}
       <div
         ref={frame}
         className={styles.workspace}
@@ -442,11 +434,7 @@ function ConstructionSequence({
   );
 }
 
-export function FractalConstruction({ children }: { children?: ReactNode }) {
+export function FractalConstruction() {
   const spec = useContext(ConstructionContext);
-  return spec ? (
-    <ConstructionSequence key={spec.identity} spec={spec}>
-      {children}
-    </ConstructionSequence>
-  ) : null;
+  return spec ? <ConstructionSequence key={spec.identity} spec={spec} /> : null;
 }

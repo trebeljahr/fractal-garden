@@ -1,26 +1,18 @@
 # Diffusion-Limited Aggregation
 
-Put one frozen dot on a grid. Release another dot nearby and let it wander. When it touches the frozen dot, it sticks. Send in another. Keep going.
+Start with one fixed particle. Add another nearby and move it randomly. When it touches the fixed particle, it stays there. Add another moving particle and repeat.
 
-Branches appear without any instruction to draw a branch. Exposed tips catch wandering dots first. The gaps behind those tips are harder to reach, so they grow more slowly.
-
-Thomas Witten and Leonard Sander introduced this model in 1981.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup>
+The fixed particles form a cluster. New particles usually hit an exposed tip before reaching a deep gap. As a result, tips collect more particles and extend farther than the recessed parts.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup>
 
 <figure data-lesson="dla"></figure>
 
-In the small diagram, a dot steps up, down, left or right. Touching a corner counts too. Each dot freezes at its first contact.
+The diagram shows the individual moves. Each step goes up, down, left or right. A particle counts as touching if it reaches any of the eight neighboring cells, including a diagonal neighbor.
 
-## Let some dots keep walking
+In this diagram the particle sticks on its first contact. In the full explorer, **Sticking chance** can be lower. A particle may then move again after touching the cluster.
 
-Lower **Sticking chance** and a dot can touch the cluster without stopping. It gets more chances to move before it sticks.
+A point seed lets the cluster extend in all directions. A line seed gives it an extended base. Coloring by arrival time shows which parts formed first and where particles are attaching now.
 
-A **point** seed grows outward from one spot. A **line** seed lets branches grow along a base. **First arrivals** and **Last arrivals** color the dots by when they joined.
-
-Large clusters from the usual two-dimensional model have an estimated fractal dimension near 1.7. That is a measured result, not an exact rule for every cluster.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup>
-
-Witten later found that the iron particles which inspired the model joined in a different way. This rule did not describe those particular particles.<sup><a href="#diffusion-limited-aggregation-source-2">2</a></sup>
-
-The [Barnsley fern](/barnsley-fern) also uses random choices. There, each choice moves a point into a smaller copy of a fixed shape. Here, each arriving dot changes where the next one can stick.
+Witten and Sander introduced the model in 1981. It was inspired by iron aggregates, although Witten later found that those particles joined through a different process.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup> This is a model of random motion and sticking, rather than a rule for every branching structure in nature.
 
 ## Sources and notes
 

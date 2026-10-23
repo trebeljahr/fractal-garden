@@ -1,31 +1,18 @@
 # L-System Explorer
 
-Give a pen a few instructions. F means draw forward. Plus means turn one way. Minus means turn the other.
+An L-system produces a picture by replacing letters in a string, then reading the result as drawing instructions. Aristid Lindenmayer introduced these systems in 1968 to describe plant development.<sup><a id="l-system-explorer-ref-1" href="#l-system-explorer-source-1">1</a></sup>
 
-Now give it a rule for changing those instructions. Replace every F with a longer string. Repeat, and a short recipe can draw a whole tree or snowflake.
+F usually means draw forward. Plus and minus mean turn. For example, replacing F with `F+F` gives two lines with a turn between them. Replacing both new F letters again gives `F+F+F+F`.
 
-Aristid Lindenmayer introduced this kind of system in 1968 to describe growing plants.<sup><a id="l-system-explorer-ref-1" href="#l-system-explorer-source-1">1</a></sup>
+Every replacement uses the old string. A letter added during this round waits until the next round before being replaced itself.
 
 <figure data-construction-player="l-system-explorer"></figure>
 
-## How a branch remembers its fork
+Brackets let the route branch. In `F[+F]F`, the first F draws a stem. The opening bracket saves its endpoint and direction. Plus turns and the next F draws a side branch. The closing bracket returns to the saved position without drawing. The final F continues the stem.
 
-An opening bracket means “remember this position and direction.” A closing bracket means “go back there without drawing.” The next line can then grow from the same fork.
+A letter can also have a replacement without drawing anything. X is often used this way to mark where more instructions will appear. This separates future branching positions from the F lines already present.
 
-Try this plant, starting with X:
-
-```text
-X → F[+X]F[-X]+X
-F → FF
-```
-
-X marks a growing tip. It does not draw a line itself. Each round turns one X into three new tips and two drawing steps. Old F steps double.
-
-All letters change at once. Letters created in this round wait until the next round to grow.
-
-Change the angle to spread or narrow the plant. Move a bracket to change where a branch begins. The same letters can make very different pictures.
-
-The [Koch snowflake](/l-system/koch-snowflake) grows bumps along an edge. [Fern 1](/l-system/fern-1) uses branches inside branches. Both use this same replace-and-draw idea.
+Changing a turn angle changes the geometry while leaving the string unchanged. Moving a bracket changes which position and direction are restored, so it can attach a branch somewhere else.
 
 ## Sources and notes
 

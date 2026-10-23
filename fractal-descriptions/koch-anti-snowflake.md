@@ -1,20 +1,18 @@
 # Koch Anti-Snowflake
 
-Start with a triangle. Cut a little triangular notch into the middle of each side. Then cut a smaller notch into every new side.
+Start with an equilateral triangle. Divide each side into thirds. Replace the middle third with two sides of a smaller triangle pointing inward.
 
-This is the [Koch snowflake](/l-system/koch-snowflake) with its bumps pointing inward.<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
+Four one-third-length lines replace each old side. Repeat on every new line. This is the inward version of the [Koch snowflake](/l-system/koch-snowflake).<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
 
 <figure data-construction-player="koch-anti-snowflake"></figure>
 
-Each old line becomes four lines, each one third as long. The edge gets longer by a factor of $4/3$ each round, even though you keep removing pieces.
+The total edge length increases by a factor of $4/3$ each step. The area decreases because the new triangular notches remove pieces of the interior.
 
-The first round removes three triangles. Each has one ninth of the starting triangle's area. Later rounds remove more triangles, but much smaller ones.
+The first replacement removes three triangles, each with one ninth of the starting area. The next removes four times as many triangles, each with one ninth of that size. The amount removed in each round is four ninths of the previous round's amount.
 
-Add up all the cuts, including infinitely many rounds, and two fifths of the original area remains. The edge grows without end while the shape keeps a finite area.
+Adding all these decreasing amounts gives three fifths of the original area. Two fifths remains in the infinite anti-snowflake.
 
-The computer starts with `F++F++F` and uses `F → F+F--F+F`. F draws forward. Plus and minus turn by 60 degrees. The starting triangle's direction sends the notches inward.
-
-The [Cesàro fractal](/l-system/cesaro-fractal) puts notches into a square and lets you sharpen their angle.
+The ordinary snowflake adds triangles instead and finishes with eight fifths of the starting area. The same segment sizes can therefore increase the edge length while changing the enclosed area in opposite directions.
 
 ## Sources and notes
 

@@ -1,30 +1,18 @@
 # Mandelbulb
 
-Move around the bulb and look for smaller bulbs on its surface. Grooves split into finer grooves. The rule keeps making detail at smaller sizes.
+The Mandelbulb applies a repeated calculation to points in three dimensions. Each point supplies a fixed position to add, and the calculation starts at the origin.
 
-The [Mandelbrot set](/mandelbrot) tests points on a flat plane. This construction tests points in three-dimensional space.
+At every step, measure the current point's distance from the origin and its two angles. The default rule raises the distance to the eighth power and multiplies both angles by eight. Convert that back to a position, add the fixed position, then repeat.
 
 <figure data-investigation="mandelbulb"></figure>
 
-## Wrap around, then add
+At the origin, the power step returns zero. The first addition therefore moves to the chosen point. Later positions either stay within a fixed distance of the origin or increase their distance without limit. The boundary between the two outcomes forms the bulb's surface.
 
-Choose a point $\mathbf c$ and start at the center. Measure the moving point's distance from the center and its two angles around it.
+The [Mandelbrot set](/mandelbrot) uses a related calculation in two dimensions. This spherical rule extends the distance-and-angle operation to three dimensions. **Power** changes both the distance calculation and the angle multipliers, so it changes the shape itself.
 
-The default rule raises that distance to the eighth power and multiplies both angles by eight. Then add $\mathbf c$. Repeat with the same $\mathbf c$ each time.
+Daniel White published the construction in 2007. Paul Nylander's later higher-power experiments led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
-Points whose journeys stay bounded belong to the bulb. Escaping journeys belong outside it. As with the Mandelbrot set, the computer can test only a finite number of steps.
-
-Daniel White published his spherical-coordinate construction in 2007. Paul Nylander later tried higher powers. The eighth-power images drew attention in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
-
-**Power** changes the rule itself. Try another value and watch the arrangement of lobes change.
-
-## How the surface appears
-
-For each pixel, the renderer follows a ray into the scene. It estimates how far it can move before reaching the bulb. Small steps near the surface reveal the bumps and grooves.
-
-Those estimates have limits. Zooming eventually reveals what the renderer can resolve, rather than all the detail of the mathematical shape.
-
-The colors use how close the journeys pass to the center and coordinate planes. The [Julia explorer](/julia-set) shows another kind of square-and-add picture on a flat plane.
+The renderer tests positions along a line through each pixel. It estimates their distance from the surface and takes smaller steps near it. These estimates and the limited number of repeated calculations restrict the detail visible at deep zoom levels.
 
 ## Sources and notes
 

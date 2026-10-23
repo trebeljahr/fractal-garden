@@ -1,28 +1,20 @@
 # Buddhabrot
 
-The [Mandelbrot set](/mandelbrot) asks whether a point escapes. The Buddhabrot asks where it went along the way.
+For a Mandelbrot picture, each pixel's coordinates provide the fixed number used in an escape test. A Buddhabrot records the route taken by the calculations that do escape.
 
-Choose a number $c$. Start at zero, square it, add $c$, and repeat:
-
-$$
-z_{n+1}=z_n^2+c.
-$$
-
-If the point escapes, draw its earlier stops. Then try another $c$. Places that get more visits grow brighter.
+Start at zero, square, add the chosen number, and repeat. Save the intermediate positions. If the sequence escapes, add a faint dot at each saved position. Otherwise, discard the route and try another number.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
 
 <figure data-investigation="buddhabrot"></figure>
 
-Each escaping journey adds a faint trail. Many trails together make the picture. Melinda Green developed this method in 1993. Lori Gardi later named it the Buddhabrot.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
+Each recorded visit increases a pixel's counter. A pixel with more visits is displayed more brightly. Accumulating many escaping sequences produces the image.
 
-The location of $c$ chooses the journey. The bright dots show the journey's stops. Those can be far apart, which is why this picture differs from the Mandelbrot set.
+The [Mandelbrot set](/mandelbrot) colors the location of the fixed number used in the test. A Buddhabrot colors the intermediate results instead. Those results can pass through a location whose own Mandelbrot test would not escape, so the bright pixels need not lie outside the set.
 
-## Which journeys count?
+**Min orbit length** filters out short routes. **Max iterations** sets how long the computer waits for an escape. Routes that haven't escaped by then add nothing to the picture.
 
-**Max iterations** sets how long the explorer waits for an escape. A journey that does not escape in time adds no dots.
+**Exposure** changes how bright the accumulated dots appear. It doesn't change which routes were recorded.
 
-**Min orbit length** removes short journeys. Raise it to keep only paths that wander longer before escaping.
-
-**Exposure** brightens faint trails without adding new visits. The explorer also reflects each trail across the horizontal axis. The square-and-add rule has the same symmetry.
+Melinda Green developed the method in 1993. Lori Gardi later supplied the name.
 
 ## Sources and notes
 

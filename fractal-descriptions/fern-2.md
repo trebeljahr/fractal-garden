@@ -1,25 +1,25 @@
 # Fern 2
 
-This fern has two jobs for two letters. Y grows the main forks. X adds pairs of short side branches.
+Two letters control different parts of this fern. Y adds the main forks. X adds short side branches along the stems. Neither letter draws a line directly; both add F instructions that do the drawing.
 
-Start with Y and replace the letters like this:
+Start with Y and use:
 
 ```text
 Y → YFX[+Y][-Y]
 X → X[-FFF][+FFF]FX
 ```
 
-F draws forward. X and Y draw nothing until their rules add new F steps. Plus and minus turn by 25.7 degrees.
+The turn angle is 25.7 degrees.
 
 <figure data-construction-player="fern-2"></figure>
 
-Brackets let a branch leave the stem and return to the same fork. Remember the position and direction at `[`. Restore both at `]`, without drawing a line back.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
+Each pair of brackets defines a side branch. The opening bracket saves the position and direction, and the closing bracket restores them without drawing back along the branch.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
 
-Each Y makes three Y tips: one continues, and two branch sideways. Each X makes two X tips and seven drawing steps. The `FFF` groups give its side branches three steps each.
+A Y replacement leaves three Y positions: one on the continuing stem and two on side branches. An X replacement puts three F steps on each of two side branches. It also continues with an F step and two X positions.
 
-Old F steps stay as they are. That differs from [Fern 1](/l-system/fern-1), where each old F doubles. Here, all the extra drawing instructions come from X and Y.
+Old F instructions stay unchanged. New length is added through the X and Y replacements. In [Fern 1](/l-system/fern-1), by comparison, each old F becomes two F steps as well.
 
-Starting with Y, the first three rounds draw 1, 11 and 55 steps.
+The first replacement draws one forward step. The second draws eleven. The difference comes from applying both letter rules to the previous string, rather than adding the same small branch once per level.
 
 ## Sources and notes
 

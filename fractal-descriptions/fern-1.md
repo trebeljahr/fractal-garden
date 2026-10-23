@@ -1,23 +1,23 @@
 # Fern 1
 
-Draw a stem. Branch off it, then return to the fork and grow another branch. Repeat at the new tips. Smaller leaflets appear inside larger leaflets.
+This fern is drawn from a string of instructions. F means move forward while drawing a line. X marks a position that will gain more instructions at the next step; it doesn't draw anything itself.
 
-The instructions start with X and use these rules:
+Starting with X, replace the letters using:
 
 ```text
 X → F+[[X]-X]-F[-FX]+X
 F → FF
 ```
 
-F draws forward. X marks a tip that will grow next time. Plus and minus turn in opposite directions. This fern uses an angle of −25 degrees.
+Plus and minus turn in opposite directions. The angle setting is −25 degrees.
 
 <figure data-construction-player="fern-1"></figure>
 
-An opening bracket means “remember this spot and direction.” A closing bracket means “go back there without drawing.” That lets several branches start from the same fork.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
+The brackets make branches possible. At an opening bracket, save the current position and direction. At its closing bracket, restore both without drawing a return line. The following instructions can then draw a different branch from the same position.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
 
-Each X makes four new X tips. Each old F becomes two forward steps. The first three rounds draw 3, 18 and 84 steps. A tiny set of instructions soon makes a crowded plant.
+The brackets inside brackets repeat that process within a branch. Every X adds four new X positions. Each existing F becomes FF, so the earlier stems become longer strings of drawing steps too.
 
-[Fern 4](/l-system/fern-4) grows three tips each time and puts a turn at the continuing tip. Compare where the main stems bend.
+Repeated replacement adds smaller branching arrangements throughout the plant. The final picture comes from the placement of those branches and the turn angle. Changing the angle changes their positions without changing the instructions.
 
 ## Sources and notes
 

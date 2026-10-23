@@ -1,30 +1,20 @@
 # Mosely Snowflake
 
-Split a cube into 27 little cubes. Remove the eight corners. Repeat inside every cube that remains.
+Divide a cube into 27 equal cubes and remove the eight corner cubes. Nineteen remain. Repeat inside each remaining cube.
 
-The **heavier** version keeps nineteen cubes each time. The **lighter** version also removes the middle cube, leaving eighteen.
+This is the **heavier** version. The **lighter** version also removes the center cube, leaving eighteen each time.
 
 <figure data-construction-player="mosely-snowflake"></figure>
 
-Both versions lose volume at every round. Keep going forever and that volume falls to zero. The holes and corners keep gaining smaller detail.
+In either version, the number of cubes increases while their combined volume decreases. Each heavier step keeps $19/27$ of the previous volume. Each lighter step keeps $18/27$.
 
-## A cube with a snowflake shadow
-
-Look at a cube from a corner, along its diagonal. With parallel viewing rays, its shadow is a hexagon.
-
-Keep removing corners with the heavier rule, and that shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake).<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup> The cubes make an outline usually built from triangular bumps.
+From a corner-to-corner diagonal, a cube projects onto a hexagon. Under the heavier replacement rule, the smaller hexagons overlap to produce a [Koch snowflake](/l-system/koch-snowflake). The infinite shadow is filled, despite the solid having zero limiting volume.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup>
 
 <figure data-article-images="mosely-koch"></figure>
 
-The lighter version has holes in this shadow. Removing its middle cubes opens gaps that the heavier version fills. The exact filled-snowflake result belongs to the heavier rule.
+The lighter version leaves holes in that projection. Some viewing lines pass through the removed corners and center without meeting any remaining cube. The filled-snowflake result applies to the heavier version.
 
-The main explorer uses perspective, so moving the camera changes the apparent outline.
-
-## Built from business cards
-
-The fractal is named for Jeannine Mosely. She and Margaret Wertheim documented a USC Libraries project to assemble a model from roughly 49,000 business cards in 2011–2012.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup>
-
-Compare the [Menger sponge](/menger-sponge). It keeps the corners and removes the face centers. Swapping which cubes remain changes both the tunnels and the shadow.
+Jeannine Mosely and Margaret Wertheim documented a physical model assembled from roughly 49,000 business cards in 2011–2012.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> The folded modules represent a finite stage of this cube replacement.
 
 ## Sources and notes
 

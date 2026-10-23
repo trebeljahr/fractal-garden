@@ -5,8 +5,6 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
-import { GEOMETRY_LESSONS, isGeometryLessonKind } from "../utils/lessons/geometryLessons";
-import { isPathLessonKind, PATH_LESSONS } from "../utils/lessons/pathLessonInfo";
 import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
 import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
@@ -121,13 +119,7 @@ const MarkdownRenderers: object = {
   figure: ({ node, children }: { node?: HastElement; children?: React.ReactNode }) => {
     const construction = node?.properties?.dataConstructionPlayer;
     if (construction !== undefined) {
-      const info = isGeometryLessonKind(construction)
-        ? GEOMETRY_LESSONS[construction]
-        : isPathLessonKind(construction)
-          ? PATH_LESSONS[construction]
-          : null;
-      const detail = construction === "gosper-curve" ? info?.idea : info?.detail;
-      return <FractalConstruction>{detail && <p>{detail}</p>}</FractalConstruction>;
+      return <FractalConstruction />;
     }
     const investigation = node?.properties?.dataInvestigation;
     if (isInvestigationKind(investigation))

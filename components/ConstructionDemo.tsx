@@ -10,7 +10,7 @@ import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket
 import { LessonSteps } from "./lessons/LessonFrame";
 
 const EXAMPLES = {
-  carpet: { title: "Cut out the middle", max: 3 },
+  carpet: { title: "Remove the center square", max: 3 },
   koch: { title: "Replace one edge", max: 4 },
   canopy: { title: "Branch, shrink, repeat", max: 5 },
   apollonian: { title: "Fill the gaps", max: 3 },
@@ -122,7 +122,7 @@ function caption(kind: ConstructionKind, step: number) {
   if (kind === "carpet")
     return step === 0
       ? "Start with one filled square."
-      : `${8 ** step} smaller squares remain. They cover ${((8 / 9) ** step * 100).toFixed(1)}% of the original area. Amber marks the holes cut in this step.`;
+      : `${8 ** step} smaller squares remain. They cover ${((8 / 9) ** step * 100).toFixed(1)}% of the original area. Amber marks the squares removed in this step.`;
   if (kind === "koch")
     return step === 0
       ? "Start with one straight edge. The snowflake starts with three edges around a triangle."
@@ -130,7 +130,7 @@ function caption(kind: ConstructionKind, step: number) {
   if (kind === "canopy")
     return step === 0
       ? "Start with one trunk."
-      : `${2 ** step} new branches grow at the tips. Each is 62% as long as its parent. Amber marks the newest branches.`;
+      : `${2 ** step} new branches are added at the tips. Each is 62% as long as its parent. Amber marks the newest branches.`;
   return step === 0
     ? "Start with three touching circles inside an outer circle."
     : `${4 * 3 ** (step - 1)} new circles fit into the gaps. Amber marks this step's additions; dots mark where they touch older circles.`;

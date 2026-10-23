@@ -1,36 +1,18 @@
 # Lorenz Attractor
 
-Follow one point as it loops around two wings. It can circle one wing several times before crossing to the other.
+The Lorenz system calculates how three values change over time. Each value affects the others. Plotting the three values as coordinates produces the two-winged trail shown here.
 
-Start a second point almost in the same place. At first, the trails stay close. Later, one can switch wings while the other keeps circling. A tiny difference at the start changes the journey.
+These coordinates came from a simplified model of heat-driven fluid motion. One describes circulation; the other two describe temperature differences. The trail is a plot of those changing quantities, not the route of a particle through the fluid.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup>
 
 <figure data-lesson="lorenz"></figure>
 
-Edward Lorenz found this behavior in a simplified model of moving heat in 1963. The three numbers describe circulation and temperature changes.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup> The butterfly shows how those numbers change together. It is not a butterfly-shaped route through the air.
+The comparison starts a second calculation just 0.001 away in one coordinate. Both calculations use exactly the same rules. They initially produce similar values, but later can circle different wings.
 
-## No dice, but hard to predict
+This is sensitivity to the starting conditions. If the starting values are only approximately known, their later values can become difficult to predict. The separation doesn't increase at every moment: the two points can move closer together before separating again.
 
-The rules contain no randomness. Each position decides the next move. Yet a small uncertainty in the starting position can grow until a detailed prediction fails.
+Warwick Tucker proved that the classic equations support a chaotic attractor. His proof used calculations with bounds on their errors, rather than relying on the appearance of a plotted trail.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
 
-The two trails do not have to move farther apart at every moment. Watch them separate, come closer, then separate again.
-
-Warwick Tucker later proved that the classic equations really support this chaotic attractor. He used calculations that bound their own numerical errors.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
-
-## The rule behind the trail
-
-These equations give the point's speed in each direction:
-
-$$
-\frac{dx}{dt}=\sigma(y-x),\qquad
-\frac{dy}{dt}=x(\rho-z)-y,\qquad
-\frac{dz}{dt}=xy-\beta z.
-$$
-
-The defaults are $\sigma=10$, $\rho=28$ and $\beta=8/3$. Changing them can change the motion completely.
-
-The computer approximates the trail in small time steps. Halve **Time step** and double **Steps** to compare the same duration with finer steps.
-
-The [Rössler attractor](/rossler-attractor) loops around one main spiral. The [logistic map](/logistic-map) reaches chaos by repeatedly updating a single number.
+The explorer approximates the motion in small time steps. **Time step** sets their size and **Steps** sets their number. Halve the first and double the second to compare the same duration with finer calculations. Changing the model parameters can produce different behavior, including motion that isn't chaotic.
 
 ## Sources and notes
 

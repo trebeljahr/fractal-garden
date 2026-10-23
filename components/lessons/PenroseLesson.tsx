@@ -61,14 +61,17 @@ export default function PenroseLesson() {
   const summary =
     step === 0
       ? `Start with one ${kind === "acute" ? "acute half-kite" : "obtuse half-dart"}. Its boundary stays fixed as the pieces get smaller.`
-      : `${acute} acute ${acute === 1 ? "half" : "halves"} and ${obtuse} obtuse ${obtuse === 1 ? "half" : "halves"} fill the same parent. Each step adds cuts without changing the area.`;
+      : `${acute} acute ${acute === 1 ? "half" : "halves"} and ${obtuse} obtuse ${obtuse === 1 ? "half" : "halves"} fill the same parent. Each step divides the triangles without changing their total area.`;
   const choose = (next: PenroseLessonParent) => {
     setKind(next);
     setStep(0);
   };
   return (
     <LessonFrame title="Keep the boundary, divide the pieces" kind="penrose">
-      <p>Choose a parent triangle, then split it into smaller acute and obtuse halves.</p>
+      <p>
+        Choose a starting triangle. Acute triangles have all angles below 90 degrees; obtuse
+        triangles have one angle above 90 degrees.
+      </p>
       <fieldset className={common.options} aria-label="Penrose parent triangle">
         <button type="button" aria-pressed={kind === "acute"} onClick={() => choose("acute")}>
           Acute half-kite
@@ -139,7 +142,7 @@ export default function PenroseLesson() {
       <LessonSteps label="Penrose subdivision" step={step} max={3} onChange={setStep} />
       <p>
         An acute half becomes two acute halves and one obtuse half. An obtuse half becomes one of
-        each. The same cuts recur inside every new piece.
+        each. Repeat these divisions inside every new triangle.
       </p>
     </LessonFrame>
   );

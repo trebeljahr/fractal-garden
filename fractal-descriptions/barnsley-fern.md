@@ -1,37 +1,22 @@
 # Barnsley Fern
 
-Pick a point. Move it using one of four rules. Draw a dot where it lands, then move that point again. Keep going, and a fern appears.
+This fern is made one dot at a time. Each dot starts where the last one landed. One of four rules moves it to a new position, and the computer draws another dot there.
 
-No rule draws a leaf. Each rule shrinks, turns or moves the point. Together, they put the dots in the right places.<sup><a id="barnsley-fern-ref-1" href="#barnsley-fern-source-1">1</a></sup>
+The rules shrink, turn and move coordinates. One sends a point onto the stem. One puts it into a smaller copy toward the fern's tip. The other two put it into copies on the left and right.<sup><a id="barnsley-fern-ref-1" href="#barnsley-fern-source-1">1</a></sup>
 
 <figure data-article-images="fern"></figure>
 
-## Four rules make the whole fern
+The fern's outline comes from where those copies fit. The computer chooses a rule randomly, but every choice still lands inside one of the four copies. After enough moves, dots appear throughout the fern.
 
-The Classic Barnsley preset chooses these rules:
-
-- **Stem:** squash the point onto the stem. Use this rule 1% of the time.
-- **Tip:** shrink and turn toward the top. Use it 85% of the time.
-- **Left leaflet:** move into a smaller copy on one side. Use it 7% of the time.
-- **Right leaflet:** move into the copy on the other side. Use it 7% of the time.
-
-The next dot always starts from the last dot. Randomness chooses the rule, not a fresh place on the screen.
+The Classic Barnsley preset uses the tip rule 85% of the time. The stem gets 1%, and the two side rules get 7% each. Most steps therefore use the tip rule, with occasional steps into a side copy or onto the stem.
 
 <figure data-lesson="fern"></figure>
 
-You can also make the fern without randomness. Choose **All four maps** to apply all four rules to the whole picture at once. Repeat on the result.
+Choose **All four maps** to remove the random choice. Now every step applies all four rules to the whole previous picture. You see the smaller copies directly. Repeat that process and it approaches the same fern.<sup><a id="barnsley-fern-ref-2" href="#barnsley-fern-source-2">2</a></sup>
 
-Both methods approach the same fern. Even the starting picture can change: a point, a rectangle or a small drawing will approach that same shape.<sup><a id="barnsley-fern-ref-2" href="#barnsley-fern-source-2">2</a></sup> At early stages, you can still see pieces of the starting picture.
+The two methods place dots differently along the way. Changing the positive probabilities changes how heavily the random method fills each region, but the four fixed rules still determine the same final shape.<sup><a id="barnsley-fern-ref-3" href="#barnsley-fern-source-3">3</a></sup>
 
-## Change the fern
-
-**Fern style** changes the four rules. Compare **Cyclosorus** with **Fishbone fern** and watch the side leaflets change shape.
-
-Changing how often a rule is chosen changes where dots pile up. As long as every rule keeps a positive chance, the same four rules still define the same final shape.<sup><a id="barnsley-fern-ref-3" href="#barnsley-fern-source-3">3</a></sup>
-
-Scroll or pinch over a leaflet to see its smaller copies. The explorer adds detail inside the view as you zoom. It gives sparse areas extra dots so you can see them. The zoomed image shows the shape, rather than the original distribution of dots.
-
-The [L-system fern](/l-system/fern-1) grows another way: it follows instructions for drawing and branching. The [fractal canopy](/fractal-canopy) starts with a trunk and repeats a fork.
+Zoom into a leaflet to see copies inside it. The explorer adds extra dots in the visible region so small details remain readable. That changes dot density in the zoomed view.
 
 ## Sources and notes
 

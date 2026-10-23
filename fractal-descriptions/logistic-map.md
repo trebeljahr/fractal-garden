@@ -1,28 +1,22 @@
 # Logistic Map
 
-One number settles down. Turn a control, and it starts bouncing between two values. Turn it farther: four values, then eight, then a pattern that stops repeating.
-
-All of that comes from one rule:
+Take a number between zero and one. Multiply it by one minus itself, then multiply by a control value $r$. Use the answer as the next number and repeat:
 
 $$
 x_{n+1}=rx_n(1-x_n).
 $$
 
-Take the current number $x$. Multiply it by $1-x$, then by the control value $r$. Use the result as your next $x$ and repeat.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
+For $r=2$, starting at $0.2$ gives $0.32$, then $0.4352$, then about $0.492$. The answers approach $0.5$. Putting $0.5$ into the rule gives $0.5$ again.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
 
 <figure data-lesson="logistic"></figure>
 
-Try $r=2$ and start at $x=0.2$. The next values are $0.32$, $0.4352$, then about $0.492$. They approach $0.5$. Substituting $0.5$ gives $0.5$ again, so the number stays there.
+The large picture repeats this experiment for many values of $r$. Each vertical column uses one value. It skips some early answers, then plots the later ones.
 
-## Where do the branches come from?
+Where the answers settle toward one value, the column has one band. Where they alternate between two values, it has two bands. Raise $r$ past the next split and the repeating cycle has four values, then eight.
 
-Each vertical slice of the big picture uses one value of $r$. The explorer starts at $0.5$, waits through some early steps, then plots later values.
+These doublings accumulate near $r=3.57$. Many settings beyond that produce chaos: nearby starting numbers eventually give very different sequences. Repeating cycles still return in some intervals. Near $r=3.83$, the rule settles into a three-value cycle.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup>
 
-One lasting value makes one band. Two alternating values make two bands. Each split marks another doubling of the repeating pattern.
-
-Beyond about $r=3.57$, many settings give chaotic behavior. But repeating patterns return in pockets. Near $r=3.83$, the numbers settle into a cycle of three.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup>
-
-This rule also connects to the [Mandelbrot set](/mandelbrot). Change coordinates with $z=r/2-rx$ and it becomes the same square-and-add rule, with $c=r(2-r)/4$. The branch diagram and the Mandelbrot picture share that mathematics.
+The branches in the picture show these lasting cycles. A limited calculation can also include values that have not settled yet, especially near a split.
 
 ## Sources and notes
 

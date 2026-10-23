@@ -1,28 +1,18 @@
 # Quadratic Koch Surface
 
-Put a small cube-shaped bump in the middle of every cube face. Now put smaller bumps on all the new faces. Keep going.
+Divide a face of a cube into nine squares. Put a smaller cube on the middle square, as wide as that square. Do this on all six faces.
 
-To make one bump, split a square into nine squares. Replace the middle square with the five exposed faces of a little cube.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup>
+Repeat this on every exposed square, including the sides of the new cubes. Smaller cubes are therefore added sideways as well as outward.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-koch-3d"></figure>
 
-Eight flat squares and five bump faces replace one old square. That makes thirteen new faces, each with one ninth of the old area.
+Putting a cube on a face covers one square and exposes five: its top and four sides. We gain four squares. The original nine become thirteen, all the same size.
 
-So the total face area grows by $13/9$ each round. The bumps shrink, but their faces multiply fast enough that the area grows without end.
+Each new square has one ninth of the original face's area. Thirteen of them add up to $13/9$ of that area. Doing this again and again increases the total surface area without limit.
 
-## How far can the bumps reach?
+The first added cubes have one third of the starting cube's width. Cubes added on top of those have one ninth, then one twenty-seventh, and so on. The sum of these heights approaches half the starting width, so the total outward extension stays finite.
 
-Follow a stack of bumps outward. Their heights are one third, one ninth, one twenty-seventh of the starting cube's width, and so on.
-
-$$
-\frac13+\frac19+\frac1{27}+\cdots=\frac12.
-$$
-
-Even an endless stack reaches only half a starting cube's width beyond its face. The whole shape fits inside a box twice as wide as the starting cube.
-
-Neel Shrestha worked out how to fold this pattern in origami. A finite version can be assembled from paper.<sup><a href="#quadratic-koch-3d-source-1">1</a></sup>
-
-The [Koch surface](/koch-surface) raises triangular pyramids instead. The [quadratic snowflake](/l-system/quadratic-snowflake) draws square bumps along a flat outline.
+Neel Shrestha developed a way to fold this construction in paper. His origami models use the same thirteen-square replacement.<sup><a href="#quadratic-koch-3d-source-1">1</a></sup>
 
 ## Sources and notes
 

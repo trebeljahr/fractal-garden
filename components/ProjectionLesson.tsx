@@ -5,11 +5,11 @@ import { type ProjectionKind, projectionPolygons } from "../utils/fractalProject
 
 const COPY = {
   menger: {
-    title: "A carpet shadow and a star-filled slice",
+    title: "Menger shadow and cross-section",
     modes: ["Face-on shadow", "Diagonal slice"],
     captions: [
-      "Parallel rays look through the whole sponge. Overlapping cubes give the Sierpiński carpet.",
-      "Only material on x + y + z = 0 remains in this central cut. The dark six-pointed stars are empty space.",
+      "This view combines cubes at every depth along the direction perpendicular to a face. Their projected squares form a Sierpiński carpet.",
+      "This view shows only material in a diagonal plane through the center. The six-pointed stars are holes in that section.",
     ],
     path: "/menger-sponge",
   },
@@ -88,8 +88,8 @@ export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
       <p className={styles.note}>
         This diagram uses{" "}
         {kind === "menger" && mode === 1
-          ? "an exact plane intersection"
-          : "orthographic projection with parallel rays"}
+          ? "the material in one plane through the sponge"
+          : "parallel viewing lines, so nearer parts do not appear larger"}
         . The full explorer uses perspective.
       </p>
       <a

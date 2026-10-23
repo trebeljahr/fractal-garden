@@ -1,26 +1,16 @@
 # N-Flake
 
-Put a smaller polygon at every corner of a larger one. Give each small polygon its own corner copies. Keep repeating.
-
-Choose a triangle and you get the [Sierpinski triangle](/l-system/sierpinski-triangle). Choose five or six sides and different gaps appear.
+This construction replaces a polygon with smaller copies at its corners. A triangle has three corners, so it produces three copies. A pentagon produces five. Each copy is replaced in the same way on the next step.
 
 <figure data-construction-player="n-flake"></figure>
 
-The number of sides changes both the number of copies and how small they need to be. Triangle copies are half-size. Pentagon copies are about 38% as wide. Hexagon copies are one third as wide.
+The copies must shrink enough to fit. Triangle copies are half the original width. Pentagon copies are about 38% of the width, and hexagon copies are one third. These sizes come from the corner positions used in this explorer.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup>
 
-The five small pentagons keep about 73% of the old area. The six small hexagons keep only two thirds. More copies can leave less area when those copies are smaller.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup>
+The triangle version is the [Sierpinski triangle](/l-system/sierpinski-triangle). Changing the number of sides changes both the gaps between the copies and the size of each copy.
 
-## What happens if you fill the middle?
+The **center** option adds another polygon between the corner copies. For squares, the four half-size corner squares already fill the original square. Adding a fifth square in the center covers some of the same area again.
 
-The center option adds another copy for squares, pentagons and hexagons.
-
-Four half-size corner squares already fill a square. Adding a central square only creates overlap. You still see a filled square.
-
-The central pentagon also overlaps its neighbors. Counting copies alone cannot tell you how much of the picture they cover.
-
-Seven one-third-size hexagons fit without overlapping interiors. They make a different fractal from the six-corner version.
-
-The [2D Vicsek fractal](/vicsek-fractal-2d) also puts squares at the center and corners, but at one-third size. The size matters as much as the arrangement.
+For hexagons, the center copy fits between the six corner copies without overlapping their interiors. Adding it fills a gap that would otherwise remain. The two settings therefore produce different shapes even though the corner copies stay in the same positions.
 
 ## Sources and notes
 

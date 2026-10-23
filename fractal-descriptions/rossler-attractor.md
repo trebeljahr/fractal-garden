@@ -1,16 +1,12 @@
 # Rössler Attractor
 
-Watch the point spiral outward. Then it rises, folds back and starts another spiral.
+The Rössler system calculates three changing coordinates. Its trail makes an outward spiral, rises out of the spiral's plane, then returns toward the center.
 
-From above, the trail looks mostly flat. Turn to the side view and the rises become easier to see. Both views show the same moving point.
+The top view shows the spiral. The side view shows the changes in height that are harder to see from above. Both views use the same calculation.
 
 <figure data-lesson="rossler"></figure>
 
-Otto Rössler introduced these rules in 1976. He wanted a simpler relative of the [Lorenz system](/lorenz-attractor). This one makes a spiral with only one term that multiplies two changing coordinates.<sup><a id="rossler-attractor-ref-1" href="#rossler-attractor-source-1">1</a></sup>
-
-## What makes it fold back?
-
-These equations give the point's speed in each direction:
+The rules give the speed in each coordinate:
 
 $$
 \frac{dx}{dt}=-y-z,\qquad
@@ -18,15 +14,13 @@ $$
 \frac{dz}{dt}=b+z(x-c).
 $$
 
-The defaults are $a=0.2$, $b=0.2$ and $c=5.7$.
+The defaults are $a=0.2$, $b=0.2$ and $c=5.7$, as in Rössler's 1976 paper.<sup><a id="rossler-attractor-ref-1" href="#rossler-attractor-source-1">1</a></sup>
 
-When the point is low, the first two rules let it circle outward. As $x$ passes $c$, the last rule can make the height $z$ grow quickly. That height also changes the sideways motion, helping send the point inward again.
+When $z$ is small, the first two rules produce the outward circling motion. In the third rule, the factor $x-c$ changes from negative to positive as $x$ passes $c$. Positive height can then increase quickly. The $-z$ term in the first rule also changes the horizontal motion, helping bring the point inward.
 
-Start another point nearby and compare the trails. They can take different journeys even though both follow the same rules.
+Two lines crossing in the top view need not occupy the same position in space. Their heights may differ. Comparing the views helps distinguish a projected crossing from a repeated three-dimensional position.
 
-A crossing in one flat view does not mean the point returned to the same place. The coordinate hidden by that view can be different.
-
-Changing **Time step** changes the size of the computer's small updates. **Steps** sets how many it takes. Halve one and double the other to compare equal durations. Different parameters can give repeating motion instead of chaos.
+Nearby starts can produce different later trails. As with the [Lorenz system](/lorenz-attractor), changing parameters can also replace chaotic motion with repeating behavior.
 
 ## Sources and notes
 

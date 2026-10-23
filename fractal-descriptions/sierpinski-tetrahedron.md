@@ -1,28 +1,23 @@
 # Sierpinski Tetrahedron
 
-Start with a triangular pyramid. Keep a half-size copy at each of its four corners. The middle disappears. Repeat inside the four little pyramids.
+A tetrahedron is a triangular pyramid with four triangular faces. Replace it with four half-size copies, one at each corner. Neighboring copies touch at the midpoints of the original edges.
 
-Neighboring copies touch halfway along the old edges. The missing middle is an eight-faced solid called an octahedron.
+The removed center is an octahedron, a solid with eight triangular faces. Repeat the replacement inside each remaining tetrahedron.
 
 <figure data-construction-player="sierpinski-tetrahedron"></figure>
 
-Each round keeps four copies with one eighth of the old volume each. That halves the remaining volume. Keep going forever and the volume falls to zero.
+Halving every edge divides a solid's volume by eight. Four copies therefore retain half the original volume. Each further step halves the remaining volume again.
 
-The square-pyramid option uses five corner copies instead of four. It makes a different fractal.
+The **square pyramid** option has a square base and uses five half-size corner copies. It is a different construction.
 
-## A square shadow or a triangle full of holes?
+The same tetrahedron can produce very different shadows. Viewed along the line between the midpoints of opposite edges, its four copies project onto the four quarters of a square. They fill that square at every step.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
 
-Turn the tetrahedron to look along the line joining the midpoints of two opposite edges. With parallel viewing rays, its shadow is a filled square. The four smaller copies fill the square's four quarters.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
-
-Look parallel to an edge instead. Two copies overlap in the shadow, leaving three triangular positions. The result is a stretched [Sierpinski triangle](/l-system/sierpinski-triangle).
+Viewed parallel to an edge, two copies overlap in the projection. The three visible positions produce a stretched [Sierpinski triangle](/l-system/sierpinski-triangle) instead.
 
 <figure data-projection="tetrahedron"></figure>
 
-The shape has not changed. Only the viewing direction changed. These exact shadows use parallel rays. The main explorer uses perspective.
-
-You can also trace every pretzel knot along edges that survive the cuts. A 2024 paper proves this for that knot family. Its authors leave the claim for all knot types as a conjecture.<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> They prove the broader result for the [Menger sponge](/menger-sponge).
+These shadows use parallel viewing lines. The perspective view in the main explorer makes nearer parts appear larger, so its outline can differ.
 
 ## Sources and notes
 
 1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007. Square projections of the Sierpinski tetrahedron, including all finite stages. [Back](#sierpinski-tetrahedron-ref-1)
-2. <span id="sierpinski-tetrahedron-source-2"></span> Joshua Broden, Malors Espinosa, Noah Nazareth and Niko Voth, [Knots Inside Fractals](https://arxiv.org/pdf/2409.03639), 2024 preprint, Theorem B. Pretzel-knot embeddings are proved; arbitrary tetrahedral knot embeddings are conjectural there. [Back](#sierpinski-tetrahedron-ref-2)

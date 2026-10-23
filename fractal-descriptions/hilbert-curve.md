@@ -1,27 +1,18 @@
 # Hilbert Curve
 
-Draw a U. Make four smaller copies and turn them so you can join their ends. Now you have a longer path inside the same square.
+The first Hilbert path is a U connecting four points in a square. To make the next stage, divide the square into four smaller squares and put a smaller copy of the path in each.
 
-Repeat. Each round visits smaller squares. In the infinite limit, the path reaches every point in the big square.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
+Rotate the copies so that three short connecting lines join them into one route. Repeat this arrangement inside every smaller square.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
 
 <figure data-construction-player="lsystem-hilbert"></figure>
 
-The first path visits four grid points. The next visits sixteen, then sixty-four. It visits each grid point once and connects neighboring points with straight lines.
+The route visits every point in a square grid once. The first grid has $2\times2$ points. The next has $4\times4$, then $8\times8$. Adjacent points along the route are always one grid step apart.
 
-Every finite drawing leaves gaps. Keep dividing the squares, and those gaps get smaller. There is no point the limiting path cannot reach.
+Every finite stage leaves gaps between its lines. The smaller squares shrink with each step. Any chosen point in the square lies within a sequence of these smaller squares, whose widths approach zero. The limiting path reaches that point.
 
-## How the computer draws it
+This makes the infinite Hilbert curve space-filling: its image is the whole square. It doesn't mean one of the finite drawings already covers the area.
 
-Start with W and replace the letters:
-
-```text
-V → -WF+VFV+FW-
-W → +VF-WFW-FV+
-```
-
-F draws forward. Plus and minus make right-angle turns. V and W add instructions for the next round. They choose how the smaller U-shaped paths face.
-
-The [3D version](/l-system/hilbert-curve-3d) joins eight paths inside a cube. The [Dragon curve](/l-system/dragon-curve) fills a different shape using a rule you can also make by folding paper.
+The [3D version](/l-system/hilbert-curve-3d) uses eight smaller cubes instead of four squares. Their routes need to connect across shared faces as well as turn within a plane.
 
 ## Sources and notes
 

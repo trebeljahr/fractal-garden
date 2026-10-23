@@ -1,31 +1,29 @@
 # Dragon Curve
 
-Fold a strip of paper in half. Fold it in half again, always the same way. Open the folds until each crease makes a right angle. You get a dragon curve.<sup><a id="dragon-curve-ref-1" href="#dragon-curve-source-1">1</a></sup>
+Fold a paper strip in half repeatedly, always in the same direction. Unfold it until each crease makes a right angle. The resulting path is a dragon curve.<sup><a id="dragon-curve-ref-1" href="#dragon-curve-source-1">1</a></sup>
 
-More folds mean more turns. The path curls around itself and leaves smaller copies of the same pattern.
+Each additional fold doubles the number of sections in the strip. The new crease directions determine whether each connection turns left or right.
 
 <figure data-construction-player="lsystem-dragon"></figure>
 
-The computer follows two rules:
+The computer makes this path with two drawing instructions, F and G. Both mean draw forward, but they have different replacement rules:
 
 ```text
 F → F+G
 G → F-G
 ```
 
-Both F and G draw forward. Plus turns left by 90 degrees. Minus turns right. Start with F, replace all the letters, then draw the new instructions.
+Plus turns left by 90 degrees. Minus turns right. Start with F and replace all letters at once before drawing the next stage.
 
-The line count doubles each round: 1, 2, 4, 8, 16. To keep the distance between the two ends fixed, each new line is about 71% as long.
+Every letter becomes two drawing letters, so the segment count doubles. If the distance between the path's endpoints stays fixed, each new segment is about 71% of the previous length.
 
-At any finite stage, this is a path made of straight lines. After infinitely many stages, its points fill a region with area. The dragon includes that region's inside as well as its outline.<sup><a id="dragon-curve-ref-2" href="#dragon-curve-source-2">2</a></sup>
+At finite stages, there are gaps between the segments. The infinite path includes a region with area, not only a boundary around it.<sup><a id="dragon-curve-ref-2" href="#dragon-curve-source-2">2</a></sup> The [Twindragon](/l-system/twindragon) joins two copies of the path at their ends.
 
-## Fit the dragons together
+For the tiling diagram, each segment is the diagonal of a small filled square. Together these squares fill a region around the finite path. Higher detail makes the squares smaller.
 
-Turn four copies around one point. Repeat that group in diagonal rows. Their edges fit together like jigsaw pieces. Continue the pattern in every direction to tile the plane.<sup><a id="dragon-curve-ref-3" href="#dragon-curve-source-3">3</a></sup>
+Four copies meet at their starting point, rotated by 0, 90, 180 and 270 degrees. Repeating this group in diagonal rows covers the plane without gaps between tiles.<sup><a id="dragon-curve-ref-3" href="#dragon-curve-source-3">3</a></sup>
 
 <figure data-lesson="dragon-tiling"></figure>
-
-The [Lévy curve](/l-system/levy-curve) uses the same two-piece size but turns the pieces differently. Put two dragons back to back to make the [Twindragon](/l-system/twindragon).
 
 ## Sources and notes
 

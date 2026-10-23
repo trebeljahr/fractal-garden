@@ -1,30 +1,19 @@
 # Penrose Tiling
 
-Look for a patch of tiles. You can find that patch again elsewhere. But slide the whole pattern in any direction, and it never lines up with itself perfectly.
+A repeating tiling can be shifted by a fixed distance so that every tile matches another tile. An infinite Penrose tiling has no such nonzero shift. Small groups of tiles recur, but the entire arrangement doesn't repeat.<sup><a id="penrose-tiling-ref-1" href="#penrose-tiling-source-1">1</a></sup>
 
-A Penrose tiling repeats local shapes without repeating the whole layout. Two tile shapes are enough, as long as their edges obey the matching rules.<sup><a id="penrose-tiling-ref-1" href="#penrose-tiling-source-1">1</a></sup>
-
-The explorer offers **kite and dart** tiles or **thick and thin rhombi**.
-
-## Smaller tiles inside each tile
-
-The diagram splits kites and darts into triangular halves. A narrow triangle becomes two narrow triangles and one wide triangle. A wide triangle becomes one of each.
+The explorer offers two tile pairs: **kites and darts**, or **thick and thin rhombi**. The tiles must follow matching rules along their edges. Using the two shapes without those rules does not guarantee a nonrepeating tiling.
 
 <figure data-lesson="penrose"></figure>
 
-The cuts use the golden ratio, about 1.618. Each round leaves the outside of the patch fixed and puts smaller tiles inside it.
+The diagram uses triangular halves of kites and darts. A narrow triangle is divided into two narrow triangles and one wide triangle. A wide triangle is divided into one of each. Repeating those divisions produces smaller copies of the same tile types.
 
-The main explorer shows fixed tiles at different magnifications. The **sun** and **star** starts choose different patches that follow the same rules.
+The division points use the golden ratio, about 1.618. Each round keeps the outside boundary of the patch fixed while changing the tile arrangement inside it.
 
-## Another way to make it
+The main explorer displays fixed tiles at different magnifications. The sun and star starts select different patches. Their recurring groups of tiles reflect the same subdivision rules.
 
-De Bruijn found a construction using a grid in five dimensions. Select a particular band of grid points, then project them onto a plane. Those selected points give a Penrose pattern.<sup><a id="penrose-tiling-ref-2" href="#penrose-tiling-source-2">2</a></sup>
-
-The selection matters. Projecting every grid point would not give this tiling. The explorer uses subdivision instead.
-
-The tiles fill the plane. Their connection to fractals is how smaller and larger arrangements repeat. The [Fibonacci word fractal](/l-system/fibonacci-word-fractal) also grows from a replacement rule linked to the golden ratio.
+Penrose tilings cover an area without gaps. Their connection to fractals is the repetition of arrangements at different sizes, rather than the removal of area as in the [Sierpinski carpet](/sierpinski-carpet).
 
 ## Sources and notes
 
 1. <span id="penrose-tiling-source-1"></span> Tilings Encyclopedia, Bielefeld University, [Penrose Rhomb](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/), Matching rules, substitution, golden-ratio inflation and Fibonacci matrix entries. The triangle counts follow this page’s P2 half-tile rule. [Back](#penrose-tiling-ref-1)
-2. <span id="penrose-tiling-source-2"></span> N. G. de Bruijn, [Algebraic theory of Penrose’s non-periodic tilings of the plane, I, II](https://research.tue.nl/en/publications/algebraic-theory-of-penroses-non-periodic-tilings-of-the-plane-i-/), Indagationes Mathematicae 43 (1981), 39–66. Original pentagrid and lattice-projection framework; the linked university record supplies the published paper. The Tilings Encyclopedia also describes the five-dimensional lattice and three-dimensional internal space. [Back](#penrose-tiling-ref-2)

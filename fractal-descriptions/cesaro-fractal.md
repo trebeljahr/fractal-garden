@@ -1,18 +1,16 @@
 # Cesàro Fractal
 
-Take a square and push a pointed notch into each side. Add smaller notches to every new edge. The square starts to look torn.
-
-Each old line becomes four equal lines. The first and last go straight ahead. The middle two bend inward and back out.<sup><a id="cesaro-fractal-ref-1" href="#cesaro-fractal-source-1">1</a></sup>
+This construction puts an inward triangular notch into each side of a square. Every line is replaced by four equal lines: the first and last continue along the old direction, and the middle two form the notch.<sup><a id="cesaro-fractal-ref-1" href="#cesaro-fractal-source-1">1</a></sup>
 
 <figure data-construction-player="cesaro-fractal"></figure>
 
-Change the angle and watch the notches sharpen. The ends of each old line stay in place. A sharper notch needs a longer detour between those ends, so nearby spikes crowd together.
+The angle control changes the notch. The ends of the old line stay fixed. A sharper notch extends farther sideways, so its four lines must be longer to connect those same endpoints.
 
-At 60 degrees, each new line is one third as long as the old one. That is the same size used by the [Koch snowflake](/l-system/koch-snowflake). At 85 degrees, each line is nearly half as long.
+At 60 degrees, each new line is one third of the old length. At 85 degrees, it is about 46%. There are four lines in either case, so the sharper setting adds more total length per replacement.
 
-The drawing rule is `F → F+F--F+F`. F draws a line. Plus and minus turn in opposite directions. The double minus turns twice.
+Repeating the rule on every line produces smaller notches along the larger ones. At sharp angles, neighboring notches come close together.
 
-The square's four original corners stay at right angles. The angle control changes the little notches. For a triangular shape with inward notches, try the [Koch anti-snowflake](/l-system/koch-anti-snowflake).
+The square's original corners remain at 90 degrees. The adjustable angle belongs to the replacements, not those corners. The [Koch anti-snowflake](/l-system/koch-anti-snowflake) uses fixed 60-degree notches around a triangle instead.
 
 ## Sources and notes
 

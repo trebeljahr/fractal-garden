@@ -1,24 +1,18 @@
 # Board
 
-Start with a square. Replace each side with a path that takes a lap around a tiny square before continuing. Repeat that detour on every new line.
+The Board pattern starts with a square. Each side is replaced by a seven-line path that includes a small square loop.
 
-The drawing instructions are:
-
-```text
-F → FF+F+F+F+FF
-```
-
-F means draw forward. Each plus means turn 90 degrees. Start with `F+F+F+F` to make the first square.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
+To draw one replacement, go forward two steps. Make three right-angle turns with one forward step after each turn. Turn once more and go forward two steps. The route finishes three step lengths ahead of its starting point.
 
 <figure data-construction-player="board"></figure>
 
-Follow one replacement. Go forward twice, walk around the small square, then carry on. Seven steps finish only three step lengths from where you began.
+Making each new step one third as long keeps the ends of the old side in place. Seven one-third-length lines replace one line, so the distance drawn increases by $7/3$ each round.
 
-To keep the original corners in place, make each new step one third as long. The path gets $7/3$ times longer each round.
+The route includes some repeated drawing. After the square loop, the next forward step follows part of a line already drawn. In the first replacement, seven drawing steps produce only six distinct small edges.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
-Part of the route goes over a line it already drew. Seven drawing steps make only six different small edges in the first replacement. That is why counting steps can give a different answer from measuring the visible lines.
+This distinction matters when measuring the pattern. The distance traveled by the pen includes repeated lines. The length of the visible set counts each line once.
 
-[Crystal](/l-system/crystal) makes an even shorter detour: out along one line, then straight back.
+The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.
 
 ## Sources and notes
 

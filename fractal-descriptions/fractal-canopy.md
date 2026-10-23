@@ -1,28 +1,20 @@
 # Fractal Canopy
 
-Draw a trunk. Put shorter branches at its tip. Give every new tip the same branches. A tree grows from one repeated fork.
+A branch ends in several shorter branches. Each of those branches ends in the same arrangement. Repeating this rule produces the canopy.
 
-The **Classic canopy** makes three branches each time. Each is 60% as long as its parent, with 43 degrees between neighboring branches.
+The **Classic canopy** uses three branches at each tip. Each is 60% as long as its parent, with 43 degrees between neighboring directions.
 
-The small diagram uses two branches so you can see the fork clearly. Change the angle and watch the tree spread or narrow.
+The diagram uses two branches per tip so the effect of the angle is easier to compare.
 
 <figure data-construction="canopy"></figure>
 
-## How can so many branches fit?
+Changing the angle changes where the branches point. Changing the length ratio changes how far each generation extends. These controls affect different parts of the construction.
 
-With three branches per fork, each generation has three times as many branches. Yet each branch is shorter. Along any one route from the trunk, those lengths keep shrinking.
+With the Classic settings, a generation has three times as many branches, each 60% as long. Its combined branch length is $3\times0.6=1.8$ times the previous generation's length.
 
-At a 60% length ratio, even an endless route is at most two and a half trunk lengths long. The whole tree can stay in a small space while the combined length of all its branches keeps growing.
+Along one route from the trunk, though, the lengths keep decreasing. Their sum is at most two and a half times the trunk length. The tree can fit within a bounded space while the sum across all its branches keeps increasing.
 
-**Width factor** changes thickness separately. Thicker lines can hide gaps, so a dense-looking canopy does not always contain more branches.
-
-## Trees in a water tank
-
-Researchers at Johns Hopkins make physical fractal trees to study how water flows through a canopy. Their models have five generations and three branches at each fork.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
-
-Some models use acrylic that almost disappears in the liquid. Cameras can then see the water move between the branches.
-
-The [Pythagoras tree](/pythagoras-tree) grows squares instead of lines. A right triangle decides the size of each new pair.
+Physical fractal trees are also used to study water flow through canopies. Johns Hopkins researchers use models with five generations and three branches at each fork.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
 ## Sources and notes
 

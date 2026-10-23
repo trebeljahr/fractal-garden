@@ -1,25 +1,23 @@
 # Fern 4
 
-Watch the tip of this fern. It bends after growing its side branches. That last turn changes where the next part of the stem goes.
+This rule makes two side branches and a continuing stem. It also turns the continuing stem after the side branches are complete.
 
-Start with X and use these rules at 20 degrees:
+Start with X and use these replacements at 20 degrees:
 
 ```text
 X → F[+X]F[-X]+X
 F → FF
 ```
 
-F draws forward. X marks a growing tip. Brackets save the position and direction, then bring you back without drawing.<sup><a id="fern-4-ref-1" href="#fern-4-source-1">1</a></sup>
+F draws a line. X marks where instructions will be added on the next round.
 
 <figure data-construction-player="fern-4"></figure>
 
-The first X branch turns one way. The second turns the other way. Both return to the stem. The final `+X` is outside brackets, so its turn stays with the continuing tip.
+The first `[+X]` makes a side branch with a turn in one direction. Closing the bracket restores the previous position and direction. The second `[-X]` makes a side branch in the other direction and restores them again.<sup><a id="fern-4-ref-1" href="#fern-4-source-1">1</a></sup>
 
-Each X makes three new tips. Each old F doubles. The first three rounds draw 2, 10 and 38 steps.
+The final `+X` has no brackets around it. Its turn changes the direction used by the continuing stem. That is why its effect differs from the turns on the two side branches.
 
-Move the final plus inside the previous brackets in the [L-system explorer](/l-system/explorer). The step count stays the same, but the tip loses its bend. One symbol can change a plant's outline.
-
-[Fern 1](/l-system/fern-1) grows four tips at each replacement instead of three.
+Each X adds three new X positions and two F steps. Each old F doubles. Moving that final plus into the previous bracket leaves these counts unchanged, but removes the turn from the continuing stem. The same number of drawing steps can therefore produce a different outline.
 
 ## Sources and notes
 

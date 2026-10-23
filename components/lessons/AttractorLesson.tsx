@@ -84,7 +84,7 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
   const yStart = fit.project(yStartPoint);
   const yEnd = fit.project(yEndPoint);
   return (
-    <LessonFrame title="Build a trail from numerical steps" kind={system}>
+    <LessonFrame title="Motion over time" kind={system}>
       <p>
         Each step adds {config.batchSteps * config.dt}{" "}
         {config.batchSteps * config.dt === 1 ? "unit" : "units"} of model time. The motion is
@@ -166,13 +166,12 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
       <p>
         Cream follows the reference start ({config.start.join(", ")}). Dashed amber follows the
         nearby start. Bold segments show the current batch; fainter lines show earlier motion. Both
-        paths share one fixed scale. Their distance can grow or shrink along the way.
+        paths use the same scale. Their separation can increase or decrease.
       </p>
       <p>
-        This is a two-dimensional projection of a three-dimensional path. Lines join every eighth
-        numerical sample, plus the endpoints of the current batch. Each update uses fourth-order
-        Runge–Kutta with dt = {config.dt}. A short numerical trace does not prove long-term
-        behavior.
+        Each view shows two coordinates from the same three-coordinate calculation. Switch views to
+        see changes in the other direction. The computer approximates the motion in time steps of{" "}
+        {config.dt}; a short section of the trail cannot establish its behavior forever.
       </p>
     </LessonFrame>
   );
