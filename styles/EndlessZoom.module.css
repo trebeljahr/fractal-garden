@@ -37,40 +37,44 @@
 
 .status {
   position: absolute;
-  bottom: 18px;
-  left: 50%;
+  top: calc(var(--explorer-header-height) + 12px);
+  right: 16px;
+  z-index: 6;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: flex-end;
+  gap: 8px 12px;
   max-width: calc(100% - 32px);
-  padding: 0.4rem 0.5rem 0.4rem 0.9rem;
-  transform: translateX(-50%);
-  border: 1px solid rgba(245, 241, 209, 0.14);
-  border-radius: 999px;
-  background: rgba(10, 14, 16, 0.78);
-  color: rgba(245, 241, 209, 0.85);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  backdrop-filter: blur(6px);
+  box-sizing: border-box;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 3px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .status span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.status button {
+.reset {
+  composes: button from "./ExplorerButton.module.css";
   flex: 0 0 auto;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid rgba(245, 241, 209, 0.2);
-  border-radius: 999px;
-  background: rgba(245, 241, 209, 0.08);
-  color: var(--yellow-white);
-  font-size: 0.8rem;
+  min-height: var(--explorer-control-height);
+  padding: 0 10px;
+  border-radius: 3px;
+  font: inherit;
   cursor: pointer;
 }
 
-.status button:hover {
-  border-color: rgba(245, 204, 117, 0.45);
-  background: rgba(245, 204, 117, 0.14);
+@media (max-width: 700px) {
+  .status {
+    right: 12px;
+    max-width: calc(100% - 24px);
+  }
 }

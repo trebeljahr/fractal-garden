@@ -39,7 +39,7 @@ const LévyCurve = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={levyCurve} />
         <SideDrawer description={description} />
 

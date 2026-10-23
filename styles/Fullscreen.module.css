@@ -5,6 +5,12 @@
   background: var(--semi-dark-grey);
 }
 
+.lSystem {
+  composes: fullScreen;
+  /* Navigation overlays the drawing; it must not cut off zoomed geometry. */
+  --fractal-viewport-bottom: 0px;
+}
+
 .viewport {
   position: relative;
   box-sizing: border-box;

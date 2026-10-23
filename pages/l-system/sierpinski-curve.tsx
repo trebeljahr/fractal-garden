@@ -34,7 +34,7 @@ const SierpinskiCurve = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={sierpinskiCurve} />
         <SideDrawer description={description} />
 

@@ -35,7 +35,7 @@ const QuadraticSnowflake = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={quadraticSnowflake} />
         <SideDrawer description={description} />
 

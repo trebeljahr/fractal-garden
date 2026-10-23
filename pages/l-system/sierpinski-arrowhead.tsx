@@ -43,7 +43,7 @@ const SierpinskiArrowhead = ({ description }: Props) => {
 
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={sierpinskiArrowhead} />
         <SideDrawer description={description} />
 

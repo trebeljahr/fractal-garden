@@ -27,7 +27,7 @@ const Board = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={board} />
         <SideDrawer description={description} />
         <NavElement />

@@ -56,7 +56,7 @@ const Twindragon = ({ description }: Props) => {
 
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
           <PanelColor path="background" />
           <PanelColor path="firstDragon" />

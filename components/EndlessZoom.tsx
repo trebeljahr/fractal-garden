@@ -421,37 +421,37 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   };
 
   return (
-    <div
-      ref={stageRef}
-      className={active ? styles.stageActive : styles.stage}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      onDoubleClick={reset}
-    >
-      {active && (
-        <>
+    <>
+      <div
+        ref={stageRef}
+        className={active ? styles.stageActive : styles.stage}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onDoubleClick={reset}
+      >
+        {active && (
           <div className={info ? styles.layer : styles.layerWaiting}>
             <WebGLCanvas setGl={setGl} setCnv={() => {}} width={width} height={height} />
           </div>
-          <div className={styles.status}>
-            <span>
-              {info
-                ? `Zoomed ${formatZoom(info.zoom)} · generation ${info.generation}`
-                : "Zooming…"}
-            </span>
-            <button type="button" onClick={reset} onPointerDown={(e) => e.stopPropagation()}>
-              Back to the page
-            </button>
-          </div>
-        </>
+        )}
+      </div>
+      {active && (
+        <div className={styles.status} data-fractal-chrome>
+          <span>
+            {info ? `Zoomed ${formatZoom(info.zoom)} · generation ${info.generation}` : "Zooming…"}
+          </span>
+          <button className={styles.reset} type="button" onClick={reset}>
+            Back to the page
+          </button>
+        </div>
       )}
       {unsupported && !active && (
-        <div className={styles.status}>
+        <div className={styles.status} data-fractal-chrome role="status">
           <span>Zooming cannot add detail here: {unsupported}.</span>
         </div>
       )}
-    </div>
+    </>
   );
 };

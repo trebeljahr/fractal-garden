@@ -38,7 +38,7 @@ const SierpinskiTriangle = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={sierpinskiTriangle}>
           <SideDrawer description={description} />
         </LSystem>

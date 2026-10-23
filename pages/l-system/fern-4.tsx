@@ -38,7 +38,7 @@ const Fern4 = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={fern4} />
         <SideDrawer description={description} />
 

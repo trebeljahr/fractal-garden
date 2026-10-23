@@ -45,7 +45,7 @@ export async function getStaticProps() {
 const LSystemExplorerPage = ({ description, presets }: Props) => {
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
   return (
-    <main className={styles.fullScreen}>
+    <main className={styles.lSystem}>
       <FractalHeader title="L-System Explorer" controls={<div ref={setViewControlsHost} />} />
       <LSystemExplorer presets={presets} viewControlsHost={viewControlsHost} />
       <SideDrawer description={description} />

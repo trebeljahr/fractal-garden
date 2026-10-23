@@ -36,7 +36,7 @@ const HilbertCurve = ({ description }: Props) => {
   };
   return (
     <>
-      <main className={styles.fullScreen}>
+      <main className={styles.lSystem}>
         <LSystem ruleset={hilbertCurve} />
         <SideDrawer description={description} />
 
