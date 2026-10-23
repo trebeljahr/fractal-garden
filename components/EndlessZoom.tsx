@@ -439,11 +439,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
       </div>
       {active && (
         <div className={styles.status} data-fractal-chrome>
-          <span>
-            {info ? `Zoomed ${formatZoom(info.zoom)} · generation ${info.generation}` : "Zooming…"}
-          </span>
+          <span>{info ? `Zoomed ${formatZoom(info.zoom)}` : "Zooming…"}</span>
           <button className={styles.reset} type="button" onClick={reset}>
-            Back to the page
+            Reset Zoom
           </button>
         </div>
       )}
