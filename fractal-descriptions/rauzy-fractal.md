@@ -23,3 +23,11 @@ Each point is colored by the letter that comes right after it. This splits the s
 The pieces fit together without gaps, and copies of the whole shape tile the plane. In number theory and dynamical systems it shows how the tribonacci word, a rotation on a 2D torus and $\beta$-expansions of numbers are the same thing in disguise.
 
 Use the points slider to watch the shape fill in. Fewer points show the order in which the walk visits the tile, more points sharpen the borders.
+
+## A projection that keeps the sideways deviations
+
+The staircase above grows without bound in 3D, but its projection stays bounded. The projection removes its average growing direction and keeps the deviations from that direction. The letter counts determine those deviations, so the word's ordering becomes the tile's geometry.
+
+This construction uses projection along the expanding eigenvector onto the contracting plane. Those directions need not be perpendicular. It differs from the parallel, perpendicular shadows of the [Sierpinski tetrahedron](/sierpinski-tetrahedron), and from the flat slice inside the [Menger sponge](/menger-sponge).
+
+[Berthé's account of discrete geometry and symbolic dynamics](https://www.irif.fr/~berthe/Articles/KF_Revised.pdf) explains the staircase and its projected tile. The [Penrose tiling](/penrose-tiling) has another connection to higher-dimensional lattices through cut and project.

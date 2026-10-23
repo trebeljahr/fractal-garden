@@ -9,6 +9,7 @@ import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
 import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
 import OrbitLesson, { isOrbitKind } from "./OrbitLesson";
+import ProjectionLesson, { isProjectionKind } from "./ProjectionLesson";
 import TeachingLesson, { isTeachingLessonKind } from "./TeachingLesson";
 
 type HeadingResolverProps = {
@@ -48,6 +49,7 @@ type HastElement = {
     dataOrbit?: unknown;
     dataArticleImages?: unknown;
     dataLesson?: unknown;
+    dataProjection?: unknown;
   };
   children?: HastElement[];
 };
@@ -111,6 +113,9 @@ const MarkdownRenderers: object = {
   p: ParagraphRenderer,
   a: LinkRenderer,
   figure: ({ node, children }: { node?: HastElement; children?: React.ReactNode }) => {
+    const projection = node?.properties?.dataProjection;
+    if (isProjectionKind(projection))
+      return <ProjectionLesson key={projection} kind={projection} />;
     const kind = node?.properties?.dataConstruction;
     const orbit = node?.properties?.dataOrbit;
     const images = node?.properties?.dataArticleImages;

@@ -35,3 +35,9 @@ F → F-F++F-F
 Move **Rewrites** to expand the word, then use **Next step** to read its symbols. A turn changes the arrow's direction without adding a segment. The faint path shows where the complete word will go. Here **+** turns clockwise and **−** turns counterclockwise.
 
 The [L-system explorer](/l-system/explorer) lets you edit rules and compare the resulting paths.
+
+## A snowflake made from cube shadows
+
+A [Mosely snowflake](/mosely-snowflake) has this boundary in an orthographic view along a cube's body diagonal. A cube projects to a hexagon in that direction. Repeated corner removal changes the overlapping hexagon shadows into the Koch outline.
+
+The lighter Mosely construction also develops snowflake-shaped openings inside the solid. Its explanation includes a screenshot and a link into one of those openings. Eric Baird describes both the [outer profile](https://alt-fractals.blogspot.com/2011/04/impossible-snowflake.html) and the [internal holes](https://alt-fractals.blogspot.com/2011/05/koch-snowflake-sponge.html).

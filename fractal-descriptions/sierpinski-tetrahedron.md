@@ -10,7 +10,7 @@ $$
 D = \frac{\log 4}{\log 2} = 2
 $$
 
-So this is a 3D object with the dimension of a flat surface. A nice way to see that: look at it straight down the line through the midpoints of two opposite edges, and its shadow is a completely filled square with no holes at all. Rotate the tetrahedron here until you find that view.
+Its Hausdorff dimension equals that of a flat surface, although the object extends through three-dimensional space.
 
 The square-based variant uses a pyramid with a square base and four equilateral sides. It makes $N = 5$ copies at scale $\tfrac{1}{2}$, one at the apex and one at each base corner, which gives
 
@@ -19,3 +19,17 @@ D = \frac{\log 5}{\log 2} \approx 2.32
 $$
 
 Both shapes are three-dimensional [N-Flakes](/n-flake): copies of a solid, shrunk towards each of its corners. The [Polyhedron Flake](/polyhedron-flake) page does the same with the octahedron, dodecahedron and icosahedron, and the [Menger Sponge](/menger-sponge) and [3D Vicsek Fractal](/vicsek-fractal-3d) are the cube members of the family.
+
+## A solid square shadow from a hollow tetrahedron
+
+Look along the line joining the midpoints of two opposite edges. With parallel viewing rays, the tetrahedron casts a completely filled square shadow. Its four half-size copies project into the square's four quadrants. Every later subdivision fills those quadrants again, so no holes appear in this shadow, even in the infinite limit.
+
+Tsuiki illustrates the square shadow in his [2007 paper](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf).
+
+Now look parallel to an edge. Two of the four corner copies overlap exactly in projection. Three distinct half-size triangular copies remain, producing an affine version of the [Sierpinski triangle](/l-system/sierpinski-triangle). Its triangle is stretched compared with the equilateral version in the 2D explorer.
+
+<figure data-projection="tetrahedron"></figure>
+
+The same object can therefore have a shadow with positive area in one direction and zero area in another. Its dimension of two alone does not imply these particular shadows. They follow from the arrangement of its copies.
+
+Hideki Tsuiki studies this property as a **fractal imaginary cube**, with square shadows in three mutually perpendicular directions. His [2025 paper on projected Sierpinski tetrahedra](https://ems.press/journals/jfg/articles/14298648) examines which directions give shadows with positive area. These exact statements use orthographic projection. The full 3D explorer uses perspective.

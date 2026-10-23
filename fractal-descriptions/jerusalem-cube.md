@@ -27,3 +27,9 @@ $$
 $$
 
 which gives $D \approx 2.529$. That is a bit lower than the Menger Sponge's $\ln 20 / \ln 3 \approx 2.727$, so the Jerusalem Cube is the more hollow of the two.
+
+## The Jerusalem square is its shadow
+
+Project the cube straight onto one of its face planes with parallel rays. Front and back copies overlap, leaving a planar pattern called the **Jerusalem square**. Its cross-shaped gaps inherit the same two scales, $k$ and $k^2$, as the solid.
+
+This is the irrational-scale counterpart of the [Menger sponge's carpet shadow](/menger-sponge). Eric Baird describes the relationship in [The Jerusalem Square](https://alt-fractals.blogspot.com/2011/11/jerusalem-square.html). In the explorer, disable **Auto rotate** and set **Tilt** and **Turn** to zero to inspect a face-on perspective view. Near and far pieces still differ in apparent size there, unlike an orthographic shadow.

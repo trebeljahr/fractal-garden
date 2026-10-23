@@ -64,3 +64,9 @@ const drawRules: Record<string, () => void> = {
     ")": () => (angle -= angleIncrement),
 };
 ```
+
+## A triangular shadow of a tetrahedron
+
+The [Sierpinski tetrahedron](/sierpinski-tetrahedron) can project to a triangular gasket when viewed parallel to an edge. Two of its four corner copies overlap in the shadow, leaving three distinct half-size copies. The resulting gasket is an affine, stretched version of this triangle.
+
+In a different direction, the very same tetrahedron casts a filled square shadow. Its explanation includes an interactive comparison and references to the mathematics of fractal shadows.

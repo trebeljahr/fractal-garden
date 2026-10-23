@@ -13,3 +13,13 @@ Choose **Explore inside**, then click the view to capture the mouse. Move the mo
 On a touch screen, use the left stick to move and the right stick to look. Hold Up or Down to change height, and Fast to fly faster. Dragging the view and pinching also work. Drag controls also work when mouse capture is unavailable.
 
 Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Fog hides distant geometry and draws closer as you approach smaller details. Nearby detail follows the screen resolution. Choose **Back outside** to return to the whole shape.
+
+## Seven cubes cast a five-square shadow
+
+Look straight along one of the cube's axes using parallel viewing rays. The front, central and back cubes overlap in the shadow. The seven surviving cubes therefore occupy five square positions: a Greek cross.
+
+Projection preserves the one-third scale of each copy. Repeating the construction gives exactly the **Greek cross** variant of the [2D Vicsek fractal](/vicsek-fractal-2d). The diagonal-cross variant on that page uses a different arrangement.
+
+<figure data-projection="vicsek"></figure>
+
+This connection follows directly from the seven cube positions used here. It explains why counting copies gives different dimensions: the 3D construction keeps seven, while its shadow has five distinct positions. The full explorer uses perspective, so its near and far cubes have different apparent sizes. The diagram shows the exact orthographic shadow.

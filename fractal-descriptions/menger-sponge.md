@@ -33,3 +33,15 @@ Choose **Explore inside**, then click the view to capture the mouse. Move the mo
 On a touch screen, use the left stick to move and the right stick to look. Hold Up or Down to change height, and Fast to fly faster. Dragging the view and pinching also work. Drag controls also work when mouse capture is unavailable.
 
 Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Fog hides distant geometry and draws closer as you approach smaller details. Nearby detail follows the screen resolution. Choose **Back outside** to return to the whole shape.
+
+## A carpet shadow and stars inside a slice
+
+A face-on orthographic shadow of the sponge is a [Sierpinski carpet](/sierpinski-carpet). Cubes at different depths overlap on the screen. A projected square survives exactly when its two coordinates never both fall in a middle third at the same subdivision.
+
+A diagonal cut gives a different surprise: a hexagon with six-pointed star holes. Cut through the centre, perpendicular to a body diagonal. Three families of square tunnels intersect that plane at different angles, forming the stars. The smaller tunnels repeat them at smaller scales.
+
+<figure data-projection="menger"></figure>
+
+Switch between the face-on shadow and the diagonal slice above. A shadow combines material along a whole viewing ray. A slice keeps only material on one plane. Looking diagonally through the full sponge does not reveal the same pattern as cutting it open.
+
+[George Hart demonstrates the star-filled slice](https://www.simonsfoundation.org/2012/12/10/mathematical-impressions-the-surprising-menger-sponge-slice/). [Zachary Abel derives its recursive structure](https://blog.zacharyabel.com/2012/02/seeing-stars/). The [Mosely snowflake](/mosely-snowflake) produces Koch-shaped openings from a different cube-removal rule.

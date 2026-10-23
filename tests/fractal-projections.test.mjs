@@ -1,0 +1,74 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import test from "node:test";
+import ts from "typescript";
+
+const require = createRequire(import.meta.url);
+require.extensions[".ts"] = (m, f) =>
+  m._compile(
+    ts.transpileModule(readFileSync(f, "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText,
+    f,
+  );
+const { projectionPolygons, sliceCube } = require("../utils/fractalProjections.ts");
+const { generateMengerSponge } = require("../utils/voxelFractals.ts");
+const area = (p) =>
+  Math.abs(
+    p.reduce((s, v, i) => {
+      const q = p[(i + 1) % p.length];
+      return s + v[0] * q[1] - q[0] * v[1];
+    }, 0),
+  ) / 2;
+const inside = (p, x, y) =>
+  p.every((a, i) => {
+    const b = p[(i + 1) % p.length];
+    return (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]) >= -1e-9;
+  });
+test("axis projections follow the carpet and Greek-cross removal rules", () => {
+  for (let n = 0; n <= 3; n++)
+    for (const [kind, copies] of [
+      ["menger", 8],
+      ["vicsek", 5],
+    ]) {
+      const polys = projectionPolygons(kind, n, false);
+      assert.equal(polys.length, copies ** n);
+      const expected = 4 * (copies / 9) ** n;
+      assert.ok(Math.abs(polys.reduce((s, p) => s + area(p), 0) - expected) < 1e-8);
+    }
+});
+test("tetrahedron square shadows tile the full square at every finite stage", () => {
+  for (let n = 0; n <= 3; n++) {
+    const polys = projectionPolygons("tetrahedron", n, false),
+      count = 2 ** n;
+    assert.ok(Math.abs(polys.reduce((s, p) => s + area(p), 0) - 4) < 1e-10);
+    for (let x = 0; x < count; x++)
+      for (let y = 0; y < count; y++)
+        assert.ok(
+          polys.some((p) => inside(p, -1 + ((x + 0.5) * 2) / count, -1 + ((y + 0.5) * 2) / count)),
+        );
+  }
+});
+test("edge-parallel tetrahedron projection collapses two copies into a triangular gasket", () => {
+  for (let n = 0; n <= 3; n++) {
+    const polys = projectionPolygons("tetrahedron", n, true);
+    assert.equal(polys.length, 3 ** n);
+    assert.ok(
+      Math.abs(polys.reduce((s, p) => s + area(p), 0) - 2 * Math.SQRT2 * (3 / 4) ** n) < 1e-8,
+    );
+  }
+});
+test("central cube slice is a regular hexagon, and out-of-cube cuts are empty", () => {
+  const cube = generateMengerSponge(0)[0],
+    hex = sliceCube(cube, 0);
+  assert.equal(hex.length, 6);
+  assert.ok(Math.abs(area(hex) - 3 * Math.sqrt(3)) < 1e-9);
+  assert.deepEqual(sliceCube(cube, 4), []);
+  for (let n = 1; n <= 3; n++) {
+    const polys = projectionPolygons("menger", n, true);
+    assert.ok(polys.length > 0);
+    assert.ok(!polys.some((p) => inside(p, 0, 0)), "The centre tunnel must remain empty");
+    assert.ok(polys.flat(2).every(Number.isFinite));
+  }
+});

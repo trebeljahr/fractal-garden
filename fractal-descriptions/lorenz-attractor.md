@@ -29,3 +29,13 @@ The renderer uses fourth-order Runge–Kutta integration. A smaller time step ca
 Compare **ρ (rho)** near 20 with its default 28. Watch whether the trail keeps circling the wings or approaches one location. Use the scroll wheel to move closer and drag to rotate.
 
 The trail is a curve through three-dimensional space. The gaps between passes remain empty. The [Rössler attractor](/rossler-attractor) makes another folded trajectory. The [logistic map](/logistic-map) explores changing behavior through a recurrence with one variable.
+
+## Crossings in a shadow can hide separation
+
+The familiar butterfly is a projection of a trajectory in three-dimensional phase space. A crossing in its 2D drawing can join points with different hidden coordinates. Switch the small diagram's projection to see how the same path changes.
+
+A **Poincaré section** is a different operation: record the points where the trajectory crosses a chosen plane in one direction. Joining every projected position gives a shadow of the path; recording those crossings gives a section of the dynamics. The lesson above compares projections, and does not compute a Poincaré section.
+
+[ChaosBook explains the section and return map](https://chaosbook.org/chapters/maps.pdf).
+
+Compare the [Rössler attractor's spiral and side view](/rossler-attractor), or the geometric shadow and slice comparison in the [Menger sponge](/menger-sponge).

@@ -43,3 +43,13 @@ Their ratio $k_n/d_n$ approaches $\varphi$ as the number of steps grows. The tot
 The tiling fills the plane with straight-edged pieces. Its dimension is $2$. Its link to this garden is the repeated construction across scales. Larger groups of tiles follow the same organization as smaller ones.
 
 The [Fibonacci word fractal](/l-system/fibonacci-word-fractal) also grows through a replacement rule tied to the golden ratio. The [N-flake](/n-flake) uses related pentagonal angles. The [Sierpinski triangle](/l-system/sierpinski-triangle) uses subdivision to remove regions instead of filling a whole area.
+
+## A five-dimensional lattice behind the rhombi
+
+The **P3 rhombus** tiling also has a higher-dimensional construction. Start with an integer lattice in five dimensions. Select lattice points using a bounded window in the complementary space, then project the selected points onto a two-dimensional plane. The window selects which points belong to the tiling.
+
+This is **cut and project**. Projecting every lattice point without the window would not produce the discrete Penrose pattern. The selected projection gives the thick and thin rhombi, with five possible orientations for each.
+
+De Bruijn developed this description of Penrose tilings. His [Encyclopedia of Mathematics account](https://encyclopediaofmath.org/wiki/Penrose_tiling) connects the projection method with pentagrids. The [Simons Center illustrates the five-dimensional construction](https://scgp.stonybrook.edu/archives/17092). This explorer builds its patches by subdivision; it does not display the five-dimensional lattice.
+
+The [Rauzy fractal](/rauzy-fractal) also turns a higher-dimensional lattice walk into a planar shape. Its projection keeps bounded deviations from an expanding direction.

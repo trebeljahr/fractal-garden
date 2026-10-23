@@ -29,3 +29,9 @@ Compare **c** near 2.3 with its default 5.7. Watch how the loops and folds chang
 The renderer uses fourth-order Runge–Kutta integration. **Time step** controls the numerical interval, while **Steps** controls the number of intervals. To compare two approximations over the same duration, reduce **Time step** and increase **Steps** together.
 
 The [Lorenz attractor](/lorenz-attractor) carries a trajectory between two wings. The [logistic map](/logistic-map) shows a related progression of changing long-term behavior with a single recurrence.
+
+## A spiral shadow hides the fold
+
+In the x–y projection, the spiral dominates because the height coordinate disappears. The x–z projection reveals excursions that overlap in the view from above. Both are shadows of the same 3D trajectory.
+
+A crossing of projected trails does not establish that the moving point returns to the same full state. The hidden coordinate can differ. The [Lorenz explanation](/lorenz-attractor) also distinguishes projected trajectories from Poincaré sections, which record crossings of a plane.

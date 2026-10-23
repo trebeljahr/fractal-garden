@@ -1,0 +1,76 @@
+.lesson {
+  margin: 2rem 0;
+  padding: 1.5rem 0;
+  border-block: 1px solid #eee8ce40;
+  color: #eee8ce;
+}
+.title {
+  font:
+    600 1.8rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+  font:
+    500 1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.controls > fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.controls button {
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce70;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.controls button:hover,
+.controls button[aria-pressed="true"] {
+  background: #f5c56d22;
+  border-color: #f5c56d;
+}
+.controls input {
+  min-height: 44px;
+  max-width: 100%;
+  accent-color: #f5c56d;
+}
+.controls button:focus-visible,
+.controls input:focus-visible,
+.lesson a:focus-visible {
+  outline: 2px solid #f5c56d;
+  outline-offset: 3px;
+}
+.lesson svg {
+  display: block;
+  width: 100%;
+  max-height: 440px;
+  background: #10151a;
+  color: #f5c56d;
+}
+.lesson p {
+  margin: 1rem 0;
+}
+.lesson .note {
+  font-size: 1.3rem;
+  color: #c1c2bd;
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls button {
+    transition: none;
+  }
+}
