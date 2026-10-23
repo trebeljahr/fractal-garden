@@ -100,8 +100,9 @@ export function buildGridFrame(
   camera: FlightCamera,
   pattern: VoxelPattern,
   maxDepth = camera.level + 10,
+  viewDistance = LOCAL_COORDINATE_LIMIT,
 ): GridFrame {
-  return gridFrame(camera, pattern, maxDepth, true);
+  return gridFrame(camera, pattern, maxDepth, true, true, viewDistance);
 }
 /** Movement needs a safe distance, without building/uploading a render grid. */
 export function flightClearance(camera: FlightCamera, pattern: VoxelPattern): number {
@@ -113,6 +114,7 @@ function gridFrame(
   maxDepth: number,
   geometry: boolean,
   upload = true,
+  viewDistance = LOCAL_COORDINATE_LIMIT,
 ): GridFrame {
   const coordinate = geometry && !upload ? localDouble : localFloat;
   const one = BigInt(1) << BigInt(camera.bits);
@@ -191,8 +193,8 @@ function gridFrame(
     // Far ancestor cells that cannot change occupancy anywhere in the local
     // viewing volume need no GPU work. Crossing 2->0 does not change any rule.
     const constant =
-      exactWidth > LOCAL_COORDINATE_LIMIT * 2 &&
-      plane.every((p, axis) => Math.abs(p) >= LOCAL_COORDINATE_LIMIT || digit[axis] === 0);
+      exactWidth > viewDistance * 4 &&
+      plane.every((p, axis) => Math.abs(p) >= viewDistance * 2 || digit[axis] === 0);
     if (constant && keepVoxel(pattern, cameraDigit)) continue;
     const index = levels.length;
     if (upload) {

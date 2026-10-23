@@ -322,3 +322,41 @@ test("long travel down a narrow empty tunnel keeps full speed beside its wall", 
   const after = moveFlightCamera(before, "menger", [0, 0, 5]);
   assert.ok(Math.abs(worldDelta(before, after)[2] + 10) < 1e-6);
 });
+
+test("view-bounded render grids skip only ancestors constant throughout visible space", () => {
+  const one = 1n << 600n,
+    scale = 3n ** 150n;
+  for (const pattern of PATTERNS) {
+    const camera = {
+      position:
+        pattern === "vicsek"
+          ? [one + one / scale, 0n, 0n]
+          : pattern.startsWith("mosely")
+            ? [one + one / scale, 0n, one - one / scale]
+            : [one - one / scale, one - one / scale, one + (one * 22n) / (10n * scale)],
+      bits: 600,
+      level: 150,
+      viewLevel: 150,
+      yaw: 0,
+      pitch: 0,
+    };
+    const full = { ...buildGridFrame(camera, pattern, 162), pattern };
+    const bounded = { ...buildGridFrame(camera, pattern, 162, 32), pattern };
+    assert.ok(
+      bounded.levels.length < full.levels.length,
+      `${pattern}: invisible ancestor work retained`,
+    );
+    for (let sample = 0; sample < 100; sample++) {
+      const point = [
+        Math.sin(sample * 1.7) * 32,
+        Math.cos(sample * 2.3) * 32,
+        Math.sin(sample * 0.7) * 32,
+      ];
+      assert.equal(
+        occupancy(bounded, point),
+        occupancy(full, point),
+        `${pattern}: culling changed visible geometry`,
+      );
+    }
+  }
+});

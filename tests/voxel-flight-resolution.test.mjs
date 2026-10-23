@@ -13,7 +13,11 @@ require.extensions[".ts"] = (module, filename) =>
     filename,
   );
 const { buildGridFrame } = require("../utils/voxelZoom/camera.ts");
-const { flightResolution } = require("../utils/voxelZoom/resolution.ts");
+const {
+  flightResolution,
+  flightDetailDepth,
+  MIN_FLIGHT_DETAIL_DISTANCE,
+} = require("../utils/voxelZoom/resolution.ts");
 
 test("pixel cones grow with distance and shrink with framebuffer resolution", () => {
   const detail = flightResolution(0.1, 1200, 800);
@@ -39,8 +43,8 @@ test("projected detail stays continuous when camera units change at every zoom l
     const beforeFrame = buildGridFrame(camera, "menger");
     const afterFrame = buildGridFrame({ ...camera, level: level + 1 }, "menger");
     assert.ok(Math.abs(afterFrame.clearance / beforeFrame.clearance - 3) < 1e-6);
-    const before = flightResolution(beforeFrame.clearance, 1200, 800);
-    const after = flightResolution(afterFrame.clearance, 1200, 800);
+    const before = flightResolution(beforeFrame.clearance, 1200, 800, level, level);
+    const after = flightResolution(afterFrame.clearance, 1200, 800, level + 1, level);
     for (const distance of [0, 0.01, 1, 1000, 1e20]) {
       const a = Math.max(before.nearFootprint, distance * before.pixelAngle);
       const b = Math.max(after.nearFootprint, distance * 3 * after.pixelAngle);
@@ -56,4 +60,42 @@ test("zero clearance and tiny framebuffers keep a finite nonnegative pixel cone"
     assert.ok(detail.nearFootprint >= 0);
     assert.equal(detail.pixelAngle, 1.16);
   }
+});
+
+test("wall contact cannot demand finer pixels at a fixed exploration scale", () => {
+  const reference = flightResolution(0, 1200, 800, 0, 0);
+  for (const clearance of [0, 1e-12, 1e-8, 1e-5, 0.01]) {
+    assert.equal(
+      flightResolution(clearance, 1200, 800, 0, 0).nearFootprint,
+      reference.nearFootprint,
+    );
+  }
+  for (const level of [0, 1, 12, 16]) {
+    const detail = flightResolution(0, 1200, 800, level, 0);
+    assert.ok(Math.abs(detail.nearFootprint / 3 ** level - reference.nearFootprint) < 1e-15);
+  }
+});
+
+test("explicit zoom refines the minimum physical detail at deep addresses", () => {
+  const before = flightResolution(0, 1200, 800, 150, 150);
+  const after = flightResolution(0, 1200, 800, 150, 151);
+  assert.ok(Math.abs(after.nearFootprint * 3 - before.nearFootprint) < 1e-15);
+});
+
+test("render grids include a subpixel terminator without following collision precision", () => {
+  for (const viewLevel of [0, 0.5, 8, 150, 243]) {
+    const depth = flightDetailDepth(viewLevel);
+    assert.ok(depth <= 256);
+    if (depth < 256)
+      assert.ok(
+        3 ** (viewLevel - depth) < (MIN_FLIGHT_DETAIL_DISTANCE * 1.16) / Math.sqrt(2500000),
+      );
+  }
+  assert.equal(flightDetailDepth(0), 12);
+});
+
+test("extreme saved precision gaps still produce finite GPU detail uniforms", () => {
+  const detail = flightResolution(0, 1920, 1080, 244, 0);
+  assert.ok(Number.isFinite(Math.fround(detail.nearFootprint)));
+  assert.ok(detail.nearFootprint > 0);
 });

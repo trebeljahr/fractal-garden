@@ -10,7 +10,7 @@ import {
   PATTERNS,
   type VoxelPattern,
 } from "./camera";
-import { flightResolution } from "./resolution";
+import { flightDetailDepth, flightResolution } from "./resolution";
 
 export type FlightStyle = {
   background: string;
@@ -106,13 +106,20 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API
       gl.useProgram(shader.program);
       gl.viewport(0, 0, w, h);
+      const nextAtmosphere = flightAtmosphere(camera.level, camera.viewLevel ?? camera.level);
       if (
         previous?.position !== camera.position ||
         previous?.level !== camera.level ||
+        previous?.viewLevel !== camera.viewLevel ||
         previous?.bits !== camera.bits ||
         previousPattern !== pattern
       ) {
-        frame = buildGridFrame(camera, pattern);
+        frame = buildGridFrame(
+          camera,
+          pattern,
+          flightDetailDepth(camera.viewLevel ?? camera.level),
+          nextAtmosphere.farDistance,
+        );
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(
           gl.TEXTURE_2D,
@@ -130,10 +137,15 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       }
       const basis = flightBasis(camera);
       gl.uniform2f(u.resolution, w, h);
-      const detail = flightResolution(frame.clearance, w, h);
+      const detail = flightResolution(
+        frame.clearance,
+        w,
+        h,
+        camera.level,
+        camera.viewLevel ?? camera.level,
+      );
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);
-      const nextAtmosphere = flightAtmosphere(camera.level, camera.viewLevel ?? camera.level);
       gl.uniform1f(u.farDistance, nextAtmosphere.farDistance);
       gl.uniform1f(u.fogDistanceScale, nextAtmosphere.fogDistanceScale);
       gl.uniform1f(u.fogStart, nextAtmosphere.fogStart);

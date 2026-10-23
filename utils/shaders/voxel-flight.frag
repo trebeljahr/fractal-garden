@@ -63,11 +63,11 @@ void main() {
                 if (level >= u_levels) break;
                 float x = (float(level) + 0.5) / 256.0;
                 vec4 grid = texture2D(u_grid, vec2(x, 0.25));
-                vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
                 float size = grid.w;
                 // Stop before evaluating holes smaller than the ray's pixel cone.
                 // Distance and clearance share the camera's zoom-scaled units.
                 if (size < footprint) break;
+                vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
                 vec3 cell = floor((p - grid.xyz) / size);
                 vec3 digit = mod(base + cell, 3.0);
                 vec3 low = grid.xyz + cell * size;

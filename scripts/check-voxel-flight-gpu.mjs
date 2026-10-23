@@ -131,7 +131,7 @@ for (const [name, pattern, index, position, yaw, pitch] of [
       yaw,
       pitch,
     };
-  const frame = buildGridFrame(camera, pattern),
+  const frame = buildGridFrame(camera, pattern, camera.level + 10, 32),
     basis = flightBasis(camera);
   fixtures.push({
     name,
@@ -156,7 +156,7 @@ for (const [name, pattern, index, position, yaw, pitch] of [
     yaw: 0,
     pitch: 0,
   };
-  const frame = buildGridFrame(camera, "menger", 153);
+  const frame = buildGridFrame(camera, "menger", 153, 32);
   fixtures.push({
     name: "Menger nested copy at 3^-150",
     level: 150,
@@ -211,7 +211,13 @@ for (const distance of [0.05, 0.1, 1, 4, 8, 16, 24, 31.9, 32, 40]) {
   });
 }
 for (const fixture of fixtures) {
-  fixture.detail = flightResolution(fixture.frame.clearance, 65, 65);
+  fixture.detail = flightResolution(
+    fixture.frame.clearance,
+    65,
+    65,
+    fixture.level ?? 0,
+    fixture.distanceScale ? 0 : (fixture.level ?? 0),
+  );
   fixture.atmosphere ??= flightAtmosphere(fixture.level ?? 0);
   fixture.expected = fixture.expected.map((ray) => {
     if (!ray.hit || ray.brightness == null) return ray;
