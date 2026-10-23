@@ -24,37 +24,6 @@ bool kept(vec3 digit) {
     return centers > 0.0;
 }
 
-float inRoot(vec3 p) {
-    return all(greaterThanEqual(p, u_low)) && all(lessThanEqual(p, u_high)) ? 1.0 : 0.0;
-}
-
-// Four short hemisphere probes darken nearby recesses. All probes share grid
-// reads and stop as soon as their samples are known to be in empty space.
-float ambientVisibility(vec3 p, vec3 normal, float radius) {
-    vec3 tangent = abs(normal.x) > 0.5 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-    vec3 bitangent = cross(normal, tangent);
-    vec3 center = p + normal * radius * 0.85;
-    vec3 a = center + (tangent + bitangent) * radius;
-    vec3 b = center + (tangent - bitangent) * radius;
-    vec3 c = center + (-tangent + bitangent) * radius;
-    vec3 d = center - (tangent + bitangent) * radius;
-    vec4 solid = vec4(inRoot(a), inRoot(b), inRoot(c), inRoot(d));
-    for (int level = 0; level < 256; level++) {
-        if (level >= u_levels || dot(solid, vec4(1.0)) == 0.0) break;
-        float x = (float(level) + 0.5) / 256.0;
-        vec4 grid = texture2D(u_grid, vec2(x, 0.25));
-        if (grid.w < radius * 0.2) break;
-        vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
-        solid *= vec4(
-            kept(mod(base + floor((a - grid.xyz) / grid.w), 3.0)) ? 1.0 : 0.0,
-            kept(mod(base + floor((b - grid.xyz) / grid.w), 3.0)) ? 1.0 : 0.0,
-            kept(mod(base + floor((c - grid.xyz) / grid.w), 3.0)) ? 1.0 : 0.0,
-            kept(mod(base + floor((d - grid.xyz) / grid.w), 3.0)) ? 1.0 : 0.0
-        );
-    }
-    return 1.0 - 0.15 * dot(solid, vec4(1.0));
-}
-
 void main() {
     vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
     vec3 ray = normalize(u_forward + 0.58 * (uv.x * u_right + uv.y * u_up));
@@ -74,13 +43,11 @@ void main() {
     float cellSize = 1.0;
     float footprint = 1e-6;
     vec3 rootNormal = normal;
-    vec3 shadeNormal = normal;
     // Retry unusually expensive grazing rays at a coarser footprint instead
     // of turning an unfinished traversal into a false hole.
     for (int attempt = 0; attempt < 2; attempt++) {
       t = max(0.0, near);
       normal = rootNormal;
-      shadeNormal = rootNormal;
       if (far > t) {
         for (int stepIndex = 0; stepIndex < 512; stepIndex++) {
             if (t >= far) break;
@@ -103,9 +70,6 @@ void main() {
                     float jump = min(min(distances.x, distances.y), distances.z);
                     normal = distances.x <= distances.y && distances.x <= distances.z ? vec3(-sign(ray.x), 0.0, 0.0)
                         : distances.y <= distances.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
-                    // Keep the enclosing surface readable instead of lighting
-                    // it as a cloud of unrelated subpixel cube faces.
-                    if (size > footprint * 48.0) shadeNormal = normal;
                     t += max(jump + footprint * 0.03, footprint * 0.05);
                     empty = true;
                     break;
@@ -123,10 +87,11 @@ void main() {
     }
     vec3 color = u_background;
     if (hit) {
-        float ambient = ambientVisibility(ray * t, normal, footprint * 12.0);
-        float diffuse = max(0.0, dot(shadeNormal, normalize(vec3(-0.65, 1.0, 0.45))));
-        float facing = 0.12 * max(0.0, dot(shadeNormal, -ray));
-        float light = (0.2 + 0.78 * diffuse + facing) * ambient;
+        // Light the intersected face. A parent-cell normal produces large,
+        // flat tiles which jump when the pixel footprint crosses a level.
+        float diffuse = max(0.0, dot(normal, normalize(vec3(-0.5, 0.8, 0.6))));
+        float facing = 0.15 * max(0.0, dot(normal, -ray));
+        float light = 0.38 + 0.62 * diffuse + facing;
         color = u_fill * light;
         vec3 faceEdges = min(local, 1.0 - local);
         // Ignore the surface-normal axis when finding edges on this face.
@@ -135,8 +100,8 @@ void main() {
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
-        // Geometry is fully hidden before the traversal cutoff. Both distances
-        // follow clearance, so approaching detail shrinks the visible world.
+        // Fog and traversal use the same smoothly changing distance, so the
+        // far cutoff remains hidden while approaching smaller details.
         float fog = smoothstep(u_viewDistance * 0.25, u_viewDistance, t);
         color = mix(color, u_background, fog);
     }

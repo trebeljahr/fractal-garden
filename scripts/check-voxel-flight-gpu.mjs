@@ -31,10 +31,12 @@ const vertex = readFileSync(new URL("../utils/shaders/mandelbrot.vert", import.m
 const fragment = readFileSync(
   new URL("../utils/shaders/voxel-flight.frag", import.meta.url),
   "utf8",
-).replace(
-  "gl_FragColor = vec4(color, 1.0);",
-  `float code=floor(t*100000.0+0.5); gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
-);
+)
+  .replace("precision highp float;", "precision highp float; uniform bool u_checkLighting;")
+  .replace(
+    "gl_FragColor = vec4(color, 1.0);",
+    `float code=floor(t*100000.0+0.5); if (u_checkLighting) gl_FragColor=vec4(color,1.0); else gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
+  );
 function intersect(low, high, ray) {
   let near = 0,
     far = Infinity;
@@ -66,19 +68,41 @@ PATTERNS.forEach((pattern, index) => {
       const len = Math.hypot(...d),
         ray = d.map((v) => v / len);
       let distance = Infinity;
+      let brightness = null;
       for (const cube of cubes) {
         const low = [cube.x, cube.y, cube.z].map(
             (v, i) => (v - cube.size / 2 - (i === 2 ? 3.2 : 0)) / 2,
           ),
           high = low.map((v) => v + cube.size / 2);
         const t = intersect(low, high, ray);
-        if (t !== null) distance = Math.min(distance, t);
+        if (t !== null && t < distance) {
+          distance = t;
+          // Independent finite-box entry face, rather than the shader's grid
+          // traversal normal. Skip edge ties where either face is valid.
+          const faces = ray.map(
+            (v, axis) =>
+              Math.abs(v) > 1e-15 && Math.abs((v > 0 ? low[axis] : high[axis]) / v - t) < 1e-9,
+          );
+          brightness = null;
+          if (faces.filter(Boolean).length === 1) {
+            const axis = faces.indexOf(true);
+            const normal = -Math.sign(ray[axis]);
+            const key = [-0.5, 0.8, 0.6];
+            brightness = Math.min(
+              1,
+              0.38 +
+                0.62 * Math.max(0, (normal * key[axis]) / Math.hypot(...key)) +
+                0.15 * Math.max(0, -normal * ray[axis]),
+            );
+          }
+        }
       }
       expected.push({
         x,
         y,
         hit: Number.isFinite(distance),
         distance: Number.isFinite(distance) ? distance : null,
+        brightness,
       });
     }
   fixtures.push({
@@ -182,6 +206,10 @@ async function check(payload) {
   const u = (name) => gl.getUniformLocation(program, "u_" + name);
   gl.uniform2f(u("resolution"), 65, 65);
   gl.uniform1i(u("grid"), 0);
+  gl.uniform3f(u("fill"), 1, 1, 1);
+  gl.uniform3f(u("background"), 0, 0, 0);
+  gl.uniform1i(u("faces"), 1);
+  gl.uniform1i(u("wire"), 0);
   gl.viewport(0, 0, 65, 65);
   const results = [];
   try {
@@ -203,6 +231,7 @@ async function check(payload) {
       gl.uniform1i(u("pattern"), fixture.pattern);
       for (const name of ["low", "high"]) gl.uniform3f(u(name), ...frame[name]);
       for (const name of ["right", "up", "forward"]) gl.uniform3f(u(name), ...basis[name]);
+      gl.uniform1i(u("checkLighting"), 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       const pixels = new Uint8Array(65 * 65 * 4);
       gl.readPixels(0, 0, 65, 65, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -224,7 +253,24 @@ async function check(payload) {
           if (fixture.name === "menger" && alpha !== pixels[(y * 65 + 64 - x) * 4 + 3])
             asymmetric++;
         }
+      const lightingMismatches = [];
+      gl.uniform1i(u("checkLighting"), 1);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.readPixels(0, 0, 65, 65, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      for (const expected of fixture.expected) {
+        if (expected.hit && expected.brightness == null) continue;
+        const brightness = expected.hit ? expected.brightness : 0;
+        const at = (expected.y * 65 + expected.x) * 4;
+        if (Math.abs(pixels[at] / 255 - brightness) > 2 / 255)
+          lightingMismatches.push({
+            x: expected.x,
+            y: expected.y,
+            expected: brightness,
+            actual: pixels[at] / 255,
+          });
+      }
       results.push({
+        lightingMismatches,
         exhausted,
         asymmetric,
         name: fixture.name,
@@ -235,7 +281,11 @@ async function check(payload) {
     }
     return {
       passed: results.every(
-        (r) => r.mismatches.length === 0 && r.exhausted === 0 && r.asymmetric === 0,
+        (r) =>
+          r.mismatches.length === 0 &&
+          r.lightingMismatches.length === 0 &&
+          r.exhausted === 0 &&
+          r.asymmetric === 0,
       ),
       results,
     };

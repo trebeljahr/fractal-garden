@@ -5,11 +5,12 @@ import {
   buildGridFrame,
   type FlightCamera,
   flightBasis,
-  flightViewDistance,
   MAX_VOXEL_DEPTH,
   PATTERNS,
   type VoxelPattern,
 } from "./camera";
+
+import { type FlightFog, updateFlightFog } from "./fog";
 
 export type FlightStyle = {
   background: string;
@@ -80,6 +81,8 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     { position: [BigInt(0), BigInt(0), BigInt(0)], bits: 160, level: 0, yaw: 0, pitch: 0 },
     "menger",
   );
+  let fog: FlightFog | undefined;
+  let fogPattern: VoxelPattern | undefined;
   return {
     draw(
       camera: FlightCamera,
@@ -88,6 +91,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       width: number,
       height: number,
       ratio: number,
+      elapsed = 1 / 60,
     ) {
       // A fixed pixel budget bounds per-frame traversal on high-DPI displays.
       const scale = Math.min(ratio, 2, Math.sqrt(2_500_000 / Math.max(1, width * height)));
@@ -124,7 +128,15 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       }
       const basis = flightBasis(camera);
       gl.uniform2f(u.resolution, w, h);
-      gl.uniform1f(u.viewDistance, flightViewDistance(frame.clearance));
+      const nextFog = updateFlightFog(
+        fogPattern === pattern ? fog : undefined,
+        frame.clearance,
+        camera.level,
+        elapsed,
+      );
+      fog = nextFog.state;
+      fogPattern = pattern;
+      gl.uniform1f(u.viewDistance, nextFog.distance);
       gl.uniform1i(u.grid, 0);
       gl.uniform1i(u.levels, frame.levels.length);
       gl.uniform1i(u.pattern, PATTERNS.indexOf(pattern));
@@ -140,6 +152,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.uniform1i(u.wire, style.showWireframe ? 1 : 0);
       gl.uniform1f(u.lineWidth, style.lineWidth);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      return nextFog.settling;
     },
     destroy() {
       gl.deleteBuffer(buffer);
