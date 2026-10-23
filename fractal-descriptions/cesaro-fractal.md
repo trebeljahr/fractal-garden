@@ -4,7 +4,7 @@ Four inward-pointing curves turn a square into a torn square. Each edge receives
 
 Two of the four child strokes follow the old direction. The other two point at angles $\alpha$ and $-\alpha$. Four unit strokes therefore span $2+2\cos\alpha$ units along the old edge, with no net sideways displacement.
 
-<figure data-investigation="cesaro-fractal"></figure>
+<figure data-construction-player="cesaro-fractal"></figure>
 
 Keeping the old endpoints fixed gives the child scale
 

@@ -10,7 +10,7 @@ $$
 
 Its length is $\sqrt3$ and its direction is 30 degrees. The renderer subtracts another 30 degrees from its initial heading at each stage to keep the endpoint chord horizontal.
 
-<figure data-investigation="terdragon"></figure>
+<figure data-construction-player="terdragon"></figure>
 
 With that chord fixed, every new stroke shrinks by $1/\sqrt3$. Three copies at this scale have similarity exponent $\log3/\log\sqrt3=2$. This count alone is not a proof that a self-similar set has area.
 

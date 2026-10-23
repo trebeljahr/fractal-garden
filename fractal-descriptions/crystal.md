@@ -4,7 +4,7 @@ Crystal starts from the square `F+F+F+F` and replaces each F with `FF+F++F+F`. A
 
 An isolated replacement advances twice, steps sideways, reverses over that sideways step, then advances once more. Five forward instructions finish three unit lengths from the start. The sideways edge is drawn twice, so only four distinct unit edges appear at this stage.
 
-<figure data-investigation="crystal"></figure>
+<figure data-construction-player="crystal"></figure>
 
 To preserve the original square's side length, divide each new stroke length by three. The word then contains $4\cdot5^n$ strokes after $n$ rewrites, and its travelled length multiplies by $5/3$ per rewrite.
 

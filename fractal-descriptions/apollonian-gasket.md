@@ -2,7 +2,7 @@
 
 Three touching circles leave a curved triangular gap. Fit a fourth circle into it, then fill the three smaller gaps it creates. The explorer begins with three equal circles inside a unit enclosing circle. Their radius is $2\sqrt3-3$.
 
-<figure data-construction="apollonian"></figure>
+<figure data-construction-player="apollonian"></figure>
 
 The first round fills four gaps: the central gap and three beside the enclosing circle. Each later gap produces three descendants. After $n$ rounds, this rule gives $2\cdot3^n+2$ circles, including the enclosing circle.
 

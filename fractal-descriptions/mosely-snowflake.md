@@ -2,7 +2,7 @@
 
 Divide a cube into 27 equal cubes and remove its eight corners. The **heavier** version keeps nineteen cubes. The **lighter** version also removes the center, leaving eighteen. Repeat the chosen rule inside every surviving cube.
 
-<figure data-investigation="mosely-snowflake"></figure>
+<figure data-construction-player="mosely-snowflake"></figure>
 
 The dimensions follow directly from these counts:
 
@@ -19,7 +19,7 @@ Their volume fractions after $n$ full replacements are $(19/27)^n$ and $(18/27)^
 
 View a cube along a body diagonal with parallel rays. Its shadow is a regular hexagon. In the heavier version, recursive corner removal produces a filled [Koch snowflake](/l-system/koch-snowflake) shadow through overlapping smaller hexagons.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup> This uses cube geometry rather than triangular bumps.
 
-The lighter version removes each central cavity as well. Its diagonal shadow has holes: even the central viewing ray passes through removed corner cubes and the removed center. Baird’s exact filled-shadow statement concerns the heavier version. **Explore inside** uses perspective and a finite detail limit, so its apparent outlines vary with camera position.
+The lighter version removes each central cavity as well. Its diagonal shadow has holes: even the central viewing ray passes through removed corner cubes and the removed center. Baird’s exact filled-shadow statement concerns the heavier version. The main explorer uses perspective and a finite detail limit, so its apparent outlines vary with camera position.
 
 The name recognizes Jeannine Mosely. Her construction guide with Margaret Wertheim documents the USC Libraries' 2011–2012 project to assemble the snowflake sponge from business cards.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> The guide specifies 108 X-modules and 216 Y-modules for the planned model. Its roughly 49,000 cards made the finite construction a community origami project.
 

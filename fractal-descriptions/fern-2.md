@@ -9,7 +9,7 @@ X → X[-FFF][+FFF]FX
 
 F draws a stroke. X and Y only expand. The angle is 25.7 degrees. Square brackets save and restore a branch's position and heading, following the standard bracketed L-system method.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
 
-<figure data-investigation="fern-2"></figure>
+<figure data-construction-player="fern-2"></figure>
 
 Each Y keeps one continuing Y and adds two side Y branches. It also inserts one F and one X. Each X makes two X symbols and seven F strokes, including two three-stroke side branches.
 

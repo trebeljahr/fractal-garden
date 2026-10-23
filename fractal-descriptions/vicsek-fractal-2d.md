@@ -2,7 +2,7 @@
 
 Keep five squares from a three-by-three grid. The **diagonal cross** keeps the four corners and center. The **Greek cross** keeps the four side centers and center. Repeat inside every surviving square.
 
-<figure data-investigation="vicsek-fractal-2d"></figure>
+<figure data-construction-player="vicsek-fractal-2d"></figure>
 
 After $n$ replacements, $5^n$ squares have side $3^{-n}$ relative to the seed. Both versions therefore have area fraction $(5/9)^n$ and Hausdorff dimension
 

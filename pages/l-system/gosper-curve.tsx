@@ -31,7 +31,7 @@ const GosperCurve = ({ description }: Props) => {
     lineWidth: 1.3,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "gosperCurve",
     storageKey: "gosper-curve",
     config,
@@ -65,6 +65,7 @@ const GosperCurve = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={"XF"}
           rules={{ X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" }}
           turn={60}

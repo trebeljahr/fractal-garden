@@ -9,7 +9,7 @@ F → FF
 
 F draws forward. X draws nothing: it marks a place that grows during the next rewrite. The preset uses a turn angle of −25 degrees. The bracketed method comes from L-system plant modeling, where a saved turtle state lets several branches leave the same junction.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
 
-<figure data-investigation="fern-1"></figure>
+<figure data-construction-player="fern-1"></figure>
 
 Read `[[X]-X]` from the inside outward. Each opening bracket saves position and heading. Each closing bracket restores them without drawing a return stroke. The inner pair shares a starting point, while the outer pair restores the direction used before that whole group.
 

@@ -2,6 +2,8 @@
 
 Keep three half-size corner triangles and remove the inverted center triangle. Repeat inside every survivor. After $n$ rounds, $3^n$ triangles retain $(3/4)^n$ of the starting area. The limit has zero area and dimension $\log3/\log2\approx1.585$.
 
+<figure data-construction-player="sierpinski-triangle"></figure>
+
 ## Start with a fish
 
 The same limit appears if the seed is a square, circle or fish. Make three half-size copies, moving each toward one fixed triangle vertex. Repeat on the whole picture.

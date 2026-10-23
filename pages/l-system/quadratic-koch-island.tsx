@@ -31,7 +31,7 @@ const QuadraticKochIsland = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "quadraticKochIsland",
     storageKey: "quadratic-koch-island",
     config,
@@ -65,6 +65,7 @@ const QuadraticKochIsland = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={"F-F-F-F"}
           rules={{ F: "F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F" }}
           turn={90}

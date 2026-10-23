@@ -4,7 +4,7 @@ Replace a straight segment with the two equal sides of a right isosceles triangl
 
 The page starts with F and applies `F → -F++F-` at 45 degrees. The initial minus tilts the first stroke. The double plus makes a 90-degree corner. The final minus restores the heading used before the replacement.
 
-<figure data-investigation="levy-curve"></figure>
+<figure data-construction-player="levy-curve"></figure>
 
 To keep the old endpoints fixed, each new stroke must have length $1/\sqrt{2}$ of the old segment. After $n$ rewrites there are $2^n$ strokes. Their total length is $(\sqrt{2})^n$ times the initial length.
 

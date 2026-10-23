@@ -18,6 +18,138 @@ const {
   CONSTRUCTION_MOTION_MS,
 } = require("../utils/constructionMotion.ts");
 const { buildScene, Scene3DRenderer } = require("../utils/render/scene3d.ts");
+const { ConstructionRenderer } = require("../utils/render/construction.ts");
+
+function constructionCanvas(t) {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "OffscreenCanvas");
+  class Canvas {
+    constructor(width, height) {
+      this.width = width;
+      this.height = height;
+      this.frame = null;
+      this.context = { drawImage: (source) => (this.frame = source.frame) };
+    }
+    getContext() {
+      return this.context;
+    }
+  }
+  Object.defineProperty(globalThis, "OffscreenCanvas", { configurable: true, value: Canvas });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, "OffscreenCanvas", original);
+    else delete globalThis.OffscreenCanvas;
+  });
+  const composites = [];
+  const ctx = {
+    canvas: new Canvas(480, 320),
+    globalAlpha: 1,
+    drawImage(image) {
+      composites.push({ frame: image.frame, alpha: this.globalAlpha });
+    },
+  };
+  return { ctx, composites };
+}
+
+test("construction restores the source view and discards frames from the old view", (t) => {
+  const { ctx, composites } = constructionCanvas(t);
+  let yaw = 12;
+  let level = 0;
+  let created = 0;
+  const views = [];
+  const source = {
+    update: (params) => (level = params.iterations),
+    draw: () => {
+      views.push(yaw);
+      ctx.canvas.frame = { yaw, level };
+      return false;
+    },
+    describe: () => ({ level, work: level + 1 }),
+    snapshotView: () => yaw,
+    restoreView: (state) => (yaw = state),
+  };
+  const renderer = new ConstructionRenderer(() => {
+    created++;
+    return source;
+  });
+  renderer.update({ kind: "polylineScene", params: { iterations: 0 }, level: 0, animate: true });
+  assert.equal(renderer.draw(ctx, 480, 320), false);
+  assert.equal(renderer.snapshotView(), 12);
+  renderer.update({ kind: "polylineScene", params: { iterations: 1 }, level: 1, animate: true });
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.equal(created, 1);
+  assert.deepEqual(renderer.describe(), { level: 1, work: 2 });
+  composites.length = 0;
+  renderer.restoreView(0);
+  assert.equal(renderer.snapshotView(), 0);
+  assert.equal(renderer.draw(ctx, 480, 320), false);
+  assert.deepEqual(views, [12, 12, 0]);
+  assert.deepEqual(ctx.canvas.frame, { yaw: 0, level: 1 });
+  assert.equal(composites.length, 0, "reset must not blend in a stale camera view");
+});
+
+test("construction keeps live polyline frames running through a finite growth blend", (t) => {
+  const { ctx, composites } = constructionCanvas(t);
+  let time = 100;
+  t.mock.method(performance, "now", () => time);
+  let running = true;
+  let frames = 0;
+  const renderer = new ConstructionRenderer(() => ({
+    update() {},
+    draw() {
+      ctx.canvas.frame = ++frames;
+      return running;
+    },
+    describe: () => null,
+  }));
+  renderer.update({ kind: "polylineScene", params: {}, level: 0, animate: true });
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.equal(frames, 2, "auto-rotation must render each requested frame");
+  renderer.update({ kind: "polylineScene", params: {}, level: 1, animate: true });
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.deepEqual(composites.slice(-2), [
+    { frame: 2, alpha: 1 },
+    { frame: 3, alpha: 0 },
+  ]);
+  time += CONSTRUCTION_MOTION_MS / 2;
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.deepEqual(composites.slice(-2), [
+    { frame: 2, alpha: 1 },
+    { frame: 4, alpha: 0.5 },
+  ]);
+  time += CONSTRUCTION_MOTION_MS;
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  composites.length = 0;
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.equal(composites.length, 0, "continuous frames must not restart the growth blend");
+  running = false;
+  assert.equal(renderer.draw(ctx, 480, 320), false);
+  assert.equal(frames, 7);
+  assert.equal(ctx.globalAlpha, 1);
+});
+
+test("construction delegates native scene motion and view state without a cached blend", (t) => {
+  const { ctx, composites } = constructionCanvas(t);
+  let params;
+  let view = 24;
+  let frames = 0;
+  const renderer = new ConstructionRenderer(() => ({
+    update: (next) => (params = next),
+    draw: () => ++frames < 2,
+    describe: () => ({ level: params.iterations, work: 20 }),
+    snapshotView: () => view,
+    restoreView: (next) => (view = next),
+  }));
+  renderer.update({ kind: "scene3d", params: { iterations: 1 }, level: 1, animate: true });
+  assert.deepEqual(params, { iterations: 1, constructionMotion: true });
+  assert.equal(renderer.draw(ctx, 480, 320), true);
+  assert.equal(renderer.draw(ctx, 480, 320), false);
+  assert.equal(renderer.snapshotView(), 24);
+  renderer.restoreView(0);
+  assert.equal(renderer.snapshotView(), 0);
+  assert.deepEqual(renderer.describe(), { level: 1, work: 20 });
+  assert.equal(composites.length, 0);
+});
+
 const specs = [
   { kind: "menger" },
   { kind: "vicsek3d" },

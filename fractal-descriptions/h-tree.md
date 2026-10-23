@@ -4,7 +4,7 @@ Draw one horizontal segment. At each endpoint, centre a shorter vertical segment
 
 The ratio control sets each child's length to $r$ times its parent's. The default is $r=1/\sqrt2$. Two generations then halve the length and create four smaller arrangements.
 
-<figure data-investigation="h-tree"></figure>
+<figure data-construction-player="h-tree"></figure>
 
 The endpoint positions explain that particular ratio. Along an infinite branch, horizontal displacements have magnitudes $L/2,Lr^2/2,Lr^4/2,\ldots$, with independent plus or minus choices. Vertical displacements have the same series multiplied by $r$.
 

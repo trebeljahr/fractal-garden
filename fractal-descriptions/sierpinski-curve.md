@@ -8,7 +8,7 @@ X → XF-F+F-XF+F+XF-F+F-X
 
 F draws forward and stays unchanged during rewriting. X draws nothing. Each X inserts eight F strokes and four new X symbols. The route's smaller detours occupy a square lattice, unlike the triangular gaps of the [Sierpinski arrowhead](/l-system/sierpinski-arrowhead).<sup><a id="sierpinski-curve-ref-1" href="#sierpinski-curve-source-1">1</a></sup>
 
-<figure data-investigation="sierpinski-curve"></figure>
+<figure data-construction-player="sierpinski-curve"></figure>
 
 Starting from four F and two X symbols gives 4, 20, 84 and 340 strokes. The continuing F strokes connect the new groups. This is why replacing each X with four copies does not merely quadruple the entire stroke count.
 

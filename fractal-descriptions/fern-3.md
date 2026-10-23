@@ -8,7 +8,7 @@ F → F[+FF][-FF]F[-F][+F]F
 
 Three unbracketed F strokes form the continuing stem. The first branch pair contains two strokes per branch. The second contains one per branch. Closing each bracket restores the saved position and direction without drawing a return line.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
 
-<figure data-investigation="fern-3"></figure>
+<figure data-construction-player="fern-3"></figure>
 
 At the next rewrite, all nine F symbols receive the entire replacement. A two-stroke branch therefore grows two consecutive copies, while a one-stroke branch grows one. The unequal branch lengths recur throughout the image without separate symbols for long and short branches.
 

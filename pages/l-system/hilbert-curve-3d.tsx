@@ -51,6 +51,10 @@ const HilbertCurve3D = ({ description }: Props) => {
     config,
     setConfig,
     params,
+    constructionParams: (settings) => ({
+      source: { kind: "hilbert3d" as const, order: settings.iterations },
+      config: settings,
+    }),
     width,
     height,
     min: MIN_ITERATIONS,

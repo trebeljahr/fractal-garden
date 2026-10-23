@@ -31,7 +31,7 @@ const Terdragon = ({ description }: Props) => {
     lineWidth: 0.5,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "terdragon",
     storageKey: "terdragon",
     config,
@@ -65,6 +65,7 @@ const Terdragon = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={"F"}
           rules={{ F: "F+F-F" }}
           turn={120}

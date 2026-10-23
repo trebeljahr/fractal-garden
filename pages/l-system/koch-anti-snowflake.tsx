@@ -31,7 +31,7 @@ const KochAntiSnowflake = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "kochAntiSnowflake",
     storageKey: "koch-anti-snowflake",
     config,
@@ -65,6 +65,7 @@ const KochAntiSnowflake = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={"F++F++F"}
           rules={{ F: "F+F--F+F" }}
           turn={60}

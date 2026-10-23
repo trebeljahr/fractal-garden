@@ -31,7 +31,7 @@ const DragonCurve = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "dragonCurve",
     storageKey: "dragon-curve",
     config,
@@ -65,6 +65,7 @@ const DragonCurve = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={"F"}
           rules={{ F: "F+G", G: "F-G" }}
           turn={90}

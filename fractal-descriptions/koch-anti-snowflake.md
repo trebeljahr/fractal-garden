@@ -4,7 +4,7 @@ Start with an equilateral triangle and replace every edge with four shorter edge
 
 The renderer uses the seed `F++F++F` and the rule `F → F+F--F+F`, with 60-degree turns. The starting triangle's orientation makes each bump point inside it.
 
-<figure data-investigation="koch-anti-snowflake"></figure>
+<figure data-construction-player="koch-anti-snowflake"></figure>
 
 At stage $n$, the boundary walk has $3\cdot4^n$ strokes of length $3^{-n}$ times the original side. Its total travelled length is therefore $3(4/3)^n$ for a unit-sided starting triangle.
 

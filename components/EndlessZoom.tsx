@@ -19,6 +19,7 @@ import { WebGLCanvas } from "./Canvas";
 import { useZoomActivity } from "./ZoomActivity";
 
 type Props = {
+  ready?: boolean;
   // The curve as an explorer spec, and the generation the page shows.
   spec: LSystemSpec;
   generation: number;
@@ -57,12 +58,18 @@ function formatZoom(zoom: number) {
 }
 
 /**
- * Endless zoom over an L-system page. At rest it is invisible and the page
- * draws as usual. The first scroll, pinch or drag takes over with a layer that
- * starts from exactly the page's picture and then grows later generations
- * where you look (see utils/lsystem/zoom.ts). Double-click returns to the page.
+ * Shows the complete calibrated L-system immediately, adding later generations
+ * where you look. Double-click returns to its whole-shape view.
  */
-export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveChange }: Props) => {
+export const EndlessZoom = ({
+  spec,
+  generation,
+  frame,
+  width,
+  height,
+  onActiveChange,
+  ready = true,
+}: Props) => {
   const [active, setActive] = useState(false);
   const { setActive: setZoomActive } = useZoomActivity();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
@@ -70,6 +77,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   const [info, setInfo] = useState<{ zoom: number; generation: number } | null>(null);
   const [unsupported, setUnsupported] = useState<string | null>(null);
   const viewRef = useRef<View | null>(null);
+  const untouched = useRef(true);
   const detailRef = useRef<ZoomDetail | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const takeoverCenterRef = useRef<{ x: number; y: number } | null>(null);
@@ -99,6 +107,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   pageFrameRef.current = frame;
 
   const reset = useCallback(() => {
+    untouched.current = true;
     viewRef.current = null;
     takeoverCenterRef.current = null;
     restoreSizeRef.current = null;
@@ -110,7 +119,14 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
 
   // New rules make the zoomed view stale. A resize does not: the view keeps
   // the frame it started from and stays centered.
-  const rulesKey = `${spec.axiom}|${JSON.stringify(spec.rules)}|${spec.angle}`;
+  const rulesKey = JSON.stringify([
+    spec.axiom,
+    spec.rules,
+    spec.angle,
+    spec.startAngle,
+    spec.drawSymbols,
+    spec.moveSymbols,
+  ]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: these are the triggers
   useEffect(() => {
     reset();
@@ -176,6 +192,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     renderer.drawDetail(detail, styleRef.current, originX, originY, stretch);
   }, [renderer, width, height]);
 
+  const drawRef = useRef(draw);
+  drawRef.current = draw;
+
   const send = useCallback(
     (request: ZoomRequest) => {
       if (busyRef.current) {
@@ -199,7 +218,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
           }
           detailRef.current = detail;
           setInfo({ zoom: detail.view.zoom, generation: detail.generation });
-          requestDrawRef.current();
+          cancelAnimationFrame(frameRef.current);
+          frameRef.current = requestAnimationFrame(() => drawRef.current());
         };
         worker.onerror = () => {
           busyRef.current = false;
@@ -331,6 +351,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
       ) {
         throw new Error("Invalid curve view");
       }
+      untouched.current = false;
       const ratio = Math.min(width, height) / Math.min(saved.width, saved.height);
       takeoverCenterRef.current = null;
       restoreSizeRef.current = Math.min(width, height);
@@ -403,6 +424,32 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     return viewRef.current;
   };
 
+  // Keep the calibrated full shape in the zoom renderer from the start. Refit
+  // only an untouched opening view when the viewport expands around the header.
+  useEffect(() => {
+    if (!ready || !width || !height || unsupported) return;
+    if (viewRef.current && !untouched.current) return;
+    viewRef.current = {
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      deepX: ZERO,
+      deepY: ZERO,
+      deepBits: 64,
+      frame: centerZoomFrame(pageFrameRef.current(), width, height),
+      spec: specRef.current,
+      generation: generationRef.current,
+    };
+    takeoverCenterRef.current = null;
+    setActive(true);
+    requestDrawRef.current();
+  }, [ready, width, height, generation, active, unsupported, rulesKey]);
+
+  useEffect(() => {
+    window.addEventListener("garden:reset-pose", reset);
+    return () => window.removeEventListener("garden:reset-pose", reset);
+  }, [reset]);
+
   const zoomAt = (clientX: number, clientY: number, factor: number) => {
     const stage = stageRef.current;
     if (!stage || !width || !height || unsupported) return;
@@ -411,6 +458,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
       reset();
       return;
     }
+    untouched.current = false;
     const view = takeOver();
     const k = zoom / view.zoom;
     const rect = stage.getBoundingClientRect();
@@ -453,6 +501,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     const dy = event.clientY - previous.y;
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (dx === 0 && dy === 0) return;
+    untouched.current = false;
     const view = takeOver();
     if (pointers.current.size >= 2) {
       const [a, b] = Array.from(pointers.current.values());
@@ -480,6 +529,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     <>
       <div
         ref={stageRef}
+        data-fractal-stage
+        data-curve-active={active}
         className={active ? styles.stageActive : styles.stage}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -493,7 +544,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
           </div>
         )}
       </div>
-      {active && (
+      {active && (info?.zoom ?? 1) > 1 && (
         <div className={styles.status} data-fractal-chrome>
           <span>{info ? `Zoomed ${formatZoom(info.zoom)}` : "Zooming…"}</span>
           <button className={styles.reset} type="button" onClick={reset}>

@@ -11,7 +11,7 @@ W → +VF-WFW-FV+
 
 F draws forward. V and W draw nothing. They mark the orientations of later copies. Each production supplies four V/W symbols and three connecting strokes.
 
-<figure data-lesson="lsystem-hilbert"></figure>
+<figure data-construction-player="lsystem-hilbert"></figure>
 
 The first rewrite makes a U with three strokes. At order $n$, the path visits every point of a $2^n\times2^n$ grid exactly once. It contains $4^n-1$ segments. If $s_n$ is the segment count, four copies plus three joins give $s_{n+1}=4s_n+3$.
 

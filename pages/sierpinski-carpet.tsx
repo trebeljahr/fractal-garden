@@ -32,7 +32,7 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
   });
   const { width, height } = useFractalViewportSize();
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "sierpinskiCarpet",
     storageKey: "sierpinski-carpet",
     config,
@@ -76,7 +76,12 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom pattern={{ kind: "carpet", config }} width={width} height={height} />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "carpet", config }}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
 
         <NavElement />

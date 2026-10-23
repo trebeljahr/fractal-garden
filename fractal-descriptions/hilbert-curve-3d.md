@@ -4,7 +4,7 @@ An order-$n$ path visits $8^n$ grid positions inside a cube, with $2^n$ position
 
 The recursive description divides the cube into eight octants. Smaller routes turn and reflect inside them so that each route's exit meets the next route's entrance. In the limit, the path reaches every point of the cube.<sup><a id="hilbert-curve-3d-ref-1" href="#hilbert-curve-3d-source-1">1</a></sup>
 
-<figure data-investigation="hilbert-curve-3d"></figure>
+<figure data-construction-player="hilbert-curve-3d"></figure>
 
 A flat projection hides depth. Two strokes can appear to cross while occupying different planes. Rotating the cube reveals this separation. At any finite order, the path consists of straight segments and occupies zero volume. Its limiting image is the cube, whose Hausdorff dimension is 3.
 

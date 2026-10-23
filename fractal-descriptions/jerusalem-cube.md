@@ -2,7 +2,7 @@
 
 Every cube leaves eight corner cubes and twelve smaller edge cubes. Cross-shaped passages replace the square tunnels of the [Menger sponge](/menger-sponge). Eric Baird dates his construction to 2010.<sup><a id="jerusalem-cube-ref-1" href="#jerusalem-cube-source-1">1</a></sup>
 
-<figure data-investigation="jerusalem-cube"></figure>
+<figure data-construction-player="jerusalem-cube"></figure>
 
 ## Two scales, one edge
 

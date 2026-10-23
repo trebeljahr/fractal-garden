@@ -2,7 +2,7 @@
 
 Replace the middle third of a segment with two sides of an outward equilateral triangle. Four segments, each one-third as long, now connect the old endpoints. Apply the rule to all three sides of an equilateral triangle.
 
-<figure data-construction="koch"></figure>
+<figure data-construction-player="koch"></figure>
 
 After $n$ replacements, a starting side length $s$ gives $3\cdot4^n$ segments of length $s/3^n$. Thus
 
@@ -25,8 +25,6 @@ The L-system uses **F** to draw and **+** or **−** to turn by 60 degrees:
 ```text
 F → F-F++F-F
 ```
-
-<figure data-lesson="lsystem-koch"></figure>
 
 The two adjacent turns at a tip change heading by 120 degrees. Edit this rule in the [L-system explorer](/l-system/explorer). The [anti-snowflake](/l-system/koch-anti-snowflake) reverses the bumps, while the [Cesàro fractal](/l-system/cesaro-fractal) changes their angle.
 

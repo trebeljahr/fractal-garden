@@ -2,7 +2,7 @@
 
 Divide a square into nine equal squares. Replace the middle square with the five exposed faces of an outward cube. Eight flat squares and five bump faces replace the original face.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup> This explorer starts from all six faces of a cube.
 
-<figure data-investigation="quadratic-koch-3d"></figure>
+<figure data-construction-player="quadratic-koch-3d"></figure>
 
 Each replacement produces thirteen squares with one-third the edge length. After $n$ rounds, the mesh has
 

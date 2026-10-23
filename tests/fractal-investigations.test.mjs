@@ -32,7 +32,11 @@ test("every article has a resolved interactive teaching figure", () => {
   ]);
   for (const file of readdirSync(new URL("../fractal-descriptions", import.meta.url))) {
     const text = readFileSync(new URL(`../fractal-descriptions/${file}`, import.meta.url), "utf8");
-    assert.match(text, /<figure data-(investigation|lesson|construction|orbit|projection)=/, file);
+    assert.match(
+      text,
+      /<figure data-(investigation|lesson|construction|construction-player|orbit|projection)=/,
+      file,
+    );
     for (const [, kind] of text.matchAll(/data-investigation="([^"]+)"/g))
       assert.ok(known.has(kind), `${file}: ${kind}`);
   }

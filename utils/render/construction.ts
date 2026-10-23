@@ -26,6 +26,7 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
   private previous: HTMLCanvasElement | OffscreenCanvas | null = null;
   private current: HTMLCanvasElement | OffscreenCanvas | null = null;
   private pending = false;
+  private sourceRunning = false;
   private started = 0;
   private blend = false;
 
@@ -38,6 +39,7 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
       if (next.kind === "construction") throw new Error("A construction cannot contain itself");
       this.source = this.create(next.kind);
       this.current = null;
+      this.sourceRunning = false;
     }
     this.blend =
       next.animate &&
@@ -60,19 +62,19 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
   draw(ctx: Context2D, width: number, height: number) {
     if (!this.source || !this.params) return false;
     if (this.params.kind === "scene3d") return this.source.draw(ctx, width, height);
-    if (
+    const refresh =
       this.pending ||
       !this.current ||
       this.current.width !== ctx.canvas.width ||
-      this.current.height !== ctx.canvas.height
-    ) {
-      this.source.draw(ctx, width, height);
-      this.current = canvasLike(ctx);
+      this.current.height !== ctx.canvas.height;
+    if (refresh || this.sourceRunning) {
+      this.sourceRunning = this.source.draw(ctx, width, height);
+      if (refresh || !this.current) this.current = canvasLike(ctx);
       this.current.getContext("2d")!.drawImage(ctx.canvas, 0, 0);
       this.pending = false;
-      this.started = performance.now();
+      if (refresh) this.started = performance.now();
     }
-    if (!this.previous || !this.blend) return false;
+    if (!this.current || !this.previous || !this.blend) return this.sourceRunning;
     const t = Math.min(1, (performance.now() - this.started) / CONSTRUCTION_MOTION_MS);
     const progress = t * t * (3 - 2 * t);
     ctx.drawImage(this.previous, 0, 0, width, height);
@@ -80,7 +82,19 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
     ctx.drawImage(this.current, 0, 0, width, height);
     ctx.globalAlpha = 1;
     if (t === 1) this.previous = null;
-    return t < 1;
+    return this.sourceRunning || t < 1;
+  }
+
+  snapshotView() {
+    return this.source?.snapshotView?.();
+  }
+
+  restoreView(state: unknown) {
+    this.source?.restoreView?.(state);
+    this.previous = null;
+    this.current = null;
+    this.blend = false;
+    this.pending = true;
   }
 
   describe() {

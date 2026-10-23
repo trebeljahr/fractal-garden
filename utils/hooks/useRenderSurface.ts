@@ -235,5 +235,7 @@ export function useRenderSurface<P>({
     channelRef.current?.setParams(next);
   }, []);
 
-  return { containerRef, canvas, setParams };
+  const restoreView = useCallback((state: unknown) => channelRef.current?.restoreView(state), []);
+
+  return { containerRef, canvas, setParams, restoreView };
 }

@@ -4,7 +4,7 @@ An L-system starts with a word, called the axiom, and rules for replacing its sy
 
 Rewriting creates a word. A separate interpretation turns that word into geometry. F can draw forward, plus and minus can turn, and other letters can mark future growth without drawing.
 
-<figure data-investigation="l-system-explorer"></figure>
+<figure data-construction-player="l-system-explorer"></figure>
 
 For example, start with X and use `X → F[+X]F[-X]+X`, with `F → FF`. The first rewrite contains three growing tips and two forward strokes. The second contains nine tips and ten strokes. Brackets restore the saved position and heading after each side branch.
 

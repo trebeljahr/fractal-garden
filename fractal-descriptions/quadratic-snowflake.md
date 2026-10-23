@@ -4,7 +4,7 @@ A square bump takes the place of the triangular Koch bump. The local replacement
 
 This page starts with `FF+FF+FF+FF`. Each side of the initial square contains two strokes, so the first rewrite places two bumps along each side. The turns send those bumps toward the square's interior.
 
-<figure data-investigation="quadratic-snowflake"></figure>
+<figure data-construction-player="quadratic-snowflake"></figure>
 
 Keep the starting square fixed by dividing the new stroke length by three. Stage $n$ then has $8\cdot5^n$ forward strokes. Its boundary walk's length multiplies by $5/3$ per stage. The corresponding similarity exponent is $\log5/\log3\approx1.465$.
 

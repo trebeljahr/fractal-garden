@@ -4,7 +4,7 @@ Start with `0` and rewrite `0 → 01`, `1 → 0`. The first words are `0`, `01`,
 
 Every digit draws one unit step. After a zero, turn right at odd positions and left at even positions, counting from one. After a one, keep the same heading. The usual turn is 90 degrees. This page also lets you change it.
 
-<figure data-investigation="fibonacci-word-fractal"></figure>
+<figure data-construction-player="fibonacci-word-fractal"></figure>
 
 Parity explains why joining two words is not always the same as joining two unchanged drawings. If the first word has odd length, every position in the appended word changes parity. Its left and right turns swap. If the first word has even length, the turn choices remain unchanged.
 

@@ -2,7 +2,7 @@
 
 Split a cube into 27 equal cubes. Remove the center and the six face centers. Repeat inside the twenty surviving cubes. In grid coordinates, a cell survives exactly when at most one of its three coordinates is the middle cell.
 
-<figure data-lesson="menger"></figure>
+<figure data-construction-player="menger"></figure>
 
 After $n$ replacements, $20^n$ cubes remain, each with side $3^{-n}$ of the original. For a unit starting cube,
 

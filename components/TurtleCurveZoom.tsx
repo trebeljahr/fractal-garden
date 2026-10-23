@@ -10,6 +10,7 @@ type Config = {
 };
 
 type Props<C extends Config> = {
+  ready: boolean;
   axiom: string;
   rules: Record<string, string>;
   // Degrees per "+", counterclockwise with y up, and the starting heading.
@@ -29,6 +30,7 @@ const PADDING = 0.08;
 // Endless zoom for the pages that trace a turtle curve and fit it to the
 // canvas (the dragon curve, Gosper curve, Koch islands and the like).
 export function TurtleCurveZoom<C extends Config>({
+  ready,
   axiom,
   rules,
   turn,
@@ -61,6 +63,7 @@ export function TurtleCurveZoom<C extends Config>({
   );
   return (
     <EndlessZoom
+      ready={ready}
       spec={spec}
       generation={config.iterations}
       frame={frame}

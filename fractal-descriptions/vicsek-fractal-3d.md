@@ -2,7 +2,7 @@
 
 Split a cube into 27 equal cubes. Keep the center and its six face neighbors. Repeat inside each of those seven cubes. This page uses the seven-cube spatial cross.
 
-<figure data-investigation="vicsek-fractal-3d"></figure>
+<figure data-construction-player="vicsek-fractal-3d"></figure>
 
 After $n$ replacements, $7^n$ cubes have side $3^{-n}$ relative to the seed. The volume fraction and dimension are
 

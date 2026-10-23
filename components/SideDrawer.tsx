@@ -33,12 +33,7 @@ export const SideDrawer = ({ description }: Props) => {
         data-fractal-description={true}
       >
         <div className={styles.drawerContent}>
-          <RenderMarkdown
-            content={description.replace(
-              /(?=<figure\b)/,
-              '<figure data-construction-player="true"></figure>\n\n',
-            )}
-          />
+          <RenderMarkdown content={description} />
           <RelatedFractals />
         </div>
         <Footer />

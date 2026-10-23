@@ -2,7 +2,7 @@
 
 Place a right triangle on a square's top edge, using that edge as the hypotenuse. Build a square on each remaining triangle side. Repeat on both child squares.
 
-<figure data-lesson="pythagoras"></figure>
+<figure data-construction-player="pythagoras"></figure>
 
 For parent side $s$ and triangle angle $\theta$, the child sides are
 

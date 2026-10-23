@@ -37,7 +37,7 @@ const TSquareFractal = ({ description }: Props) => {
     lineWidth: 0.8,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "tSquare",
     storageKey: "t-square-fractal",
     config,
@@ -71,7 +71,12 @@ const TSquareFractal = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom pattern={{ kind: "tSquare", config }} width={width} height={height} />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "tSquare", config }}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

@@ -8,7 +8,7 @@ F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
 
 The name “quadratic Koch” covers several square-grid constructions. This page uses the eighteen-piece version. The [Minkowski sausage](/l-system/minkowski-sausage) uses eight pieces, while the [Quadratic snowflake](/l-system/quadratic-snowflake) uses five.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
 
-<figure data-investigation="quadratic-koch-island"></figure>
+<figure data-construction-player="quadratic-koch-island"></figure>
 
 Read the eighteen strokes by direction. Eight advance along the old edge and two move backward. Four turn to each side. The sideways displacements cancel, leaving a six-unit chord. Every child stroke therefore has one sixth of the parent's length when the endpoints stay fixed.
 

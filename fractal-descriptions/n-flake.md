@@ -2,7 +2,7 @@
 
 Replace a regular polygon with one smaller copy at each vertex. Each copy keeps the parent's orientation. Repeat on every new polygon. The number of sides determines both the copy count and the scale.
 
-<figure data-investigation="n-flake"></figure>
+<figure data-construction-player="n-flake"></figure>
 
 The explorer uses
 

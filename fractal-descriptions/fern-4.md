@@ -9,7 +9,7 @@ F → FF
 
 F draws forward. X marks future growth. Brackets save position and heading, then restore both at the closing bracket.<sup><a id="fern-4-ref-1" href="#fern-4-source-1">1</a></sup>
 
-<figure data-investigation="fern-4"></figure>
+<figure data-construction-player="fern-4"></figure>
 
 The first two X symbols sit inside branches. Their turns affect their descendants, while the continuing stem resumes its saved direction. The final `+X` sits outside brackets. Its turn remains in the state inherited by the continuing tip.
 

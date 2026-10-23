@@ -139,12 +139,19 @@ const LSystem = ({ ruleset, children }: Props) => {
     };
   }, [config, width, height, fitted]);
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "lsystem2d",
     storageKey: `l-system:${ruleset.axiom}:${JSON.stringify(ruleset.replace)}`,
     config,
     setConfig,
     params,
+    constructionParams: (settings) => ({
+      ...params!,
+      ...readInitialPose(settings.ruleset, settings),
+      iterations: settings.iterations,
+      background: settings.background,
+      color: settings.ruleset.color,
+    }),
     width,
     height,
     min: minVisibleIteration,
@@ -152,9 +159,7 @@ const LSystem = ({ ruleset, children }: Props) => {
     stepDelay: 1000,
   });
 
-  // Endless zoom starts from the page's own picture: the renderer steps
-  // initialLength / divideFactor^generation from the translation, heading
-  // clockwise from up, which is the explorer turtle's convention too.
+  // Start endless zoom with the complete calibrated shape fitted to the viewport.
   const generation = Math.max(0, config.iterations - 1);
   const zoomSpec = useMemo<LSystemSpec | null>(() => {
     if (!params) return null;
@@ -176,12 +181,11 @@ const LSystem = ({ ruleset, children }: Props) => {
     return { ...spec, dimension: dimensionOf(spec) };
   }, [params]);
   const zoomFrame = useCallback(
-    (): ZoomFrame => ({
-      originX: params?.translation[0] ?? 0,
-      originY: params?.translation[1] ?? 0,
-      scale: params ? params.initialLength / params.divideFactor ** generation : 1,
-    }),
-    [params, generation],
+    (): ZoomFrame =>
+      zoomSpec && width && height
+        ? fittedFrame(zoomSpec, generation, width, height)
+        : { originX: 0, originY: 0, scale: 1 },
+    [zoomSpec, generation, width, height],
   );
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({
@@ -217,6 +221,7 @@ const LSystem = ({ ruleset, children }: Props) => {
       />
       {zoomSpec && zoomSpec.dimension === "2d" && (
         <EndlessZoom
+          ready={ready}
           spec={zoomSpec}
           generation={generation}
           frame={zoomFrame}

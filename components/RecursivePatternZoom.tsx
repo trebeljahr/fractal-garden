@@ -14,13 +14,14 @@ import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../uti
 
 type Props = {
   pattern: RecursivePattern;
+  ready?: boolean;
   width: number | null;
   height: number | null;
 };
 
-// Keep the calibrated page underneath until the first gesture.
+// Show the whole recursive shape as soon as its opening depth is calibrated.
 // The shared render host coalesces gestures and draws local detail on a worker.
-export function RecursivePatternZoom({ pattern, width, height }: Props) {
+export function RecursivePatternZoom({ pattern, width, height, ready = true }: Props) {
   const [camera, setCamera] = useState<PatternCamera | null>(null);
   const stage = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -29,7 +30,7 @@ export function RecursivePatternZoom({ pattern, width, height }: Props) {
   latest.current = { camera, pattern, width, height };
   const { containerRef } = useRenderSurface({
     kind: "recursiveZoom",
-    params: camera ? { pattern, camera } : null,
+    params: ready ? { pattern, camera: camera ?? initialPatternCamera(pattern) } : null,
     width,
     height,
   });
@@ -107,7 +108,7 @@ export function RecursivePatternZoom({ pattern, width, height }: Props) {
   useExplorerPart(
     "pattern",
     () => {
-      const view = latest.current.camera;
+      const view = latest.current.camera ?? initialPatternCamera(latest.current.pattern);
       return view
         ? { ...view, x: view.x.toString(), y: view.y.toString(), shape: shapeRef.current }
         : undefined;
@@ -150,7 +151,7 @@ export function RecursivePatternZoom({ pattern, width, height }: Props) {
   return (
     <div
       ref={stage}
-      className={camera ? styles.stageActive : styles.stage}
+      className={ready ? styles.stageActive : styles.stage}
       role="img"
       aria-label="Interactive fractal. Drag to pan; scroll or pinch to zoom; double-click to reset."
       data-fractal-stage
@@ -164,7 +165,7 @@ export function RecursivePatternZoom({ pattern, width, height }: Props) {
         setCamera(null);
       }}
     >
-      <div ref={containerRef} className={camera ? styles.layer : styles.layerWaiting} />
+      <div ref={containerRef} className={ready ? styles.layer : styles.layerWaiting} />
     </div>
   );
 }

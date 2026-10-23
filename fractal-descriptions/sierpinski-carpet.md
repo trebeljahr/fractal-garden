@@ -2,7 +2,7 @@
 
 Divide a square into a three-by-three grid. Remove the open middle square, keeping its boundary. Repeat inside each of the eight surviving squares. The infinite carpet is the intersection of these nested stages.<sup><a id="sierpinski-carpet-ref-1" href="#sierpinski-carpet-source-1">1</a></sup>
 
-<figure data-construction="carpet"></figure>
+<figure data-construction-player="carpet"></figure>
 
 At level $n$, the construction contains $8^n$ squares of side $3^{-n}$ relative to the seed. Its area fraction is
 

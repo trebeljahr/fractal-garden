@@ -15,7 +15,6 @@ import { ExplorerViewControls } from "./ExplorerViewControls";
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 type Props = {
-  animation?: { playing: boolean; onToggle: () => void };
   viewControlsHost?: HTMLElement | null;
   onCopyLink: () => void;
   onSavePng: () => void;
@@ -64,7 +63,6 @@ export function ExplorerContextMenu({
   children,
   onUIVisibilityChange,
   viewControlsHost,
-  animation,
 }: Props) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [clean, setClean] = useState(false);
@@ -204,7 +202,6 @@ export function ExplorerContextMenu({
       {viewControlsHost &&
         createPortal(
           <ExplorerViewControls
-            animation={animation}
             clean={clean}
             fullscreen={fullscreen}
             supported={supported}

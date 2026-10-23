@@ -84,7 +84,7 @@ export function VoxelFlight({
     if (!canvas) return;
     const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, antialias: false });
     if (!gl) {
-      setError("Explore needs WebGL. Use Back outside to return to the whole shape.");
+      setError("Exploration needs WebGL. The construction below is still available.");
       return;
     }
     let renderer: ReturnType<typeof createFlightRenderer> | undefined;
@@ -281,11 +281,18 @@ export function VoxelFlight({
       release();
       renderer?.destroy();
       renderer = undefined;
-      setError("Graphics paused. Waiting for WebGL to recover. Back outside is still available.");
+      setError(
+        "Graphics paused. Waiting for WebGL to recover. The construction below is still available.",
+      );
     };
     const restored = () => {
       previous = performance.now();
       start();
+    };
+    const reset = () => {
+      release();
+      cameraRef.current = initialFlightCamera(latest.current.pattern);
+      dirty.current = true;
     };
     const exported = () => {
       try {
@@ -308,6 +315,7 @@ export function VoxelFlight({
     canvas.addEventListener("webglcontextrestored", restored);
     canvas.addEventListener("garden:redraw", exported);
     window.addEventListener("garden:before-export", exported);
+    window.addEventListener("garden:reset-pose", reset);
     document.addEventListener("visibilitychange", visibility);
     document.addEventListener("pointerlockchange", lockChanged);
     document.addEventListener("mousemove", mousemove);
@@ -336,6 +344,7 @@ export function VoxelFlight({
       canvas.removeEventListener("webglcontextrestored", restored);
       canvas.removeEventListener("garden:redraw", exported);
       window.removeEventListener("garden:before-export", exported);
+      window.removeEventListener("garden:reset-pose", reset);
       document.removeEventListener("visibilitychange", visibility);
       document.removeEventListener("pointerlockchange", lockChanged);
       document.removeEventListener("mousemove", mousemove);

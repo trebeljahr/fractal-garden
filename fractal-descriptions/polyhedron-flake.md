@@ -2,7 +2,7 @@
 
 Replace a solid with one smaller copy toward each vertex. Every copy keeps the parent's orientation. This explorer uses three Platonic solids and three specific shrink ratios.
 
-<figure data-investigation="polyhedron-flake"></figure>
+<figure data-construction-player="polyhedron-flake"></figure>
 
 The **octahedron** has six vertices. Six half-size copies remain, giving
 

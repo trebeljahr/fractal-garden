@@ -2,7 +2,7 @@
 
 Keep four half-size copies of a regular tetrahedron, one at each vertex. Neighboring copies meet at edge midpoints. The missing center is a regular octahedron. Repeat on every surviving tetrahedron.
 
-<figure data-investigation="sierpinski-tetrahedron"></figure>
+<figure data-construction-player="sierpinski-tetrahedron"></figure>
 
 After $n$ steps, $4^n$ tetrahedra remain. Each has $1/8^n$ of the original volume, so the total volume fraction is $(1/2)^n$. Their total face area stays constant: four copies each contribute one-quarter of their parent's area.
 

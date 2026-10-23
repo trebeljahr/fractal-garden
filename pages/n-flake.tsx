@@ -55,12 +55,13 @@ const NFlake = ({ description }: Props) => {
     }));
   }, [config.iterations, maxIterations]);
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "nFlake",
     storageKey: `n-flake:${config.sides}${centeredVariant ? "-center" : ""}`,
     config,
     setConfig,
     params: config,
+    constructionMax: (settings) => getMaxIterations(settings.sides, settings.includeCenter),
     width,
     height,
     max: maxIterations,
@@ -93,7 +94,12 @@ const NFlake = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom pattern={{ kind: "flake", config }} width={width} height={height} />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "flake", config }}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

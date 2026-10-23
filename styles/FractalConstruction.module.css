@@ -4,14 +4,67 @@
   margin: 1rem auto;
   background: #252424;
   overflow: hidden;
+  touch-action: none;
+  cursor: grab;
 }
-
+.frame:active {
+  cursor: grabbing;
+}
 .surface {
   width: 100%;
   height: 100%;
 }
-
 .surface canvas {
   width: 100% !important;
   height: auto !important;
+}
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+  font-size: 1.3rem;
+}
+.controls {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  display: block;
+  pointer-events: auto;
+  margin: 1.5rem 0 0;
+  font-size: 1.4rem;
+}
+.controls summary {
+  cursor: pointer;
+  padding: 1rem 0;
+}
+.controls :global(.react-dat-gui.exploration-gui) {
+  background: var(--explorer-surface);
+  padding: 0.5rem 0;
+}
+@media (max-width: 700px) {
+  .controls {
+    position: relative;
+    inset: auto;
+  }
+  .caption {
+    align-items: flex-start;
+  }
+}
+
+.controls :global(.react-dat-gui.exploration-gui .dg.main) {
+  max-height: none;
+  overflow: visible;
+}
+.controls :global(.react-dat-gui.exploration-gui .dg.main) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.5rem;
+  padding: 0.75rem;
+}
+@media (max-width: 700px) {
+  .controls :global(.react-dat-gui.exploration-gui .dg.main) {
+    grid-template-columns: 1fr;
+  }
 }

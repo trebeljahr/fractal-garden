@@ -9,9 +9,9 @@ X → X+YF++YF-FX--FXFX-YF+
 Y → -FX+YFYF++YF+FX--FX-Y
 ```
 
-Only F draws. X and Y choose how the next copies turn and connect. The lesson below uses an equivalent two-letter form in which both letters draw.
+Only F draws. X and Y choose how the next copies turn and connect.
 
-<figure data-investigation="gosper-curve"></figure>
+<figure data-construction-player="gosper-curve"></figure>
 
 Each production contains seven X/Y symbols and six new F strokes. Existing F strokes remain. Starting from one X and one F gives exactly $7^n$ strokes after $n$ rewrites.
 

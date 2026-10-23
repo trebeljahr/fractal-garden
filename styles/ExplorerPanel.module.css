@@ -943,3 +943,25 @@
     max-width: none;
   }
 }
+
+/* Keep the studio's compact widgets when it sits inside an article lesson. */
+.inlinePanel .toggle {
+  min-height: 1.65rem;
+  padding: 0;
+}
+.inlinePanel .nudgeButton {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.inlinePanel .nudgeButton + .nudgeButton {
+  border-top: 1px solid rgba(245, 241, 209, 0.1);
+}
+.inlinePanel .colorButton {
+  min-height: 2.7rem;
+  padding: 0 0.82rem;
+}
+.inlinePanel .selectTrigger {
+  min-height: 2.7rem;
+  padding: 0 0.85rem 0 0.8rem;
+}

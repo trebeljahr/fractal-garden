@@ -2,7 +2,7 @@
 
 Join a triangle's edge midpoints, producing four half-size triangles. Keep the three corner triangles. Replace the middle triangle with the three exposed walls of an outward regular tetrahedron.<sup><a id="koch-surface-ref-1" href="#koch-surface-source-1">1</a></sup>
 
-<figure data-investigation="koch-surface"></figure>
+<figure data-construction-player="koch-surface"></figure>
 
 Every old triangle becomes six triangles with half its edge length and one-quarter its area. Starting from one triangle, round $n$ has $6^n$ faces and total face area
 

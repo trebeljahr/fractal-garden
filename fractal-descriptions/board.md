@@ -4,7 +4,7 @@ The Board starts with a square, `F+F+F+F`. Every F becomes `FF+F+F+F+FF`, using 
 
 Follow one replacement from left to right. Two strokes advance along the old edge. Three more travel around a small square. The final two continue forward. Seven strokes finish three unit lengths from the start, facing the original direction.
 
-<figure data-investigation="board"></figure>
+<figure data-construction-player="board"></figure>
 
 With the original corners fixed, each child stroke has one third of the parent's length. After $n$ rewrites, the four-sided word contains $4\cdot7^n$ forward instructions. Its total travelled length is $4(7/3)^n$ when the initial sides have unit length.
 

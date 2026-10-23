@@ -1,11 +1,12 @@
-import { Children, isValidElement, type ReactNode, useRef, useState } from "react";
+import { Children, isValidElement, type ReactNode, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
-import { ANIMATION_KEYS, type ControlRule, isRecord } from "../utils/explorerShare";
+import { explorerControlNodes } from "../utils/explorerControlNodes";
+import { type ControlRule, isRecord } from "../utils/explorerShare";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
+import { useConstructionControls } from "./FractalConstruction";
 import { FractalHeader } from "./FractalHeader";
-import { useZoomActivity } from "./ZoomActivity";
 
 type Action = {
   label: string;
@@ -17,6 +18,7 @@ type PanelMode = "formula" | "pattern" | "scene";
 type Props<T> = {
   actions?: Action[];
   children: ReactNode;
+  explorationControls?: ReactNode;
   data: T;
   defaultOpen?: boolean;
   introTitle?: string;
@@ -79,6 +81,7 @@ const PANEL_COPY: Record<PanelMode, { lines: string[] }> = {
 export function ExplorerPanel<T>({
   actions = [],
   children,
+  explorationControls,
   data,
   defaultOpen = false,
   introTitle,
@@ -89,49 +92,22 @@ export function ExplorerPanel<T>({
   places,
   shareRules = [],
 }: Props<T>) {
-  const { active: zoomActive } = useZoomActivity();
-  const animationBeforePause = useRef<Record<string, boolean> | null>(null);
+  const hasConstruction = useConstructionControls(children);
+  const mainControls = hasConstruction ? explorationControls : children;
   const rules = [
     ...controlRules(children, data).filter(
       (rule) => !shareRules.some((override) => override.path === rule.path),
     ),
     ...shareRules,
   ];
-  const animationKeys = rules
-    .filter((rule) => rule.kind === "boolean" && ANIMATION_KEYS.includes(rule.path))
-    .map((rule) => rule.path);
-  const animationData: Record<string, unknown> = isRecord(data) ? data : {};
-  const playing = animationKeys.some((key) =>
-    key === "paused" ? !animationData[key] : animationData[key],
-  );
-  const animation =
-    !zoomActive && animationKeys.length
-      ? {
-          playing,
-          onToggle: () => {
-            const next: Record<string, boolean> = {};
-            if (playing) {
-              animationBeforePause.current = {};
-              for (const key of animationKeys) {
-                animationBeforePause.current[key] = Boolean(animationData[key]);
-                next[key] = key === "paused";
-              }
-            } else {
-              for (const key of animationKeys) {
-                next[key] = animationBeforePause.current?.[key] ?? key !== "paused";
-              }
-              animationBeforePause.current = null;
-            }
-            onUpdate({ ...data, ...next });
-          },
-        }
-      : undefined;
   const defaults = PANEL_COPY[mode];
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
 
   const folderTitle = (
     <div className={styles.folderTitle}>
-      <span className={styles.folderHeading}>{CONTROLS_TITLE}</span>
+      <span className={styles.folderHeading}>
+        {hasConstruction ? "View controls" : CONTROLS_TITLE}
+      </span>
     </div>
   ) as unknown as string;
 
@@ -145,23 +121,28 @@ export function ExplorerPanel<T>({
             <div className={styles.studioGroup} data-fractal-studio>
               <div ref={setViewControlsHost} className={styles.viewControlsHost} />
               {places && <div className={styles.placesHost}>{places}</div>}
-              <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
-                <DatGui
-                  className="exploration-gui"
-                  data={data}
-                  labelWidth={160}
-                  onUpdate={onUpdate}
+              {mainControls && (
+                <aside
+                  className={styles.studio}
+                  aria-label={hasConstruction ? "View controls" : CONTROLS_TITLE}
                 >
-                  <DatFolder
-                    className="exploration-folder"
-                    closed={!defaultOpen}
-                    title={folderTitle}
+                  <DatGui
+                    className="exploration-gui"
+                    data={data}
+                    labelWidth={160}
+                    onUpdate={onUpdate}
                   >
-                    {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-                    {Children.toArray(children)}
-                  </DatFolder>
-                </DatGui>
-              </aside>
+                    <DatFolder
+                      className="exploration-folder"
+                      closed={!defaultOpen}
+                      title={folderTitle}
+                    >
+                      {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+                      {explorerControlNodes(mainControls)}
+                    </DatFolder>
+                  </DatGui>
+                </aside>
+              )}
             </div>
           </div>
         }
@@ -187,7 +168,6 @@ export function ExplorerPanel<T>({
           data={data}
           viewControlsHost={viewControlsHost}
           rules={rules}
-          animation={animation}
           onRestore={onRestore}
         />
       </div>

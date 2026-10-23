@@ -44,7 +44,7 @@ const VicsekFractal2D = ({ description }: Props) => {
     lineWidth: 0.8,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "vicsekFractal2D",
     storageKey: `vicsek-fractal-2d:${config.variant}`,
     config,
@@ -85,7 +85,12 @@ const VicsekFractal2D = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom pattern={{ kind: "vicsek", config }} width={width} height={height} />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "vicsek", config }}
+          width={width}
+          height={height}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

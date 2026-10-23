@@ -4,7 +4,7 @@ Take a [Heighway dragon](/l-system/dragon-curve) from one endpoint to another. R
 
 This page draws those two routes in different colours. Each uses `F → F+G`, `G → F-G`, with 90-degree turns and both letters drawing. At order $n$, the two routes together contain $2^{n+1}$ strokes.
 
-<figure data-investigation="twindragon"></figure>
+<figure data-construction-player="twindragon"></figure>
 
 Joining the endpoints makes a closed walk. The dense limiting traces cover the Twindragon tile, including its interior. They should not be mistaken for a drawing of only the tile's outer boundary.
 

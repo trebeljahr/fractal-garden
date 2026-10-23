@@ -4,7 +4,7 @@ Fold a strip of paper repeatedly in half, always in the same direction. Unfold i
 
 This page starts with F and rewrites `F → F+G` and `G → F-G`. Both letters draw one forward stroke. Plus turns counterclockwise by 90 degrees, and minus turns clockwise. Replacements happen simultaneously, so newly inserted symbols wait until the next rewrite.
 
-<figure data-lesson="lsystem-dragon"></figure>
+<figure data-construction-player="lsystem-dragon"></figure>
 
 Each letter makes two forward letters. After $n$ rewrites, the path contains $2^n$ strokes. With unit strokes, its endpoint chord has length $(\sqrt{2})^n$ and turns through another 45 degrees per rewrite. Holding that chord fixed therefore shrinks each new stroke by $1/\sqrt{2}$.
 

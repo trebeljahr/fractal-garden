@@ -8,7 +8,7 @@ F → F+F-F-FF+F+F-F
 
 All turns are 90 degrees. The route finishes four unit steps along the original edge, facing the original direction. Divide its stroke length by four to keep the old endpoints fixed.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
 
-<figure data-investigation="minkowski-sausage"></figure>
+<figure data-construction-player="minkowski-sausage"></figure>
 
 After $n$ rewrites, an open curve contains $8^n$ strokes, each of relative length $4^{-n}$. The total length doubles per rewrite. Its similarity dimension is $\log8/\log4=3/2$.
 

@@ -24,7 +24,6 @@ export type SceneVariant = {
 
 type Config<V extends string> = {
   variant: V;
-  navigation: "orbit" | "explore";
   iterations: number;
   autoRotate: boolean;
   rotationX: number;
@@ -85,7 +84,6 @@ export function SceneFractalExplorer<V extends string>({
   const { width: flightWidth, height: flightHeight } = useWindowSize();
   const [config, setConfig] = useState<Config<V>>({
     variant: initialVariant,
-    navigation: "orbit",
     iterations: 0,
     autoRotate: false,
     rotationX,
@@ -111,7 +109,7 @@ export function SceneFractalExplorer<V extends string>({
             ? "mosely-light"
             : "mosely-heavy"
           : null;
-  const exploring = config.navigation === "explore" && pattern !== null;
+  const exploring = pattern !== null;
   const maxIterations = variant.maxIterations;
   const iterations = Math.min(config.iterations, maxIterations);
   const variantOptions = Object.keys(variants) as V[];
@@ -160,6 +158,12 @@ export function SceneFractalExplorer<V extends string>({
     config,
     setConfig,
     params,
+    constructionMax: (settings) => variants[settings.variant].maxIterations,
+    constructionParams: (settings) => ({
+      spec: variants[settings.variant].spec,
+      iterations: settings.iterations,
+      view: { ...settings, doubleSided: variants[settings.variant].doubleSided, rotationSpeed },
+    }),
     width,
     height,
     max: maxIterations,
@@ -178,16 +182,6 @@ export function SceneFractalExplorer<V extends string>({
     setConfig((old) => ({ ...old, iterations: maxIterations }));
   }, [config.iterations, maxIterations]);
 
-  const backOutside = () =>
-    setConfig((old) => ({
-      ...old,
-      navigation: "orbit",
-      cameraDistance: INITIAL_CAMERA_DISTANCE,
-      rotationX,
-      rotationY,
-      grab: undefined,
-      autoRotate: false,
-    }));
   const handleUpdate = (newData: Config<V>) => {
     setConfig((old) => ({
       ...old,
@@ -202,29 +196,46 @@ export function SceneFractalExplorer<V extends string>({
         introTitle={title}
         lines={exploring ? [] : [hint]}
         places={
-          pattern && (
+          exploring && (
             <button
               className={flightStyles.navigation}
               type="button"
-              data-fractal-places
-              onClick={() =>
-                exploring
-                  ? backOutside()
-                  : setConfig((old) => ({
-                      ...old,
-                      navigation: "explore",
-                      autoRotate: false,
-                    }))
-              }
+              onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
             >
-              {exploring ? "Back outside" : "Explore inside"}
+              Reset view
             </button>
           )
+        }
+        explorationControls={
+          exploring ? (
+            <>
+              <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
+              <PanelSelect
+                path="occlusion"
+                label="Corner shading"
+                options={["off", "soft", "minecraft"]}
+                optionLabels={["Off", "Soft", "Minecraft AO"]}
+              />
+              <PanelColor path="background" />
+              <PanelColor path="fillColor" />
+              <PanelColor path="strokeColor" />
+              {variantOptions.length > 1 && (
+                <PanelSelect
+                  path="variant"
+                  label={variantLabel}
+                  optionLabels={variantOptions.map((option) => variants[option].label)}
+                  options={variantOptions}
+                />
+              )}
+              <PanelBoolean path="showFaces" />
+              <PanelBoolean path="showWireframe" />
+              <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
+            </>
+          ) : undefined
         }
         mode="scene"
         onUpdate={handleUpdate}
         shareRules={[
-          { path: "navigation", kind: "select", options: ["orbit", "explore"] },
           { path: "lighting", kind: "select", options: ["classic", "depth"] },
           { path: "occlusion", kind: "select", options: ["off", "soft", "minecraft"] },
           { path: "cameraDistance", kind: "number", min: 3, max: INITIAL_CAMERA_DISTANCE },
@@ -257,24 +268,11 @@ export function SceneFractalExplorer<V extends string>({
             options={variantOptions}
           />
         )}
-        {exploring && (
-          <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
-        )}
-        {exploring && (
-          <PanelSelect
-            path="occlusion"
-            label="Corner shading"
-            options={["off", "soft", "minecraft"]}
-            optionLabels={["Off", "Soft", "Minecraft AO"]}
-          />
-        )}
-        {!exploring && <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />}
-        {!exploring && <PanelBoolean path="autoRotate" />}
-        {!exploring && <PanelNumber path="rotationX" min={-180} max={180} step={1} />}
-        {!exploring && <PanelNumber path="rotationY" min={-180} max={180} step={1} />}
-        {!exploring && (
-          <PanelNumber path="cameraDistance" min={3} max={INITIAL_CAMERA_DISTANCE} step={0.1} />
-        )}
+        <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />
+        <PanelBoolean path="autoRotate" />
+        <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+        <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+        <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
 
         <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
         <PanelBoolean path="showFaces" />

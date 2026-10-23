@@ -33,7 +33,7 @@ const MinkowskiSausage = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "minkowskiSausage",
     storageKey: `minkowski-sausage:${config.island ? "island" : "sausage"}`,
     config,
@@ -68,6 +68,7 @@ const MinkowskiSausage = ({ description }: Props) => {
           ref={containerRef}
         />
         <TurtleCurveZoom
+          ready={ready}
           axiom={config.island ? "F+F+F+F" : "F"}
           rules={{ F: "F+F-F-FF+F+F-F" }}
           turn={90}

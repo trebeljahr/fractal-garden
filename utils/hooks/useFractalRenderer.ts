@@ -1,6 +1,5 @@
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef } from "react";
+import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
 import { useConstructionRegistration } from "../../components/FractalConstruction";
-import { useZoomActivity } from "../../components/ZoomActivity";
 import type { RendererKind } from "../render/registry";
 import type { HostEvent } from "../render/types";
 import { useAdaptiveGrowth } from "./useAdaptiveGrowth";
@@ -16,6 +15,8 @@ type Params<C extends GrowthConfig, P> = {
   setConfig: Dispatch<SetStateAction<C>>;
   /** What the renderer draws from; null until it can be described. */
   params: P | null;
+  constructionParams?: (config: C) => P;
+  constructionMax?: (config: C) => number;
   width: number | null;
   height: number | null;
   min?: number;
@@ -35,6 +36,8 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
   config,
   setConfig,
   params,
+  constructionParams,
+  constructionMax,
   width,
   height,
   min = 0,
@@ -57,16 +60,6 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
     stepDelay,
     holdDelay,
   });
-
-  const { active: zoomActive } = useZoomActivity();
-  const wasZoomActive = useRef(false);
-  useEffect(() => {
-    if (wasZoomActive.current && !zoomActive) {
-      // Return to the deepest level this machine can draw on this machine.
-      setConfig((old) => ({ ...old, iterations: growth.cap }));
-    }
-    wasZoomActive.current = zoomActive;
-  }, [zoomActive, growth.cap, setConfig]);
 
   const { onCost, onRendered, onCalibrated, calibrating, calibrationId } = growth;
   const onEvent = useCallback(
@@ -108,9 +101,37 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
   const construction = useMemo(
     () =>
       params && width && height && !calibrating
-        ? { kind, params, width, height, min, max: growth.cap, stepDelay, identity: storageKey }
+        ? {
+            kind,
+            params,
+            config,
+            width,
+            height,
+            min,
+            max: growth.cap,
+            stepDelay,
+            identity: storageKey,
+            maxForConfig: constructionMax
+              ? (settings: Record<string, unknown>) => constructionMax(settings as C)
+              : undefined,
+            makeParams: (settings: Record<string, unknown>) =>
+              constructionParams ? constructionParams(settings as C) : { ...params, ...settings },
+          }
         : null,
-    [kind, params, width, height, calibrating, min, growth.cap, stepDelay, storageKey],
+    [
+      kind,
+      params,
+      config,
+      constructionParams,
+      constructionMax,
+      width,
+      height,
+      calibrating,
+      min,
+      growth.cap,
+      stepDelay,
+      storageKey,
+    ],
   );
   useConstructionRegistration(construction);
 
@@ -118,5 +139,6 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
     ...surface,
     setParams,
     cap: growth.cap,
+    ready: !calibrating,
   };
 }
