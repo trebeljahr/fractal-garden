@@ -9,6 +9,8 @@ import {
   type Polyline3DDrawOptions,
   trimPolyline,
 } from "../polyline3d";
+import { AttractorDetail } from "../spatial/attractor";
+import { pickPolylinePoint } from "../spatial/polylinePicking";
 import type { Context2D, Renderer } from "./types";
 
 export type Polyline3DSceneConfig = Polyline3DDrawOptions & {
@@ -86,7 +88,29 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
   private extend: Extend | undefined;
   private visible = 0;
   private yawOffset = 0;
+  private detail: AttractorDetail | null = null;
+  private detailKey = "";
+  private detailPolyline: Polyline3D | null = null;
 
+  pick(x: number, y: number, width: number, height: number) {
+    if (!this.params) return null;
+    const config = {
+      ...this.params.config,
+      rotationY: this.params.config.rotationY + this.yawOffset,
+    };
+    const polyline = config.animateTrail ? this.polyline : (this.detailPolyline ?? this.polyline);
+    return pickPolylinePoint(
+      {
+        ...polyline,
+        count: config.animateTrail ? Math.min(polyline.count, this.visible) : polyline.count,
+      },
+      config,
+      x,
+      y,
+      width,
+      height,
+    );
+  }
   snapshotView() {
     return this.yawOffset;
   }
@@ -100,6 +124,9 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
 
     if (sourceKey !== this.sourceKey) {
       const built = buildPolyline(params.source);
+      this.detail = null;
+      this.detailKey = "";
+      this.detailPolyline = null;
       this.sourceKey = sourceKey;
       this.polyline = built.polyline;
       this.baseCount = built.polyline.count;
@@ -131,18 +158,38 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     if (trailRunning) {
       this.visible = Math.min(this.polyline.count, this.visible + config.trailSpeed);
     }
-    if (config.autoRotate) {
+    if (config.autoRotate && !config.spatialCamera) {
       this.yawOffset += 0.25;
     }
 
-    const head = drawPolyline3D(
-      ctx as CanvasRenderingContext2D,
-      width,
-      height,
-      this.polyline,
-      this.visible,
-      { ...config, rotationY: config.rotationY + this.yawOffset },
-    );
+    let drawing = this.polyline,
+      visible = this.visible;
+    if (params.source.kind !== "hilbert3d" && config.spatialCamera && !config.animateTrail) {
+      const key = JSON.stringify([
+        config.spatialCamera,
+        config.rotationX,
+        config.rotationY,
+        config.grab,
+        this.yawOffset,
+        width,
+        height,
+      ]);
+      if (key !== this.detailKey) {
+        this.detail ??= new AttractorDetail(params.source);
+        this.detailPolyline = this.detail.sample(
+          { ...config, rotationY: config.rotationY + this.yawOffset },
+          width,
+          height,
+        );
+        this.detailKey = key;
+      }
+      drawing = this.detailPolyline!;
+      visible = drawing.count;
+    }
+    const head = drawPolyline3D(ctx as CanvasRenderingContext2D, width, height, drawing, visible, {
+      ...config,
+      rotationY: config.rotationY + this.yawOffset,
+    });
 
     if (head && config.showHead !== false && (extend || this.visible < this.polyline.count)) {
       ctx.fillStyle = config.nearColor;
@@ -151,7 +198,7 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
       ctx.fill();
     }
 
-    return Boolean(extend) || trailRunning || config.autoRotate;
+    return Boolean(extend) || trailRunning || (config.autoRotate && !config.spatialCamera);
   }
 
   withLevel(params: PolylineSceneParams, level: number): PolylineSceneParams {

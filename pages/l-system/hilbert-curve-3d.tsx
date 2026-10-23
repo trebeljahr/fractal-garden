@@ -3,26 +3,33 @@ import { PanelBoolean, PanelColor, PanelNumber } from "../../components/Explorer
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
+import { SpatialExplorer } from "../../components/SpatialExplorer";
 import styles from "../../styles/Fullscreen.module.css";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useOrbitZoomControls } from "../../utils/hooks/useOrbitZoomControls";
 import { getDescription } from "../../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../../utils/render/polylineScene";
+import type { SpatialStyle } from "../../utils/spatial/geometry";
 
 type Props = {
   description: string;
 };
 
-type Config = Polyline3DSceneConfig & {
-  iterations: number;
-};
+type Config = Polyline3DSceneConfig &
+  SpatialStyle & {
+    iterations: number;
+  };
 
+const HILBERT_SPEC = { kind: "hilbert3d" } as const;
 const MIN_ITERATIONS = 1;
 const MAX_ITERATIONS = 5;
 
 const INITIAL_CONFIG: Config = {
   iterations: MIN_ITERATIONS,
+  fillColor: "#fc79ff",
+  strokeColor: "#4cc9f0",
+  showFaces: true,
+  showWireframe: false,
   animateTrail: false,
   trailSpeed: 20,
   autoRotate: false,
@@ -45,7 +52,7 @@ const HilbertCurve3D = ({ description }: Props) => {
     [config],
   );
 
-  const { containerRef, canvas } = useFractalRenderer({
+  const { containerRef } = useFractalRenderer({
     kind: "polylineScene",
     storageKey: "hilbert-curve-3d",
     config,
@@ -63,14 +70,6 @@ const HilbertCurve3D = ({ description }: Props) => {
     holdDelay: 2400,
   });
 
-  useOrbitZoomControls({
-    canvas,
-    cameraDistance: config.cameraDistance,
-    setConfig,
-    minDistance: 2,
-    maxDistance: INITIAL_CONFIG.cameraDistance,
-  });
-
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
       ...old,
@@ -84,6 +83,14 @@ const HilbertCurve3D = ({ description }: Props) => {
         data={config}
         introTitle="3D Hilbert Curve"
         lines={["Drag to rotate. Scroll to zoom."]}
+        explorationControls={
+          <>
+            <PanelBoolean path="autoRotate" />
+            <PanelColor path="background" />
+            <PanelColor path="nearColor" label="Near color" />
+            <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
+          </>
+        }
         mode="scene"
         onUpdate={handleUpdate}
       >
@@ -102,8 +109,24 @@ const HilbertCurve3D = ({ description }: Props) => {
         data-fractal-viewport
         className={styles.viewport}
         style={{ background: config.background }}
-        ref={containerRef}
-      />
+      >
+        {width && height && (
+          <SpatialExplorer<Config>
+            spec={HILBERT_SPEC}
+            style={{
+              ...config,
+              fillColor: config.nearColor,
+              strokeColor: config.farColor,
+              showFaces: true,
+              showWireframe: false,
+            }}
+            setStyle={setConfig}
+            width={width}
+            height={height}
+          />
+        )}
+      </div>
+      <div ref={containerRef} style={{ display: "none" }} aria-hidden />
       <SideDrawer description={description} />
       <NavElement />
     </main>

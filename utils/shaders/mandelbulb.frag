@@ -1,8 +1,9 @@
 precision highp float;
 
 uniform vec2 u_resolution;
-uniform vec2 u_rotation;
-uniform vec2 u_pan;
+uniform mat3 u_basis;
+uniform vec3 u_target;
+uniform float u_scale;
 uniform float u_cameraDistance;
 uniform float u_power;
 uniform float u_detail;
@@ -17,8 +18,8 @@ uniform vec3 u_paletteD;
 uniform float u_solid;
 uniform float u_shadows;
 
-const int MAX_STEPS = 160;
-const int MAX_ITERATIONS = 24;
+const int MAX_STEPS = 256;
+const int MAX_ITERATIONS = 48;
 const float MAX_DISTANCE = 12.0;
 const float BOUNDING_RADIUS = 1.25;
 
@@ -83,7 +84,7 @@ float softShadow(vec3 origin, vec3 direction, float start) {
     for (int i = 0; i < 48; i++) {
         float d = distanceTo(origin + direction * travelled);
         light = min(light, 6.0 * d / travelled);
-        travelled += clamp(d, 0.004, 0.2);
+        travelled += clamp(d, max(start * 0.25, 0.0000002), 0.2);
         if (light < 0.01 || travelled > 2.5) {
             break;
         }
@@ -112,16 +113,8 @@ void main() {
     // just finely enough to stay sharp at any zoom.
     float pixel = 1.0 / min(u_resolution.x, u_resolution.y);
 
-    vec3 target = vec3(u_pan, 0.0);
-    vec3 rayOrigin = vec3(0.0, 0.0, u_cameraDistance);
-    rayOrigin.xz = rot(u_rotation.y) * rayOrigin.xz;
-    rayOrigin.yz = rot(u_rotation.x) * rayOrigin.yz;
-    rayOrigin += target;
-
-    vec3 forward = normalize(target - rayOrigin);
-    vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
-    vec3 up = cross(forward, right);
-    vec3 rayDirection = normalize(forward + uv.x * right + uv.y * up);
+    vec3 rayOrigin = u_target + u_basis * vec3(0.0, 0.0, u_cameraDistance * 2.0 * u_scale);
+    vec3 rayDirection = u_basis * normalize(vec3(uv / 3.6, -1.0));
 
     vec3 background = mix(
         u_background,
@@ -144,7 +137,7 @@ void main() {
 
     for (int i = 0; i < MAX_STEPS; i++) {
         stepsTaken = i;
-        epsilon = max(totalDistance * pixel * 1.5, 0.000002);
+        epsilon = max(totalDistance * pixel * 0.5, 0.0000002);
         float d = distanceTo(rayOrigin + rayDirection * totalDistance);
         if (d < epsilon) {
             hit = true;

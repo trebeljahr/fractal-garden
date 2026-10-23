@@ -17,6 +17,9 @@ scope.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const message = event.data;
   try {
     switch (message.type) {
+      case "pick":
+        emit({ type: "picked", id: message.id, point: host?.pick(message.x, message.y) ?? null });
+        break;
       case "snapshot":
         emit({ type: "snapshot", id: message.id, state: host?.snapshotView() });
         break;

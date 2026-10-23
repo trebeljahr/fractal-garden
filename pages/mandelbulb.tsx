@@ -5,15 +5,16 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { constrain, radians } from "../utils/ctxHelpers";
 import { finite } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
-import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
+import { INITIAL_SPATIAL_CAMERA, rotationOf } from "../utils/spatial/camera";
+import { bulbTarget, MAX_BULB_ZOOM, pickBulbPoint } from "../utils/spatial/mandelbulb";
 
 type Props = {
   description: string;
@@ -75,16 +76,7 @@ type Config = {
   background: string;
   color: string;
   autoRotate: boolean;
-};
-
-type DragState = {
-  clientX: number;
-  clientY: number;
-  rotationX: number;
-  rotationY: number;
-  offsetX: number;
-  offsetY: number;
-  mode: "orbit" | "pan";
+  grab?: number[];
 };
 
 const INITIAL_CONFIG: Config = {
@@ -108,7 +100,20 @@ const Mandelbulb = ({ description }: Props) => {
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
   const configRef = useRef(config);
-  const dragRef = useRef<DragState | null>(null);
+  const [camera, setCamera] = useState(INITIAL_SPATIAL_CAMERA);
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
+  const redraw = useRef<(schedule?: boolean) => void>(() => {});
+  const [contextVersion, setContextVersion] = useState(0);
+  useSpatialControls({
+    canvas: cnv,
+    view: config,
+    setView: setConfig,
+    identity: "mandelbulb",
+    maxZoom: MAX_BULB_ZOOM,
+    controlled: { camera, setCamera },
+    pick: (x, y) => pickBulbPoint(camera, config, x, y, width ?? 1, height ?? 1),
+  });
   const drawnRotation = useRef(INITIAL_CONFIG.rotationY);
 
   useExplorerPart(
@@ -125,6 +130,7 @@ const Mandelbulb = ({ description }: Props) => {
   }, [config]);
 
   useEffect(() => {
+    void contextVersion;
     if (!gl || !width || !height || !cnv) return;
 
     const output = createShaderProgram(gl, vertexShader, fragmentShader);
@@ -144,8 +150,9 @@ const Mandelbulb = ({ description }: Props) => {
     gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
 
     const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    const rotationLocation = gl.getUniformLocation(program, "u_rotation");
-    const panLocation = gl.getUniformLocation(program, "u_pan");
+    const basisLocation = gl.getUniformLocation(program, "u_basis");
+    const targetLocation = gl.getUniformLocation(program, "u_target");
+    const scaleLocation = gl.getUniformLocation(program, "u_scale");
     const cameraDistanceLocation = gl.getUniformLocation(program, "u_cameraDistance");
     const powerLocation = gl.getUniformLocation(program, "u_power");
     const detailLocation = gl.getUniformLocation(program, "u_detail");
@@ -159,8 +166,9 @@ const Mandelbulb = ({ description }: Props) => {
 
     if (
       resolutionLocation === null ||
-      rotationLocation === null ||
-      panLocation === null ||
+      basisLocation === null ||
+      targetLocation === null ||
+      scaleLocation === null ||
       cameraDistanceLocation === null ||
       powerLocation === null ||
       detailLocation === null ||
@@ -185,8 +193,10 @@ const Mandelbulb = ({ description }: Props) => {
     const ratio = window.devicePixelRatio || 1;
     const startTime = performance.now();
     let animationId = 0;
+    let contextWasLost = false;
 
     const render = (schedule = true) => {
+      if (schedule) cancelAnimationFrame(animationId);
       const currentConfig = configRef.current;
       const elapsed = (performance.now() - startTime) * 0.001;
       const [bgR, bgG, bgB] = parseHexColor(currentConfig.background);
@@ -196,11 +206,21 @@ const Mandelbulb = ({ description }: Props) => {
       drawnRotation.current = ((((animatedRotationY + 180) % 360) + 360) % 360) - 180;
 
       gl.uniform2f(resolutionLocation, width * ratio, height * ratio);
-      gl.uniform2f(rotationLocation, radians(currentConfig.rotationX), radians(animatedRotationY));
-      gl.uniform2f(panLocation, currentConfig.offsetX, currentConfig.offsetY);
+      const spatial = cameraRef.current;
+      gl.uniformMatrix3fv(
+        basisLocation,
+        false,
+        rotationOf({ ...currentConfig, rotationY: animatedRotationY }),
+      );
+      gl.uniform3fv(targetLocation, bulbTarget(spatial, currentConfig));
+      gl.uniform1f(scaleLocation, 0.5 * 2 ** -spatial.zoom);
+      cnv.dataset.zoom = String(spatial.zoom);
       gl.uniform1f(cameraDistanceLocation, currentConfig.cameraDistance);
       gl.uniform1f(powerLocation, currentConfig.power);
-      gl.uniform1f(detailLocation, currentConfig.detail);
+      gl.uniform1f(
+        detailLocation,
+        Math.min(48, currentConfig.detail + Math.ceil(cameraRef.current.zoom * 2)),
+      );
       gl.uniform3f(backgroundLocation, bgR, bgG, bgB);
       gl.uniform3f(colorLocation, colorR, colorG, colorB);
       // State kept by Fast Refresh, or an older shared config, may lack a palette.
@@ -216,97 +236,39 @@ const Mandelbulb = ({ description }: Props) => {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      if (schedule) animationId = requestAnimationFrame(() => render());
+      if (schedule && currentConfig.autoRotate) animationId = requestAnimationFrame(() => render());
     };
     const exportFrame = () => render(false);
     cnv.addEventListener("garden:redraw", exportFrame);
 
-    const handleMouseDown = (event: MouseEvent) => {
-      dragRef.current = {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        rotationX: configRef.current.rotationX,
-        rotationY: configRef.current.rotationY,
-        offsetX: configRef.current.offsetX,
-        offsetY: configRef.current.offsetY,
-        mode: event.shiftKey ? "pan" : "orbit",
-      };
-      cnv.style.cursor = event.shiftKey ? "move" : "grabbing";
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const dragState = dragRef.current;
-      if (!dragState) return;
-
-      const rect = cnv.getBoundingClientRect();
-      const deltaX = (event.clientX - dragState.clientX) / rect.width;
-      const deltaY = (event.clientY - dragState.clientY) / rect.height;
-
-      if (dragState.mode === "orbit") {
-        setConfig((old) => ({
-          ...old,
-          autoRotate: false,
-          rotationY: dragState.rotationY + deltaX * 180,
-          rotationX: constrain(dragState.rotationX + deltaY * 120, -85, 85),
-        }));
-        return;
-      }
-
-      setConfig((old) => ({
-        ...old,
-        autoRotate: false,
-        offsetX: dragState.offsetX - deltaX * old.cameraDistance * 1.8,
-        offsetY: dragState.offsetY + deltaY * old.cameraDistance * 1.8,
-      }));
-    };
-
-    const handleMouseUp = () => {
-      dragRef.current = null;
-      cnv.style.cursor = "grab";
-    };
-
-    const wheelGuard = createZoomWheelGuard(cnv);
-    const handleWheel = (event: WheelEvent) => {
-      if (!wheelGuard.shouldZoom(event, configRef.current.cameraDistance >= MAX_DISTANCE)) return;
+    redraw.current = render;
+    const lost = (event: Event) => {
+      contextWasLost = true;
       event.preventDefault();
-      setConfig((old) => ({
-        ...old,
-        autoRotate: false,
-        cameraDistance: constrain(
-          old.cameraDistance *
-            (event.ctrlKey ? Math.exp(zoomWheelDelta(event, cnv)) : event.deltaY > 0 ? 1.08 : 0.92),
-          MIN_DISTANCE,
-          MAX_DISTANCE,
-        ),
-      }));
+      cancelAnimationFrame(animationId);
     };
-
-    cnv.style.cursor = "grab";
-    cnv.addEventListener("mousedown", handleMouseDown);
-    const removeZoomWheel = listenForZoomWheel(cnv, handleWheel);
-    window.addEventListener("mousemove", handleMouseMove);
-    cnv.addEventListener("mouseleave", handleMouseUp);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("blur", handleMouseUp);
-
+    const restored = () => setContextVersion((v) => v + 1);
+    cnv.addEventListener("webglcontextlost", lost);
+    cnv.addEventListener("webglcontextrestored", restored);
     render();
 
     return () => {
       cancelAnimationFrame(animationId);
       cnv.removeEventListener("garden:redraw", exportFrame);
-      cnv.removeEventListener("mousedown", handleMouseDown);
-      cnv.removeEventListener("mouseleave", handleMouseUp);
-      removeZoomWheel();
-      wheelGuard.dispose();
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("blur", handleMouseUp);
-      gl.deleteBuffer(vertBuf);
-      gl.deleteProgram(program);
-      gl.deleteShader(vert);
-      gl.deleteShader(frag);
+      redraw.current = () => {};
+      cnv.removeEventListener("webglcontextlost", lost);
+      cnv.removeEventListener("webglcontextrestored", restored);
+      if (!contextWasLost) {
+        gl.deleteBuffer(vertBuf);
+        gl.deleteProgram(program);
+        gl.deleteShader(vert);
+        gl.deleteShader(frag);
+      }
     };
-  }, [gl, width, height, cnv]);
+  }, [gl, width, height, cnv, contextVersion]);
+  useEffect(() => {
+    redraw.current(true);
+  });
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -316,40 +278,38 @@ const Mandelbulb = ({ description }: Props) => {
   };
 
   return (
-    <>
-      <main className={styles.fullScreen}>
-        <ExplorerPanel
-          data={config}
-          introTitle="Mandelbulb"
-          lines={["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
-          mode="scene"
-          onUpdate={handleUpdate}
-        >
-          <PanelSelect
-            path="palette"
-            label="Coloring"
-            options={PALETTE_NAMES}
-            optionLabels={PALETTE_NAMES.map((name) => PALETTES[name].label)}
-          />
-          {config.palette === "solid" && <PanelColor path="color" />}
-          <PanelBoolean path="shadows" label="Soft shadows" />
-          <PanelColor path="background" />
-          <PanelNumber path="power" min={2} max={12} step={0.1} />
-          <PanelNumber path="detail" min={6} max={20} step={1} />
-          <PanelNumber path="cameraDistance" min={MIN_DISTANCE} max={MAX_DISTANCE} step={0.01} />
-          <PanelNumber path="rotationX" min={-85} max={85} step={1} />
-          <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-          <PanelNumber path="offsetX" min={-2} max={2} step={0.01} />
-          <PanelNumber path="offsetY" min={-2} max={2} step={0.01} />
-          <PanelBoolean path="autoRotate" />
-        </ExplorerPanel>
-        <div className={styles.fullScreen}>
-          <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
-        </div>
-        <SideDrawer description={description} />
-        <NavElement />
-      </main>
-    </>
+    <main className={styles.fullScreen}>
+      <ExplorerPanel
+        data={config}
+        introTitle="Mandelbulb"
+        lines={["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
+        mode="scene"
+        onUpdate={handleUpdate}
+      >
+        <PanelSelect
+          path="palette"
+          label="Coloring"
+          options={PALETTE_NAMES}
+          optionLabels={PALETTE_NAMES.map((name) => PALETTES[name].label)}
+        />
+        {config.palette === "solid" && <PanelColor path="color" />}
+        <PanelBoolean path="shadows" label="Soft shadows" />
+        <PanelColor path="background" />
+        <PanelNumber path="power" min={2} max={12} step={0.1} />
+        <PanelNumber path="detail" min={6} max={20} step={1} />
+        <PanelNumber path="cameraDistance" min={MIN_DISTANCE} max={MAX_DISTANCE} step={0.01} />
+        <PanelNumber path="rotationX" min={-85} max={85} step={1} />
+        <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+        <PanelNumber path="offsetX" min={-2} max={2} step={0.01} />
+        <PanelNumber path="offsetY" min={-2} max={2} step={0.01} />
+        <PanelBoolean path="autoRotate" />
+      </ExplorerPanel>
+      <div className={styles.fullScreen}>
+        <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
+      </div>
+      <SideDrawer description={description} />
+      <NavElement />
+    </main>
   );
 };
 

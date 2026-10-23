@@ -3,7 +3,6 @@ import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
 import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
@@ -12,6 +11,7 @@ import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerCo
 import { ExplorerPanel } from "./ExplorerPanel";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
+import { SpatialExplorer } from "./SpatialExplorer";
 import { VoxelFlight } from "./VoxelFlight";
 
 export type SceneVariant = {
@@ -69,7 +69,7 @@ export function SceneFractalExplorer<V extends string>({
   description,
   storageKey,
   title,
-  hint,
+  hint: _hint,
   variantLabel = "Variant",
   variants,
   initialVariant,
@@ -152,7 +152,7 @@ export function SceneFractalExplorer<V extends string>({
     ],
   );
 
-  const { containerRef, canvas } = useFractalRenderer({
+  const { containerRef } = useFractalRenderer({
     kind: "scene3d",
     storageKey: `${storageKey}:${config.variant}`,
     config,
@@ -167,14 +167,6 @@ export function SceneFractalExplorer<V extends string>({
     width,
     height,
     max: maxIterations,
-  });
-
-  useOrbitZoomControls({
-    canvas: exploring ? null : canvas,
-    cameraDistance: config.cameraDistance,
-    setConfig,
-    minDistance: 3,
-    maxDistance: INITIAL_CAMERA_DISTANCE,
   });
 
   useEffect(() => {
@@ -194,17 +186,15 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={exploring ? [] : [hint]}
+        lines={exploring ? [] : ["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
         places={
-          exploring && (
-            <button
-              className={flightStyles.navigation}
-              type="button"
-              onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
-            >
-              Reset view
-            </button>
-          )
+          <button
+            className={flightStyles.navigation}
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
+          >
+            Reset view
+          </button>
         }
         explorationControls={
           exploring ? (
@@ -231,7 +221,27 @@ export function SceneFractalExplorer<V extends string>({
               <PanelBoolean path="showWireframe" />
               <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
             </>
-          ) : undefined
+          ) : (
+            <>
+              <PanelColor path="background" />
+              <PanelColor path="fillColor" />
+              <PanelColor path="strokeColor" />
+              {variantOptions.length > 1 && (
+                <PanelSelect
+                  path="variant"
+                  label={variantLabel}
+                  optionLabels={variantOptions.map((option) => variants[option].label)}
+                  options={variantOptions}
+                />
+              )}
+              <PanelBoolean path="autoRotate" />
+              <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+              <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+              <PanelBoolean path="showFaces" />
+              <PanelBoolean path="showWireframe" />
+              <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
+            </>
+          )
         }
         mode="scene"
         onUpdate={handleUpdate}
@@ -281,14 +291,20 @@ export function SceneFractalExplorer<V extends string>({
       <div
         data-fractal-viewport
         className={styles.viewport}
-        ref={containerRef}
-        aria-hidden={exploring || undefined}
-        style={{
-          background: config.background,
-          visibility: exploring ? "hidden" : undefined,
-          pointerEvents: exploring ? "none" : undefined,
-        }}
-      />
+        style={{ background: config.background }}
+      >
+        {!exploring && width && height && (
+          <SpatialExplorer
+            key={config.variant}
+            spec={variant.spec}
+            style={config}
+            setStyle={setConfig}
+            width={width}
+            height={height}
+          />
+        )}
+      </div>
+      <div ref={containerRef} style={{ display: "none" }} aria-hidden />
       {exploring && flightWidth && flightHeight && (
         <VoxelFlight
           key={config.variant}

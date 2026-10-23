@@ -85,6 +85,10 @@ export class RenderHost<P> {
     this.schedule();
   }
 
+  pick(x: number, y: number) {
+    return this.renderer.pick?.(x, y, this.width, this.height) ?? null;
+  }
+
   snapshotView() {
     return this.renderer.snapshotView?.();
   }

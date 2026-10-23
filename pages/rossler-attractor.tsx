@@ -5,10 +5,11 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
+import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import { getDescription } from "../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../utils/render/polylineScene";
+import { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } from "../utils/spatial/camera";
 
 type Props = {
   description: string;
@@ -44,28 +45,43 @@ const INITIAL_CONFIG: Config = {
 const RosslerAttractor = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
+  const [camera, setCamera] = useState(INITIAL_SPATIAL_CAMERA);
 
   const params = useMemo<PolylineSceneParams>(() => {
     const { a, b, c, dt, steps } = config;
-    return { source: { kind: "rossler", a, b, c, dt, steps }, config };
-  }, [config]);
+    return {
+      source: { kind: "rossler", a, b, c, dt, steps },
+      config: { ...config, spatialCamera: camera },
+    };
+  }, [config, camera]);
 
-  const { containerRef, canvas } = useRenderSurface({
+  const { containerRef, canvas, pick } = useRenderSurface({
     kind: "polylineScene",
     params,
     width,
     height,
   });
 
-  useOrbitZoomControls({
+  useSpatialControls({
     canvas,
-    cameraDistance: config.cameraDistance,
-    setConfig,
-    minDistance: 2,
-    maxDistance: INITIAL_CONFIG.cameraDistance,
+    view: config,
+    setView: setConfig,
+    identity: "attractor",
+    worldPick: pick,
+    animateOrbit: true,
+    maxZoom: 24,
+    controlled: { camera, setCamera },
   });
 
   const handleUpdate = (newData: Config) => {
+    if (newData.cameraDistance !== config.cameraDistance)
+      setCamera((old) =>
+        moveSpatialCamera(
+          old,
+          [0, 0, 0],
+          old.zoom + Math.log2(config.cameraDistance / newData.cameraDistance),
+        ),
+      );
     setConfig((old) => ({
       ...old,
       ...newData,
@@ -77,9 +93,10 @@ const RosslerAttractor = ({ description }: Props) => {
       <ExplorerPanel
         data={config}
         introTitle="Rössler Attractor"
-        lines={["Drag to rotate. Scroll to zoom."]}
+        lines={["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
         mode="scene"
         onUpdate={handleUpdate}
+        onRestore={setConfig}
       >
         <PanelNumber path="a" label="a" min={0} max={0.5} step={0.01} />
         <PanelNumber path="b" label="b" min={0} max={2} step={0.01} />
@@ -100,6 +117,7 @@ const RosslerAttractor = ({ description }: Props) => {
       </ExplorerPanel>
       <div
         data-fractal-viewport
+        data-zoom={camera.zoom}
         className={styles.viewport}
         style={{ background: config.background }}
         ref={containerRef}

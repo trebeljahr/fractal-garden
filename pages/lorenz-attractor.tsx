@@ -5,10 +5,11 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
+import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import { getDescription } from "../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../utils/render/polylineScene";
+import { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } from "../utils/spatial/camera";
 
 type Props = {
   description: string;
@@ -48,32 +49,44 @@ const MAX_POINTS = 150000;
 const LorenzAttractor = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
+  const [camera, setCamera] = useState(INITIAL_SPATIAL_CAMERA);
 
   const params = useMemo<PolylineSceneParams>(() => {
     const { sigma, rho, beta, dt, steps } = config;
     return {
       source: { kind: "lorenz", sigma, rho, beta, dt, steps },
-      config,
+      config: { ...config, spatialCamera: camera },
       maxPoints: MAX_POINTS,
     };
-  }, [config]);
+  }, [config, camera]);
 
-  const { containerRef, canvas } = useRenderSurface({
+  const { containerRef, canvas, pick } = useRenderSurface({
     kind: "polylineScene",
     params,
     width,
     height,
   });
 
-  useOrbitZoomControls({
+  useSpatialControls({
     canvas,
-    cameraDistance: config.cameraDistance,
-    setConfig,
-    minDistance: 0.3,
-    maxDistance: INITIAL_CONFIG.cameraDistance,
+    view: config,
+    setView: setConfig,
+    identity: "attractor",
+    worldPick: pick,
+    animateOrbit: true,
+    maxZoom: 24,
+    controlled: { camera, setCamera },
   });
 
   const handleUpdate = (newData: Config) => {
+    if (newData.cameraDistance !== config.cameraDistance)
+      setCamera((old) =>
+        moveSpatialCamera(
+          old,
+          [0, 0, 0],
+          old.zoom + Math.log2(config.cameraDistance / newData.cameraDistance),
+        ),
+      );
     setConfig((old) => ({
       ...old,
       ...newData,
@@ -85,9 +98,10 @@ const LorenzAttractor = ({ description }: Props) => {
       <ExplorerPanel
         data={config}
         introTitle="Lorenz Attractor"
-        lines={["Drag to rotate. Scroll to zoom."]}
+        lines={["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
         mode="scene"
         onUpdate={handleUpdate}
+        onRestore={setConfig}
       >
         <PanelNumber path="sigma" label="σ (sigma)" min={0} max={30} step={0.1} />
         <PanelNumber path="rho" label="ρ (rho)" min={0} max={100} step={0.1} />
@@ -114,6 +128,7 @@ const LorenzAttractor = ({ description }: Props) => {
       </ExplorerPanel>
       <div
         data-fractal-viewport
+        data-zoom={camera.zoom}
         className={styles.viewport}
         style={{ background: config.background }}
         ref={containerRef}

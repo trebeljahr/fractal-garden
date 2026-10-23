@@ -1,12 +1,22 @@
 import { type Orientation, viewRotation } from "./orientation";
+import {
+  CAMERA_DISTANCE,
+  cameraTarget,
+  FOCAL_SCALE,
+  relativeNumber,
+  type SpatialCamera,
+} from "./spatial/camera";
 
 export type Polyline3D = {
   // Packed xyz triples: [x0, y0, z0, x1, y1, z1, ...]
-  points: Float32Array;
+  points: Float32Array | Float64Array;
+  /** A set bit starts a new visible piece without drawing a false connecting segment. */
+  breaks?: Uint8Array;
   count: number;
 };
 
 export type Polyline3DDrawOptions = {
+  spatialCamera?: SpatialCamera;
   rotationX: number;
   rotationY: number;
   grab?: Orientation;
@@ -20,7 +30,7 @@ export type Polyline3DDrawOptions = {
   lineWidth: number;
 };
 
-type Derivative = (x: number, y: number, z: number, out: Float64Array) => void;
+export type Derivative = (x: number, y: number, z: number, out: Float64Array) => void;
 
 const DEPTH_BINS = 32;
 const PROJECTION_FOCAL_LENGTH = 4;
@@ -33,7 +43,12 @@ const MIN_NORMALIZATION_STEPS = 20000;
  * Advances `state` by one classic fourth-order Runge-Kutta step in place.
  * Returns false once the orbit escapes to infinity.
  */
-function stepRK4(derivative: Derivative, state: Float64Array, dt: number, scratch: Float64Array[]) {
+export function stepRK4(
+  derivative: Derivative,
+  state: Float64Array,
+  dt: number,
+  scratch: Float64Array[],
+) {
   const [k1, k2, k3, k4] = scratch;
   const x = state[0];
   const y = state[1];
@@ -54,7 +69,7 @@ function stepRK4(derivative: Derivative, state: Float64Array, dt: number, scratc
   );
 }
 
-function createScratch() {
+export function createScratch() {
   return [new Float64Array(3), new Float64Array(3), new Float64Array(3), new Float64Array(3)];
 }
 
@@ -157,7 +172,7 @@ type Normalization = {
  * Finds the bounding-box center and the uniform scale that puts the farthest
  * point on the unit sphere.
  */
-function getNormalization(
+export function getNormalization(
   { points, count }: Polyline3D,
   axisOrder: [number, number, number],
 ): Normalization {
@@ -188,7 +203,7 @@ function getNormalization(
 function writeNormalized(
   source: ArrayLike<number>,
   { center, scale, axisOrder }: Normalization,
-  target: Float32Array,
+  target: Float32Array | Float64Array,
   index: number,
 ) {
   for (let axis = 0; axis < 3; axis++) {
@@ -296,6 +311,11 @@ export function drawPolyline3D(
   options: Polyline3DDrawOptions,
 ): { x: number; y: number } | null {
   const { points } = polyline;
+  const spatial = options.spatialCamera;
+  const spatialTarget = spatial
+    ? cameraTarget(spatial).map((v) => relativeNumber(v, spatial.bits, 0))
+    : [0, 0, 0];
+  const spatialScale = spatial ? 2 ** spatial.zoom : 1;
   const count = Math.min(visibleCount, polyline.count);
   const [m0, m1, m2, m3, m4, m5, m6, m7, m8] = viewRotation(
     options.rotationX,
@@ -312,16 +332,18 @@ export function drawPolyline3D(
   if (count < 2) return null;
 
   for (let i = 0; i < count; i++) {
-    const x = points[i * 3];
-    const y = points[i * 3 + 1];
-    const z = points[i * 3 + 2];
+    const x = (points[i * 3] - spatialTarget[0]) * spatialScale;
+    const y = (points[i * 3 + 1] - spatialTarget[1]) * spatialScale;
+    const z = (points[i * 3 + 2] - spatialTarget[2]) * spatialScale;
 
     const rx = m0 * x + m1 * y + m2 * z;
     const ry = m3 * x + m4 * y + m5 * z;
     const rz = m6 * x + m7 * y + m8 * z;
-    const cameraDepth = options.cameraDistance - rz;
+    const cameraDepth = (spatial ? CAMERA_DISTANCE : options.cameraDistance) - rz;
     if (cameraDepth < NEAR_PLANE) clipped[i] = 1;
-    const perspective = PROJECTION_FOCAL_LENGTH / Math.max(cameraDepth, NEAR_PLANE);
+    const perspective =
+      (spatial ? FOCAL_SCALE / (options.viewScale ?? 0.42) : PROJECTION_FOCAL_LENGTH) /
+      Math.max(cameraDepth, NEAR_PLANE);
 
     projected[i * 3] = width / 2 + rx * scale * perspective;
     projected[i * 3 + 1] = height / 2 - ry * scale * perspective;
@@ -336,7 +358,7 @@ export function drawPolyline3D(
   let visibleSegments = 0;
 
   for (let i = 0; i < segmentCount; i++) {
-    if (clipped[i] || clipped[i + 1]) {
+    if (clipped[i] || clipped[i + 1] || polyline.breaks?.[i + 1]) {
       segmentBins[i] = CLIPPED;
       continue;
     }

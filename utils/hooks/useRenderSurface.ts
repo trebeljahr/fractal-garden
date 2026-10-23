@@ -7,6 +7,7 @@ import { useExplorerPart } from "./useExplorerPart";
 
 type Channel = {
   setParams: (params: unknown) => void;
+  pick: (x: number, y: number) => Promise<[number, number, number] | null>;
   resize: (width: number, height: number, ratio: number) => void;
   remeasure: () => void;
   calibrate: (request: CalibrationRequest<unknown>) => void;
@@ -51,6 +52,9 @@ function openWorkerChannel(
       if (event.data.type === "snapshot") {
         pending.get(event.data.id)?.(event.data.state);
         pending.delete(event.data.id);
+      } else if (event.data.type === "picked") {
+        pending.get(event.data.id)?.(event.data.point);
+        pending.delete(event.data.id);
       } else onEvent(event.data);
     };
     worker.postMessage({ type: "init", kind, canvas: offscreen, width: 0, height: 0, ratio: 1 }, [
@@ -79,6 +83,19 @@ function openWorkerChannel(
           resolve(value);
         });
         active.postMessage({ type: "snapshot", id });
+      }),
+    pick: (x, y) =>
+      new Promise((resolve) => {
+        const id = ++sequence;
+        const timeout = window.setTimeout(() => {
+          pending.delete(id);
+          resolve(null);
+        }, 2000);
+        pending.set(id, (value) => {
+          window.clearTimeout(timeout);
+          resolve((value ?? null) as [number, number, number] | null);
+        });
+        active.postMessage({ type: "pick", id, x, y });
       }),
     restoreView: (state) => active.postMessage({ type: "restore-view", state }),
     dispose: () => {
@@ -165,6 +182,7 @@ export function useRenderSurface<P>({
           },
           dispose: () => host.dispose(),
           snapshotView: async () => host.snapshotView(),
+          pick: async (x, y) => host.pick(x, y),
           restoreView: (state) => host.restoreView(state),
         });
       });
@@ -214,6 +232,7 @@ export function useRenderSurface<P>({
   const calibrationId = calibration ? calibration.id : null;
   useEffect(() => {
     const request = latestCalibration.current;
+    if (request?.id !== calibrationId) return;
     const channel = channelRef.current;
     if (!connected || !channel || !request || !width || !height) return;
     if (sentCalibration.current === request.id) return;
@@ -237,5 +256,9 @@ export function useRenderSurface<P>({
 
   const restoreView = useCallback((state: unknown) => channelRef.current?.restoreView(state), []);
 
-  return { containerRef, canvas, setParams, restoreView };
+  const pick = useCallback(
+    async (x: number, y: number) => channelRef.current?.pick(x, y) ?? null,
+    [],
+  );
+  return { containerRef, canvas, setParams, restoreView, pick };
 }
