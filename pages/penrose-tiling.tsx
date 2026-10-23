@@ -5,12 +5,12 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import { useZoomActivity } from "../components/ZoomActivity";
 import styles from "../styles/Fullscreen.module.css";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
+import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
-import { MAX_ITERATIONS, type PenroseStart, type PenroseVariant } from "../utils/penroseTiling";
+import { type PenroseStart, type PenroseVariant, PHI } from "../utils/penroseTiling";
 import { getDescription } from "../utils/readFiles";
-import type { PenroseParams } from "../utils/render/penrose";
+import { getMinTilePx, type PenroseParams } from "../utils/render/penrose";
 
 type Props = {
   description: string;
@@ -19,8 +19,6 @@ type Props = {
 type Config = {
   variant: PenroseVariant;
   start: PenroseStart;
-  iterations: number;
-  animateIterations: boolean;
   rotation: number;
   background: string;
   kiteColor: string;
@@ -30,8 +28,6 @@ type Config = {
   showOutline: boolean;
   outlineColor: string;
   lineWidth: number;
-  showStart: boolean;
-  startColor: string;
 };
 
 type Viewport = {
@@ -41,13 +37,14 @@ type Viewport = {
 
 const PADDING = 0.06;
 const INITIAL_ZOOM_SIZE = 1 / (1 - 2 * PADDING);
-const MIN_ZOOM_SIZE = 0.005;
+const MIN_ZOOM_SIZE = 0.000001;
+const TILE_LEVEL = 5;
 
 function toParams(config: Config, { center, zoomSize }: Viewport): PenroseParams {
   return {
     variant: config.variant,
     start: config.start,
-    iterations: config.iterations,
+    iterations: TILE_LEVEL,
     rotation: config.rotation,
     background: config.background,
     colors:
@@ -57,8 +54,6 @@ function toParams(config: Config, { center, zoomSize }: Viewport): PenroseParams
     showOutline: config.showOutline,
     outlineColor: config.outlineColor,
     lineWidth: config.lineWidth,
-    showStart: config.showStart,
-    startColor: config.startColor,
     center: [center[0], center[1]],
     zoomSize,
   };
@@ -83,8 +78,6 @@ const PenroseTiling = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     variant: "p2",
     start: "sun",
-    iterations: 5,
-    animateIterations: true,
     rotation: 0,
     background: "#252424",
     kiteColor: "#f2b134",
@@ -94,8 +87,6 @@ const PenroseTiling = ({ description }: Props) => {
     showOutline: true,
     outlineColor: "#1b1a1a",
     lineWidth: 1,
-    showStart: true,
-    startColor: "#f4efe6",
   });
   const viewportRef = useRef<Viewport>({
     center: [0, 0],
@@ -109,19 +100,18 @@ const PenroseTiling = ({ description }: Props) => {
   // post their own params below without re-rendering the page.
   const params = useMemo(() => toParams(config, viewportRef.current), [config]);
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useRenderSurface({
     kind: "penrose",
-    storageKey: `penrose-tiling:${config.variant}-${config.start}`,
-    config,
-    setConfig,
     params,
     width,
     height,
-    min: 0,
-    max: MAX_ITERATIONS,
-    stepDelay: 950,
-    holdDelay: 1800,
   });
+
+  // Stop zooming out at the renderer's tile budget, keeping tile size fixed.
+  const maxZoomSize =
+    width && height
+      ? Math.min(width, height) / (2 * getMinTilePx(width, height) * PHI ** TILE_LEVEL)
+      : INITIAL_ZOOM_SIZE;
 
   const requestRender = useCallback(() => {
     if (frameRef.current) return;
@@ -139,12 +129,8 @@ const PenroseTiling = ({ description }: Props) => {
   }, [zoomed, setZoomActive]);
 
   const onViewportChange = useCallback(() => {
-    const active = viewportRef.current.zoomSize < INITIAL_ZOOM_SIZE;
-    setZoomed(active);
-    // Keep the current tiles fixed while exploring, just like L-system zoom.
-    if (active) {
-      setConfig((old) => (old.animateIterations ? { ...old, animateIterations: false } : old));
-    }
+    const { center, zoomSize } = viewportRef.current;
+    setZoomed(zoomSize !== INITIAL_ZOOM_SIZE || center[0] !== 0 || center[1] !== 0);
     requestRender();
   }, [requestRender]);
 
@@ -152,7 +138,7 @@ const PenroseTiling = ({ description }: Props) => {
     canvas,
     viewportRef,
     minZoomSize: MIN_ZOOM_SIZE,
-    maxZoomSize: INITIAL_ZOOM_SIZE,
+    maxZoomSize,
     onViewportChange,
     flipY: true,
   });
@@ -188,12 +174,10 @@ const PenroseTiling = ({ description }: Props) => {
         />
         <PanelSelect
           path="start"
-          label="Start"
+          label="Pattern"
           optionLabels={startOptions.map((option) => startLabels[option])}
           options={startOptions}
         />
-        <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-        <PanelBoolean path="animateIterations" label={animateLabel} />
         <PanelNumber path="rotation" label="Rotation" min={-180} max={180} step={1} />
         <PanelColor path="background" />
         {config.variant === "p2" ? (
@@ -209,8 +193,6 @@ const PenroseTiling = ({ description }: Props) => {
         <PanelBoolean path="showOutline" label="Outline" />
         <PanelColor path="outlineColor" label="Outline color" />
         <PanelNumber path="lineWidth" min={0} max={4} step={0.1} />
-        <PanelBoolean path="showStart" label="Frame start patch" />
-        <PanelColor path="startColor" label="Start patch color" />
       </ExplorerPanel>
       <div className={styles.fullScreen} ref={containerRef} />
       <SideDrawer description={description} />

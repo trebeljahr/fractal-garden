@@ -1,6 +1,5 @@
 import {
   type Bounds,
-  getStartOutline,
   getVisibleTriangles,
   type PenroseStart,
   type PenroseVariant,
@@ -20,9 +19,6 @@ export type PenroseParams = {
   showOutline: boolean;
   outlineColor: string;
   lineWidth: number;
-  /** Frame the start patch and dim the tiling around it. */
-  showStart: boolean;
-  startColor: string;
   center: [number, number];
   zoomSize: number;
 };
@@ -35,11 +31,6 @@ export const MAX_VISIBLE_TRIANGLES = 100000;
 export function getMinTilePx(width: number, height: number) {
   return Math.sqrt((4 * width * height) / MAX_VISIBLE_TRIANGLES);
 }
-
-// Share of the background laid over the tiling outside the start patch.
-const OUTSIDE_DIM = 0.6;
-// The start patch is outlined this much wider than the tile edges.
-const START_LINE_SCALE = 2.5;
 
 // Tiles are cut for a view this much wider and taller than the screen, so a
 // pan can reuse them until it leaves the margin.
@@ -117,8 +108,7 @@ export class PenroseRenderer implements Renderer<PenroseParams> {
 
     const { center, zoomSize } = config;
     const pixelsPerUnit = Math.min(width, height) / (2 * zoomSize);
-    // Normally the chosen iterations. Only when iterations grew while zoomed
-    // out does this stay coarser, until zooming in makes room for the detail.
+    // Keep the chosen tile size, with a density cap for oversized shared views.
     const minTilePx = getMinTilePx(width, height);
     const level = Math.min(
       config.iterations,
@@ -192,40 +182,10 @@ export class PenroseRenderer implements Renderer<PenroseParams> {
       ctx.stroke();
     }
 
-    if (config.showStart) this.drawStart(ctx, config, bounds, pixelsPerUnit);
     ctx.restore();
 
     if (this.work === 0) this.work = Math.max(1, visible.length);
     return false;
-  }
-
-  // Deflating the whole plane in place looks just like zooming out, because
-  // the tiling is self-similar. Keeping the start patch fixed on top shows
-  // what each iteration does: its tiles split into smaller ones.
-  private drawStart(ctx: Context2D, config: PenroseParams, bounds: Bounds, pixelsPerUnit: number) {
-    const { outline, edges } = getStartOutline(config.variant, config.start);
-
-    ctx.beginPath();
-    ctx.rect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
-    const [[startX, startY], ...rest] = outline;
-    ctx.moveTo(startX, startY);
-    for (const [x, y] of rest) ctx.lineTo(x, y);
-    ctx.closePath();
-    ctx.globalAlpha = OUTSIDE_DIM;
-    ctx.fillStyle = config.background;
-    ctx.fill("evenodd");
-    ctx.globalAlpha = 1;
-
-    ctx.beginPath();
-    for (const [[ax, ay], [bx, by]] of edges) {
-      ctx.moveTo(ax, ay);
-      ctx.lineTo(bx, by);
-    }
-    ctx.strokeStyle = config.startColor;
-    ctx.lineWidth = (START_LINE_SCALE * Math.max(config.lineWidth, 1)) / pixelsPerUnit;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
   }
 
   private tilesFor(
