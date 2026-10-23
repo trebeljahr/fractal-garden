@@ -2,13 +2,15 @@
 
 Look for a large square with smaller squares centered on its corners. Those squares carry another set of corner squares. The overlaps and the gaps between them create the stepped outline.
 
+<figure data-investigation="t-square-fractal"></figure>
+
 ## Follow the corner copies
 
 Start with one square. Put a smaller square at each of its four corners, keeping the original square. Apply the same rule to each new square.
 
-In **Fractal Studio Controls**, turn off **Animate growth** and set **Iterations** to zero. Increase it to see the four corner copies appear. **Child scale** sets their size relative to their parent.
+Keeping every parent makes this an accumulating construction. The new squares overlap material that earlier generations already occupy.
 
-At the default scale of 0.5, every child has half its parent's side length. Lower the scale for smaller corner squares. Raise it for larger overlaps. Switch between **Fill squares** and **Outline squares** to follow the individual copies.
+At a child scale of 0.5, each new square has half its parent’s side length. Larger scales produce larger overlaps around the corners.
 
 ## More squares than visible regions
 

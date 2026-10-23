@@ -2,6 +2,8 @@
 
 The Sierpinski Tetrahedron, sometimes called the tetrix, is what you get when you take the [Sierpinski Triangle](/l-system/sierpinski-triangle) and give it one more dimension. Start with a regular tetrahedron, shrink it to half its size, and put one copy at each of its four corners. Then do the same thing to every copy, again and again.
 
+<figure data-investigation="sierpinski-tetrahedron"></figure>
+
 Neighbouring copies touch at a single point, the midpoint of the edge between them, and each step carves an octahedron-shaped hole out of the middle of every tetrahedron. After $n$ steps there are $4^n$ tiny tetrahedra, and the volume has dropped to $\left(\tfrac{1}{2}\right)^n$ of the start. The surface area does something stranger: every copy has a quarter of the area of its parent, and there are four of them, so the total surface area never changes.
 
 Because each step makes $N = 4$ copies at scale $r = \tfrac{1}{2}$, the Hausdorff dimension is

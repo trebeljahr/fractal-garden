@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import styles from "../styles/ConstructionDemo.module.css";
 import { canopyBranches, carpetHoles, kochEdge } from "../utils/constructionDiagrams";
 import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket";
+import { LessonSteps } from "./lessons/LessonFrame";
 
 const EXAMPLES = {
   carpet: { title: "Cut out the middle", max: 3 },
@@ -120,28 +121,7 @@ export default function ConstructionDemo({ kind }: { kind: ConstructionKind }) {
           {description}
         </p>
       </div>
-      <fieldset className={styles.controls} aria-label={`${example.title} steps`}>
-        <button type="button" disabled={step === 0} onClick={() => setStep(step - 1)}>
-          Previous
-        </button>
-        <label className={styles.step}>
-          <span>
-            Step {step} of {example.max}
-          </span>
-          <input
-            aria-label={`${example.title} step`}
-            type="range"
-            min={0}
-            max={example.max}
-            step={1}
-            value={step}
-            onChange={(event) => setStep(Number(event.target.value))}
-          />
-        </label>
-        <button type="button" disabled={step === example.max} onClick={() => setStep(step + 1)}>
-          Next step
-        </button>
-      </fieldset>
+      <LessonSteps step={step} max={example.max} onChange={setStep} label={example.title} />
       {kind === "canopy" && (
         <label className={styles.angle}>
           <span>

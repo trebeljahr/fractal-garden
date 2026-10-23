@@ -8,11 +8,11 @@ Start with one square. Place a right triangle on its top edge, using that edge a
 
 <figure data-lesson="pythagoras"></figure>
 
-In the small diagram, step forward twice, then move **Triangle angle**. The child squares change size while their combined area stays equal to the parent's.
+Changing the triangle angle changes the child squares’ sizes. Their combined area stays equal to the parent’s.
 
-Open **Fractal Studio Controls** and turn off **Animate growth**. Set **Iterations** to zero to see the first square, then add levels one at a time. Change **Angle** from 45 degrees toward 30 or 60 degrees to compare the two sides.
+At 30 degrees, the two child areas are three quarters and one quarter of the parent area. At 45 degrees, they are equal.
 
-Use **Fill triangles** and **Fill squares** to distinguish the connecting triangles from the squares. Their outlines remain visible when you turn the fill off.
+The triangle transmits both size and orientation to the next pair of squares. A skewed fork repeats its bias through later generations.
 
 ## Why the sizes fit
 

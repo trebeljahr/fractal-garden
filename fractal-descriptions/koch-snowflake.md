@@ -8,7 +8,7 @@ Divide an edge into three equal parts. Replace the middle part with the other tw
 
 <figure data-construction="koch"></figure>
 
-The diagram follows one edge. The full snowflake applies the same replacement to all three edges of an equilateral triangle. In the explorer, pause **Animate growth** and change **Iterations** to compare stages. The first displayed iteration is the starting triangle.
+The diagram follows one edge. The full snowflake applies the same replacement to all three edges of an equilateral triangle.
 
 ## A longer boundary inside a bounded shape
 
@@ -32,7 +32,7 @@ F → F-F++F-F
 
 <figure data-lesson="lsystem-koch"></figure>
 
-Move **Rewrites** to expand the word, then use **Next step** to read its symbols. A turn changes the arrow's direction without adding a segment. The faint path shows where the complete word will go. Here **+** turns clockwise and **−** turns counterclockwise.
+A turn changes direction without adding length. The two adjacent turns at the tip make a 120-degree change between the two new sides.
 
 The [L-system explorer](/l-system/explorer) lets you edit rules and compare the resulting paths.
 

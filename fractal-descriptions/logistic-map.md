@@ -18,8 +18,8 @@ For $0 \leq r \leq 4$, this rule keeps a starting value in $[0,1]$ inside that i
 
 The full explorer starts each column at $x_0 = 0.5$. It discards some early iterations, then plots the later values at that column's $r$. A sequence that approaches two alternating values leaves two bands. Many later values spread through a column when the sequence does not approach a short cycle.
 
-Open **Fractal Studio Controls** and choose **Starting view → Early bifurcations** to inspect the first splits. **Settle steps** controls how many early values the renderer discards. **Plotted steps** controls how many later values it draws. A finite sample can still contain transients or miss part of a pattern.
+Near the first bifurcations, the long-term values split into two, then four, then more branches. Early transient values can hide that structure.
 
-Drag to pan. Scroll or pinch to zoom. Compare **Chaotic bands** with **Feigenbaum window** under **Starting view** to inspect different regions.
+Periodic windows appear within the irregular bands. A parameter increase can restore a stable cycle before further splits occur.
 
 The logistic map repeats a rule on real numbers. The [Julia set](/julia-set) and [Mandelbrot set](/mandelbrot) repeat rules on complex numbers. The [Lorenz attractor](/lorenz-attractor) follows a continuous flow through three-dimensional space instead of a discrete recurrence.

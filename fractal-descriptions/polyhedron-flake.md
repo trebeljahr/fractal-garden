@@ -2,6 +2,8 @@
 
 A polyhedron flake is the three-dimensional version of an [N-Flake](/n-flake). Take a regular solid, make one smaller copy of it for every corner, and push each copy into its corner. Then repeat that on every copy. The [Sierpinski Tetrahedron](/sierpinski-tetrahedron) is the flake you get from a tetrahedron, and the cube version leads to the [Menger Sponge](/menger-sponge) and [3D Vicsek Fractal](/vicsek-fractal-3d) family. This page covers the other three Platonic solids.
 
+<figure data-investigation="polyhedron-flake"></figure>
+
 The scale of each copy is picked so that neighbouring copies just touch and never overlap. With $N$ copies at scale $r$, the Hausdorff dimension is
 
 $$

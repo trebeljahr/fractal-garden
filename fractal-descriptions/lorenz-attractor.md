@@ -4,11 +4,11 @@ Follow the trail around the butterfly's two wings. One moving point draws the wh
 
 ## Build a trail one batch at a time
 
-The small diagram uses the explorer's default equations and starting point. Step forward to add a batch of numerical integration steps. Switch projections to compare the same path from two directions.
+One point circles a wing, crosses to the other, and folds back. Two projections reveal different parts of that same three-dimensional path.
 
 <figure data-lesson="lorenz"></figure>
 
-Turn on **Compare a nearby start** to follow a second point, initially 0.001 farther along the x-axis. The displayed distance uses all three coordinates. A projection can hide part of that separation.
+The nearby start differs by 0.001 along the x-axis. Its separation uses all three coordinates, because a projection can hide part of the distance.
 
 The equations give the point's velocity at its current position:
 
@@ -20,13 +20,13 @@ $$
 
 The default values are $\sigma = 10$, $\rho = 28$ and $\beta = 8/3$. The trail approaches a bounded region with repeated folding. Nearby starting points can follow different routes through that region. This sensitivity does not mean their distance grows at every step, or that every possible starting point behaves the same way.
 
-## Compare motion in the full explorer
+## Sensitivity and numerical approximation
 
-Open **Fractal Studio Controls** and turn off **Auto rotate** to hold the camera still. Turn off **Animate trail** to inspect the full computed path. **Time step** controls the numerical interval. **Steps** controls how many intervals the renderer computes.
+A numerical trajectory samples a continuous flow at finite time intervals. Its trail connects those samples into a visible curve.
 
 The renderer uses fourth-order Runge–Kutta integration. A smaller time step can reduce numerical error over a fixed duration. To compare that duration, reduce **Time step** and increase **Steps** together. Chaotic trajectories can eventually separate even when both numerical approximations are useful.
 
-Compare **ρ (rho)** near 20 with its default 28. Watch whether the trail keeps circling the wings or approaches one location. Use the scroll wheel to move closer and drag to rotate.
+Changing the parameter $\rho$ changes the flow itself. The butterfly at $\rho=28$ does not imply every parameter or starting point has the same behavior.
 
 The trail is a curve through three-dimensional space. The gaps between passes remain empty. The [Rössler attractor](/rossler-attractor) makes another folded trajectory. The [logistic map](/logistic-map) explores changing behavior through a recurrence with one variable.
 

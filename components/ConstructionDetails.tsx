@@ -4,6 +4,7 @@ import styles from "../styles/ConstructionDetails.module.css";
 import { applyFernRule, type FernPoint, traceFern } from "../utils/barnsleyFern";
 import { mengerLayers } from "../utils/menger";
 import { type ForkPoint, pythagorasFork } from "../utils/pythagorasFork";
+import { LessonSteps } from "./lessons/LessonFrame";
 
 export type DetailKind = "menger" | "pythagoras" | "fern";
 export function isDetailKind(value: unknown): value is DetailKind {
@@ -21,29 +22,7 @@ function Steps({
   max: number;
   onChange: (value: number) => void;
 }) {
-  return (
-    <fieldset className={`${base.controls} ${styles.stepControls}`} aria-label={`${name} steps`}>
-      <button type="button" disabled={step === 0} onClick={() => onChange(step - 1)}>
-        Previous
-      </button>
-      <label className={base.step}>
-        <span>
-          Step {step} of {max}
-        </span>
-        <input
-          type="range"
-          aria-label={`${name} step`}
-          min={0}
-          max={max}
-          value={step}
-          onChange={(event) => onChange(Number(event.target.value))}
-        />
-      </label>
-      <button type="button" disabled={step === max} onClick={() => onChange(step + 1)}>
-        Next step
-      </button>
-    </fieldset>
-  );
+  return <LessonSteps step={step} max={max} onChange={onChange} label={name} />;
 }
 
 function MengerLesson() {

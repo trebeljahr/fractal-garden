@@ -2,13 +2,15 @@
 
 Look for five squares arranged as a cross, then five smaller squares inside each of those. The Vicsek fractal repeats one layout at a third of the previous size.
 
+<figure data-investigation="vicsek-fractal-2d"></figure>
+
 ## Compare two crosses
 
-Open **Fractal Studio Controls**, turn off **Animate growth**, and lower **Iterations** to zero. This shows the starting square. At the next step, a three-by-three grid replaces it, with only five cells kept.
+At the first replacement, only five cells of a three-by-three grid survive. The arrangement decides which gaps repeat.
 
-Under **Layout**, **Diagonal cross** keeps the four corners and the center. **Greek cross** keeps the center and the four cells beside it. Increase **Iterations** to compare how those choices repeat through the picture.
+The diagonal cross keeps four corners and the center. The Greek cross keeps the center and its four side neighbors.
 
-Use **Outline squares** to separate the small cells. The two layouts keep the same number of squares at every level, even though their gaps occupy different positions.
+Both layouts keep the same number of squares at each stage. Their area and scaling dimension agree, although their gaps have different positions.
 
 ## What stays the same
 

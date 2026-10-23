@@ -2,6 +2,8 @@
 
 The Rauzy Fractal looks like a blob of three colored puzzle pieces with fuzzy, crinkly borders. It comes from a very small rule about words, studied by Gérard Rauzy in 1982.
 
+<figure data-investigation="rauzy"></figure>
+
 Start with the letter `1` and repeatedly apply the tribonacci substitution:
 
 $$
@@ -22,7 +24,7 @@ Each point is colored by the letter that comes right after it. This splits the s
 
 The pieces fit together without gaps, and copies of the whole shape tile the plane. In number theory and dynamical systems it shows how the tribonacci word, a rotation on a 2D torus and $\beta$-expansions of numbers are the same thing in disguise.
 
-Use the points slider to watch the shape fill in. Fewer points show the order in which the walk visits the tile, more points sharpen the borders.
+Early prefixes visit only a sparse selection of corners. Longer prefixes fill the same bounded tile rather than expanding its outer scale.
 
 ## A projection that keeps the sideways deviations
 

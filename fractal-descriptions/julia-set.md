@@ -1,16 +1,16 @@
 # Julia Set
 
-Change the complex constant in this Julia set explorer to reshape its spirals and branches. Each constant gives a different fractal. Some Julia sets form connected shapes, while others break into dust-like pieces.
+A single constant determines every spiral and branch in a quadratic Julia set. Some constants produce connected sets. Others produce disconnected dust.
 
-Zoom along an edge to find smaller branches that resemble the larger pattern. Changing the constant changes that pattern throughout the image.
+Repeated iteration spreads the effect of that constant across the entire plane. Changing it can reshape every part of the boundary.
 
-## Try a different shape
+## One rule, different starting points
 
-Open **Fractal Studio Controls** and change **Starting point** from **Rabbit spiral** to **Sea spiral** or **Cauliflower bloom**. These presets choose values for the constant $c$.
+Two pixels share the same rule and constant, but start their orbits at different complex values. Their later paths can approach the same cycle or escape.
 
-Drag the point in the complex plane to see how nearby values change the shape. **Real (x)** runs horizontally; **Imaginary (y)** runs vertically. You can also type either coordinate below the plane. Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
+A small change to the constant can change the fate of the critical orbit starting at zero. That orbit determines whether the Julia set is connected.
 
-Use **Look** to compare coloring styles at the same location. **Palette** changes the colors while keeping the constant fixed. If a dark patch near an edge lacks detail, increase **Iterations** to give those points a longer escape test.
+Coloring measures the behavior of these orbits. It does not change which infinite orbits remain bounded.
 
 <figure data-article-images="julia"></figure>
 
@@ -26,7 +26,7 @@ The Mandelbrot explorer starts every sequence at $z_0 = 0$ and uses each pixel a
 
 This makes the Mandelbrot set a [map of the Julia family](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). A value of $c$ in the Mandelbrot set gives a connected Julia set. A value outside it gives disconnected dust. Near the Mandelbrot boundary, small changes to $c$ can produce large changes in the Julia image.
 
-Here, $c$ stays fixed at $-0.8 + 0.156i$. Move the starting point, then follow its orbit one step at a time. Compare this with the Mandelbrot example, where the starting point stays at zero.
+Below, $c=-0.8+0.156i$ stays fixed. Only the starting point changes. This separates the role of the parameter from the role of the iterated value.
 
 <figure data-orbit="julia"></figure>
 
@@ -38,10 +38,10 @@ With default **Smooth escape time** coloring, the dark region approximates the f
 
 **Orbit trap** colors points by how close their sequences come to the origin, including points that do not escape. This can reveal patterns inside the dark region. The [Burning Ship explorer](/burning-ship) offers the same coloring controls with a different iteration rule.
 
-### Zooming deeper
+### A finite test of an infinite orbit
 
-The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+Some starting points spend a long time near the boundary before escaping. A finite iteration limit can leave those points dark.
 
-At deeper zooms, a quick preview keeps the image moving while you drag or zoom. Detail returns when you pause. Difficult regions can take longer to refine.
+The filled set contains every bounded starting orbit. The Julia set is the boundary between that behavior and escape.
 
-This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.
+Magnification changes which starting points occupy the screen. It does not change the constant or the recurrence.

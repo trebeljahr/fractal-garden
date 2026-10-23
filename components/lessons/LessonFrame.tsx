@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import styles from "../../styles/lessons/Lesson.module.css";
+import { useLessonPlayback } from "../../utils/hooks/useLessonPlayback";
 
 export function LessonFrame({
   title,
@@ -28,16 +29,34 @@ export function LessonSteps({
   max,
   onChange,
   label,
+  duration,
 }: {
   step: number;
   max: number;
   onChange: (step: number) => void;
   label: string;
+  duration?: number;
 }) {
+  const playback = useLessonPlayback(
+    step,
+    max,
+    onChange,
+    duration ? duration / Math.max(1, Math.min(max, 100)) : max === 100 ? 45 : 700,
+    duration ? Math.max(1, Math.ceil(max / 100)) : 1,
+  );
   return (
-    <fieldset className={styles.controls} aria-label={`${label} steps`}>
-      <button type="button" disabled={step === 0} onClick={() => onChange(step - 1)}>
+    <fieldset ref={playback.ref} className={styles.controls} aria-label={`${label} steps`}>
+      <button type="button" disabled={step === 0} onClick={() => playback.change(step - 1)}>
         Previous
+      </button>
+      <button
+        type="button"
+        aria-label={`${playback.playing ? "Pause" : "Play"} ${label}`}
+        aria-pressed={playback.playing}
+        disabled={max === 0}
+        onClick={playback.toggle}
+      >
+        {playback.playing ? "Pause" : "Play"}
       </button>
       <label className={styles.step}>
         <span>
@@ -50,10 +69,10 @@ export function LessonSteps({
           max={max}
           step={1}
           value={step}
-          onChange={(event) => onChange(Number(event.target.value))}
+          onChange={(event) => playback.change(Number(event.target.value))}
         />
       </label>
-      <button type="button" disabled={step === max} onClick={() => onChange(step + 1)}>
+      <button type="button" disabled={step === max} onClick={() => playback.change(step + 1)}>
         Next step
       </button>
     </fieldset>

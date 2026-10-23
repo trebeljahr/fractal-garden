@@ -6,13 +6,13 @@ The large black shape has a heart-shaped body and a round bulb on its left. More
 
 <figure data-article-images="mandelbrot"></figure>
 
-## What to try
+## Repetition near the boundary
 
-Drag the image to pan. Use the scroll wheel to zoom toward the pointer, or pinch with two fingers on a touch screen.
+A boundary separates parameters with bounded orbits from parameters whose orbits escape. Nearby parameters can behave alike for many iterations before separating.
 
-Start in the narrow gap between the main body and the round bulb. Follow a curled edge into the region often called Seahorse Valley. Elsewhere along the boundary, look for smaller Mandelbrot shapes among the branches.
+Seahorse Valley lies near the junction of the main cardioid and the period-two bulb. Spirals and branching filaments collect around this narrow region.
 
-Open **Fractal Studio Controls** and try **Iteration bands** to see steps in the escape time. Switch to **Stripes** or **Orbit trap** to reveal different patterns at the same location. Change **Palette** to compare colors without changing the fractal.
+Smaller Mandelbrot copies carry their own bulbs, but their surrounding filaments differ. Repetition here does not mean every neighborhood is an exact scaled copy.
 
 ## Bulbs, cycles and smaller copies
 
@@ -36,16 +36,16 @@ $$
 
 For $c = 0$, the sequence stays at zero. For $c = 1$, it starts $0, 1, 2, 5, 26$ and grows without bound. The Mandelbrot set contains the values of $c$ whose sequences stay bounded forever. A finite image approximates that test.
 
-Try those values below. At $c = -1$, the orbit alternates between zero and minus one. The plot follows the calculated values, rather than the pixel's position in the Mandelbrot image.
+At $c=-1$, the orbit alternates between zero and minus one. The plot below shows orbit positions in the complex plane.
 
 <figure data-orbit="mandelbrot"></figure>
 
 The [Julia set explorer](/julia-set) keeps $c$ fixed and varies the starting point instead. The [Burning Ship](/burning-ship) changes the rule by taking absolute values before each square.
 
-### Zooming deeper
+### Why a boundary can stay dark
 
-The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+A parameter can remain near a repeating cycle for many iterations before escaping. Its finite escape test can therefore resemble a bounded orbit.
 
-At deeper zooms, a quick preview keeps the image moving while you drag or zoom. Detail returns when you pause. Difficult regions can take longer to refine.
+An escape radius gives a one-way test: once an orbit crosses it under the quadratic rule, the orbit must escape.
 
-This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.
+Staying below that radius for a finite number of steps does not prove membership. More iterations resolve some of these uncertain boundary points.

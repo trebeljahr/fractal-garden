@@ -2,6 +2,8 @@
 
 This is the three-dimensional version of the quadratic type 1 Koch curve. In 2D, that curve takes a line segment, splits it into three parts and pushes the middle part out into a square bump. You can see the closed version of it on the [Quadratic Snowflake](/l-system/quadratic-snowflake) page.
 
+<figure data-investigation="quadratic-koch-3d"></figure>
+
 In 3D, the same idea works on squares instead of line segments. Start with a cube. Split each square face into a `3 x 3` grid and grow a small cube, a third of the size, out of the middle cell. Now each old face has turned into 13 smaller squares: the 8 flat cells around the bump and the 5 visible faces of the new cube. Repeat the same step on every one of those squares.
 
 Every face on screen at a given iteration has exactly the same size, which is why the surface looks so even, almost like it was built out of Lego. Each step multiplies the number of faces by 13 and shrinks them by a factor of 3, so the Hausdorff dimension is

@@ -8,17 +8,35 @@ $$
 \varphi = \frac{1 + \sqrt{5}}{2} \approx 1.618
 $$
 
-## Explore the infinite tiling
+## A fixed tiling, built through subdivision
 
-Drag to pan in any direction. Scroll or pinch to zoom in and out. The tiling extends beyond every edge of the view.
+The main view shows fixed tiles at different magnifications. The diagram below explains their construction using triangular halves. An acute half-kite has angles $36°, 72°, 72°$. An obtuse half-dart has angles $108°, 36°, 36°$. These are the two Robinson triangles used in the P2 construction.
 
-Open **Fractal Studio Controls** to switch between **P2 kite and dart** and **P3 rhombus**. Under **Pattern**, compare **Sun** with **Star**. You can also change the rotation, tile colors, and outlines.
+<figure data-lesson="penrose"></figure>
 
-Zooming keeps the same tiles in place. Zoom out to see more of the pattern, or zoom in to inspect individual tiles. **Reset view** returns to the opening view.
+An acute half becomes two acute halves and one obtuse half. An obtuse half becomes one of each. The cut divides an edge in the ratio $\varphi:1$.
+
+This step is called **deflation**. The diagram keeps the outside boundary fixed while subdividing its interior. Whole kites and darts join mirrored halves. The main tiling keeps its tiles fixed as the view changes.
+
+## Different patches share the same local rules
+
+A sun patch has five kites meeting at their tips. A star patch has five darts. Their initial arrangements differ, while the subdivision preserves compatible neighbors.
+
+The P3 construction uses thick and thin rhombi instead. Both families repeat across scales through rules tied to the golden ratio.
+
+Local stars and rings recur without giving the whole plane a repeating translation. Repetition of a patch is weaker than periodicity of a tiling.
 
 ## Shape alone does not enforce the tiling
 
 A Penrose tiling also needs rules for how neighboring tiles meet. The construction starts from compatible patches and preserves their arrangement as it subdivides them. The [Tilings Encyclopedia](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/) illustrates matching rules with connected marks on neighboring rhombi.
+
+Counting the P2 halves gives another view of the golden ratio. If $k_n$ counts acute halves and $d_n$ counts obtuse halves:
+
+$$
+k_{n+1} = 2k_n + d_n, \qquad d_{n+1} = k_n + d_n
+$$
+
+Their ratio $k_n/d_n$ approaches $\varphi$ as the number of steps grows. The total count grows by a factor that approaches $\varphi^2$, about $2.618$.
 
 ## Is it a fractal?
 

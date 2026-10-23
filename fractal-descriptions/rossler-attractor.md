@@ -4,11 +4,11 @@ Follow the spiral as it spreads outward, rises and folds back toward its center.
 
 ## Follow a short trajectory
 
-Step forward through the small diagram. The **x–y projection** shows the spiral from above. Switch to **x–z projection** to see its height. Both views show the same numerical positions.
+The x–y projection shows the spiral from above. The x–z projection shows its excursions in height. Both contain the same numerical positions.
 
 <figure data-lesson="rossler"></figure>
 
-Turn on **Compare a nearby start** to follow a second trajectory with a small change to its initial x-coordinate. The two paths share one scale. Their separation can grow and shrink over time, so the displayed distance uses all three coordinates.
+A second trajectory starts with a small change in x. Its separation can grow and shrink. The displayed distance includes the hidden coordinate.
 
 The point follows three coupled equations:
 
@@ -20,11 +20,11 @@ $$
 
 The defaults are $a = 0.2$, $b = 0.2$ and $c = 5.7$. The product $z(x-c)$ couples height to the x-coordinate. Its effect changes as the point moves. The repeated spiral and fold come from following the whole system.
 
-## Change the motion in the explorer
+## The fold depends on all three variables
 
-Open **Fractal Studio Controls** and turn off **Auto rotate** to compare shapes from one camera angle. Turn off **Animate trail** to see the computed path together. Drag to rotate and use the scroll wheel to move closer.
+The spiral spreads through the x–y plane before the height term changes its route. Looking from above can conceal that fold.
 
-Compare **c** near 2.3 with its default 5.7. Watch how the loops and folds change. A finite trail cannot establish whether an orbit eventually closes or remains irregular forever.
+Changing c changes how x and z interact in the term $z(x-c)$. A finite trace cannot prove whether the eventual orbit closes.
 
 The renderer uses fourth-order Runge–Kutta integration. **Time step** controls the numerical interval, while **Steps** controls the number of intervals. To compare two approximations over the same duration, reduce **Time step** and increase **Steps** together.
 

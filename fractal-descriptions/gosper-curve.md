@@ -1,22 +1,13 @@
 # Gosper Curve
 
-The Gosper Curve, sometimes called the flowsnake, is a beautiful [L-system](https://en.wikipedia.org/wiki/L-system) curve built from 60 degree turns. Compared to the more square-looking [Hilbert Curve](/l-system/hilbert-curve) or the sharp folds of the [Lévy Curve](/l-system/levy-curve), the Gosper Curve feels much more organic and flowing.
+The Gosper curve winds around hexagonal-looking islands without breaking its route. Seven smaller pieces join in different orientations to replace each larger piece.
 
-Like the other L-system fractals in the garden, it begins from a short axiom and repeatedly rewrites that starting string according to a fixed replacement rule. For the Gosper Curve the common rule set looks like this:
+## A route with a hexagonal rhythm
 
-```ts
-const gosperCurve = {
-  axiom: "XF",
-  angle: 60,
-  replace: {
-    X: "X+YF++YF-FX--FXFX-YF+",
-    Y: "-FX+YFYF++YF+FX--FX-Y",
-  },
-};
-```
+Its 60-degree turns live on a triangular lattice. Two rewrite symbols arrange the pieces. Forward instructions draw the path between those turns.
 
-The letters `X` and `Y` only help with the rewriting process. The actual drawing happens on the `F` symbols, while `+` and `-` rotate by 60 degrees.
+<figure data-investigation="gosper-curve"></figure>
 
-One of the nicest things about the Gosper Curve is that it sits somewhere between a curve and a tiling. With more and more iterations, it starts to suggest hexagonal structure and begins to fill space in a very distinctive way.
+The endpoint distance of a seven-part replacement is $\sqrt{7}$ times one small segment. Rescaling to the old span gives seven copies at scale $1/\sqrt{7}$.
 
-Because its overall shape changes quite a lot as it grows, this implementation first traces the full path, measures the bounds, and then scales the result to fit the screen before drawing it.
+The similarity dimension is $\log 7/\log\sqrt{7}=2$. The limiting path fills a region, although each finite approximation consists of line segments. The [Hilbert curve](/l-system/hilbert-curve) achieves a related result on a square grid.

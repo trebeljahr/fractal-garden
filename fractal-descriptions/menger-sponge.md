@@ -10,7 +10,7 @@ Split a cube into 27 equal cubes in a three-by-three-by-three grid. Remove the c
 
 A face of the sponge shows the square-hole pattern of the [Sierpinski carpet](/sierpinski-carpet). The tunnels connect those faces through the interior.
 
-Open **Fractal Studio Controls** and turn off **Animate growth** to compare levels with **Iterations**. Disable **Auto rotate** when you want to hold a view still. Drag to rotate, and use the scroll wheel to move closer. Compare **Solid faces** with **Wireframe** to see how the smaller blocks fit together.
+Tunnels run in three perpendicular directions. A wall that looks continuous from one view can reveal an opening from another.
 
 <figure data-article-images="menger"></figure>
 
@@ -26,13 +26,13 @@ It approaches zero as the number of steps grows without limit. The exposed surfa
 
 The [3D Vicsek fractal](/vicsek-fractal-3d) keeps seven cubes per step. The [Mosely snowflake](/mosely-snowflake) removes different cubes, producing a different arrangement of openings.
 
-## Explore the interior
+## Tunnels repeat inside the walls
 
-Choose **Explore inside**, then click the view to capture the mouse. Move the mouse to look around without holding a button. Use WASD to fly, Space to go up, C to go down, and hold Shift to fly faster. Press Esc to release the mouse and reach the page controls. Scroll to move forward or backward. At the opening distance, scroll out again to move down the page.
+Every surviving cube contains another set of tunnels. Moving toward a wall reveals smaller openings with the same arrangement.
 
-On a touch screen, use the left stick to move and the right stick to look. Hold Up or Down to change height, and Fast to fly faster. Dragging the view and pinching also work. Drag controls also work when mouse capture is unavailable.
+The construction has no smallest tunnel in its mathematical limit. A finite view displays only the scales its resolution can separate.
 
-Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Fog hides distant geometry and draws closer as you approach smaller details. Nearby detail follows the screen resolution. Choose **Back outside** to return to the whole shape.
+Local detail exposes the relationship between one block and the whole sponge. The apparent solid walls also contain holes at smaller scales.
 
 ## A carpet shadow and stars inside a slice
 

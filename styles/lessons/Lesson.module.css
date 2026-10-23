@@ -29,7 +29,8 @@
   margin: 0;
   min-width: 0;
 }
-.frame button {
+.frame button,
+.controls button {
   color: inherit;
   background: transparent;
   border: 1px solid #eee8ce70;
@@ -40,6 +41,7 @@
     1.4rem / 1.4 "Montserrat",
     sans-serif;
 }
+.controls button:hover:not(:disabled),
 .frame button:hover:not(:disabled),
 .frame button[aria-pressed="true"] {
   background: #f5c56d22;
@@ -55,7 +57,8 @@
   outline: 2px solid var(--lesson-accent);
   outline-offset: 3px;
 }
-.frame input[type="range"] {
+.frame input[type="range"],
+.controls input[type="range"] {
   width: 100%;
   min-width: 0;
   min-height: 28px;
@@ -72,6 +75,7 @@
   max-width: 100%;
 }
 .controls {
+  --lesson-accent: #f5c56d;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -81,6 +85,7 @@
   display: grid;
   gap: 0.4rem;
   flex: 1;
+  min-width: 0;
   text-align: center;
   font:
     1.4rem / 1.4 "Montserrat",
@@ -161,6 +166,7 @@
     gap: 0.5rem;
   }
   .controls {
+    --lesson-accent: #f5c56d;
     gap: 0.6rem;
   }
   .frame button {
@@ -171,4 +177,16 @@
   .reveal {
     animation: none;
   }
+}
+
+.controls button {
+  white-space: nowrap;
+}
+.controls button:focus-visible {
+  outline: 2px solid #f5c56d;
+  outline-offset: 3px;
+}
+.controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }

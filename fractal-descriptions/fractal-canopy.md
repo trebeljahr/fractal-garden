@@ -8,9 +8,9 @@ This example uses two branches at each tip. Step forward to add a generation, th
 
 <figure data-construction="canopy"></figure>
 
-The full explorer supports more branches and different length ratios. In **Fractal Studio Controls**, turn off **Animate angle** before making a comparison. Lower **Depth** to see the main forks. Increase **Branches** to place more branches at each tip.
+A fixed branching rule can produce narrow or spreading canopies. Changing the branch angle changes the outline without changing which branches connect.
 
-**Branch shrink** sets each child's length as a fraction of its parent's length. Smaller values keep the outer branches close to their parent. Larger values make the canopy spread farther and can cause branches to overlap.
+The child-to-parent length ratio controls the canopy’s reach. For a ratio below one, the lengths along a single branch form a convergent geometric series.
 
 ## The same rule, different outlines
 

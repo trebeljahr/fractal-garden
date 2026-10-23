@@ -2,15 +2,15 @@
 
 Zoom into the Burning Ship fractal to find smaller ships and rows of thin towers. Its main outline resembles a hull with masts above it. The colored bands trace the edges, where the towers split into finer detail.
 
-This interactive explorer starts with the whole ship in view. Look toward its left end for smaller ship shapes, or use **Little ship** to visit one directly.
+Smaller ships repeat the hull-and-mast arrangement along the boundary. Their surrounding towers differ, even when their broad outlines resemble the whole.
 
-## Explore the smaller ships
+## A fold changes the boundary
 
-Drag to pan, then use the scroll wheel to zoom toward the pointer. On a touch screen, drag with one finger and pinch with two fingers to zoom.
+The absolute-value operation identifies points from different quadrants before the next square. It erases sign differences that the Mandelbrot rule preserves.
 
-Open **Places to explore** and choose **Little ship**. Follow the edge around its masts. Repeated towers appear side by side at different scales. **Whole ship** returns to the starting view.
+That folding changes the arrangement of filaments and towers. Near a small ship, thin ridges split again into finer ridges.
 
-Open **Fractal Studio Controls** and choose **Inferno** for a red and yellow view. The flame colors come from the palette. Try **Iteration bands** to see the escape steps, or change **Palette** while you stay at the same location.
+The bright bands record escape behavior. Their colors are a choice of display, while their locations come from the iterated rule.
 
 <figure data-article-images="burning-ship"></figure>
 
@@ -32,20 +32,20 @@ $$
 
 The absolute values act on the real and imaginary parts separately. They leave the squared real terms unchanged, but make their product nonnegative in the imaginary part.
 
-Step through an orbit below. The dashed amber line shows the fold before the square and addition. This teaching plot uses the usual upward imaginary axis, so you can follow the signs directly.
+The dashed amber line below marks the fold before squaring and addition. The plot uses the usual upward imaginary axis.
 
 <figure data-orbit="burning-ship"></figure>
 
 The set contains the values of $c$ whose sequences stay bounded forever. Default coloring uses smooth escape time for the points that escape. Black marks points that do not escape within the current **Iterations** limit.
 
-Increase **Iterations** when a dark patch near the edge needs a longer test. More steps refine the image but take more drawing time. Changing the colors does not change the rule.
+Some boundary points escape only after a long delay. A finite calculation can leave them dark alongside points with bounded orbits.
 
 For another view of the same escape-time idea, the [Julia set explorer](/julia-set) fixes $c$ and varies the starting point.
 
-### Zooming deeper
+### Long delays near the edge
 
-The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
+A fold can bring an orbit back toward an axis before the square sends it away again. Repeated returns produce long escape delays.
 
-At deeper zooms, a quick preview keeps the image moving while you drag or zoom. Detail returns when you pause. Difficult regions can take longer to refine.
+Escape-time bands distinguish those delays. A darker band need not belong to the set.
 
-This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.
+The mathematical set requires boundedness forever. Every finite rendering approximates that condition.

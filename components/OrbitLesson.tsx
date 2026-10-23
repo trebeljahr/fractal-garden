@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import styles from "../styles/ConstructionDemo.module.css";
 import { type ComplexPoint, traceTeachingOrbit } from "../utils/orbitLesson";
+import { LessonSteps } from "./lessons/LessonFrame";
 
 export type OrbitKind = "mandelbrot" | "julia" | "burning-ship";
 export function isOrbitKind(value: unknown): value is OrbitKind {
@@ -136,17 +137,13 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           )}
         </div>
       </div>
-      <fieldset className={styles.controls} aria-label={`${title} steps`}>
-        <button type="button" disabled={step === 0} onClick={() => setStep(step - 1)}>
-          Previous
-        </button>
-        <span className={styles.step}>
-          Step {step} of {lastStep}
-        </span>
-        <button type="button" disabled={step === lastStep} onClick={() => setStep(step + 1)}>
-          Next step
-        </button>
-      </fieldset>
+      <LessonSteps
+        key={`${value.real}:${value.imaginary}`}
+        step={step}
+        max={lastStep}
+        onChange={setStep}
+        label={title}
+      />
       <fieldset className={styles.parameters}>
         <legend>{kind === "julia" ? "Starting point z₀" : "Parameter c"}</legend>
         {(["real", "imaginary"] as const).map((part) => (

@@ -8,15 +8,15 @@ Start with a frozen seed. A walker chooses a direction, moves, and checks whethe
 
 <figure data-lesson="dla"></figure>
 
-Use **Next step** to follow a walker, or move the step slider to inspect its trail. **Walk 1** reaches the seed along an edge. **Walk 2** reaches a diagonal neighbor. **Walk 3** leaves the small window before touching the seed. Each replay uses a fixed random seed, with no steering toward the cluster.
+The three paths have different outcomes: edge contact, diagonal contact, and departure from the window. Their random steps do not point toward the cluster.
 
 The small diagram uses sticking chance 1. The first contact freezes the walker. Adding more walkers repeats the same local rule around the enlarged cluster.
 
-## Compare the growing clusters
+## A seed changes the early growth
 
-Open **Fractal Studio Controls** and switch **Pause** on to hold the picture still. Compare **Point** and **Line** under **Seed**. A point grows outward from the center. A line starts from the bottom edge.
+A point seed grows outward in all directions. A line seed gives walkers an extended base, so early branches compete along that line.
 
-Set **Sticking chance** to 1, then lower it to let some touching particles keep moving. Use **Restart growth** for another sample. One short run does not establish how a setting changes the long-term shape.
+A particle that does not stick can continue walking. This lets it reach places beyond its first contact, changing how material arrives at the cluster.
 
 **First arrivals** and **Last arrivals** set the colors for the oldest and newest frozen particles. The gradient shows their relative arrival order. **Particle budget** limits the cluster's size, while **Walkers per frame** changes how much work the animation attempts per frame.
 

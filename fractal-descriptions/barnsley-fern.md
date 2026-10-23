@@ -4,9 +4,9 @@ Watch dots collect along a stem and its leaflets. Smaller leaflets repeat the sh
 
 ## Watch the dots build a leaf
 
-Open **Fractal Studio Controls** and compare **Classic Barnsley** with **Fishbone fern** or **Tree fern** under **Fern style**. A new style restarts the drawing. Wait for the dots to fill in, then compare the stems and the gaps between leaflets.
+A leaflet resembles a compressed copy of the whole fern. The large transformation sends most points toward the tip. The rarer transformations feed the stem and side leaflets.
 
-The dots arrive at random positions within the pattern. Changing **Color** or **Backdrop** changes the picture's appearance, while the selected fern style supplies its shape.
+Random choices change the order in which dots arrive. The transformations constrain where those dots can collect.
 
 <figure data-article-images="fern"></figure>
 
@@ -22,7 +22,7 @@ These probabilities belong to **Classic Barnsley**. The other fern styles use di
 
 <figure data-lesson="fern"></figure>
 
-The highlighted copies show where each rule puts points from the whole fern. Step forward to follow one point through a fixed sequence. The chosen rule changes at each step, while its formula stays the same. The short sequence does not reproduce the probabilities exactly.
+The highlighted copies show where each rule places the whole fern. A point can jump between those regions as different rules act on it. A short sequence need not match the long-run probabilities.
 
 Each rule acts on the same point coordinates:
 

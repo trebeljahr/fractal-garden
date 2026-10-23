@@ -2,6 +2,8 @@
 
 The Koch Surface is the [Koch Snowflake](/l-system/koch-snowflake) idea moved into 3D. The snowflake takes a line, cuts it into thirds, and raises a small triangle on the middle third. The surface does the same thing to a triangle: split it into four smaller triangles by connecting the midpoints of its sides, then replace the middle one with a small tetrahedron that pokes out of the surface.
 
+<figure data-investigation="koch-surface"></figure>
+
 Each step turns one triangle into six: the three corner triangles that stay flat, and the three walls of the new tetrahedron. All six are half the size of the original, so the Hausdorff dimension is
 
 $$

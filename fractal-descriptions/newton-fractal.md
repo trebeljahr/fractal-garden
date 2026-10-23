@@ -36,6 +36,6 @@ Red names the real root at $1$. Green and blue name the roots above and below th
 
 The full image takes at most 48 updates per pixel. It stops near a root, when the derivative becomes too small, or when a value exceeds its numerical limit. If no root meets the tolerance, it colors the last point by its nearest root, with slightly lower brightness. A pixel's color alone therefore does not prove convergence.
 
-In the explorer, compare **All three basins** with **Where the basins meet** under **Places to explore**. Drag to pan, then use the wheel or a pinch gesture to inspect a boundary.
+Near a basin boundary, a small change to the starting point can send Newton’s method toward a different root. Repeated preimages spread that sensitivity across finer scales.
 
 The [Mandelbrot set](/mandelbrot) and [Burning Ship fractal](/burning-ship) also iterate complex numbers, but color their images using escape tests. The [Julia set](/julia-set) varies the starting point of a fixed rule, as this Newton picture does.

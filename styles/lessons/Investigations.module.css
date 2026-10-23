@@ -1,0 +1,56 @@
+.reference {
+  fill: none;
+  stroke: #eee8ce55;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.branch {
+  fill: none;
+  stroke: #83cbb7;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.readout {
+  font-size: 1.4rem;
+  color: #eee8cebb;
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.5rem;
+  margin: 1rem 0;
+}
+.checkbox input {
+  width: 20px;
+  height: 20px;
+  accent-color: #f5c56d;
+}
+.surface {
+  min-width: 0;
+}
+.surface canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #10151a;
+}
+.bar {
+  display: flex;
+  height: 18px;
+  background: #eee8ce22;
+  margin: 1rem 0;
+}
+.bar span {
+  background: #f5c56d;
+  transition: width 250ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar span {
+    transition: none;
+  }
+}
