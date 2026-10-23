@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/SierpinskiSeedsLesson.module.css";
 import {
   MAX_SEED_STEP,
@@ -9,6 +8,7 @@ import {
   sierpinskiSeedCopies,
   TRIANGLE_HEIGHT,
 } from "../../utils/lessons/sierpinskiSeeds";
+import { useFractalPalette } from "../FractalPalette";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
 
 function seedPath(shape: SeedShape) {
@@ -40,12 +40,14 @@ function SeedDrawing({
   shape,
   copies,
   step,
-  guide,
+  color,
+  background,
 }: {
   shape: SeedShape;
   copies: SeedCopy[];
   step: number;
-  guide: boolean;
+  color: string;
+  background: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -59,27 +61,15 @@ function SeedDrawing({
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(width * 0.92 * ratio);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      ctx.fillStyle = "#10151a";
+      ctx.fillStyle = background;
       ctx.fillRect(0, 0, width, width * 0.92);
       const size = width * 0.86,
         left = width * 0.07,
         top = (width * 0.92 - size * TRIANGLE_HEIGHT) / 2;
       ctx.translate(left, top);
       ctx.scale(size, size);
-      if (guide) {
-        ctx.strokeStyle = "#eee8ce66";
-        ctx.lineWidth = 1 / size;
-        ctx.setLineDash([4 / size, 5 / size]);
-        ctx.beginPath();
-        ctx.moveTo(0, TRIANGLE_HEIGHT);
-        ctx.lineTo(1, TRIANGLE_HEIGHT);
-        ctx.lineTo(0.5, 0);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
       const path = seedPath(shape);
-      ctx.fillStyle = "#f5c56d";
+      ctx.fillStyle = color;
       for (const copy of copies) {
         ctx.save();
         ctx.translate(copy.x, copy.y);
@@ -92,7 +82,7 @@ function SeedDrawing({
     observer.observe(canvas);
     render();
     return () => observer.disconnect();
-  }, [shape, copies, guide]);
+  }, [shape, copies, color, background]);
   return (
     <figure className={styles.seed}>
       <figcaption>{shape}</figcaption>
@@ -106,55 +96,30 @@ function SeedDrawing({
 }
 
 export default function SierpinskiSeedsLesson() {
-  const [step, setStep] = useState(0),
-    [playing, setPlaying] = useState(false),
-    [guide, setGuide] = useState(true);
+  const [step, setStep] = useState(0);
+  const { color, background } = useFractalPalette();
   const copies = useMemo(() => sierpinskiSeedCopies(step), [step]);
-  useEffect(() => {
-    if (!playing) return;
-    if (step === MAX_SEED_STEP) {
-      setPlaying(false);
-      return;
-    }
-    const timer = setTimeout(() => setStep((n) => n + 1), 900);
-    return () => clearTimeout(timer);
-  }, [playing, step]);
-  const changeStep = (next: number) => {
-    setPlaying(false);
-    setStep(next);
-  };
   return (
-    <LessonFrame title="Different starting shapes, the same triangle" kind="sierpinski-seeds">
+    <LessonFrame
+      title="Different starting shapes, the same triangle"
+      kind="sierpinski-seeds"
+      className={styles.wide}
+    >
       <p>
         Each view uses the same three half-size copies, placed towards the same triangle corners.
         Only the starting drawing changes.
       </p>
-      <LessonSteps step={step} max={MAX_SEED_STEP} onChange={changeStep} label="Starting shape" />
-      <div className={common.options}>
-        <button
-          type="button"
-          onClick={() => {
-            if (step === MAX_SEED_STEP) setStep(0);
-            setPlaying((p) => !p);
-          }}
-        >
-          {playing ? "Pause" : "Play steps"}
-        </button>
-        <button type="button" disabled={step === 0 && !playing} onClick={() => changeStep(0)}>
-          Reset shapes
-        </button>
-        <label className={styles.guide}>
-          <input
-            type="checkbox"
-            checked={guide}
-            onChange={(event) => setGuide(event.target.checked)}
-          />{" "}
-          Show triangle guide
-        </label>
-      </div>
+      <LessonSteps step={step} max={MAX_SEED_STEP} onChange={setStep} label="Starting shape" />
       <div className={styles.comparison}>
         {SEED_SHAPES.map((shape) => (
-          <SeedDrawing key={shape} shape={shape} copies={copies} step={step} guide={guide} />
+          <SeedDrawing
+            key={shape}
+            shape={shape}
+            copies={copies}
+            step={step}
+            color={color}
+            background={background}
+          />
         ))}
       </div>
       <p role="status">

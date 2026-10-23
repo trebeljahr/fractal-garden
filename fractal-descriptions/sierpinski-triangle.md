@@ -8,7 +8,7 @@ Choose **Next step** below to compare four starting drawings. Every step makes t
 
 <figure data-lesson="sierpinski-seeds"></figure>
 
-Start at step zero to see the triangle, square, circle and fish. Move through the early steps to follow the individual shapes. At later steps, their arrangements approach the same Sierpinski triangle. **Play steps** advances all four views together. **Reset shapes** returns to the original drawings.
+Start at step zero to see the triangle, square, circle and fish. Move through the early steps to follow the individual shapes. At later steps, their arrangements approach the same Sierpinski triangle. Use the slider or step buttons to advance all four views together.
 
 This works for any nonempty compact starting set: a bounded shape that includes its boundary, even one with holes or disconnected pieces. The three shrinking transformations determine the limit. The error bound for the starting shape halves at every step. At any finite step, tiny fish or circles still remain.
 

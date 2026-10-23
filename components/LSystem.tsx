@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
@@ -9,6 +9,7 @@ import type { LSystem2DParams } from "../utils/render/lsystem2d";
 import { EndlessZoom } from "./EndlessZoom";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
+import { FractalPaletteContext } from "./FractalPalette";
 
 type Config = {
   iterations: number;
@@ -38,6 +39,7 @@ export interface Ruleset {
 
 type Props = {
   ruleset: Ruleset;
+  children?: ReactNode;
 };
 
 function expandSentence(sentence: string, replace: Record<string, string>) {
@@ -83,7 +85,7 @@ function readInitialPose(ruleset: Ruleset, config?: Config) {
   return { startAngle, lineWidth };
 }
 
-const LSystem = ({ ruleset }: Props) => {
+const LSystem = ({ ruleset, children }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
     iterations: minVisibleIteration,
@@ -196,8 +198,13 @@ const LSystem = ({ ruleset }: Props) => {
     }));
   };
 
+  const palette = useMemo(
+    () => ({ color: config.ruleset.color, background: config.background }),
+    [config.ruleset.color, config.background],
+  );
+
   return (
-    <>
+    <FractalPaletteContext.Provider value={palette}>
       <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
         <PanelColor path="background" />
         <PanelColor path="ruleset.color" />
@@ -226,7 +233,8 @@ const LSystem = ({ ruleset }: Props) => {
           onActiveChange={onZoomActive}
         />
       )}
-    </>
+      {children}
+    </FractalPaletteContext.Provider>
   );
 };
 

@@ -5,13 +5,18 @@ export function LessonFrame({
   title,
   kind,
   children,
+  className,
 }: {
   title: string;
   kind: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <figure className={styles.frame} data-teaching-lesson={kind}>
+    <figure
+      className={[styles.frame, className].filter(Boolean).join(" ")}
+      data-teaching-lesson={kind}
+    >
       <figcaption className={styles.title}>{title}</figcaption>
       {children}
     </figure>
