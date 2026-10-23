@@ -51,6 +51,27 @@ async function check(page, baseURL, output) {
   const sameCenter = (a, b, label) => {
     for (const key of ["zoom", "deepX", "deepY", "deepBits", "centerX", "centerY", "startAngle"])
       assert(a[key] === b[key], `${label}: changed ${key}`);
+    assert(Math.abs(a.frame.scale / b.frame.scale - 1) < 1e-12, `${label}: changed scale`);
+  };
+  const checkBottomControls = async () => {
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector("[data-fractal-viewport] canvas");
+      const controls = [
+        document.querySelector('[aria-label="Learn more about this fractal"]'),
+        ...document.querySelectorAll('[aria-label="Fractal navigation"] a'),
+      ];
+      return (
+        canvas &&
+        controls.every(
+          (control) =>
+            control &&
+            canvas.getBoundingClientRect().bottom <= control.getBoundingClientRect().top - 24 &&
+            Math.abs(control.getBoundingClientRect().bottom - innerHeight) < 1,
+        ) &&
+        controls[1].getBoundingClientRect().left === 0 &&
+        controls[2].getBoundingClientRect().right === innerWidth
+      );
+    });
   };
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/l-system/board`);
@@ -59,9 +80,32 @@ async function check(page, baseURL, output) {
   await page.getByRole("textbox", { name: "Iterations", exact: true }).fill("4");
   await page.getByRole("textbox", { name: "Iterations", exact: true }).press("Enter");
   await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
+  await checkBottomControls();
+  const opening = await page.locator("[data-fractal-viewport] canvas").boundingBox();
   await page.mouse.move(720, 450);
   await page.mouse.wheel(0, -800);
   await waitForZoom();
+  const first = (await capture()).curve;
+  const expanded = await page.locator('[class*="EndlessZoom_layer"] canvas').boundingBox();
+  const anchoredX =
+    expanded.x +
+    expanded.width / 2 +
+    (720 -
+      opening.x -
+      opening.width / 2 -
+      (Number(first.deepX) / 2 ** first.deepBits) * first.frame.scale) *
+      first.zoom;
+  const anchoredY =
+    expanded.y +
+    expanded.height / 2 +
+    (450 -
+      opening.y -
+      opening.height / 2 +
+      (Number(first.deepY) / 2 ** first.deepBits) * first.frame.scale) *
+      first.zoom;
+  assert(Math.abs(anchoredX - 720) < 1, "First zoom moved the cursor's scene point horizontally");
+  assert(Math.abs(anchoredY - 450) < 1, "First zoom moved the cursor's scene point vertically");
+  assert(expanded.y + expanded.height === 900, "Zoomed drawing does not reach the bottom edge");
   for (let step = 0; step < 6; step++) {
     const { point } = await drawing();
     assert(point, "Zoomed Board has no drawn geometry");
@@ -154,6 +198,7 @@ async function check(page, baseURL, output) {
     await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
   };
   await checkReturnedControls();
+  await checkBottomControls();
   await page.mouse.move(500, 360);
   await page.mouse.wheel(0, -800);
   await waitForZoom();
@@ -161,6 +206,7 @@ async function check(page, baseURL, output) {
   await page.getByRole("button", { name: "Play animation", exact: true }).waitFor();
   assert(!(await capture()).curve, "Full zoom-out retained zoom state");
   await checkReturnedControls();
+  await checkBottomControls();
   await page.getByRole("button", { name: "Play animation", exact: true }).click();
   await page.getByRole("button", { name: "Pause animation", exact: true }).waitFor();
   await page.getByRole("button", { name: "Pause animation", exact: true }).click();
@@ -213,6 +259,10 @@ async function check(page, baseURL, output) {
     zoom: before.curve.zoom,
     checks: [
       "takeover",
+      "first-gesture cursor anchor",
+      "default/reset bottom clearance",
+      "flush bottom controls",
+      "zoomed bottom edge",
       "hide/show UI",
       "resize",
       "fresh copied link",

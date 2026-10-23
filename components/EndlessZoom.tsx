@@ -72,6 +72,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   const viewRef = useRef<View | null>(null);
   const detailRef = useRef<ZoomDetail | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const takeoverCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const restoreSizeRef = useRef<number | null>(null);
   const frameRef = useRef(0);
   const workerRef = useRef<Worker | null>(null);
   const busyRef = useRef(false);
@@ -98,6 +100,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
 
   const reset = useCallback(() => {
     viewRef.current = null;
+    takeoverCenterRef.current = null;
+    restoreSizeRef.current = null;
     detailRef.current = null;
     validFromRef.current = jobRef.current + 1;
     setInfo(null);
@@ -241,10 +245,40 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   }, [width, height, send]);
 
   const requestDraw = useCallback(() => {
+    const center = takeoverCenterRef.current;
+    const restoreSize = restoreSizeRef.current;
+    const view = viewRef.current;
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (
+      (center || restoreSize) &&
+      view &&
+      rect &&
+      document.body.hasAttribute("data-fractal-zoom") &&
+      width &&
+      height &&
+      Math.abs(rect.width - width) < 1 &&
+      Math.abs(rect.height - height) < 1
+    ) {
+      if (center) {
+        // Expanding the drawing area must not move the first gesture's target.
+        // Later resizes keep the established scene center as usual.
+        view.panX += center.x - (rect.left + rect.width / 2);
+        view.panY += center.y - (rect.top + rect.height / 2);
+        takeoverCenterRef.current = null;
+      }
+      if (restoreSize) {
+        // Links are restored before the zoomed viewport has finished expanding.
+        const ratio = Math.min(width, height) / restoreSize;
+        view.frame.scale *= ratio;
+        view.panX *= ratio;
+        view.panY *= ratio;
+        restoreSizeRef.current = null;
+      }
+    }
     cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(draw);
     schedule();
-  }, [draw, schedule]);
+  }, [draw, schedule, width, height]);
   const requestDrawRef = useRef(requestDraw);
   requestDrawRef.current = requestDraw;
 
@@ -298,6 +332,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
         throw new Error("Invalid curve view");
       }
       const ratio = Math.min(width, height) / Math.min(saved.width, saved.height);
+      takeoverCenterRef.current = null;
+      restoreSizeRef.current = Math.min(width, height);
       viewRef.current = {
         zoom: saved.zoom,
         panX: saved.panX * ratio,
@@ -347,6 +383,10 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   // The zoomed view, created from the page's frame on the first gesture.
   const takeOver = () => {
     if (!viewRef.current) {
+      const rect = stageRef.current?.getBoundingClientRect();
+      takeoverCenterRef.current = rect
+        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+        : null;
       viewRef.current = {
         zoom: 1,
         panX: 0,
@@ -374,8 +414,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     const view = takeOver();
     const k = zoom / view.zoom;
     const rect = stage.getBoundingClientRect();
-    const cx = clientX - rect.left - width / 2;
-    const cy = clientY - rect.top - height / 2;
+    const center = takeoverCenterRef.current;
+    const cx = clientX - (center?.x ?? rect.left + width / 2);
+    const cy = clientY - (center?.y ?? rect.top + height / 2);
     view.panX = cx - (cx - view.panX) * k;
     view.panY = cy - (cy - view.panY) * k;
     view.zoom = zoom;

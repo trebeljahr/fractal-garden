@@ -9,7 +9,7 @@
   --explorer-nav-height: 68px;
   --explorer-nav-font-size: 13px;
   --explorer-nav-name-size: 11px;
-  --explorer-nav-gap: 16px;
+  --explorer-nav-gap: 0px;
   --fractal-viewport-top: calc(var(--explorer-header-height) + 24px);
   --fractal-viewport-bottom: calc(
     var(--explorer-nav-height) +

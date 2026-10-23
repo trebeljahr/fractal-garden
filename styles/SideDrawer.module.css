@@ -91,7 +91,7 @@
   width: var(--explorer-nav-width);
   max-width: calc(100% - 28px);
   padding: 10px 14px;
-  border-radius: 6px;
+  border-radius: 6px 6px 0 0;
   cursor: pointer;
   font:
     var(--explorer-nav-font-size) / 1.4 "Montserrat",
