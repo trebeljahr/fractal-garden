@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 import styles from "../styles/Navbar.module.css";
 import { getFractalName, PAGE_SEO } from "../utils/pageSeo";
 
@@ -102,7 +103,40 @@ function NavigationArrow({ previous = false }: { previous?: boolean }) {
 }
 
 export const NavElement = () => {
+  const router = useRouter();
   const [prev, , next] = useLinks();
+
+  useEffect(() => {
+    const navigateWithArrows = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.isComposing ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+      ) {
+        return;
+      }
+
+      if (
+        event.target instanceof Element &&
+        event.target.closest(
+          'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="spinbutton"], [role="combobox"], [role="listbox"], [role="menu"], [role="tablist"], [role="tree"], [role="grid"]',
+        )
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      void router.push(event.key === "ArrowLeft" ? prev : next);
+    };
+
+    window.addEventListener("keydown", navigateWithArrows);
+    return () => window.removeEventListener("keydown", navigateWithArrows);
+  }, [router, prev, next]);
 
   return (
     <nav aria-label="Fractal navigation" data-fractal-chrome>
@@ -110,6 +144,7 @@ export const NavElement = () => {
         className={`${styles.linkButton} ${styles.previous}`}
         href={prev}
         aria-label={`Previous fractal: ${getFractalName(prev)}`}
+        aria-keyshortcuts="ArrowLeft"
         title={`Previous fractal: ${getFractalName(prev)}`}
       >
         <span className={styles.direction}>
@@ -129,6 +164,7 @@ export const NavElement = () => {
         className={`${styles.linkButton} ${styles.next}`}
         href={next}
         aria-label={`Next fractal: ${getFractalName(next)}`}
+        aria-keyshortcuts="ArrowRight"
         title={`Next fractal: ${getFractalName(next)}`}
       >
         <span className={styles.direction}>
