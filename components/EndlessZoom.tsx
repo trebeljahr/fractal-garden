@@ -3,13 +3,20 @@ import styles from "../styles/EndlessZoom.module.css";
 import { finite, isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { fixedFromNumber, fixedToNumber, rescale } from "../utils/lsystem/bigfixed";
-import type { ZoomFrame } from "../utils/lsystem/pageZoom";
+import {
+  type CenteredZoomFrame,
+  centerZoomFrame,
+  projectZoomFrame,
+  restoreZoomFrame,
+  type ZoomFrame,
+} from "../utils/lsystem/pageZoom";
 import { createRenderer, type Renderer } from "../utils/lsystem/render";
 import type { LSystemSpec } from "../utils/lsystem/spec";
 import type { ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail } from "../utils/lsystem/zoom";
 import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
+import { useZoomActivity } from "./ZoomActivity";
 
 type Props = {
   // The curve as an explorer spec, and the generation the page shows.
@@ -32,7 +39,7 @@ type View = {
   deepBits: number;
   // The page's curve, generation and frame when zooming started. The page
   // may keep growing underneath; the zoomed view stays on what you saw.
-  frame: ZoomFrame;
+  frame: CenteredZoomFrame;
   spec: LSystemSpec;
   generation: number;
 };
@@ -57,6 +64,7 @@ function formatZoom(zoom: number) {
  */
 export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveChange }: Props) => {
   const [active, setActive] = useState(false);
+  const { setActive: setZoomActive } = useZoomActivity();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [renderer, setRenderer] = useState<Renderer | null>(null);
   const [info, setInfo] = useState<{ zoom: number; generation: number } | null>(null);
@@ -110,6 +118,11 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   }, [active, onActiveChange]);
 
   useEffect(() => {
+    setZoomActive(active);
+    return () => setZoomActive(false);
+  }, [active, setZoomActive]);
+
+  useEffect(() => {
     if (!gl) return;
     const created = createRenderer(gl);
     setRenderer(created);
@@ -120,6 +133,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     () => () => {
       workerRef.current?.terminate();
       workerRef.current = null;
+      busyRef.current = false;
+      pendingRef.current = null;
+      validFromRef.current = jobRef.current + 1;
     },
     [],
   );
@@ -137,20 +153,18 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
       // taken in fixed point, so only small numbers reach the GPU.
       const made = detail.view;
       const bits = Math.max(made.bits, view.deepBits);
-      const centerX = (width / 2 - view.frame.originX) / view.frame.scale;
-      const centerY = (view.frame.originY - height / 2) / view.frame.scale;
       const shiftX =
         fixedToNumber(
           rescale(made.offsetX, made.bits, bits) - rescale(view.deepX, view.deepBits, bits),
           bits,
         ) +
-        (made.originX - centerX);
+        (made.originX - view.frame.centerX);
       const shiftY =
         fixedToNumber(
           rescale(made.offsetY, made.bits, bits) - rescale(view.deepY, view.deepBits, bits),
           bits,
         ) +
-        (made.originY - centerY);
+        (made.originY - view.frame.centerY);
       originX += shiftX * scale;
       originY -= shiftY * scale;
       stretch = scale / made.scale;
@@ -213,8 +227,8 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
       spec: { ...view.spec, color: specRef.current.color, colorEnd: specRef.current.colorEnd },
       iterations: view.generation,
       view: {
-        originX: (width / 2 - view.frame.originX) / view.frame.scale,
-        originY: (view.frame.originY - height / 2) / view.frame.scale,
+        originX: view.frame.centerX,
+        originY: view.frame.centerY,
         offsetX: view.deepX,
         offsetY: view.deepY,
         bits,
@@ -238,7 +252,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     "curve",
     () => {
       const view = viewRef.current;
-      if (!view) return undefined;
+      if (!view || !width || !height) return undefined;
       return {
         zoom: view.zoom,
         panX: view.panX,
@@ -246,7 +260,10 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
         deepX: view.deepX.toString(),
         deepY: view.deepY.toString(),
         deepBits: view.deepBits,
-        frame: view.frame,
+        frame: projectZoomFrame(view.frame, width, height),
+        centerX: view.frame.centerX,
+        centerY: view.frame.centerY,
+        startAngle: view.spec.startAngle,
         generation: view.generation,
         width,
         height,
@@ -270,6 +287,9 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
         !finite(saved.frame.scale, 1e-100, 1e100) ||
         !finite(saved.frame.originX, -1e12, 1e12) ||
         !finite(saved.frame.originY, -1e12, 1e12) ||
+        (saved.startAngle !== undefined && !finite(saved.startAngle, -1e9, 1e9)) ||
+        ((saved.centerX !== undefined || saved.centerY !== undefined) &&
+          (!finite(saved.centerX, -1e112, 1e112) || !finite(saved.centerY, -1e112, 1e112))) ||
         typeof saved.deepX !== "string" ||
         !/^-?\d{1,1300}$/.test(saved.deepX) ||
         typeof saved.deepY !== "string" ||
@@ -285,13 +305,26 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
         deepX: BigInt(saved.deepX),
         deepY: BigInt(saved.deepY),
         deepBits: saved.deepBits,
-        frame: {
-          scale: saved.frame.scale * ratio,
-          originX: width / 2 + (saved.frame.originX - saved.width / 2) * ratio,
-          originY: height / 2 + (saved.frame.originY - saved.height / 2) * ratio,
-        },
+        frame: restoreZoomFrame(
+          {
+            scale: saved.frame.scale,
+            originX: saved.frame.originX,
+            originY: saved.frame.originY,
+          },
+          saved.width,
+          saved.height,
+          width,
+          height,
+          typeof saved.centerX === "number" && typeof saved.centerY === "number"
+            ? { centerX: saved.centerX, centerY: saved.centerY }
+            : undefined,
+        ),
         generation: saved.generation,
-        spec: specRef.current,
+        spec: {
+          ...specRef.current,
+          startAngle:
+            typeof saved.startAngle === "number" ? saved.startAngle : specRef.current.startAngle,
+        },
       };
       setActive(true);
       requestDrawRef.current();
@@ -321,7 +354,7 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
         deepX: ZERO,
         deepY: ZERO,
         deepBits: 64,
-        frame: pageFrameRef.current(),
+        frame: centerZoomFrame(pageFrameRef.current(), width ?? 0, height ?? 0),
         spec: specRef.current,
         generation: generationRef.current,
       };

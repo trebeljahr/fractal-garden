@@ -10,6 +10,50 @@ import { DEFAULT_SPEC, dimensionOf, type LSystemSpec } from "./spec";
 // (originX + scale * x, originY - scale * y) in CSS pixels.
 export type ZoomFrame = { originX: number; originY: number; scale: number };
 
+// Keep the scene center independent of viewport pixels. Rebuilding it from a
+// resized screen frame introduces rounding that becomes visible at deep zoom.
+export type CenteredZoomFrame = { centerX: number; centerY: number; scale: number };
+
+export function centerZoomFrame(
+  frame: ZoomFrame,
+  width: number,
+  height: number,
+): CenteredZoomFrame {
+  return {
+    centerX: (width / 2 - frame.originX) / frame.scale,
+    centerY: (frame.originY - height / 2) / frame.scale,
+    scale: frame.scale,
+  };
+}
+
+export function projectZoomFrame(
+  frame: CenteredZoomFrame,
+  width: number,
+  height: number,
+): ZoomFrame {
+  return {
+    originX: width / 2 - frame.centerX * frame.scale,
+    originY: height / 2 + frame.centerY * frame.scale,
+    scale: frame.scale,
+  };
+}
+
+export function restoreZoomFrame(
+  frame: ZoomFrame,
+  savedWidth: number,
+  savedHeight: number,
+  width: number,
+  height: number,
+  center?: { centerX: number; centerY: number },
+): CenteredZoomFrame {
+  const { centerX, centerY } = center ?? centerZoomFrame(frame, savedWidth, savedHeight);
+  return {
+    centerX,
+    centerY,
+    scale: frame.scale * (Math.min(width, height) / Math.min(savedWidth, savedHeight)),
+  };
+}
+
 type Curve = {
   axiom: string;
   rules: Record<string, string>;

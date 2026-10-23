@@ -1,10 +1,11 @@
 import { Children, isValidElement, type ReactNode, useRef, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
-import { type ControlRule, isRecord } from "../utils/explorerShare";
+import { ANIMATION_KEYS, type ControlRule, isRecord } from "../utils/explorerShare";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
 import { FractalHeader } from "./FractalHeader";
+import { useZoomActivity } from "./ZoomActivity";
 
 type Action = {
   label: string;
@@ -88,6 +89,7 @@ export function ExplorerPanel<T>({
   places,
   shareRules = [],
 }: Props<T>) {
+  const { active: zoomActive } = useZoomActivity();
   const animationBeforePause = useRef<Record<string, boolean> | null>(null);
   const rules = [
     ...controlRules(children, data).filter(
@@ -96,39 +98,34 @@ export function ExplorerPanel<T>({
     ...shareRules,
   ];
   const animationKeys = rules
-    .filter(
-      (rule) =>
-        rule.kind === "boolean" &&
-        ["animateIterations", "autoRotate", "animateTrail", "animateAngle", "paused"].includes(
-          rule.path,
-        ),
-    )
+    .filter((rule) => rule.kind === "boolean" && ANIMATION_KEYS.includes(rule.path))
     .map((rule) => rule.path);
   const animationData: Record<string, unknown> = isRecord(data) ? data : {};
   const playing = animationKeys.some((key) =>
     key === "paused" ? !animationData[key] : animationData[key],
   );
-  const animation = animationKeys.length
-    ? {
-        playing,
-        onToggle: () => {
-          const next: Record<string, boolean> = {};
-          if (playing) {
-            animationBeforePause.current = {};
-            for (const key of animationKeys) {
-              animationBeforePause.current[key] = Boolean(animationData[key]);
-              next[key] = key === "paused";
+  const animation =
+    !zoomActive && animationKeys.length
+      ? {
+          playing,
+          onToggle: () => {
+            const next: Record<string, boolean> = {};
+            if (playing) {
+              animationBeforePause.current = {};
+              for (const key of animationKeys) {
+                animationBeforePause.current[key] = Boolean(animationData[key]);
+                next[key] = key === "paused";
+              }
+            } else {
+              for (const key of animationKeys) {
+                next[key] = animationBeforePause.current?.[key] ?? key !== "paused";
+              }
+              animationBeforePause.current = null;
             }
-          } else {
-            for (const key of animationKeys) {
-              next[key] = animationBeforePause.current?.[key] ?? key !== "paused";
-            }
-            animationBeforePause.current = null;
-          }
-          onUpdate({ ...data, ...next });
-        },
-      }
-    : undefined;
+            onUpdate({ ...data, ...next });
+          },
+        }
+      : undefined;
   const defaults = PANEL_COPY[mode];
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
 

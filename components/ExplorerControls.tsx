@@ -1,7 +1,9 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerPanel.module.css";
+import { ANIMATION_KEYS } from "../utils/explorerShare";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
+import { useZoomActivity } from "./ZoomActivity";
 
 const { ChromePicker } = require("react-color");
 
@@ -643,8 +645,11 @@ export const PanelBoolean = ({
   _onUpdateValue,
 }: BooleanProps) => {
   const labelId = useId();
+  const { active: zoomActive } = useZoomActivity();
   const checked = getValueFromPath(data, path) === true;
   const labelText = label ?? humanizePath(path);
+
+  if (zoomActive && ANIMATION_KEYS.includes(path)) return null;
 
   return (
     <li className={joinClassNames("cr", "boolean", className)} style={style}>

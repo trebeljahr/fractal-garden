@@ -1,6 +1,13 @@
 export const SHARE_VERSION = 1;
 export const MAX_SHARE_LENGTH = 24000;
 export const CAPTURE_VIEW = "garden:capture-view";
+export const ANIMATION_KEYS = [
+  "animateIterations",
+  "autoRotate",
+  "animateTrail",
+  "animateAngle",
+  "paused",
+];
 export type CaptureRequest = { parts: Record<string, unknown>; pending: Promise<void>[] };
 
 export type SharedView = {

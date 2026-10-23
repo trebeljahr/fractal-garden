@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import Script from "next/script";
 import { useEffect } from "react";
 import { PageSeo } from "../components/PageSeo";
+import { ZoomActivityProvider } from "../components/ZoomActivity";
 import { consumeSupportedParam } from "../utils/donation";
 
 const plausibleEnabled = process.env.NODE_ENV === "production";
@@ -44,7 +45,9 @@ function MyApp({ Component, pageProps }: AppProps) {
           </Script>
         </>
       ) : null}
-      <Component {...pageProps} />
+      <ZoomActivityProvider key={router.pathname}>
+        <Component {...pageProps} />
+      </ZoomActivityProvider>
       <PageSeo />
     </>
   );
