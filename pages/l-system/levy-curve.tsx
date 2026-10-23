@@ -40,7 +40,7 @@ const LévyCurve = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={levyCurve} />
+        <LSystem ruleset={levyCurve} zoomDetailOffset={-1} />
         <SideDrawer description={description} />
 
         <NavElement />

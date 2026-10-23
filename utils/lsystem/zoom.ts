@@ -139,7 +139,11 @@ function stepsPerCircle(degrees: number) {
 }
 
 // Returns the system, or the reason endless zoom cannot work for it.
-export function prepareZoom(spec: LSystemSpec, iterations: number): ZoomSystem | string {
+export function prepareZoom(
+  spec: LSystemSpec,
+  iterations: number,
+  detailOffset = 0,
+): ZoomSystem | string {
   if (spec.dimension !== "2d") return "it only works for 2D systems";
   const rules = new Map<string, string>();
   for (const rule of spec.rules) {
@@ -808,7 +812,9 @@ export function prepareZoom(spec: LSystemSpec, iterations: number): ZoomSystem |
     const zoom = Math.min(Math.max(view.zoom, 1), MAX_ZOOM);
     const effective = zoom * Math.min(zoom, catchUp);
     const perPeriod = Math.log(growth ** period);
-    const deepest = Math.floor(Math.log(effective) / perPeriod);
+    // A page may prefer fewer refinements for its curve's visual density.
+    // Keep generation zero of the zoom relative to the original page drawing.
+    const deepest = Math.max(0, Math.floor(Math.log(effective) / perPeriod) + detailOffset);
     const fits = (periods: number) => {
       const detail = attempt(view, periods, periods === 0 ? MAX_SEGMENTS : LINE_BUDGET);
       return detail.limited && periods > 0 ? null : detail;

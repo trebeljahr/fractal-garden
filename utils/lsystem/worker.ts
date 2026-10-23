@@ -28,6 +28,7 @@ export type ZoomRequest = {
   spec: LSystemSpec;
   iterations: number;
   view: ZoomView;
+  detailOffset?: number;
 };
 
 export type ZoomResult = {
@@ -50,11 +51,11 @@ let zoomSystem: ZoomSystem | string = "";
 
 scope.onmessage = (event) => {
   if ("view" in event.data) {
-    const { id, spec, iterations, view } = event.data;
-    const key = `${iterations}:${JSON.stringify(spec)}`;
+    const { id, spec, iterations, view, detailOffset = 0 } = event.data;
+    const key = `${iterations}:${detailOffset}:${JSON.stringify(spec)}`;
     if (key !== zoomKey) {
       zoomKey = key;
-      zoomSystem = prepareZoom(spec, iterations);
+      zoomSystem = prepareZoom(spec, iterations, detailOffset);
     }
     if (typeof zoomSystem === "string") {
       scope.postMessage({ id, detail: null, reason: zoomSystem }, []);

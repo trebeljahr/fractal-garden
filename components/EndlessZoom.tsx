@@ -23,6 +23,8 @@ type Props = {
   // The curve as an explorer spec, and the generation the page shows.
   spec: LSystemSpec;
   generation: number;
+  // Shift automatic refinement by whole growth periods; retain the base view.
+  detailOffset?: number;
   // Where the page draws that generation, worked out when zooming starts.
   frame: () => ZoomFrame;
   width: number | null;
@@ -64,6 +66,7 @@ function formatZoom(zoom: number) {
 export const EndlessZoom = ({
   spec,
   generation,
+  detailOffset = 0,
   frame,
   width,
   height,
@@ -250,6 +253,7 @@ export const EndlessZoom = ({
       id: ++jobRef.current,
       spec: { ...view.spec, color: specRef.current.color, colorEnd: specRef.current.colorEnd },
       iterations: view.generation,
+      detailOffset,
       view: {
         originX: view.frame.centerX,
         originY: view.frame.centerY,
@@ -262,7 +266,7 @@ export const EndlessZoom = ({
         zoom: view.zoom,
       },
     });
-  }, [width, height, send]);
+  }, [width, height, send, detailOffset]);
 
   const requestDraw = useCallback(() => {
     const center = takeoverCenterRef.current;

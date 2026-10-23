@@ -39,6 +39,7 @@ export interface Ruleset {
 type Props = {
   ruleset: Ruleset;
   children?: ReactNode;
+  zoomDetailOffset?: number;
 };
 
 function expandSentence(sentence: string, replace: Record<string, string>) {
@@ -84,7 +85,7 @@ function readInitialPose(ruleset: Ruleset, config?: Config) {
   return { startAngle, lineWidth };
 }
 
-const LSystem = ({ ruleset, children }: Props) => {
+const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
     iterations: minVisibleIteration,
@@ -224,6 +225,7 @@ const LSystem = ({ ruleset, children }: Props) => {
           ready={ready}
           spec={zoomSpec}
           generation={generation}
+          detailOffset={zoomDetailOffset}
           frame={zoomFrame}
           width={width}
           height={height}
