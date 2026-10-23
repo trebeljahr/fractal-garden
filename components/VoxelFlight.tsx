@@ -159,19 +159,11 @@ export function VoxelFlight({
       cameraRef.current = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
       dirty.current = true;
     };
-    const draw = (elapsed = 1 / 60) => {
+    const draw = () => {
       if (!renderer || gl.isContextLost()) return;
       const { pattern, style, width, height } = latest.current;
-      // Keep drawing until fog settles, even after movement stops.
-      dirty.current = renderer.draw(
-        cameraRef.current,
-        pattern,
-        style,
-        width,
-        height,
-        window.devicePixelRatio || 1,
-        elapsed,
-      );
+      renderer.draw(cameraRef.current, pattern, style, width, height, window.devicePixelRatio || 1);
+      dirty.current = false;
     };
     const render = (now: number) => {
       if (disposed) return;
@@ -193,7 +185,7 @@ export function VoxelFlight({
         move(motion.map((component) => component * speed) as Vec3);
       }
       try {
-        if (dirty.current) draw(dt);
+        if (dirty.current) draw();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
         release();

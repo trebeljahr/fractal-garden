@@ -1,6 +1,7 @@
 precision highp float;
 uniform vec2 u_resolution;
-uniform float u_viewDistance;
+uniform float u_pixelAngle;
+uniform float u_nearFootprint;
 uniform sampler2D u_grid;
 uniform int u_levels;
 uniform int u_pattern;
@@ -34,14 +35,14 @@ void main() {
     vec3 entry = min(a, b);
     vec3 exitAt = max(a, b);
     float near = max(max(entry.x, entry.y), entry.z);
-    float far = min(u_viewDistance, min(min(exitAt.x, exitAt.y), exitAt.z));
+    float far = min(min(exitAt.x, exitAt.y), exitAt.z);
     vec3 normal = entry.x >= entry.y && entry.x >= entry.z ? vec3(-sign(ray.x), 0.0, 0.0)
         : entry.y >= entry.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
     float t = max(0.0, near);
     bool hit = false;
     vec3 local = vec3(0.0);
     float cellSize = 1.0;
-    float footprint = 1e-6;
+    float footprint = u_nearFootprint;
     vec3 rootNormal = normal;
     // Retry unusually expensive grazing rays at a coarser footprint instead
     // of turning an unfinished traversal into a false hole.
@@ -51,7 +52,7 @@ void main() {
       if (far > t) {
         for (int stepIndex = 0; stepIndex < 512; stepIndex++) {
             if (t >= far) break;
-            footprint = max(1e-6, t * 1.16 / min(u_resolution.x, u_resolution.y)) * (attempt == 0 ? 1.0 : 8.0);
+            footprint = max(u_nearFootprint, t * u_pixelAngle) * (attempt == 0 ? 1.0 : 8.0);
             vec3 p = ray * (t + footprint * 0.025);
             bool empty = false;
             for (int level = 0; level < 256; level++) {
@@ -60,6 +61,9 @@ void main() {
                 vec4 grid = texture2D(u_grid, vec2(x, 0.25));
                 vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
                 float size = grid.w;
+                // Stop before evaluating holes smaller than the ray's pixel cone.
+                // Distance and clearance share the camera's zoom-scaled units.
+                if (size < footprint) break;
                 vec3 cell = floor((p - grid.xyz) / size);
                 vec3 digit = mod(base + cell, 3.0);
                 vec3 low = grid.xyz + cell * size;
@@ -78,7 +82,6 @@ void main() {
                     local = (p - low) / size;
                     cellSize = size;
                 }
-                if (size < footprint) break;
             }
             if (!empty) { hit = true; break; }
         }
@@ -100,10 +103,6 @@ void main() {
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
-        // Fog and traversal use the same smoothly changing distance, so the
-        // far cutoff remains hidden while approaching smaller details.
-        float fog = smoothstep(u_viewDistance * 0.25, u_viewDistance, t);
-        color = mix(color, u_background, fog);
     }
     gl_FragColor = vec4(color, 1.0);
 }

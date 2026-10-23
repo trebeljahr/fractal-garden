@@ -12,7 +12,8 @@ export type FlightCamera = {
 };
 export const MAX_VOXEL_DEPTH = 256;
 export const MAX_FLIGHT_LEVEL = MAX_VOXEL_DEPTH - 12;
-export const LOCAL_FAR = 512;
+// Numerical range of camera-relative GPU coordinates, not a visual fog cutoff.
+export const LOCAL_COORDINATE_LIMIT = 1e29;
 const powers = [BigInt(1)];
 for (let i = 1; i <= MAX_VOXEL_DEPTH; i++) powers.push(powers[i - 1] * BigInt(3));
 const bitsForLevel = (level: number) => Math.ceil(level * Math.log2(3)) + 160;
@@ -21,7 +22,7 @@ const floorDiv = (a: bigint, b: bigint) =>
 const modulo3 = (a: bigint) => Number(((a % BigInt(3)) + BigInt(3)) % BigInt(3));
 const localFloat = (value: bigint, bits: number) => {
   const [m, e] = fixedToFloatExp(value, bits);
-  return Math.max(-1e29, Math.min(1e29, m * 2 ** e));
+  return Math.max(-LOCAL_COORDINATE_LIMIT, Math.min(LOCAL_COORDINATE_LIMIT, m * 2 ** e));
 };
 export const PATTERNS: VoxelPattern[] = ["menger", "vicsek", "mosely-light", "mosely-heavy"];
 export function keepVoxel(pattern: VoxelPattern, digit: Vec3) {
@@ -113,7 +114,8 @@ function gridFrame(
   const levels: GridLevel[] = [];
   const texture = new Float32Array(geometry ? MAX_VOXEL_DEPTH * 8 : 0);
   for (let depth = 1; depth <= Math.min(MAX_VOXEL_DEPTH, maxDepth); depth++) {
-    const width = Math.min(1e29, 3 ** (camera.level - depth));
+    const exactWidth = 3 ** (camera.level - depth);
+    const width = Math.min(LOCAL_COORDINATE_LIMIT, exactWidth);
     // Every periodic rule has a retained cube within sqrt(3) cell widths.
     // Finer levels cannot improve an already larger lower bound.
     if (!geometry && width * Math.sqrt(3) <= clearance) break;
@@ -174,8 +176,8 @@ function gridFrame(
     // Far ancestor cells that cannot change occupancy anywhere in the local
     // viewing volume need no GPU work. Crossing 2->0 does not change any rule.
     const constant =
-      width > LOCAL_FAR * 2 &&
-      plane.every((p, axis) => Math.abs(p) > LOCAL_FAR || digit[axis] === 0);
+      exactWidth > LOCAL_COORDINATE_LIMIT * 2 &&
+      plane.every((p, axis) => Math.abs(p) >= LOCAL_COORDINATE_LIMIT || digit[axis] === 0);
     if (constant && keepVoxel(pattern, cameraDigit)) continue;
     const index = levels.length;
     texture.set([...plane, width], index * 4);
@@ -222,12 +224,6 @@ export function moveFlightCamera(
   }
   return next;
 }
-/** Fog and culling share a distance measured in the camera's current local units.
- * Clearance rescales continuously across subdivision boundaries. */
-export function flightViewDistance(clearance: number) {
-  return Math.min(LOCAL_FAR, Math.max(1e-5, clearance * 24));
-}
-
 const worldPosition = (camera: FlightCamera) =>
   camera.position.map((p) => localFloat(p, camera.bits)) as Vec3;
 const zoomRadius = (pattern: VoxelPattern) =>

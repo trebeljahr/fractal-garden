@@ -91,7 +91,7 @@ test("camera-relative grid planes retain sub-double offsets at deep addresses", 
   const a = buildGridFrame(camera, "menger"),
     b = buildGridFrame(shifted, "menger");
   assert.ok(Math.abs(a.high[0] - b.high[0] - 0.01) < 1e-7);
-  assert.ok(a.levels.length < 32, "constant distant ancestors are skipped");
+  assert.ok(a.levels.length < camera.level, "ancestors outside the numerical range are skipped");
   assert.notDeepEqual(a.texture, b.texture);
 });
 test("flight orientation remains orthonormal and bounded links reject unsafe cameras", () => {
@@ -180,17 +180,6 @@ test("boosted movement remains outside a solid surface", () => {
   for (let i = 0; i < 30; i++) camera = moveFlightCamera(camera, "vicsek", [0, 0, 1.6]);
   assert.ok(camera.position[2] > 1n << BigInt(camera.bits));
   assert.ok(camera.level > 20);
-});
-
-test("fog follows physical clearance across local-scale changes", () => {
-  const { flightViewDistance } = require("../utils/voxelZoom/camera.ts");
-  for (const clearance of [0.06, 0.12, 0.4, 1.2]) {
-    assert.ok(
-      Math.abs(flightViewDistance(clearance * 3) / 3 - flightViewDistance(clearance)) < 1e-12,
-    );
-  }
-  assert.ok(flightViewDistance(0.1) < flightViewDistance(1));
-  assert.equal(flightViewDistance(1000), 512);
 });
 
 test("wheel travel stops at the opening distance from every direction", () => {

@@ -16,6 +16,7 @@ const {
   flightBasis,
   PATTERNS,
 } = require("../utils/voxelZoom/camera.ts");
+const { flightResolution } = require("../utils/voxelZoom/resolution.ts");
 const {
   generateMengerSponge,
   generateVicsekFractal3D,
@@ -32,10 +33,13 @@ const fragment = readFileSync(
   new URL("../utils/shaders/voxel-flight.frag", import.meta.url),
   "utf8",
 )
-  .replace("precision highp float;", "precision highp float; uniform bool u_checkLighting;")
+  .replace(
+    "precision highp float;",
+    "precision highp float; uniform bool u_checkLighting; uniform float u_checkDistanceScale;",
+  )
   .replace(
     "gl_FragColor = vec4(color, 1.0);",
-    `float code=floor(t*100000.0+0.5); if (u_checkLighting) gl_FragColor=vec4(color,1.0); else gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
+    `float code=floor(t/u_checkDistanceScale*100000.0+0.5); if (u_checkLighting) gl_FragColor=vec4(color,1.0); else gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
   );
 function intersect(low, high, ray) {
   let near = 0,
@@ -159,15 +163,24 @@ for (const [name, pattern, index, position, yaw, pitch] of [
     expected: fixtures[0].expected.filter((ray) => ray.hit),
   });
 }
-// Distance culling must stop rays before a remote root box, for every rule.
+// Changing camera units must preserve distant geometry and lighting. These
+// surfaces are thousands of local units away, beyond the former fog/cull limit.
 for (const fixture of fixtures.slice(0, 4)) {
+  const camera = { ...initialFlightCamera(), level: 8 };
+  const frame = buildGridFrame(camera, PATTERNS[fixture.pattern], 3);
+  const distanceScale = 3 ** camera.level;
   fixtures.push({
     ...fixture,
-    name: `${fixture.name} beyond fog range`,
-    viewDistance: 0.25,
-    expected: fixture.expected.map((ray) => ({ ...ray, hit: false, distance: null })),
+    name: `${fixture.name} distant geometry at zoom level 8`,
+    frame: { ...frame, texture: Array.from(frame.texture) },
+    distanceScale,
+    expected: fixture.expected.map((ray) => ({
+      ...ray,
+      distance: ray.distance === null ? null : ray.distance * distanceScale,
+    })),
   });
 }
+for (const fixture of fixtures) fixture.detail = flightResolution(fixture.frame.clearance, 65, 65);
 async function check(payload) {
   const canvas = document.createElement("canvas");
   canvas.width = 65;
@@ -215,7 +228,9 @@ async function check(payload) {
   try {
     for (const fixture of payload.fixtures) {
       const { frame, basis } = fixture;
-      gl.uniform1f(u("viewDistance"), fixture.viewDistance ?? 512);
+      gl.uniform1f(u("pixelAngle"), fixture.detail.pixelAngle);
+      gl.uniform1f(u("nearFootprint"), fixture.detail.nearFootprint);
+      gl.uniform1f(u("checkDistanceScale"), fixture.distanceScale ?? 1);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -240,8 +255,12 @@ async function check(payload) {
         const offset = (expected.y * 65 + expected.x) * 4,
           hit = pixels[offset + 3] === 255,
           distance =
-            (pixels[offset] + 256 * pixels[offset + 1] + 65536 * pixels[offset + 2]) / 100000;
-        if (hit !== expected.hit || (hit && Math.abs(distance - expected.distance) > 0.002))
+            ((pixels[offset] + 256 * pixels[offset + 1] + 65536 * pixels[offset + 2]) / 100000) *
+            (fixture.distanceScale ?? 1);
+        if (
+          hit !== expected.hit ||
+          (hit && Math.abs(distance - expected.distance) > 0.002 * (fixture.distanceScale ?? 1))
+        )
           mismatches.push({ ...expected, actual: { hit, distance } });
       }
       let exhausted = 0,
