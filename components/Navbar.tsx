@@ -121,8 +121,8 @@ export const NavElement = () => {
           className={styles.preview}
           src={PAGE_SEO[prev].imagePath}
           alt=""
-          width={44}
-          height={44}
+          width={40}
+          height={40}
         />
       </Link>
       <Link
@@ -140,8 +140,8 @@ export const NavElement = () => {
           className={styles.preview}
           src={PAGE_SEO[next].imagePath}
           alt=""
-          width={44}
-          height={44}
+          width={40}
+          height={40}
         />
       </Link>
     </nav>
