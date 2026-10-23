@@ -25,17 +25,13 @@ import {
   initialConstructionView,
 } from "../utils/constructionView";
 import { explorerControlNodes } from "../utils/explorerControlNodes";
-import {
-  useConstructionNavigation,
-  zoomConstruction,
-} from "../utils/hooks/useConstructionNavigation";
+import { useConstructionNavigation } from "../utils/hooks/useConstructionNavigation";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import type { RendererKind } from "../utils/render/registry";
 import { ConstructionIcon } from "./ConstructionIcon";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { FractalStudioControls } from "./ExplorerPanel";
-import { FullscreenIcon } from "./ExplorerViewControls";
 
 export type ConstructionSpec = {
   identity: string;
@@ -190,8 +186,6 @@ function ConstructionSequence({
   const [renderedLevel, setRenderedLevel] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [fullscreenError, setFullscreenError] = useState("");
   const [view, setView] = useState<ConstructionView>(() => ({
     ...spec.config,
     ...initialConstructionView(spec.params),
@@ -270,38 +264,24 @@ function ConstructionSequence({
     const timer = setTimeout(() => setStep(selected + 1), Math.max(1500, spec.stepDelay ?? 0));
     return () => clearTimeout(timer);
   }, [playing, ready, renderedLevel, level, inView, pageVisible, selected, max, spec.stepDelay]);
-  useEffect(() => {
-    const update = () => setFullscreen(document.fullscreenElement === frame.current);
-    document.addEventListener("fullscreenchange", update);
-    return () => document.removeEventListener("fullscreenchange", update);
-  }, []);
   const toggle = () => {
     autoplayed.current = true;
-    if (!playing && selected >= max) setStep(0);
+    if (selected >= max) {
+      setPlaying(false);
+      setStep(0);
+      return;
+    }
     setPlaying(!playing);
   };
   const change = (next: number) => {
     pause();
     setStep(Math.max(0, Math.min(max, next)));
   };
-  const zoom = (factor: number) => {
-    pause();
-    setView((old) => zoomConstruction(old, scene, factor));
-  };
   const updateStudio = (data: ConstructionView & { iterations: number }) => {
     pause();
     const { iterations, ...next } = data;
     if (iterations !== level) setStep(Math.max(0, Math.min(max, iterations - spec.min)));
     setView(next as ConstructionView);
-  };
-  const toggleFullscreen = async () => {
-    try {
-      setFullscreenError("");
-      if (document.fullscreenElement === frame.current) await document.exitFullscreen();
-      else await frame.current?.requestFullscreen();
-    } catch {
-      setFullscreenError("Fullscreen is unavailable in this browser.");
-    }
   };
   const parameters =
     spec.params && typeof spec.params === "object" ? (spec.params as Record<string, unknown>) : {};
@@ -312,6 +292,7 @@ function ConstructionSequence({
         ? cloneElement(child, { respectExplorerZoom: false })
         : child,
     );
+  const playbackAction = selected >= max ? "Reset" : playing ? "Pause" : "Play";
   const inputProgress = max ? (selected / max) * 100 : 0;
   return (
     <figure className={styles.demo} data-teaching-lesson="full-construction">
@@ -329,6 +310,120 @@ function ConstructionSequence({
         data-construction-tilt={view.rotationX}
         data-construction-color={view.fillColor}
       >
+        <div className={styles.toolbar}>
+          <fieldset
+            className={`${viewStyles.controls} ${styles.transport}`}
+            disabled={!ready}
+            aria-label="Fractal construction controls"
+          >
+            <button
+              type="button"
+              onClick={() => change(selected - 1)}
+              disabled={selected === 0}
+              aria-label="Previous construction step"
+              title="Previous step"
+            >
+              <ConstructionIcon name="previous" />
+            </button>
+            <button
+              type="button"
+              onClick={toggle}
+              disabled={max === 0}
+              aria-pressed={playbackAction === "Reset" ? undefined : playing}
+              aria-label={`${playbackAction} construction`}
+              title={`${playbackAction} construction`}
+            >
+              <ConstructionIcon
+                name={playbackAction === "Reset" ? "reset" : playing ? "pause" : "play"}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => change(selected + 1)}
+              disabled={selected === max}
+              aria-label="Next construction step"
+              title="Next step"
+            >
+              <ConstructionIcon name="next" />
+            </button>
+            <label className={styles.step}>
+              <span>
+                Level {level} of {limit}
+              </span>
+              <input
+                className={panelStyles.numberSlider}
+                type="range"
+                min={0}
+                max={max}
+                step={1}
+                value={selected}
+                aria-label="Construction step"
+                onChange={(event) => change(Number(event.target.value))}
+                style={{
+                  backgroundImage: `linear-gradient(90deg,var(--explorer-accent) ${inputProgress}%,var(--explorer-field) ${inputProgress}%)`,
+                }}
+              />
+            </label>
+          </fieldset>
+          <div className={`${panelStyles.panel} ${styles.studioPanel}`}>
+            <FractalStudioControls data={{ ...view, iterations: level }} onUpdate={updateStudio}>
+              <PanelNumber
+                path="iterations"
+                label="Construction level"
+                min={spec.min}
+                max={limit}
+                step={1}
+              />
+              {fields.length > 0 ? (
+                fields
+              ) : (
+                <>
+                  <PanelColor path="background" />
+                  {spec.kind === "scene3d" ? (
+                    <>
+                      <PanelColor path="fillColor" />
+                      <PanelColor path="strokeColor" />
+                    </>
+                  ) : spec.kind === "polylineScene" ? (
+                    <>
+                      <PanelColor path="nearColor" />
+                      <PanelColor path="farColor" />
+                    </>
+                  ) : (
+                    <PanelColor path="color" />
+                  )}
+                  <PanelNumber path="lineWidth" min={0} max={5} step={0.1} />
+                  {scene && (
+                    <>
+                      <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+                      <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+                      <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
+                    </>
+                  )}
+                  {(spec.kind === "scene3d" || spec.kind === "polylineScene") && (
+                    <PanelBoolean path="autoRotate" respectExplorerZoom={false} />
+                  )}
+                  {spec.kind === "scene3d" && (
+                    <>
+                      <PanelBoolean path="showFaces" />
+                      <PanelBoolean path="showWireframe" />
+                    </>
+                  )}
+                  {Object.entries(CONSTRUCTION_NUMBERS)
+                    .filter(([key]) => typeof parameters[key] === "number")
+                    .map(([key, range]) => (
+                      <PanelNumber key={key} path={key} {...range} />
+                    ))}
+                  {CONSTRUCTION_BOOLEANS.filter((key) => typeof parameters[key] === "boolean").map(
+                    (key) => (
+                      <PanelBoolean key={key} path={key} />
+                    ),
+                  )}
+                </>
+              )}
+            </FractalStudioControls>
+          </div>
+        </div>
         <div className={styles.viewport} style={{ background: view.background }}>
           {visible && (
             <ConstructionSurface
@@ -342,156 +437,6 @@ function ConstructionSequence({
             />
           )}
         </div>
-        <div className={`${panelStyles.panel} ${styles.studioPanel}`}>
-          <FractalStudioControls data={{ ...view, iterations: level }} onUpdate={updateStudio}>
-            <PanelNumber
-              path="iterations"
-              label="Construction level"
-              min={spec.min}
-              max={limit}
-              step={1}
-            />
-            {fields.length > 0 ? (
-              fields
-            ) : (
-              <>
-                <PanelColor path="background" />
-                {spec.kind === "scene3d" ? (
-                  <>
-                    <PanelColor path="fillColor" />
-                    <PanelColor path="strokeColor" />
-                  </>
-                ) : spec.kind === "polylineScene" ? (
-                  <>
-                    <PanelColor path="nearColor" />
-                    <PanelColor path="farColor" />
-                  </>
-                ) : (
-                  <PanelColor path="color" />
-                )}
-                <PanelNumber path="lineWidth" min={0} max={5} step={0.1} />
-                {scene && (
-                  <>
-                    <PanelNumber path="rotationX" min={-180} max={180} step={1} />
-                    <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-                    <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
-                  </>
-                )}
-                {(spec.kind === "scene3d" || spec.kind === "polylineScene") && (
-                  <PanelBoolean path="autoRotate" respectExplorerZoom={false} />
-                )}
-                {spec.kind === "scene3d" && (
-                  <>
-                    <PanelBoolean path="showFaces" />
-                    <PanelBoolean path="showWireframe" />
-                  </>
-                )}
-                {Object.entries(CONSTRUCTION_NUMBERS)
-                  .filter(([key]) => typeof parameters[key] === "number")
-                  .map(([key, range]) => (
-                    <PanelNumber key={key} path={key} {...range} />
-                  ))}
-                {CONSTRUCTION_BOOLEANS.filter((key) => typeof parameters[key] === "boolean").map(
-                  (key) => (
-                    <PanelBoolean key={key} path={key} />
-                  ),
-                )}
-              </>
-            )}
-          </FractalStudioControls>
-        </div>
-        <fieldset
-          className={`${viewStyles.controls} ${styles.transport}`}
-          disabled={!ready}
-          aria-label="Fractal construction controls"
-        >
-          <button
-            type="button"
-            onClick={() => change(selected - 1)}
-            disabled={selected === 0}
-            aria-label="Previous construction step"
-            title="Previous step"
-          >
-            <ConstructionIcon name="previous" />
-          </button>
-          <button
-            type="button"
-            onClick={toggle}
-            disabled={max === 0}
-            aria-pressed={playing}
-            aria-label={`${playing ? "Pause" : "Play"} construction`}
-            title={playing ? "Pause construction" : "Play construction"}
-          >
-            <ConstructionIcon name={playing ? "pause" : "play"} />
-          </button>
-          <button
-            type="button"
-            onClick={() => change(selected + 1)}
-            disabled={selected === max}
-            aria-label="Next construction step"
-            title="Next step"
-          >
-            <ConstructionIcon name="next" />
-          </button>
-          <label className={styles.step}>
-            <span>
-              Level {level} of {limit}
-            </span>
-            <input
-              className={panelStyles.numberSlider}
-              type="range"
-              min={0}
-              max={max}
-              step={1}
-              value={selected}
-              aria-label="Construction step"
-              onChange={(event) => change(Number(event.target.value))}
-              style={{
-                backgroundImage: `linear-gradient(90deg,var(--explorer-accent) ${inputProgress}%,var(--explorer-field) ${inputProgress}%)`,
-              }}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => zoom(0.8)}
-            aria-label="Zoom out construction"
-            title="Zoom out"
-          >
-            <ConstructionIcon name="zoomOut" />
-          </button>
-          <button
-            type="button"
-            onClick={() => zoom(1.25)}
-            aria-label="Zoom in construction"
-            title="Zoom in"
-          >
-            <ConstructionIcon name="zoomIn" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              pause();
-              reset();
-            }}
-            aria-label="Reset construction view"
-            title="Reset view (R)"
-          >
-            <ConstructionIcon name="reset" />
-          </button>
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            aria-label={fullscreen ? "Exit construction fullscreen" : "Fullscreen construction"}
-            title={fullscreen ? "Exit fullscreen" : "Fullscreen"}
-          >
-            <FullscreenIcon active={fullscreen} />
-          </button>
-        </fieldset>
-        {fullscreenError && (
-          <p className={styles.error} role="status">
-            {fullscreenError}
-          </p>
-        )}
       </div>
     </figure>
   );

@@ -36,10 +36,17 @@
   outline: 2px solid var(--explorer-accent);
   outline-offset: -3px;
 }
+.toolbar {
+  position: relative;
+  flex-shrink: 0;
+  min-height: var(--explorer-control-height);
+  border-bottom: 1px solid #f5f1d129;
+  background: var(--explorer-surface);
+}
 .studioPanel {
   top: 0;
   left: auto;
-  width: auto;
+  width: 320px;
   max-width: 100%;
   gap: 0;
 }
@@ -49,9 +56,9 @@
 }
 .transport {
   border: 0;
-  border-top: 1px solid #f5f1d129;
-  padding: 8px;
-  margin: 0;
+  padding: 0 8px;
+  margin: 0 320px 0 0;
+  min-height: var(--explorer-control-height);
   align-items: center;
   min-width: 0;
   background: var(--explorer-surface);
@@ -75,36 +82,34 @@
   width: 100%;
   min-width: 30px;
 }
-.workspace:fullscreen {
-  width: 100%;
-  height: 100dvh;
-  border: 0;
-}
-.error {
-  position: absolute;
-  bottom: 60px;
-  left: 8px;
-  padding: 8px;
-  font-size: 13px;
-  background: var(--explorer-surface);
-}
 @media (max-width: 700px) {
   .workspace {
     height: 76svh;
     min-height: 400px;
   }
+  .toolbar {
+    min-height: calc(2 * var(--explorer-control-height) + 1px);
+  }
+  .studioPanel {
+    top: var(--explorer-control-height);
+    width: 100%;
+  }
+  .studioPanel > aside,
+  .studioPanel > aside:has(:global(.folder.closed)) {
+    width: 100%;
+    max-width: 100%;
+  }
   .transport {
-    flex-wrap: wrap;
-    justify-content: space-between;
+    margin-right: 0;
     gap: 4px;
   }
   .transport button {
-    width: clamp(36px, calc((92vw - 44px) / 7), 44px);
+    width: 44px;
     height: 44px;
   }
   .step {
-    flex-basis: 100%;
-    order: -1;
+    gap: 0.6rem;
+    min-width: 0;
   }
   .step span {
     font-size: 11px;
