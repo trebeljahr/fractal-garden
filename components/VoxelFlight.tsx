@@ -41,17 +41,6 @@ const flightKey = (event: KeyboardEvent) => {
   return aliases[event.code] ?? event.key.toLowerCase();
 };
 
-export function FlightInstructions() {
-  return (
-    <p className={styles.instructions} id="flight-instructions">
-      Click the view to capture the mouse. Move the mouse to look, WASD to fly, Space to go up, C to
-      go down. Hold Shift to fly faster. Esc releases the mouse. Scroll or pinch to move; drag to
-      look on touch screens or when capture is unavailable. On mobile, use the Move and Look sticks,
-      Up/Down, and hold Fast for a speed boost. Scroll out to the opening distance to scroll the
-      page. Back outside ends Explore.
-    </p>
-  );
-}
 export function VoxelFlight({
   pattern,
   style,
@@ -369,7 +358,6 @@ export function VoxelFlight({
         style={{ opacity: error ? 0 : undefined }}
         tabIndex={0}
         aria-label="Explore the fractal interior"
-        aria-describedby="flight-instructions"
       />
       {error && (
         <output className={styles.error} role="alert" data-fractal-chrome>

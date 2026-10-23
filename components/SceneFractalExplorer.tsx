@@ -12,7 +12,7 @@ import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerCo
 import { ExplorerPanel } from "./ExplorerPanel";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
-import { FlightInstructions, VoxelFlight } from "./VoxelFlight";
+import { VoxelFlight } from "./VoxelFlight";
 
 export type SceneVariant = {
   label: string;
@@ -203,7 +203,7 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={[exploring ? "WASD or touch sticks to fly. Shift / Fast boosts." : hint]}
+        lines={exploring ? [] : [hint]}
         places={
           pattern && (
             <button
@@ -261,7 +261,6 @@ export function SceneFractalExplorer<V extends string>({
             options={variantOptions}
           />
         )}
-        {exploring && <FlightInstructions />}
         {exploring && (
           <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
         )}
