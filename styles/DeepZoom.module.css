@@ -1,27 +1,21 @@
-.status {
+.error {
   position: absolute;
-  bottom: calc(
-    var(--explorer-nav-height) +
-    max(var(--explorer-nav-gap), env(safe-area-inset-bottom)) +
-    12px
-  );
+  top: calc(var(--explorer-header-height) + var(--explorer-control-height) + 24px);
   right: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 5px 12px;
   max-width: min(80vw, 480px);
-  padding: 6px 10px;
+  padding: 12px 16px;
+  border: 1px solid rgba(245, 204, 117, 0.32);
   border-radius: 6px;
-  background: rgb(8 12 18 / 78%);
-  color: #e4e5e8;
-  font-size: 11px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
   pointer-events: none;
-  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 700px) {
-  .status {
+  .error {
     right: 12px;
     max-width: calc(100vw - 24px);
   }

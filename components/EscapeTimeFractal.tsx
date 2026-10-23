@@ -1,12 +1,8 @@
 import { Children, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
-import { createViewport, MAX_DEPTH_BITS, matchesDeepViewport } from "../utils/deepZoom/math";
-import {
-  createDeepZoomRenderer,
-  MAX_RENDER_ITERATIONS,
-  type ZoomStatus,
-} from "../utils/deepZoom/renderer";
+import { createViewport, matchesDeepViewport } from "../utils/deepZoom/math";
+import { createDeepZoomRenderer, MAX_RENDER_ITERATIONS } from "../utils/deepZoom/renderer";
 import {
   COLOR_MODE_LABELS,
   COLOR_MODES,
@@ -78,7 +74,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     setViewport(viewportRef.current);
     rendererRef.current?.update();
   }, []);
-  const [status, setStatus] = useState<ZoomStatus | null>(null);
+  const [renderError, setRenderError] = useState("");
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
   const [cReal, cImag] = c;
@@ -104,15 +100,10 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           width: stateRef.current.width || 1,
           height: stateRef.current.height || 1,
         }),
-        setStatus,
+        (status) => setRenderError(status.error ? status.message : ""),
       );
     } catch (error) {
-      setStatus({
-        logZoom: viewportRef.current.logZoom,
-        iterations: stateRef.current.config.iterations,
-        message: error instanceof Error ? error.message : String(error),
-        error: true,
-      });
+      setRenderError(error instanceof Error ? error.message : String(error));
       return;
     }
     rendererRef.current = renderer;
@@ -203,27 +194,9 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
       </ExplorerPanel>
       <div className={styles.fullScreen}>
         <DeepZoomCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
-        {status && gl && (
-          <output
-            className={zoomStyles.status}
-            data-fractal-chrome
-            data-deep-zoom-status={status.message}
-            aria-live="off"
-          >
-            <span>
-              {status.logZoom < -3
-                ? `10^${(-status.logZoom * Math.LOG10E * Math.LN2).toFixed(1)} zoom`
-                : "Explore the boundary"}
-            </span>
-            <span>
-              {status.logZoom <= -MAX_DEPTH_BITS ? "Precision budget reached" : status.message}
-            </span>
-            {status.logZoom < -7 && (
-              <span>
-                {status.iterations.toLocaleString()} iterations
-                {status.iterations === MAX_RENDER_ITERATIONS ? " (limit)" : ""}
-              </span>
-            )}
+        {renderError && gl && (
+          <output className={zoomStyles.error} data-fractal-chrome role="alert">
+            {renderError}
           </output>
         )}
       </div>
