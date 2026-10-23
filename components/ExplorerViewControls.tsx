@@ -79,7 +79,7 @@ export function ExplorerViewControls({
 
   const controls = (
     <div className={clean ? styles.restore : styles.controls}>
-      {animation && (
+      {animation && !clean && (
         <button
           type="button"
           onClick={animation.onToggle}
@@ -98,7 +98,7 @@ export function ExplorerViewControls({
             aria-hidden="true"
             focusable="false"
           >
-            {animation.playing ? <path d="m8 4 12 8-12 8Z" /> : <path d="M8 5v14M16 5v14" />}
+            {animation.playing ? <path d="M8 5v14M16 5v14" /> : <path d="m8 4 12 8-12 8Z" />}
           </svg>
         </button>
       )}
@@ -109,18 +109,20 @@ export function ExplorerViewControls({
         aria-label={clean ? "Show UI" : "Hide UI"}
         title={clean ? "Show UI (Escape)" : "Hide UI (Escape to restore)"}
       >
-        <VisibilityIcon hidden={clean} />
+        <VisibilityIcon hidden={!clean} />
       </button>
-      <button
-        type="button"
-        disabled={!supported}
-        onClick={onToggleFullscreen}
-        aria-label={fullscreenLabel}
-        title={fullscreenLabel}
-      >
-        <FullscreenIcon active={fullscreen} />
-      </button>
-      {error && (
+      {!clean && (
+        <button
+          type="button"
+          disabled={!supported}
+          onClick={onToggleFullscreen}
+          aria-label={fullscreenLabel}
+          title={fullscreenLabel}
+        >
+          <FullscreenIcon active={fullscreen} />
+        </button>
+      )}
+      {error && !clean && (
         <p className={styles.error} role="status">
           {error}
         </p>
