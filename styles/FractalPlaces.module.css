@@ -71,7 +71,7 @@
 }
 .destinations {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   right: 0;
   width: min(360px, calc(100vw - 24px));
   max-height: min(60svh, calc(100svh - var(--explorer-header-height) - 100px));

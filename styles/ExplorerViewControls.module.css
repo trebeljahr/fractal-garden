@@ -3,7 +3,7 @@
   position: relative;
   display: flex;
   flex-direction: row;
-  gap: 6px;
+  gap: 8px;
   flex: 0 0 auto;
   pointer-events: auto;
 }

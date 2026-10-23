@@ -14,7 +14,7 @@
   align-items: center;
   gap: 16px;
   height: 100%;
-  padding-left: 16px;
+  padding: 10px 16px;
 }
 
 .home {
@@ -91,11 +91,15 @@
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: 52px 52px;
     gap: 0 8px;
-    padding: 0 12px;
+    padding: 10px 12px;
   }
 
   .withControls:has([data-fractal-places]) {
-    grid-template-rows: 52px 104px;
+    grid-template-rows: 52px 112px;
+  }
+
+  .bar:not(:has(.controls, .places)) {
+    grid-template-rows: 52px;
   }
 
   .home {

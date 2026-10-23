@@ -890,6 +890,7 @@
 }
 
 .headerControls .studioGroup {
+  gap: 12px;
   position: static;
   align-items: center;
   margin: 0;
@@ -949,7 +950,7 @@
   .headerControls .studioGroup:has(.placesHost) {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    gap: 0 8px;
+    gap: 8px 12px;
   }
 
   .headerControls .studioGroup:has(.placesHost) .studio {
