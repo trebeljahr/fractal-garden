@@ -1,7 +1,7 @@
 import { type MutableRefObject, useEffect } from "react";
 import { constrain } from "../ctxHelpers";
 import { readViewport } from "../explorerShare";
-import { createZoomWheelGuard } from "../shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
 type Viewport = {
@@ -210,7 +210,7 @@ export function useShaderViewportControls({
       const currentViewport = viewportRef.current;
       const { point } = getRelativePoint(event);
       const anchorWorld = pointToWorld(point, currentViewport);
-      const zoomFactor = Math.exp(event.deltaY * 0.0015);
+      const zoomFactor = Math.exp(zoomWheelDelta(event, canvas));
       const nextZoomSize = constrain(
         currentViewport.zoomSize * zoomFactor,
         minZoomSize,
@@ -226,14 +226,14 @@ export function useShaderViewportControls({
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(canvas, handleWheel);
 
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
-      canvas.removeEventListener("wheel", handleWheel);
+      removeZoomWheel();
       wheelGuard.dispose();
       canvas.style.touchAction = "";
     };

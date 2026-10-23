@@ -5,7 +5,7 @@ import {
   panLogisticView,
   zoomLogisticView,
 } from "../logisticMap";
-import { createZoomWheelGuard } from "../shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 
 type Point = { x: number; y: number };
 
@@ -102,10 +102,12 @@ export function useLogisticViewportControls(
       if (!guard.shouldZoom(event, atMinZoom)) return;
       event.preventDefault();
       const focus = point(event);
-      const delta =
-        event.deltaY *
-        (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1);
-      viewRef.current = zoomLogisticView(view, focus.x, focus.y, Math.exp(delta * 0.0015));
+      viewRef.current = zoomLogisticView(
+        view,
+        focus.x,
+        focus.y,
+        Math.exp(zoomWheelDelta(event, canvas)),
+      );
       // Wheel/pinch and dragging can overlap on a trackpad.
       reanchor();
       onChange();
@@ -117,14 +119,14 @@ export function useLogisticViewportControls(
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("lostpointercapture", up);
-    canvas.addEventListener("wheel", wheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(canvas, wheel);
     return () => {
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
-      canvas.removeEventListener("wheel", wheel);
+      removeZoomWheel();
       guard.dispose();
       canvas.style.touchAction = "";
     };

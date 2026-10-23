@@ -13,7 +13,7 @@ import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
 import fragmentShader from "../utils/shaders/mandelbulb.frag";
-import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 
 type Props = {
   description: string;
@@ -273,7 +273,8 @@ const Mandelbulb = ({ description }: Props) => {
         ...old,
         autoRotate: false,
         cameraDistance: constrain(
-          old.cameraDistance * (event.deltaY > 0 ? 1.08 : 0.92),
+          old.cameraDistance *
+            (event.ctrlKey ? Math.exp(zoomWheelDelta(event, cnv)) : event.deltaY > 0 ? 1.08 : 0.92),
           MIN_DISTANCE,
           MAX_DISTANCE,
         ),
@@ -282,7 +283,7 @@ const Mandelbulb = ({ description }: Props) => {
 
     cnv.style.cursor = "grab";
     cnv.addEventListener("mousedown", handleMouseDown);
-    cnv.addEventListener("wheel", handleWheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(cnv, handleWheel);
     window.addEventListener("mousemove", handleMouseMove);
     cnv.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("mouseup", handleMouseUp);
@@ -295,7 +296,7 @@ const Mandelbulb = ({ description }: Props) => {
       cnv.removeEventListener("garden:redraw", exportFrame);
       cnv.removeEventListener("mousedown", handleMouseDown);
       cnv.removeEventListener("mouseleave", handleMouseUp);
-      cnv.removeEventListener("wheel", handleWheel);
+      removeZoomWheel();
       wheelGuard.dispose();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);

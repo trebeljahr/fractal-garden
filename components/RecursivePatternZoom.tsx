@@ -10,7 +10,7 @@ import {
   type RecursivePattern,
   restorePatternCamera,
 } from "../utils/recursiveZoom";
-import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 
 type Props = {
   pattern: RecursivePattern;
@@ -97,32 +97,12 @@ export function RecursivePatternZoom({ pattern, width, height, onActive }: Props
     const wheel = (event: WheelEvent) => {
       if (!guard.shouldZoom(event, (latest.current.camera?.zoom ?? 1) <= 1)) return;
       event.preventDefault();
-      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
-      changeRef.current(
-        Math.exp(-event.deltaY * unit * (event.ctrlKey ? 0.01 : 0.0015)),
-        event.clientX,
-        event.clientY,
-      );
+      changeRef.current(Math.exp(-zoomWheelDelta(event, element)), event.clientX, event.clientY);
     };
-    let gestureScale = 1;
-    const start = (event: Event) => {
-      event.preventDefault();
-      gestureScale = 1;
-    };
-    const gesture = (event: Event) => {
-      event.preventDefault();
-      const e = event as Event & { scale: number; clientX: number; clientY: number };
-      changeRef.current(e.scale / gestureScale, e.clientX, e.clientY);
-      gestureScale = e.scale;
-    };
-    element.addEventListener("wheel", wheel, { passive: false });
-    element.addEventListener("gesturestart", start);
-    element.addEventListener("gesturechange", gesture);
+    const removeZoomWheel = listenForZoomWheel(element, wheel);
     return () => {
       guard.dispose();
-      element.removeEventListener("wheel", wheel);
-      element.removeEventListener("gesturestart", start);
-      element.removeEventListener("gesturechange", gesture);
+      removeZoomWheel();
     };
   }, []);
 

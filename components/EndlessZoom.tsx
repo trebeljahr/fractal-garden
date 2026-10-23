@@ -14,7 +14,7 @@ import { createRenderer, type Renderer } from "../utils/lsystem/render";
 import type { LSystemSpec } from "../utils/lsystem/spec";
 import type { ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail } from "../utils/lsystem/zoom";
-import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 import { useZoomActivity } from "./ZoomActivity";
 
@@ -432,34 +432,12 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
     const onWheel = (event: WheelEvent) => {
       if (!wheelGuard.shouldZoom(event, (viewRef.current?.zoom ?? 1) <= MIN_ZOOM)) return;
       event.preventDefault();
-      const unit =
-        event.deltaMode === WheelEvent.DOM_DELTA_LINE
-          ? 16
-          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-            ? stage.clientHeight
-            : 1;
-      const speed = event.ctrlKey ? 0.01 : 0.0015;
-      zoomAtRef.current(event.clientX, event.clientY, Math.exp(-event.deltaY * unit * speed));
+      zoomAtRef.current(event.clientX, event.clientY, Math.exp(-zoomWheelDelta(event, stage)));
     };
-    let gestureScale = 1;
-    const onGestureStart = (event: Event) => {
-      event.preventDefault();
-      gestureScale = 1;
-    };
-    const onGestureChange = (event: Event) => {
-      event.preventDefault();
-      const gesture = event as Event & { scale: number; clientX: number; clientY: number };
-      zoomAtRef.current(gesture.clientX, gesture.clientY, gesture.scale / gestureScale);
-      gestureScale = gesture.scale;
-    };
-    stage.addEventListener("wheel", onWheel, { passive: false });
-    stage.addEventListener("gesturestart", onGestureStart);
-    stage.addEventListener("gesturechange", onGestureChange);
+    const removeZoomWheel = listenForZoomWheel(stage, onWheel);
     return () => {
-      stage.removeEventListener("wheel", onWheel);
+      removeZoomWheel();
       wheelGuard.dispose();
-      stage.removeEventListener("gesturestart", onGestureStart);
-      stage.removeEventListener("gesturechange", onGestureChange);
     };
   }, []);
 

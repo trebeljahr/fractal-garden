@@ -7,7 +7,7 @@ import {
   serializeViewport,
   zoomViewport,
 } from "../deepZoom/math";
-import { createZoomWheelGuard } from "../shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
 type Point = { x: number; y: number };
@@ -97,11 +97,9 @@ export function useDeepZoomControls({
         return;
       event.preventDefault();
       const anchor = point(event);
-      const pixels =
-        event.deltaY *
-        (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1);
       const next = clamp(
-        viewportRef.current.logZoom + Math.max(-2, Math.min(2, (pixels * 0.0015) / Math.LN2)),
+        viewportRef.current.logZoom +
+          Math.max(-2, Math.min(2, zoomWheelDelta(event, canvas) / Math.LN2)),
       );
       viewportRef.current = zoomViewport(viewportRef.current, next, anchor.x, anchor.y);
       change.current();
@@ -113,14 +111,14 @@ export function useDeepZoomControls({
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("lostpointercapture", up);
-    canvas.addEventListener("wheel", wheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(canvas, wheel);
     return () => {
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
-      canvas.removeEventListener("wheel", wheel);
+      removeZoomWheel();
       wheelGuard.dispose();
       canvas.style.touchAction = "";
     };

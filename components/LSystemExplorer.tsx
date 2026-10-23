@@ -26,7 +26,7 @@ import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../ut
 import type { WorkerRequest, WorkerResult, ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom";
 import { scrollToDescription } from "../utils/scrollToDescription";
-import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 import { ExplorerContextMenu } from "./ExplorerContextMenu";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
@@ -668,38 +668,12 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
     const onWheel = (event: WheelEvent) => {
       if (!wheelGuard.shouldZoom(event, cameraRef.current.zoom <= clampZoom(0))) return;
       event.preventDefault();
-      // Some mice report lines or pages instead of pixels.
-      const unit =
-        event.deltaMode === WheelEvent.DOM_DELTA_LINE
-          ? 16
-          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-            ? stage.clientHeight
-            : 1;
-      // Trackpad pinches arrive as wheel events with ctrlKey and small deltas.
-      const speed = event.ctrlKey ? 0.01 : 0.0015;
-      zoomAtRef.current(event.clientX, event.clientY, Math.exp(-event.deltaY * unit * speed));
+      zoomAtRef.current(event.clientX, event.clientY, Math.exp(-zoomWheelDelta(event, stage)));
     };
-    // Safari reports trackpad pinches as gesture events instead, and zooms
-    // the whole page unless they are cancelled.
-    let gestureScale = 1;
-    const onGestureStart = (event: Event) => {
-      event.preventDefault();
-      gestureScale = 1;
-    };
-    const onGestureChange = (event: Event) => {
-      event.preventDefault();
-      const gesture = event as Event & { scale: number; clientX: number; clientY: number };
-      zoomAtRef.current(gesture.clientX, gesture.clientY, gesture.scale / gestureScale);
-      gestureScale = gesture.scale;
-    };
-    stage.addEventListener("wheel", onWheel, { passive: false });
-    stage.addEventListener("gesturestart", onGestureStart);
-    stage.addEventListener("gesturechange", onGestureChange);
+    const removeZoomWheel = listenForZoomWheel(stage, onWheel);
     return () => {
-      stage.removeEventListener("wheel", onWheel);
+      removeZoomWheel();
       wheelGuard.dispose();
-      stage.removeEventListener("gesturestart", onGestureStart);
-      stage.removeEventListener("gesturechange", onGestureChange);
     };
   }, []);
 

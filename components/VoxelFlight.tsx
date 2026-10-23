@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../styles/VoxelFlight.module.css";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
-import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel } from "../utils/shouldZoomWheel";
 import {
   atFlightZoomLimit,
   dollyFlightCamera,
@@ -304,7 +304,7 @@ export function VoxelFlight({
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("lostpointercapture", up);
-    canvas.addEventListener("wheel", wheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(canvas, wheel);
     window.addEventListener("keydown", keydown, true);
     canvas.addEventListener("blur", release);
     canvas.addEventListener("webglcontextlost", lost);
@@ -332,7 +332,7 @@ export function VoxelFlight({
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
-      canvas.removeEventListener("wheel", wheel);
+      removeZoomWheel();
       window.removeEventListener("keydown", keydown, true);
       canvas.removeEventListener("blur", release);
       canvas.removeEventListener("webglcontextlost", lost);

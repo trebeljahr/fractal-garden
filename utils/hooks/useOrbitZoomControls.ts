@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { constrain } from "../ctxHelpers";
 import { dragRotation, IDENTITY, type Orientation } from "../orientation";
-import { createZoomWheelGuard } from "../shouldZoomWheel";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 
 type OrbitZoomConfig = {
   cameraDistance: number;
@@ -79,7 +79,12 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
         ...old,
         autoRotate: typeof old.autoRotate === "boolean" ? false : old.autoRotate,
         cameraDistance: constrain(
-          old.cameraDistance * (event.deltaY > 0 ? 1.08 : 0.92),
+          old.cameraDistance *
+            (event.ctrlKey
+              ? Math.exp(zoomWheelDelta(event, canvas))
+              : event.deltaY > 0
+                ? 1.08
+                : 0.92),
           minDistance,
           maxDistance,
         ),
@@ -88,7 +93,7 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
 
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mouseleave", handleMouseUp);
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    const removeZoomWheel = listenForZoomWheel(canvas, handleWheel);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("blur", handleMouseUp);
@@ -96,7 +101,7 @@ export function useOrbitZoomControls<T extends OrbitZoomConfig>({
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseleave", handleMouseUp);
-      canvas.removeEventListener("wheel", handleWheel);
+      removeZoomWheel();
       wheelGuard.dispose();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
