@@ -25,7 +25,7 @@ const localFloat = (value: bigint, bits: number) => {
 };
 export const PATTERNS: VoxelPattern[] = ["menger", "vicsek", "mosely-light", "mosely-heavy"];
 export function keepVoxel(pattern: VoxelPattern, digit: Vec3) {
-  const centers = digit.filter((d) => d === 1).length;
+  const centers = Number(digit[0] === 1) + Number(digit[1] === 1) + Number(digit[2] === 1);
   return pattern === "menger"
     ? centers <= 1
     : pattern === "vicsek"
@@ -34,6 +34,15 @@ export function keepVoxel(pattern: VoxelPattern, digit: Vec3) {
         ? centers > 0 && centers < 3
         : centers > 0;
 }
+const retained = Object.fromEntries(
+  PATTERNS.map((pattern) => {
+    const children: Vec3[] = [];
+    for (let x = 0; x < 3; x++)
+      for (let y = 0; y < 3; y++)
+        for (let z = 0; z < 3; z++) if (keepVoxel(pattern, [x, y, z])) children.push([x, y, z]);
+    return [pattern, children];
+  }),
+) as Record<VoxelPattern, Vec3[]>;
 export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCamera {
   const bits = bitsForLevel(0);
   return {
@@ -78,6 +87,18 @@ export function buildGridFrame(
   pattern: VoxelPattern,
   maxDepth = camera.level + 10,
 ): GridFrame {
+  return gridFrame(camera, pattern, maxDepth, true);
+}
+/** Movement needs a safe distance, without building/uploading a render grid. */
+export function flightClearance(camera: FlightCamera, pattern: VoxelPattern): number {
+  return gridFrame(camera, pattern, camera.level + 10, false).clearance;
+}
+function gridFrame(
+  camera: FlightCamera,
+  pattern: VoxelPattern,
+  maxDepth: number,
+  geometry: boolean,
+): GridFrame {
   const one = BigInt(1) << BigInt(camera.bits);
   const denominator = one * BigInt(2);
   const localScale = powers[camera.level];
@@ -88,11 +109,26 @@ export function buildGridFrame(
     localFloat((one - p) * localScale, camera.bits + 1),
   ) as Vec3;
   const outside = Math.hypot(...low.map((v, axis) => Math.max(v, -high[axis], 0)));
-  let clearance = 0;
+  let clearance = outside;
   const levels: GridLevel[] = [];
-  const texture = new Float32Array(MAX_VOXEL_DEPTH * 8);
+  const texture = new Float32Array(geometry ? MAX_VOXEL_DEPTH * 8 : 0);
   for (let depth = 1; depth <= Math.min(MAX_VOXEL_DEPTH, maxDepth); depth++) {
     const width = Math.min(1e29, 3 ** (camera.level - depth));
+    // Every periodic rule has a retained cube within sqrt(3) cell widths.
+    // Finer levels cannot improve an already larger lower bound.
+    if (!geometry && width * Math.sqrt(3) <= clearance) break;
+    // A retained camera cell contributes zero distance. Movement can skip its
+    // plane conversion entirely, including distant ancestors at deep zooms.
+    if (
+      !geometry &&
+      keepVoxel(
+        pattern,
+        camera.position.map((p) =>
+          modulo3(floorDiv((p + one) * powers[depth], denominator)),
+        ) as Vec3,
+      )
+    )
+      continue;
     const digit: Vec3 = [0, 0, 0];
     const cameraDigit: Vec3 = [0, 0, 0];
     const plane = camera.position.map((p, axis) => {
@@ -130,17 +166,11 @@ export function buildGridFrame(
         }),
       );
       let nearest = Number.POSITIVE_INFINITY;
-      for (let x = 0; x < 3; x++)
-        for (let y = 0; y < 3; y++)
-          for (let z = 0; z < 3; z++) {
-            if (keepVoxel(pattern, [x, y, z]))
-              nearest = Math.min(
-                nearest,
-                Math.hypot(distances[0][x], distances[1][y], distances[2][z]),
-              );
-          }
+      for (const [x, y, z] of retained[pattern])
+        nearest = Math.min(nearest, Math.hypot(distances[0][x], distances[1][y], distances[2][z]));
       clearance = Math.max(clearance, nearest);
     }
+    if (!geometry) continue;
     // Far ancestor cells that cannot change occupancy anywhere in the local
     // viewing volume need no GPU work. Crossing 2->0 does not change any rule.
     const constant =
@@ -170,14 +200,14 @@ export function moveFlightCamera(
   const steps = Math.min(24, Math.max(1, Math.ceil(magnitude / 0.1)));
   let next = camera;
   for (let step = 0; step < steps; step++) {
-    const frame = buildGridFrame(next, pattern);
-    if (frame.clearance <= 0) break;
+    const clearance = flightClearance(next, pattern);
+    if (clearance <= 0) break;
     let level = next.level;
-    if (frame.clearance < 0.16 && level < MAX_FLIGHT_LEVEL) level++;
-    else if (frame.clearance > 1.5 && level > 0) level--;
+    if (clearance < 0.16 && level < MAX_FLIGHT_LEVEL) level++;
+    else if (clearance > 1.5 && level > 0) level--;
     const bits = Math.max(next.bits, bitsForLevel(level));
     // Both distance and coordinates still refer to the previous local scale.
-    const amount = Math.min(0.22, magnitude / steps) * frame.clearance;
+    const amount = Math.min(0.22, magnitude / steps) * clearance;
     const position = next.position.map(
       (p, axis) =>
         rescaleFixed(p, next.bits, bits) +

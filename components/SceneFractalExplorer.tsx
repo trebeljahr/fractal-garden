@@ -199,7 +199,7 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={[exploring ? "Drag to look. Scroll to move. WASD to fly." : hint]}
+        lines={[exploring ? "Click to capture mouse. WASD to fly. Esc releases." : hint]}
         places={
           pattern && (
             <button
@@ -287,7 +287,6 @@ export function SceneFractalExplorer<V extends string>({
           style={config}
           width={flightWidth}
           height={flightHeight}
-          onExit={backOutside}
         />
       )}
       <SideDrawer description={description} />

@@ -77,11 +77,36 @@ async function check(page, baseURL) {
     assert((await page.locator("output[role=alert]").count()) === 0, `${route}: mount error`);
     const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
     const before = await canvas.evaluate((node) => node.toDataURL());
+    const camera = () =>
+      page.evaluate(() => {
+        const parts = {};
+        window.dispatchEvent(
+          new CustomEvent("garden:capture-view", { detail: { parts, pending: [] } }),
+        );
+        return parts.voxelCamera;
+      });
+    const orientation = await camera();
+    await canvas.click();
+    await page.waitForFunction(
+      () =>
+        document.pointerLockElement?.getAttribute("aria-label") === "Explore the fractal interior",
+    );
+    await page.mouse.move(740, 360);
+    assert(
+      (await camera()).yaw !== orientation.yaw,
+      `${route}: captured mouse did not look without dragging`,
+    );
     await canvas.press("w", { delay: 120 });
     await page.waitForFunction((draws) => window.__voxelLifecycle[0].draws > draws, mounted.draws);
     assert(
       before !== (await canvas.evaluate((node) => node.toDataURL())),
       `${route}: frozen pixels`,
+    );
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.pointerLockElement);
+    assert(
+      (await page.getByRole("button", { name: "Back outside", exact: true }).count()) === 1,
+      `${route}: Escape left Explore instead of releasing the mouse`,
     );
 
     if (route === "mosely-snowflake") {
@@ -91,6 +116,11 @@ async function check(page, baseURL) {
         extension.loseContext();
       });
       await page.locator("output[role=alert]").waitFor();
+      await canvas.click();
+      assert(
+        await page.evaluate(() => !document.pointerLockElement),
+        "Failed graphics captured the mouse",
+      );
       assert(
         await canvas.evaluate(
           (node) =>
@@ -140,8 +170,23 @@ async function check(page, baseURL) {
     await page.waitForFunction(() => window.__voxelLifecycle.at(-1).draws > 0);
     const reentered = (await state()).at(-1);
     assert(!reentered.lost && reentered.releases === 0, `${route}: re-entry failed`);
-    results.push({ route, mounted, disposed, reentered });
-    await page.getByRole("button", { name: "Back outside", exact: true }).click();
+    await canvas.click();
+    await page.waitForFunction(() => !!document.pointerLockElement);
+    // Also verify cleanup when a locked view is unmounted programmatically.
+    await page
+      .getByRole("button", { name: "Back outside", exact: true })
+      .evaluate((button) => button.click());
+    await page.waitForFunction(() => !document.pointerLockElement);
+    results.push({
+      route,
+      mounted,
+      disposed,
+      reentered,
+      mouseCapture: true,
+      mouseLook: true,
+      escapeReleases: true,
+      unmountReleases: true,
+    });
   }
   assert(errors.length === 0, errors.join("\n"));
   return { passed: true, mode: "development-strict-effects", results, errors };

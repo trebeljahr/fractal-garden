@@ -16,8 +16,9 @@ import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/rende
 export function FlightInstructions() {
   return (
     <p className={styles.instructions} id="flight-instructions">
-      Drag to look. Scroll or pinch to move. Shift-drag to slide. WASD moves, Q/E moves down/up.
-      Escape returns outside.
+      Click the view to capture the mouse. Move the mouse to look, WASD to fly, Q/E to move down/up.
+      Hold Shift to fly faster. Esc releases the mouse. Scroll or pinch to move; drag to look on
+      touch screens or when capture is unavailable. Back outside ends Explore.
     </p>
   );
 }
@@ -26,18 +27,16 @@ export function VoxelFlight({
   style,
   width,
   height,
-  onExit,
 }: {
   pattern: VoxelPattern;
   style: FlightStyle;
   width: number;
   height: number;
-  onExit: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<FlightCamera>(initialFlightCamera(pattern));
-  const latest = useRef({ pattern, style, width, height, onExit });
-  latest.current = { pattern, style, width, height, onExit };
+  const latest = useRef({ pattern, style, width, height });
+  latest.current = { pattern, style, width, height };
   const dirty = useRef(true);
   const held = useRef(new Set<string>());
   const [error, setError] = useState("");
@@ -67,6 +66,52 @@ export function VoxelFlight({
       previous = performance.now(),
       disposed = false;
     const pointers = new Map<number, { x: number; y: number }>();
+    let pointerType = "";
+    const release = () => {
+      held.current.clear();
+      pointers.clear();
+      if (document.pointerLockElement === canvas) document.exitPointerLock();
+    };
+    const capture = async () => {
+      if (
+        !renderer ||
+        gl.isContextLost() ||
+        !canvas.requestPointerLock ||
+        document.pointerLockElement === canvas
+      )
+        return;
+      try {
+        // Await also works with older browsers returning void. Rejection keeps drag controls.
+        await canvas.requestPointerLock();
+        if (disposed && document.pointerLockElement === canvas) document.exitPointerLock();
+      } catch {
+        /* Drag, keyboard and touch navigation remain available. */
+      }
+    };
+    const look = (dx: number, dy: number) => {
+      const camera = cameraRef.current;
+      cameraRef.current = {
+        ...camera,
+        yaw: camera.yaw + dx * 0.0025,
+        pitch: Math.max(-1.54, Math.min(1.54, camera.pitch - dy * 0.0025)),
+      };
+      dirty.current = true;
+    };
+    const mousemove = (event: MouseEvent) => {
+      if (document.pointerLockElement === canvas) look(event.movementX, event.movementY);
+    };
+    const lockChanged = () => {
+      held.current.clear();
+      pointers.clear();
+    };
+    const click = (event: MouseEvent) => {
+      if (event.button === 0 && pointerType === "mouse" && !event.shiftKey) capture();
+    };
+    const contextmenu = (event: MouseEvent) => {
+      if (document.pointerLockElement !== canvas) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
     const move = (motion: Vec3) => {
       cameraRef.current = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
       dirty.current = true;
@@ -79,19 +124,24 @@ export function VoxelFlight({
     };
     const render = (now: number) => {
       if (disposed) return;
-      const dt = Math.min(0.04, (now - previous) / 1000);
+      const dt = Math.min(0.1, (now - previous) / 1000);
       previous = now;
       const keys = held.current;
-      if (keys.size)
-        move([
-          (Number(keys.has("d")) - Number(keys.has("a"))) * dt * 2,
-          (Number(keys.has("e")) - Number(keys.has("q"))) * dt * 2,
-          (Number(keys.has("w")) - Number(keys.has("s"))) * dt * 2,
-        ]);
+      const motion: Vec3 = [
+        Number(keys.has("d")) - Number(keys.has("a")),
+        Number(keys.has("e")) - Number(keys.has("q")),
+        Number(keys.has("w")) - Number(keys.has("s")),
+      ];
+      const magnitude = Math.hypot(...motion);
+      if (magnitude > 0) {
+        const speed = (dt * 4 * (keys.has("shift") ? 4 : 1)) / magnitude;
+        move(motion.map((component) => component * speed) as Vec3);
+      }
       try {
         if (dirty.current) draw();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
+        release();
         renderer?.destroy();
         renderer = undefined;
         return;
@@ -118,11 +168,14 @@ export function VoxelFlight({
     };
     const down = (event: PointerEvent) => {
       if (event.button !== 0) return;
+      pointerType = event.pointerType;
       canvas.focus({ preventScroll: true });
+      if (document.pointerLockElement === canvas) return;
       canvas.setPointerCapture(event.pointerId);
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     };
     const drag = (event: PointerEvent) => {
+      if (document.pointerLockElement === canvas) return;
       const last = pointers.get(event.pointerId);
       if (!last) return;
       const oldCenter = pointers.size === 2 ? centroid() : null;
@@ -137,18 +190,7 @@ export function VoxelFlight({
         ]);
       } else if (event.shiftKey)
         move([(-(event.clientX - last.x) / short) * 2, ((event.clientY - last.y) / short) * 2, 0]);
-      else {
-        const camera = cameraRef.current;
-        cameraRef.current = {
-          ...camera,
-          yaw: camera.yaw - ((event.clientX - last.x) / short) * 2.8,
-          pitch: Math.max(
-            -1.54,
-            Math.min(1.54, camera.pitch + ((event.clientY - last.y) / short) * 2.8),
-          ),
-        };
-        dirty.current = true;
-      }
+      else look(event.clientX - last.x, event.clientY - last.y);
     };
     const up = (event: PointerEvent) => pointers.delete(event.pointerId);
     const guard = createZoomWheelGuard(canvas);
@@ -160,17 +202,17 @@ export function VoxelFlight({
       move([
         0,
         0,
-        Math.max(-2, Math.min(2, -event.deltaY * units * (event.ctrlKey ? 0.02 : 0.006))),
+        Math.max(-3, Math.min(3, -event.deltaY * units * (event.ctrlKey ? 0.02 : 0.012))),
       ]);
     };
     const keydown = (event: KeyboardEvent) => {
       if (event.target !== canvas || event.metaKey || event.ctrlKey || event.altKey) return;
       const key = event.key.toLowerCase();
       if (key === "escape") {
-        event.preventDefault();
-        latest.current.onExit();
+        release();
       }
-      if (["w", "a", "s", "d", "q", "e"].includes(key)) {
+      if (key === "enter") capture();
+      if (["w", "a", "s", "d", "q", "e", "shift"].includes(key)) {
         event.preventDefault();
         held.current.add(key);
       }
@@ -180,10 +222,14 @@ export function VoxelFlight({
       held.current.clear();
       pointers.clear();
     };
+    const visibility = () => {
+      if (document.hidden) release();
+      else blur();
+    };
     const lost = (event: Event) => {
       event.preventDefault();
       cancelAnimationFrame(frame);
-      held.current.clear();
+      release();
       renderer?.destroy();
       renderer = undefined;
       setError("Graphics paused. Waiting for WebGL to recover. Back outside is still available.");
@@ -200,20 +246,24 @@ export function VoxelFlight({
       }
     };
     canvas.addEventListener("pointerdown", down);
+    canvas.addEventListener("click", click);
+    canvas.addEventListener("contextmenu", contextmenu);
     canvas.addEventListener("pointermove", drag);
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("lostpointercapture", up);
     canvas.addEventListener("wheel", wheel, { passive: false });
     canvas.addEventListener("keydown", keydown);
-    canvas.addEventListener("blur", blur);
+    canvas.addEventListener("blur", release);
     canvas.addEventListener("webglcontextlost", lost);
     canvas.addEventListener("webglcontextrestored", restored);
     canvas.addEventListener("garden:redraw", exported);
     window.addEventListener("garden:before-export", exported);
-    document.addEventListener("visibilitychange", blur);
+    document.addEventListener("visibilitychange", visibility);
+    document.addEventListener("pointerlockchange", lockChanged);
+    document.addEventListener("mousemove", mousemove);
     window.addEventListener("keyup", keyup);
-    window.addEventListener("blur", blur);
+    window.addEventListener("blur", release);
     start();
     canvas.focus({ preventScroll: true });
     return () => {
@@ -222,24 +272,31 @@ export function VoxelFlight({
       held.current.clear();
       renderer?.destroy();
       canvas.removeEventListener("pointerdown", down);
+      canvas.removeEventListener("click", click);
+      canvas.removeEventListener("contextmenu", contextmenu);
       canvas.removeEventListener("pointermove", drag);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
       canvas.removeEventListener("wheel", wheel);
       canvas.removeEventListener("keydown", keydown);
-      canvas.removeEventListener("blur", blur);
+      canvas.removeEventListener("blur", release);
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", restored);
       canvas.removeEventListener("garden:redraw", exported);
       window.removeEventListener("garden:before-export", exported);
-      document.removeEventListener("visibilitychange", blur);
+      document.removeEventListener("visibilitychange", visibility);
+      document.removeEventListener("pointerlockchange", lockChanged);
+      document.removeEventListener("mousemove", mousemove);
       window.removeEventListener("keyup", keyup);
-      window.removeEventListener("blur", blur);
+      window.removeEventListener("blur", release);
       // Strict Mode and Fast Refresh replay effects on a connected canvas.
       // Wait for DOM removal before releasing the context itself.
       queueMicrotask(() => {
-        if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
+        if (!canvas.isConnected) {
+          release();
+          gl.getExtension("WEBGL_lose_context")?.loseContext();
+        }
       });
     };
   }, []);

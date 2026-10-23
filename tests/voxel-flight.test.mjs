@@ -14,6 +14,7 @@ require.extensions[".ts"] = (module, filename) =>
   );
 const {
   buildGridFrame,
+  flightClearance,
   initialFlightCamera,
   moveFlightCamera,
   serializeFlightCamera,
@@ -142,4 +143,41 @@ test("safe movement distance never exceeds distance to finite retained geometry"
       );
     }
   }
+});
+
+test("movement clearance matches the full grid bound without losing tunnel openings", () => {
+  for (const pattern of PATTERNS) {
+    for (let sample = 0; sample < 80; sample++) {
+      const camera = initialFlightCamera(pattern);
+      const one = 1n << BigInt(camera.bits);
+      camera.position = [
+        Math.sin(sample * 2.3) * 1.3,
+        Math.cos(sample * 1.7) * 1.3,
+        Math.sin(sample * 0.7) * 1.3,
+      ].map((p) => (BigInt(Math.round(p * 1e9)) * one) / 1000000000n);
+      assert.ok(
+        Math.abs(flightClearance(camera, pattern) - buildGridFrame(camera, pattern).clearance) <
+          1e-7,
+      );
+    }
+    const one = 1n << 600n,
+      scale = 3n ** 150n;
+    const camera = {
+      position: [one - one / scale, one - one / scale, one + (one * 22n) / (10n * scale)],
+      bits: 600,
+      level: 150,
+      yaw: 0,
+      pitch: 0,
+    };
+    assert.ok(
+      Math.abs(flightClearance(camera, pattern) - buildGridFrame(camera, pattern).clearance) < 1e-7,
+    );
+  }
+});
+
+test("boosted movement remains outside a solid surface", () => {
+  let camera = initialFlightCamera();
+  for (let i = 0; i < 30; i++) camera = moveFlightCamera(camera, "vicsek", [0, 0, 1.6]);
+  assert.ok(camera.position[2] > 1n << BigInt(camera.bits));
+  assert.ok(camera.level > 20);
 });

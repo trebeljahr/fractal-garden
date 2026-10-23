@@ -8,6 +8,6 @@ It belongs to the same family of recursive cube fractals as the [2D Vicsek Fract
 
 ## Explore the interior
 
-Choose **Explore inside** to move through the openings. Drag to look around, then scroll to move forward or backward. Shift-drag moves sideways. On a keyboard, use WASD to move and Q/E to move down or up. On a touch screen, drag to look, pinch to move, or hold the movement buttons.
+Choose **Explore inside**, then click the view to capture the mouse. Move the mouse to look around without holding a button. Use WASD to fly, Q/E to move down or up, and Shift to fly faster. Press Esc to release the mouse and reach the page controls. Scroll to move forward or backward. On a touch screen, drag to look, pinch to move, or hold the movement buttons. Drag controls also work when mouse capture is unavailable.
 
-Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Detail smaller than a few screen pixels is omitted, and difficult views can draw more coarsely. Choose **Back outside**, or press Escape while the view is focused, to return to the whole shape.
+Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Detail smaller than a few screen pixels is omitted, and difficult views can draw more coarsely. Choose **Back outside** to return to the whole shape.
