@@ -7,14 +7,11 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { createViewport, type DeepViewport } from "../utils/deepZoom/math";
 import { FERN_LABELS, FERN_OPTIONS, FERN_PRESETS, type FernStyle } from "../utils/fernPresets";
-import {
-  createFernWalker,
-  type FernMethod,
-  fernBounds,
-  fernOpeningSpan,
-} from "../utils/fernViewport";
+import { FernViewportRenderer } from "../utils/fernRenderer";
+import { type FernMethod, fernBounds, fernOpeningSpan } from "../utils/fernViewport";
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { getDescription } from "../utils/readFiles";
 
 type Config = {
@@ -37,7 +34,8 @@ const BarnsleyFern = ({ description }: Props) => {
   });
   const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [revision, setRevision] = useState(0);
+  const renderer = useRef<FernViewportRenderer | null>(null);
+  const reducedMotion = useReducedMotion();
   const view = useRef<DeepViewport>(createViewport([0, 0], 1));
   const bounds = useMemo(
     () => fernBounds(FERN_PRESETS[config.fernToUse].matrix),
@@ -48,8 +46,6 @@ const BarnsleyFern = ({ description }: Props) => {
   const previousOpening = useRef(opening);
   const initialized = useRef(false);
   const lastStyle = useRef(config.fernToUse);
-  const paused = useRef(config.paused);
-  paused.current = config.paused;
 
   // Fit new styles and the opening view on resize. Preserve an explored center.
   useEffect(() => {
@@ -60,7 +56,7 @@ const BarnsleyFern = ({ description }: Props) => {
       view.current.logZoom >= previousOpening.current.logZoom - 1e-10
     ) {
       view.current = opening;
-      setRevision((n) => n + 1);
+      renderer.current?.setView(view.current);
     }
     initialized.current = true;
     previousOpening.current = opening;
@@ -72,15 +68,19 @@ const BarnsleyFern = ({ description }: Props) => {
     viewportRef: view,
     maxZoomSize: span,
     flipY: false,
-    onChange: () => setRevision((n) => n + 1),
+    onChange: () => {
+      if (ctx) ctx.canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
+      renderer.current?.setView(view.current);
+    },
   });
 
   useEffect(() => {
     if (!ctx) return;
     const reset = () => {
       view.current = opening;
+      ctx.canvas.dataset.fernLogZoom = "0";
       setConfig((old) => ({ ...old, paused: true }));
-      setRevision((n) => n + 1);
+      renderer.current?.setView(view.current);
     };
     ctx.canvas.setAttribute(
       "aria-label",
@@ -94,61 +94,34 @@ const BarnsleyFern = ({ description }: Props) => {
     };
   }, [ctx, opening]);
 
+  // Pause changes continue the same dot sequence rather than restarting it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: paused is updated in the following effect
   useEffect(() => {
     if (!ctx || !width || !height || !initialized.current) return;
-    const ratio = window.devicePixelRatio || 1;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = config.color;
-    const walker = createFernWalker(
-      FERN_PRESETS[config.fernToUse].matrix,
-      view.current,
-      width,
-      height,
-      config.method,
-      42 + revision,
-    );
     ctx.canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
     ctx.canvas.dataset.fernMethod = config.method;
-    ctx.canvas.dataset.fernComplete = "false";
-    let id = 0;
-    let disposed = false;
-    const draw = () => {
-      const start = performance.now();
-      do {
-        const points = walker.step(800);
-        for (let i = 0; i < points.length; i += 2) ctx.fillRect(points[i], points[i + 1], 1, 1);
-        if (
-          !walker.pending &&
-          (config.method === "deterministic" || walker.samples >= 300000 || walker.tiles === 0)
-        )
-          break;
-      } while (performance.now() - start < 6);
-      const complete =
-        !walker.pending &&
-        (config.method === "deterministic" || walker.samples >= 300000 || walker.tiles === 0);
-      ctx.canvas.dataset.fernSamples = String(walker.samples);
-      ctx.canvas.dataset.fernVisited = String(walker.visited);
-      ctx.canvas.dataset.fernResolution = String(walker.resolution);
-      ctx.canvas.dataset.fernComplete = String(complete);
-      if (
-        !disposed &&
-        (!complete || (!paused.current && config.method === "chaos" && walker.tiles))
-      )
-        id = requestAnimationFrame(draw);
-    };
-    // Every new viewport refines even when continuous playback is paused.
-    draw();
-    const resume = () => {
-      cancelAnimationFrame(id);
-      draw();
-    };
-    ctx.canvas.addEventListener("garden:fern-resume", resume);
+    const active = new FernViewportRenderer(ctx, {
+      matrix: FERN_PRESETS[config.fernToUse].matrix,
+      view: view.current,
+      width,
+      height,
+      ratio: window.devicePixelRatio || 1,
+      method: config.method,
+      background: config.background,
+      color: config.color,
+      paused: config.paused,
+      reducedMotion,
+      onProgress: ({ samples, visited, resolution, complete }) => {
+        ctx.canvas.dataset.fernSamples = String(samples);
+        ctx.canvas.dataset.fernVisited = String(visited);
+        ctx.canvas.dataset.fernResolution = String(resolution);
+        ctx.canvas.dataset.fernComplete = String(complete);
+      },
+    });
+    renderer.current = active;
     return () => {
-      disposed = true;
-      cancelAnimationFrame(id);
-      ctx.canvas.removeEventListener("garden:fern-resume", resume);
+      active.dispose();
+      if (renderer.current === active) renderer.current = null;
     };
   }, [
     config.background,
@@ -158,13 +131,13 @@ const BarnsleyFern = ({ description }: Props) => {
     ctx,
     width,
     height,
-    revision,
     opening,
+    reducedMotion,
   ]);
 
   useEffect(() => {
-    if (!config.paused) ctx?.canvas.dispatchEvent(new Event("garden:fern-resume"));
-  }, [config.paused, ctx]);
+    renderer.current?.setPaused(config.paused);
+  }, [config.paused]);
 
   const controls = (
     <>
