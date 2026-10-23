@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
+import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
@@ -56,6 +57,10 @@ const VicsekFractal2D = ({ description }: Props) => {
     max: MAX_ITERATIONS,
   });
 
+  const onZoomActive = useCallback(() => {
+    setConfig((old) => ({ ...old, animateIterations: false }));
+  }, []);
+
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
       ...old,
@@ -86,6 +91,12 @@ const VicsekFractal2D = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
           ref={containerRef}
+        />
+        <RecursivePatternZoom
+          pattern={{ kind: "vicsek", config }}
+          width={width}
+          height={height}
+          onActive={onZoomActive}
         />
         <SideDrawer description={description} />
         <NavElement />

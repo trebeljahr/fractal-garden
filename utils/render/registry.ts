@@ -6,11 +6,13 @@ import { TURTLE_RENDERERS } from "./drawings/turtle";
 import { LSystem2DRenderer } from "./lsystem2d";
 import { PenroseRenderer } from "./penrose";
 import { PolylineSceneRenderer } from "./polylineScene";
+import { RecursiveZoomRenderer } from "./recursiveZoom";
 import { Scene3DRenderer } from "./scene3d";
 import { StaticRenderer } from "./static2d";
 import type { Renderer } from "./types";
 
 export const RENDERERS = {
+  recursiveZoom: () => new RecursiveZoomRenderer(),
   scene3d: () => new Scene3DRenderer(),
   lsystem2d: () => new LSystem2DRenderer(),
   polylineScene: () => new PolylineSceneRenderer(),
