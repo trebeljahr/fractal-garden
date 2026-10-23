@@ -132,6 +132,35 @@ async function check(page, baseURL, output) {
   await page.getByRole("button", { name: "Play animation", exact: true }).waitFor();
   assert(!(await capture()).curve, "Reset retained zoom state");
   assert(!(await capture()).config.animateIterations, "Reset resumed animation");
+  const checkReturnedControls = async () => {
+    await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
+    const toggle = page.getByRole("switch", { name: /Animate growth/ });
+    await toggle.waitFor();
+    const label = await toggle.evaluate(
+      (node) => document.getElementById(node.getAttribute("aria-labelledby"))?.textContent,
+    );
+    const cap = Number(
+      label.match(/to (\d+)/)?.[1] ??
+        (await page.getByRole("slider", { name: "Iterations", exact: true }).getAttribute("max")),
+    );
+    assert(
+      (await capture()).config.iterations === cap,
+      "Return did not restore the animation resolution limit",
+    );
+    assert(
+      (await toggle.getAttribute("aria-checked")) === "false",
+      "Returned growth toggle is not paused",
+    );
+    await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
+  };
+  await checkReturnedControls();
+  await page.mouse.move(500, 360);
+  await page.mouse.wheel(0, -800);
+  await waitForZoom();
+  await page.mouse.wheel(0, 2000);
+  await page.getByRole("button", { name: "Play animation", exact: true }).waitFor();
+  assert(!(await capture()).curve, "Full zoom-out retained zoom state");
+  await checkReturnedControls();
   await page.getByRole("button", { name: "Play animation", exact: true }).click();
   await page.getByRole("button", { name: "Pause animation", exact: true }).waitFor();
   await page.getByRole("button", { name: "Pause animation", exact: true }).click();
@@ -154,6 +183,14 @@ async function check(page, baseURL, output) {
     await page.mouse.wheel(0, -400);
     await waitForZoom();
     const saved = await capture();
+    const edge = await page.evaluate(() => ({
+      header: document
+        .querySelector("[data-fractal-chrome] header, header[data-fractal-chrome]")
+        ?.getBoundingClientRect().bottom,
+      canvas: document.querySelector('[class*="EndlessZoom_layer"] canvas')?.getBoundingClientRect()
+        .top,
+    }));
+    assert(Math.abs(edge.header - edge.canvas) < 1, `${route}: zoom leaves a gap below the navbar`);
     await page.getByRole("button", { name: "Reset Zoom", exact: true }).click();
     await page.getByRole("button", { name: "Play animation", exact: true }).waitFor();
     await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
@@ -174,7 +211,17 @@ async function check(page, baseURL, output) {
   return {
     passed: true,
     zoom: before.curve.zoom,
-    checks: ["takeover", "hide/show UI", "resize", "fresh copied link", "paused reset", "resume"],
+    checks: [
+      "takeover",
+      "hide/show UI",
+      "resize",
+      "fresh copied link",
+      "paused reset",
+      "maximum animation resolution",
+      "full zoom-out",
+      "navbar edge",
+      "resume",
+    ],
     errors,
   };
 }

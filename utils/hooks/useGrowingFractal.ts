@@ -1,4 +1,5 @@
-import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef } from "react";
+import { useZoomActivity } from "../../components/ZoomActivity";
 import type { RendererKind } from "../render/registry";
 import type { HostEvent } from "../render/types";
 import { useAdaptiveGrowth } from "./useAdaptiveGrowth";
@@ -55,6 +56,16 @@ export function useGrowingFractal<C extends GrowthConfig, P>({
     stepDelay,
     holdDelay,
   });
+
+  const { active: zoomActive } = useZoomActivity();
+  const wasZoomActive = useRef(false);
+  useEffect(() => {
+    if (wasZoomActive.current && !zoomActive) {
+      // Return to the deepest level the animation can draw on this machine.
+      setConfig((old) => ({ ...old, iterations: growth.cap, animateIterations: false }));
+    }
+    wasZoomActive.current = zoomActive;
+  }, [zoomActive, growth.cap, setConfig]);
 
   const { onCost, onRendered, onCalibrated, calibrating, calibrationId } = growth;
   const onEvent = useCallback(

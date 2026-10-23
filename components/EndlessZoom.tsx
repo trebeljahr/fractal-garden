@@ -366,8 +366,12 @@ export const EndlessZoom = ({ spec, generation, frame, width, height, onActiveCh
   const zoomAt = (clientX: number, clientY: number, factor: number) => {
     const stage = stageRef.current;
     if (!stage || !width || !height || unsupported) return;
+    const zoom = Math.min(Math.max((viewRef.current?.zoom ?? 1) * factor, MIN_ZOOM), MAX_ZOOM);
+    if (zoom <= MIN_ZOOM) {
+      reset();
+      return;
+    }
     const view = takeOver();
-    const zoom = Math.min(Math.max(view.zoom * factor, MIN_ZOOM), MAX_ZOOM);
     const k = zoom / view.zoom;
     const rect = stage.getBoundingClientRect();
     const cx = clientX - rect.left - width / 2;
