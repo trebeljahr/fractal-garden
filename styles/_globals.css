@@ -10,6 +10,12 @@
   --explorer-nav-font-size: 13px;
   --explorer-nav-name-size: 11px;
   --explorer-nav-gap: 16px;
+  --fractal-viewport-top: calc(var(--explorer-header-height) + 24px);
+  --fractal-viewport-bottom: calc(
+    var(--explorer-nav-height) +
+    max(var(--explorer-nav-gap), env(safe-area-inset-bottom)) +
+    24px
+  );
   --explorer-nav-width: min(280px, calc((100vw - 64px) / 3));
   --explorer-surface: rgba(9, 17, 21, 0.96);
   --explorer-field: #15232b;
@@ -267,6 +273,14 @@ code.hljs {
 body[data-fractal-clean],
 body[data-fractal-fullscreen] {
   overflow: hidden;
+}
+:root:has([data-fractal-actions]) {
+  --fractal-viewport-top: calc(var(--explorer-header-height) + 82px);
+}
+
+body[data-fractal-clean] {
+  --fractal-viewport-top: 0px;
+  --fractal-viewport-bottom: 0px;
 }
 body[data-fractal-clean] [data-fractal-chrome],
 body[data-fractal-clean] [data-fractal-description-section],

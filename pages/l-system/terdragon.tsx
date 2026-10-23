@@ -5,8 +5,8 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../../utils/hooks/useWindowResize";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -24,7 +24,7 @@ type Config = {
 const MAX_ITERATIONS = 11;
 
 const Terdragon = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
     animateIterations: true,
@@ -61,7 +61,12 @@ const Terdragon = ({ description }: Props) => {
           <PanelNumber path="lineWidth" min={0.1} max={4} step={0.05} />
           <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <TurtleCurveZoom
           axiom={"F"}
           rules={{ F: "F+F-F" }}

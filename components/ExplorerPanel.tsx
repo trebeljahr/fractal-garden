@@ -171,7 +171,7 @@ export function ExplorerPanel<T>({
       />
       <div className={styles.panel} data-fractal-chrome>
         {actions.length ? (
-          <aside className={styles.introCard} aria-label="Fractal actions">
+          <aside className={styles.introCard} aria-label="Fractal actions" data-fractal-actions>
             <div className={styles.actions}>
               {actions.map((action) => (
                 <button

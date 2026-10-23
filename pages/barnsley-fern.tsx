@@ -6,7 +6,7 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { CLASSIC_FERN_MATRIX } from "../utils/barnsleyFern";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 import type { Scalable } from "../utils/scaling";
 
@@ -112,7 +112,7 @@ const BarnsleyFern = ({ description }: Props) => {
     background: "#252424",
     fernToUse: "barnsley",
   });
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
@@ -235,7 +235,11 @@ const BarnsleyFern = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelColor path="color" />
         </ExplorerPanel>
-        <div className={styles.fullScreen}>
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+        >
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>
         <SideDrawer description={description} />

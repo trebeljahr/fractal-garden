@@ -1,11 +1,11 @@
 .stage,
 .stageActive {
   position: absolute;
-  top: 0;
+  top: var(--fractal-viewport-top);
   left: 0;
   z-index: 5;
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - var(--fractal-viewport-top) - var(--fractal-viewport-bottom));
   overflow: hidden;
   touch-action: none;
   cursor: zoom-in;

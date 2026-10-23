@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 
 type Config = {
@@ -31,7 +31,7 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
     background: "#252424",
     holeColor: "#000000",
   });
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
 
   const { containerRef, animateLabel } = useGrowingFractal({
     kind: "sierpinskiCarpet",
@@ -72,7 +72,12 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
           <PanelColor path="color" />
           <PanelColor path="holeColor" />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
 
         <NavElement />

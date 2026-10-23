@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
-import type { ZoomFrame } from "../utils/lsystem/pageZoom";
+import { fittedFrame, type ZoomFrame } from "../utils/lsystem/pageZoom";
 import { DEFAULT_SPEC, dimensionOf, type LSystemSpec } from "../utils/lsystem/spec";
 import type { LSystem2DParams } from "../utils/render/lsystem2d";
 import { EndlessZoom } from "./EndlessZoom";
@@ -33,6 +33,7 @@ export interface Ruleset {
   initRotation?: (ctx: CanvasRenderingContext2D, config?: Config) => void;
   divideFactor: number;
   angle: number;
+  fitToViewport?: boolean;
 }
 
 type Props = {
@@ -69,7 +70,7 @@ function getFirstVisibleIteration(ruleset: Ruleset) {
 
 // Replays initRotation against a stub context to recover the starting heading
 // and line width, so the drawing itself can run on a worker.
-function readInitialPose(ruleset: Ruleset, config: Config) {
+function readInitialPose(ruleset: Ruleset, config?: Config) {
   let startAngle = 0;
   let lineWidth = 1;
   const stub = {
@@ -90,12 +91,36 @@ const LSystem = ({ ruleset }: Props) => {
     background: "#252424",
     ruleset: ruleset,
   }));
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
+
+  // Fit the mature fern once, so its branches grow in place without clipping
+  // on narrow screens. The renderer and zoom layer use this same frame.
+  const fitted = useMemo(() => {
+    if (!width || !height || !config.ruleset.fitToViewport) return null;
+    const { startAngle } = readInitialPose(config.ruleset);
+    return fittedFrame(
+      {
+        ...DEFAULT_SPEC,
+        axiom: config.ruleset.axiom,
+        rules: Object.entries(config.ruleset.replace).map(([symbol, replacement]) => ({
+          symbol,
+          replacement,
+        })),
+        angle: config.ruleset.angle,
+        startAngle,
+      },
+      config.ruleset.maxIterations - 1,
+      width,
+      height,
+    );
+  }, [config.ruleset, width, height]);
 
   const params = useMemo<LSystem2DParams | null>(() => {
     if (!width || !height) return null;
     const sizes = { width, height };
-    const initialLength = config.ruleset.initLength(sizes);
+    const initialLength = fitted
+      ? fitted.scale * config.ruleset.divideFactor ** (config.ruleset.maxIterations - 1)
+      : config.ruleset.initLength(sizes);
     const { startAngle, lineWidth } = readInitialPose(config.ruleset, config);
     return {
       axiom: config.ruleset.axiom,
@@ -106,11 +131,13 @@ const LSystem = ({ ruleset }: Props) => {
       color: config.ruleset.color,
       background: config.background,
       initialLength,
-      translation: config.ruleset.initTranslation(sizes, initialLength),
+      translation: fitted
+        ? [fitted.originX, fitted.originY]
+        : config.ruleset.initTranslation(sizes, initialLength),
       divideFactor: config.ruleset.divideFactor,
       iterations: config.iterations,
     };
-  }, [config, width, height]);
+  }, [config, width, height, fitted]);
 
   const { containerRef, animateLabel } = useGrowingFractal({
     kind: "lsystem2d",
@@ -183,7 +210,12 @@ const LSystem = ({ ruleset }: Props) => {
         <PanelBoolean path="animateIterations" label={animateLabel} />
       </ExplorerPanel>
 
-      <div className={styles.fullScreen} ref={containerRef} />
+      <div
+        data-fractal-viewport
+        className={styles.viewport}
+        style={{ background: config.background }}
+        ref={containerRef}
+      />
       {zoomSpec && zoomSpec.dimension === "2d" && (
         <EndlessZoom
           spec={zoomSpec}

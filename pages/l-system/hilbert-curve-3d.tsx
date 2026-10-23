@@ -4,9 +4,9 @@ import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../../utils/hooks/useOrbitZoomControls";
-import { useWindowSize } from "../../utils/hooks/useWindowResize";
 import { getDescription } from "../../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../../utils/render/polylineScene";
 
@@ -39,7 +39,7 @@ const INITIAL_CONFIG: Config = {
 };
 
 const HilbertCurve3D = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
 
   const params = useMemo<PolylineSceneParams>(
@@ -99,7 +99,12 @@ const HilbertCurve3D = ({ description }: Props) => {
         <PanelNumber path="farAlpha" label="Far opacity" min={0} max={1} step={0.05} />
         <PanelNumber path="lineWidth" min={0.2} max={4} step={0.1} />
       </ExplorerPanel>
-      <div className={styles.fullScreen} ref={containerRef} />
+      <div
+        data-fractal-viewport
+        className={styles.viewport}
+        style={{ background: config.background }}
+        ref={containerRef}
+      />
       <SideDrawer description={description} />
       <NavElement />
     </main>

@@ -7,8 +7,8 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { finite, isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useLogisticViewportControls } from "../utils/hooks/useLogisticViewportControls";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import {
   FULL_LOGISTIC_VIEW,
   type LogisticRender,
@@ -78,7 +78,7 @@ const MAX_RANGE = 10;
 const INITIAL_VIEW: View = FULL_LOGISTIC_VIEW;
 
 const LogisticMap = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const renderRef = useRef<(() => void) | null>(null);
   const viewRef = useRef<View>(INITIAL_VIEW);
@@ -224,7 +224,11 @@ const LogisticMap = ({ description }: Props) => {
         <PanelNumber path="pointAlpha" min={0.02} max={1} step={0.01} />
         <PanelNumber path="pointSize" min={0.5} max={2.5} step={0.1} />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
+      <div
+        data-fractal-viewport
+        className={styles.viewport}
+        style={{ background: config.background }}
+      >
         <Canvas setCtx={setCtx} width={width} height={height} />
       </div>
       <SideDrawer description={description} />

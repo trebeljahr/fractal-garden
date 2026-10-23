@@ -20,6 +20,7 @@ type Props = {
 const Fern1 = ({ description }: Props) => {
   const fern1: Ruleset = {
     color: "#adff00",
+    fitToViewport: true,
     minIterations: 1,
     maxIterations: 8,
     axiom: "X",

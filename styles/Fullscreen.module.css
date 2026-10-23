@@ -4,3 +4,17 @@
   overflow-x: hidden;
   background: var(--semi-dark-grey);
 }
+
+.viewport {
+  position: relative;
+  box-sizing: border-box;
+  height: 100vh;
+  padding-top: var(--fractal-viewport-top);
+  padding-bottom: var(--fractal-viewport-bottom);
+  overflow: hidden;
+  background: var(--semi-dark-grey);
+}
+
+.viewport canvas {
+  display: block;
+}

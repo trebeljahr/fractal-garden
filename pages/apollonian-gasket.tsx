@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -26,7 +26,7 @@ type Config = {
 const MAX_ITERATIONS = 7;
 
 const ApollonianGasket = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
     animateIterations: true,
@@ -70,7 +70,12 @@ const ApollonianGasket = ({ description }: Props) => {
           <PanelBoolean path="strokeCircles" />
           <PanelBoolean path="showOuterCircle" />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

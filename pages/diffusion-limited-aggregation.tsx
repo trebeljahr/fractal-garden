@@ -5,7 +5,7 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -55,7 +55,7 @@ function parseHexColor(hex: string) {
 }
 
 const DiffusionLimitedAggregation = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState(INITIAL_CONFIG);
   const [restartCount, setRestartCount] = useState(0);
@@ -357,7 +357,11 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelBoolean path="paused" label="Pause" />
         </ExplorerPanel>
-        <div className={styles.fullScreen}>
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+        >
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>
         <SideDrawer description={description} />

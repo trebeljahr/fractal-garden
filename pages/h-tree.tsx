@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { H_TREE_MAX_ITERATIONS as MAX_ITERATIONS } from "../utils/render/drawings/hTree";
 
@@ -25,7 +25,7 @@ type Config = {
 };
 
 const HTree = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
     animateIterations: true,
@@ -66,7 +66,12 @@ const HTree = ({ description }: Props) => {
           <PanelNumber path="rootWidth" min={0.5} max={30} step={0.5} />
           <PanelNumber path="widthFactor" min={0.5} max={1} step={0.01} />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

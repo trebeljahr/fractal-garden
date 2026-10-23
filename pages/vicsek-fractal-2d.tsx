@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { VICSEK_OFFSETS, type VicsekVariant } from "../utils/render/drawings/vicsekFractal2D";
 
@@ -33,7 +33,7 @@ const variantLabels: Record<VicsekVariant, string> = {
 };
 
 const VicsekFractal2D = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
     animateIterations: true,
@@ -81,7 +81,12 @@ const VicsekFractal2D = ({ description }: Props) => {
           <PanelBoolean path="fillSquares" />
           <PanelBoolean path="strokeSquares" />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

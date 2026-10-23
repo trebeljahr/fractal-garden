@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
@@ -79,7 +80,8 @@ export function SceneFractalExplorer<V extends string>({
   lineWidth = 0.7,
   rotationSpeed = 0.4,
 }: Props<V>) {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
+  const { width: flightWidth, height: flightHeight } = useWindowSize();
   const [config, setConfig] = useState<Config<V>>({
     variant: initialVariant,
     navigation: "orbit",
@@ -268,18 +270,23 @@ export function SceneFractalExplorer<V extends string>({
         <PanelBoolean path="showWireframe" />
       </ExplorerPanel>
       <div
-        className={styles.fullScreen}
+        data-fractal-viewport
+        className={styles.viewport}
         ref={containerRef}
         aria-hidden={exploring || undefined}
-        style={exploring ? { visibility: "hidden", pointerEvents: "none" } : undefined}
+        style={{
+          background: config.background,
+          visibility: exploring ? "hidden" : undefined,
+          pointerEvents: exploring ? "none" : undefined,
+        }}
       />
-      {exploring && width && height && (
+      {exploring && flightWidth && flightHeight && (
         <VoxelFlight
           key={config.variant}
           pattern={pattern}
           style={config}
-          width={width}
-          height={height}
+          width={flightWidth}
+          height={flightHeight}
           onExit={backOutside}
         />
       )}

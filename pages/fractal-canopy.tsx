@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import type { FractalCanopyParams } from "../utils/render/drawings/fractalCanopy";
 
@@ -112,7 +112,7 @@ type Props = {
 
 const FractalTree = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(defaultTree);
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
 
   useEffect(() => {
     if (!config.animateAngle) return;
@@ -168,7 +168,12 @@ const FractalTree = ({ description }: Props) => {
           <PanelNumber path="widthFactor" min={0} max={2} step={0.1} />
           <PanelNumber path="rootWidth" min={1} max={60} step={0.5} />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

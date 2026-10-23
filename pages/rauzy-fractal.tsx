@@ -6,7 +6,7 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { radians } from "../utils/ctxHelpers";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -66,7 +66,7 @@ function contractingProjection(): Array<[number, number]> {
 }
 
 const RauzyFractal = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [config, setConfig] = useState<Config>({
     pointCount: 150000,
@@ -173,7 +173,11 @@ const RauzyFractal = ({ description }: Props) => {
           <PanelNumber path="pointSize" min={0.5} max={4} step={0.1} />
           <PanelNumber path="rotation" min={-180} max={180} step={1} />
         </ExplorerPanel>
-        <div className={styles.fullScreen}>
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+        >
           <Canvas setCtx={setCtx} width={width} height={height} />
         </div>
         <SideDrawer description={description} />

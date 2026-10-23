@@ -787,7 +787,7 @@
 
   .introCard {
     width: min(320px, 100%);
-    margin-top: var(--explorer-control-height);
+    margin-top: 0;
     padding: 16px 18px 8px;
     max-height: calc(100svh - 338px);
   }

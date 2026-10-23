@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { getMaxIterations, usesCenterPolygon } from "../utils/render/drawings/nFlake";
 
@@ -30,7 +30,7 @@ const MIN_SIDES = 3;
 const MAX_SIDES = 10;
 
 const NFlake = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     sides: 5,
     iterations: 0,
@@ -89,7 +89,12 @@ const NFlake = ({ description }: Props) => {
           <PanelBoolean path="fillPolygons" />
           <PanelBoolean path="strokePolygons" />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>

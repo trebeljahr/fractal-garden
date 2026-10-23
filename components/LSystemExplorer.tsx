@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import styles from "../styles/LSystemExplorer.module.css";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { fixedFromNumber, rescale } from "../utils/lsystem/bigfixed";
 import { isStochastic, MAX_SEGMENTS } from "../utils/lsystem/engine";
 import {
@@ -163,7 +163,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
   const [result, setResult] = useState<WorkerResult | null>(null);
   const [computing, setComputing] = useState(true);
   const [failed, setFailed] = useState(false);
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
 
   const jobSpecRef = useRef<LSystemSpec | null>(null);
   // The system the current drawing was made from.
@@ -730,6 +730,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
         onPointerCancel={onPointerUp}
         onDoubleClick={resetView}
         data-fractal-stage
+        data-fractal-viewport
       >
         <WebGLCanvas setGl={setGl} setCnv={setCanvas} width={width} height={height} />
       </div>

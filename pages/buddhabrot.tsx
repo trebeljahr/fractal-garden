@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import type { BuddhabrotParams } from "../utils/render/buddhabrot";
 
@@ -25,7 +25,7 @@ const INITIAL_CONFIG: Config = {
 };
 
 const Buddhabrot = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState(INITIAL_CONFIG);
 
   // Sampling runs on a worker, so high sample counts no longer stall the page.
@@ -46,7 +46,12 @@ const Buddhabrot = ({ description }: Props) => {
           <PanelNumber path="samplesPerFrame" min={50} max={2000} step={50} />
           <PanelNumber path="exposure" min={0.1} max={3} step={0.1} />
         </ExplorerPanel>
-        <div className={styles.fullScreen} ref={containerRef} />
+        <div
+          data-fractal-viewport
+          className={styles.viewport}
+          style={{ background: config.background }}
+          ref={containerRef}
+        />
         <SideDrawer description={description} />
         <NavElement />
       </main>
