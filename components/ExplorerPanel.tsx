@@ -140,7 +140,35 @@ export function ExplorerPanel<T>({
 
   return (
     <>
-      <FractalHeader title={introTitle} lines={lines ?? defaults.lines} places={places} />
+      <FractalHeader
+        title={introTitle}
+        lines={lines ?? defaults.lines}
+        places={places}
+        controls={
+          <div className={`${styles.panel} ${styles.headerControls}`}>
+            <div className={styles.studioGroup}>
+              <div ref={setViewControlsHost} className={styles.viewControlsHost} />
+              <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
+                <DatGui
+                  className="exploration-gui"
+                  data={data}
+                  labelWidth={160}
+                  onUpdate={onUpdate}
+                >
+                  <DatFolder
+                    className="exploration-folder"
+                    closed={!defaultOpen}
+                    title={folderTitle}
+                  >
+                    {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
+                    {Children.toArray(children)}
+                  </DatFolder>
+                </DatGui>
+              </aside>
+            </div>
+          </div>
+        }
+      />
       <div className={styles.panel} data-fractal-chrome>
         {actions.length ? (
           <aside className={styles.introCard} aria-label="Fractal actions">
@@ -165,18 +193,6 @@ export function ExplorerPanel<T>({
           animation={animation}
           onRestore={onRestore}
         />
-
-        <div className={styles.studioGroup}>
-          <div ref={setViewControlsHost} className={styles.viewControlsHost} />
-          <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
-            <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
-              <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
-                {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-                {Children.toArray(children)}
-              </DatFolder>
-            </DatGui>
-          </aside>
-        </div>
       </div>
     </>
   );

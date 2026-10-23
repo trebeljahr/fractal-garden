@@ -9,16 +9,21 @@ export function FractalHeader({
   title,
   lines = [],
   places,
+  controls,
 }: {
   title?: string;
   lines?: string[];
   places?: ReactNode;
+  controls?: ReactNode;
 }) {
   const router = useRouter();
 
   return (
     <header className={styles.header} data-fractal-chrome>
-      <nav className={styles.bar} aria-label="Garden navigation">
+      <nav
+        className={`${styles.bar} ${controls ? styles.withControls : ""}`}
+        aria-label="Garden navigation"
+      >
         <Link href="/" className={styles.home} aria-label="Fractal Garden home">
           <Image src="/assets/favicon/android-chrome-192x192.png" alt="" width={24} height={24} />
           <span>Fractal Garden</span>
@@ -33,6 +38,11 @@ export function FractalHeader({
             </div>
           )}
         </div>
+        {controls && (
+          <div className={styles.controls} data-fractal-header-controls>
+            {controls}
+          </div>
+        )}
         {places && <div className={styles.places}>{places}</div>}
       </nav>
     </header>

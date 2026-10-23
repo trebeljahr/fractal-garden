@@ -282,3 +282,15 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
     --explorer-nav-name-size: 10px;
   }
 }
+
+@media (min-width: 701px) and (max-width: 1100px) {
+  :root:has([data-fractal-header-controls]) {
+    --explorer-header-height: 152px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root:has([data-fractal-header-controls]) {
+    --explorer-header-height: 184px;
+  }
+}

@@ -12,7 +12,7 @@
 .bar {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   height: 100%;
   padding: 0 24px;
 }
@@ -43,7 +43,7 @@
 .overview {
   flex: 1 1 auto;
   min-width: 0;
-  padding-left: 28px;
+  padding-left: 20px;
   border-left: 1px solid rgba(245, 241, 209, 0.16);
 }
 
@@ -69,15 +69,50 @@
 }
 
 .places {
-  flex: 0 0 220px;
+  flex: 0 0 180px;
   min-width: 0;
-  padding-left: 24px;
+  padding-left: 20px;
   border-left: 1px solid rgba(245, 241, 209, 0.16);
+}
+
+.controls {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .withControls {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: 88px 64px;
+    gap: 0 16px;
+  }
+
+  .withControls .home {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .withControls .overview {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .withControls .places {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .controls {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: end;
+  }
 }
 
 @media (max-width: 1000px) {
   .bar {
-    gap: 16px;
+    column-gap: 16px;
     padding: 0 16px;
   }
 
@@ -92,12 +127,38 @@
 }
 
 @media (max-width: 700px) {
-  .bar {
+  .bar,
+  .withControls {
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: 44px 1fr;
     gap: 0 12px;
     padding: 0 12px;
+  }
+
+  .withControls {
+    grid-template-rows: 44px 1fr 52px;
+  }
+
+  .withControls .home {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .withControls .overview {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .withControls .places {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .controls {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: stretch;
   }
 
   .home {
