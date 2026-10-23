@@ -113,7 +113,7 @@ export const NavElement = () => {
       >
         <span className={styles.direction}>
           <NavigationArrow previous />
-          <span>Prev</span>
+          <span>Previous</span>
         </span>
         <span className={styles.fractalName}>{getFractalName(prev)}</span>
       </Link>

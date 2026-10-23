@@ -10,7 +10,7 @@
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
-  width: var(--explorer-nav-width);
+  width: min(180px, calc((100vw - 32px) / 3));
   justify-content: center;
   font-size: var(--explorer-nav-font-size);
   height: var(--explorer-nav-height);
@@ -36,11 +36,11 @@
 }
 
 .previous {
-  left: max(var(--explorer-nav-gap), env(safe-area-inset-left));
+  left: max(8px, env(safe-area-inset-left));
 }
 
 .next {
-  right: max(var(--explorer-nav-gap), env(safe-area-inset-right));
+  right: max(8px, env(safe-area-inset-right));
   text-align: right;
 }
 
@@ -62,15 +62,15 @@
 @media (max-width: 700px) {
   .linkButton {
     gap: 4px;
-    padding: 8px;
+    padding: 8px 6px;
   }
 
   .direction {
-    gap: 8px;
+    gap: 6px;
   }
 
   .linkButton svg {
-    width: 28px;
+    width: 18px;
   }
 }
 
