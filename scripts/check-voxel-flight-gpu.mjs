@@ -178,17 +178,18 @@ for (const fixture of fixtures.slice(0, 4)) {
     frame: { ...frame, texture: Array.from(frame.texture) },
     distanceScale,
     level: camera.level,
+    atmosphere: flightAtmosphere(camera.level, { zoomLevel: 0 }, 0),
     expected: fixture.expected.map((ray) => ({
       ...ray,
       distance: ray.distance === null ? null : ray.distance * distanceScale,
     })),
   });
 }
-// Independent slabs exercise the fog ramp and fixed world-space clipping plane.
-for (const distance of [0.5, 1, 4, 8, 15.9, 16, 20]) {
-  const t = distance / 2;
+// Independent slabs exercise the visible haze and horizon at each viewed scale.
+for (const distance of [0.05, 0.1, 1, 4, 8, 16, 24, 31.9, 32, 40]) {
+  const t = distance;
   fixtures.push({
-    name: `atmosphere slab at world distance ${distance}`,
+    name: `atmosphere slab at viewed distance ${distance}`,
     pattern: 0,
     frame: {
       levels: [],
@@ -202,7 +203,7 @@ for (const distance of [0.5, 1, 4, 8, 15.9, 16, 20]) {
       {
         x: 32,
         y: 32,
-        hit: distance < 16,
+        hit: distance < 32,
         distance: t,
         brightness: 0.38 + (0.62 * 0.6) / Math.hypot(-0.5, 0.8, 0.6) + 0.15,
       },
@@ -211,13 +212,16 @@ for (const distance of [0.5, 1, 4, 8, 15.9, 16, 20]) {
 }
 for (const fixture of fixtures) {
   fixture.detail = flightResolution(fixture.frame.clearance, 65, 65);
-  fixture.atmosphere = flightAtmosphere(fixture.level ?? 0);
+  fixture.atmosphere ??= flightAtmosphere(fixture.level ?? 0);
   fixture.expected = fixture.expected.map((ray) => {
     if (!ray.hit || ray.brightness == null) return ray;
-    // Independent smoothstep in physical world units; no shader traversal reused.
-    const distance = (ray.distance * 2) / 3 ** (fixture.level ?? 0);
-    const x = Math.max(0, Math.min(1, (distance - 1) / 15));
-    return { ...ray, brightness: ray.brightness * (1 - x * x * (3 - 2 * x)) };
+    // Independent exponential haze plus a smooth terminal fade. The original
+    // box-intersection oracle still determines geometry and face lighting.
+    const distance = ray.distance / (fixture.distanceScale ?? 1) / 32;
+    const haze = 1 - Math.exp(-7 * Math.max(0, distance - 0.1 / 32));
+    const x = Math.max(0, Math.min(1, (distance - 0.75) / 0.25));
+    const fog = haze + (1 - haze) * x * x * (3 - 2 * x);
+    return { ...ray, brightness: ray.brightness * (1 - fog) };
   });
 }
 async function check(payload) {
@@ -272,6 +276,7 @@ async function check(payload) {
       gl.uniform1f(u("farDistance"), fixture.atmosphere.farDistance);
       gl.uniform1f(u("fogDistanceScale"), fixture.atmosphere.fogDistanceScale);
       gl.uniform1f(u("fogStart"), fixture.atmosphere.fogStart);
+      gl.uniform1f(u("fogDensity"), fixture.atmosphere.fogDensity);
       gl.uniform1f(u("checkDistanceScale"), fixture.distanceScale ?? 1);
       gl.texImage2D(
         gl.TEXTURE_2D,

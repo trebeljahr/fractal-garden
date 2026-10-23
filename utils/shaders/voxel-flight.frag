@@ -5,6 +5,7 @@ uniform float u_nearFootprint;
 uniform float u_farDistance;
 uniform float u_fogDistanceScale;
 uniform float u_fogStart;
+uniform float u_fogDensity;
 uniform sampler2D u_grid;
 uniform int u_levels;
 uniform int u_pattern;
@@ -106,9 +107,11 @@ void main() {
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
-        // Fixed world-space atmosphere: detail resolution alone adapts compute.
-        // Normalize distance before smoothstep so deep camera units stay safe.
-        float fog = smoothstep(u_fogStart, 1.0, t * u_fogDistanceScale);
+        // Build haze through the space instead of reserving it for the far edge.
+        // Finish the fade before clipping; detail alone adapts to compute load.
+        float distance = t * u_fogDistanceScale;
+        float haze = 1.0 - exp(-u_fogDensity * max(0.0, distance - u_fogStart));
+        float fog = mix(haze, 1.0, smoothstep(0.75, 1.0, distance));
         color = mix(color, u_background, fog);
     }
     gl_FragColor = vec4(color, 1.0);

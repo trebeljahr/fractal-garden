@@ -159,11 +159,18 @@ export function VoxelFlight({
       cameraRef.current = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
       dirty.current = true;
     };
-    const draw = () => {
+    const draw = (elapsed = 1 / 60) => {
       if (!renderer || gl.isContextLost()) return;
       const { pattern, style, width, height } = latest.current;
-      renderer.draw(cameraRef.current, pattern, style, width, height, window.devicePixelRatio || 1);
-      dirty.current = false;
+      dirty.current = renderer.draw(
+        cameraRef.current,
+        pattern,
+        style,
+        width,
+        height,
+        window.devicePixelRatio || 1,
+        elapsed,
+      );
     };
     const render = (now: number) => {
       if (disposed) return;
@@ -185,7 +192,7 @@ export function VoxelFlight({
         move(motion.map((component) => component * speed) as Vec3);
       }
       try {
-        if (dirty.current) draw();
+        if (dirty.current) draw(dt);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
         release();
