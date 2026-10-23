@@ -26,7 +26,7 @@ export function constructionFrame(
     return {
       ...source,
       iterations: level,
-      view: { ...source.view, autoRotate: false, grab: undefined, cameraDistance: 6 },
+      view: { ...source.view, autoRotate: false, grab: undefined, cameraDistance: 7.5 },
     } satisfies Scene3DParams;
   }
   if (kind === "lsystem2d") {

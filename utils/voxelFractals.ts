@@ -553,12 +553,13 @@ type SurfaceSquare = {
   u: Vec3;
   v: Vec3;
   half: number;
+  deform?: { origin: Vec3; normal: Vec3; progress: number };
 };
 
 // Type 1 3D quadratic Koch surface: every square face splits into a 3 x 3 grid,
 // the middle cell grows a cube of a third the size, and the 8 flat cells plus the
 // 5 exposed faces of the new cube become the 13 squares of the next iteration.
-export function generateQuadraticKochSurface(iterations: number): Quad[] {
+export function generateQuadraticKochSurface(iterations: number, lastProgress = 1): Quad[] {
   let squares: SurfaceSquare[] = [];
   const half = 0.5;
 
@@ -581,6 +582,7 @@ export function generateQuadraticKochSurface(iterations: number): Quad[] {
     for (let i = 0; i < squares.length; i++) {
       const square = squares[i];
       const third = square.half / 3;
+      const start = next.length;
 
       for (let a = -1; a <= 1; a++) {
         for (let b = -1; b <= 1; b++) {
@@ -620,13 +622,30 @@ export function generateQuadraticKochSurface(iterations: number): Quad[] {
           });
         }
       }
+      if (depth === iterations - 1 && lastProgress !== 1) {
+        for (let child = start; child < next.length; child++) {
+          next[child].deform = {
+            origin: square.center,
+            normal: square.normal,
+            progress: lastProgress,
+          };
+        }
+      }
     }
 
     squares = next;
   }
 
   return squares.map((square) => ({
-    corners: squareCorners(square.center, square.u, square.v, square.half),
+    corners: squareCorners(square.center, square.u, square.v, square.half).map((corner) => {
+      if (!square.deform) return corner;
+      const { origin, normal, progress } = square.deform;
+      const distance =
+        (corner.x - origin.x) * normal.x +
+        (corner.y - origin.y) * normal.y +
+        (corner.z - origin.z) * normal.z;
+      return addScaled(corner, normal, distance * (progress - 1));
+    }) as Quad["corners"],
     normal: square.normal,
   }));
 }

@@ -1,3 +1,9 @@
+import {
+  CONSTRUCTION_MOTION_MS,
+  createSceneMotion,
+  type SceneMotion,
+  setSceneProgress,
+} from "../constructionMotion";
 import { finite } from "../explorerShare";
 import type { Orientation } from "../orientation";
 import {
@@ -65,6 +71,8 @@ export type Scene3DParams = {
   spec: SceneSpec;
   iterations: number;
   view: SceneView;
+  /** Only explanation players animate geometry; explorer cameras stay independent. */
+  constructionMotion?: boolean;
 };
 
 type BuiltScene = { type: "faces"; scene: PolyhedronScene } | { type: "boxes"; scene: BoxScene };
@@ -121,6 +129,8 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
   // from what is on screen.
   private yawOffset = 0;
   private drawnYaw = 0;
+  private motion: SceneMotion | null = null;
+  private motionStarted = 0;
 
   snapshotView() {
     return this.drawnYaw;
@@ -132,9 +142,19 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
   update(params: Scene3DParams) {
     const key = specKey(params.spec, params.iterations);
     if (key !== this.builtKey) {
+      const previous = this.params;
+      this.motion =
+        params.constructionMotion !== undefined &&
+        previous &&
+        params.iterations === previous.iterations + 1 &&
+        JSON.stringify(params.spec) === JSON.stringify(previous.spec)
+          ? createSceneMotion(params.spec, params.iterations)
+          : null;
+      this.motionStarted = 0;
       this.built = buildScene(params.spec, params.iterations);
       this.builtKey = key;
     }
+    if (params.constructionMotion === undefined) this.motion = null;
     this.params = params;
   }
 
@@ -144,16 +164,32 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
 
     const { view } = params;
     this.drawnYaw = this.yawOffset;
-    const options = { ...view, rotationY: view.rotationY + this.yawOffset };
+    const options = {
+      ...view,
+      rotationY: view.rotationY + this.yawOffset,
+      highlightColor: "#f5c56d",
+    };
+    const motion = this.motion;
+    if (motion && params.constructionMotion && !this.motionStarted)
+      this.motionStarted = performance.now();
+    const progress =
+      motion && params.constructionMotion
+        ? Math.min(1, (performance.now() - this.motionStarted) / CONSTRUCTION_MOTION_MS)
+        : 1;
+    if (motion) setSceneProgress(motion, progress);
+    const drawing = motion ?? built;
     // Both draw functions only use the drawing API OffscreenCanvas shares.
     const target = ctx as CanvasRenderingContext2D;
-    if (built.type === "faces") {
-      drawPolyhedronScene(target, width, height, built.scene, options);
+    if (drawing.type === "faces") {
+      drawPolyhedronScene(target, width, height, drawing.scene, {
+        ...options,
+        showWireframe: progress < 1 ? false : options.showWireframe,
+      });
     } else {
-      drawBoxScene(target, width, height, built.scene, options);
+      drawBoxScene(target, width, height, drawing.scene, options);
     }
 
-    if (!view.autoRotate) return false;
+    if (!view.autoRotate) return progress < 1;
     this.yawOffset += view.rotationSpeed;
     return true;
   }

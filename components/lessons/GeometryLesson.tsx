@@ -1,29 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import extra from "../../styles/lessons/Investigations.module.css";
 import styles from "../../styles/lessons/Lesson.module.css";
+import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import { GEOMETRY_LESSONS, type GeometryLessonKind } from "../../utils/lessons/geometryLessons";
-import {
-  buildFlakeScene,
-  buildKochSurfaceScene,
-  dodecahedronMesh,
-  drawPolyhedronScene,
-  icosahedronMesh,
-  octahedronMesh,
-  quadsToScene,
-  tetrahedronMesh,
-} from "../../utils/polyhedronFractals";
 import { drawHTree } from "../../utils/render/drawings/hTree";
 import { drawNFlake } from "../../utils/render/drawings/nFlake";
 import { drawTSquare } from "../../utils/render/drawings/tSquare";
 import { drawVicsekFractal2D } from "../../utils/render/drawings/vicsekFractal2D";
-import {
-  drawBoxScene,
-  exposedCubeFaces,
-  generateJerusalemCube,
-  generateMoselySnowflake,
-  generateQuadraticKochSurface,
-  generateVicsekFractal3D,
-} from "../../utils/voxelFractals";
+import { Scene3DRenderer, type SceneSpec } from "../../utils/render/scene3d";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
 
 export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
@@ -35,31 +19,27 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
   const [sides, setSides] = useState(5);
   const canvas = useRef<HTMLCanvasElement>(null);
   const flat = ["h-tree", "t-square-fractal", "n-flake", "vicsek-fractal-2d"].includes(kind);
-  const scene = useMemo(() => {
-    if (kind === "koch-surface") return buildKochSurfaceScene("triangle", step);
-    if (kind === "quadratic-koch-3d") return quadsToScene(generateQuadraticKochSurface(step));
-    if (kind === "sierpinski-tetrahedron") return buildFlakeScene(tetrahedronMesh(), 0.5, step);
+  const reducedMotion = useReducedMotion();
+  const renderer = useRef<Scene3DRenderer | null>(null);
+  const spec = useMemo<SceneSpec | null>(() => {
+    if (kind === "koch-surface") return { kind: "kochSurface", start: "triangle" };
+    if (kind === "quadratic-koch-3d") return { kind: "quadraticKoch3d" };
+    if (kind === "sierpinski-tetrahedron")
+      return { kind: "flake", mesh: "tetrahedron", ratio: 0.5 };
     if (kind === "polyhedron-flake") {
       const phi = (1 + Math.sqrt(5)) / 2;
-      return buildFlakeScene(
-        [octahedronMesh, dodecahedronMesh, icosahedronMesh][variant](),
-        [0.5, 1 / (2 + phi), 1 / (1 + phi)][variant],
-        step,
-      );
+      return {
+        kind: "flake",
+        mesh: (["octahedron", "dodecahedron", "icosahedron"] as const)[variant],
+        ratio: [0.5, 1 / (2 + phi), 1 / (1 + phi)][variant],
+      };
     }
-    if (kind === "mosely-snowflake" || kind === "vicsek-fractal-3d") {
-      const cubes =
-        kind === "mosely-snowflake"
-          ? generateMoselySnowflake(step, variant ? "heavier" : "lighter")
-          : generateVicsekFractal3D(step);
-      return quadsToScene(exposedCubeFaces(cubes));
-    }
+    if (kind === "mosely-snowflake")
+      return { kind: "mosely", variant: variant ? "heavier" : "lighter" };
+    if (kind === "vicsek-fractal-3d") return { kind: "vicsek3d" };
+    if (kind === "jerusalem-cube") return { kind: "jerusalem" };
     return null;
-  }, [kind, step, variant]);
-  const boxes = useMemo(
-    () => (kind === "jerusalem-cube" ? generateJerusalemCube(step) : null),
-    [kind, step],
-  );
+  }, [kind, variant]);
   useEffect(() => {
     const ctx = canvas.current?.getContext("2d");
     if (!ctx) return;
@@ -103,9 +83,22 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
       showFaces: true,
       showWireframe: true,
     };
-    if (scene) drawPolyhedronScene(ctx, 480, 310, scene, options);
-    if (boxes) drawBoxScene(ctx, 480, 310, boxes, options);
-  }, [kind, step, variant, rotation, ratio, sides, scene, boxes]);
+    if (!spec) return;
+    const active = renderer.current ?? new Scene3DRenderer();
+    renderer.current = active;
+    active.update({
+      spec,
+      iterations: step,
+      constructionMotion: !reducedMotion,
+      view: { ...options, autoRotate: false, rotationSpeed: 0 },
+    });
+    let frame = 0;
+    const draw = () => {
+      if (active.draw(ctx, 480, 310)) frame = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(frame);
+  }, [kind, step, variant, rotation, ratio, sides, spec, reducedMotion]);
   const choices =
     kind === "vicsek-fractal-2d"
       ? ["Diagonal cross", "Greek cross"]
@@ -134,7 +127,7 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
                   : kind === "quadratic-koch-3d"
                     ? `${6 * 13 ** step} square faces · ${((13 / 9) ** step).toFixed(2)} × starting area`
                     : kind === "jerusalem-cube"
-                      ? `${boxes ? Array.from(boxes.firstChild).filter((child) => child < 0).length : 1} cubes · rank ${step} · two child scales`
+                      ? `${20 ** step} cubes · rank ${step} · two child scales`
                       : kind === "polyhedron-flake"
                         ? `${[6, 20, 12][variant] ** step} copies`
                         : `${(sides + ([4, 5, 6].includes(sides) && variant ? 1 : 0)) ** step} polygons`;
@@ -143,24 +136,24 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
       <p>{info.idea}</p>
       <div className={extra.surface}>
         <canvas
-          key={step}
           ref={canvas}
           width={960}
           height={620}
           role="img"
           aria-label={`${info.title}. ${summary}`}
-          className={styles.reveal}
+          className={flat ? styles.reveal : undefined}
         />
       </div>
       <div className={extra.readout} aria-live="polite">
         {summary}
       </div>
       <LessonSteps
-        key={`${variant}-${ratio}-${sides}`}
+        key={`${variant}-${ratio}-${sides}-${rotation}`}
         step={step}
         max={info.max}
         onChange={setStep}
         label={info.title}
+        duration={info.max * 1600}
       />
       {choices.length > 0 && (
         <div className={styles.options}>

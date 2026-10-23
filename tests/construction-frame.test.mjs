@@ -39,7 +39,7 @@ test("scene construction returns outside without changing the explorer pose or r
   const original = structuredClone(source);
   const frame = constructionFrame("scene3d", source, 1, 1440, 900);
   assert.equal(frame.iterations, 1);
-  assert.equal(frame.view.cameraDistance, 6);
+  assert.equal(frame.view.cameraDistance, 7.5);
   assert.equal(frame.view.autoRotate, false);
   assert.equal(frame.view.grab, undefined);
   assert.equal(frame.view.rotationX, 42);

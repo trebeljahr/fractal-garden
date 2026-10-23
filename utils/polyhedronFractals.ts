@@ -21,6 +21,7 @@ export type PolyhedronScene = {
   depths: Float32Array;
   shades: Uint8Array;
   order: Uint32Array;
+  highlights?: Uint8Array;
 };
 
 export type PolyhedronDrawOptions = {
@@ -35,6 +36,7 @@ export type PolyhedronDrawOptions = {
   showFaces: boolean;
   showWireframe: boolean;
   doubleSided?: boolean;
+  highlightColor?: string;
 };
 
 export const MAX_SCENE_FACES = 60000;
@@ -221,7 +223,7 @@ export function getMaxIterations(baseFaces: number, copiesPerStep: number, ceili
   return iterations;
 }
 
-function createScene(vertexCount: number, faceCount: number, cornerCount: number) {
+function createScene(vertexCount: number, faceCount: number, cornerCount: number): PolyhedronScene {
   return {
     vertexCount,
     faceCount,
@@ -264,16 +266,17 @@ function computeNormals(scene: PolyhedronScene) {
  * Builds an n-flake style IFS: every step replaces the solid with one copy per
  * vertex, shrunk by `ratio` towards that vertex.
  */
-export function buildFlakeScene(mesh: Mesh, ratio: number, iterations: number) {
+export function buildFlakeScene(mesh: Mesh, ratio: number, iterations: number, lastProgress = 1) {
   let instances: { size: number; offset: Vec3 }[] = [{ size: 1, offset: [0, 0, 0] }];
 
   for (let step = 0; step < iterations; step++) {
     const next: typeof instances = [];
+    const childRatio = step === iterations - 1 ? 1 - (1 - ratio) * lastProgress : ratio;
     for (const instance of instances) {
       for (const vertex of mesh.vertices) {
         next.push({
-          size: instance.size * ratio,
-          offset: add(instance.offset, scale(vertex, instance.size * (1 - ratio))),
+          size: instance.size * childRatio,
+          offset: add(instance.offset, scale(vertex, instance.size * (1 - childRatio))),
         });
       }
     }
@@ -316,7 +319,11 @@ export function buildFlakeScene(mesh: Mesh, ratio: number, iterations: number) {
  * Von Koch surface: each triangle splits into four, and the middle one is
  * replaced by the three side walls of a regular tetrahedron.
  */
-export function buildKochSurfaceScene(start: "triangle" | "tetrahedron", iterations: number) {
+export function buildKochSurfaceScene(
+  start: "triangle" | "tetrahedron",
+  iterations: number,
+  lastProgress = 1,
+) {
   let triangles: [Vec3, Vec3, Vec3][];
 
   if (start === "tetrahedron") {
@@ -337,7 +344,10 @@ export function buildKochSurfaceScene(start: "triangle" | "tetrahedron", iterati
       const ca = scale(add(c, a), 0.5);
       const edge = Math.hypot(...sub(ab, bc));
       const normal = normalize(cross(sub(bc, ab), sub(ca, ab)));
-      const apex = add(centroid([ab, bc, ca]), scale(normal, edge * Math.sqrt(2 / 3)));
+      const apex = add(
+        centroid([ab, bc, ca]),
+        scale(normal, edge * Math.sqrt(2 / 3) * (step === iterations - 1 ? lastProgress : 1)),
+      );
       next.push(
         [a, ab, ca],
         [ab, b, bc],
@@ -476,6 +486,7 @@ export function drawPolyhedronScene(
   const drawOrder = order.subarray(0, visible).sort((a, b) => depths[a] - depths[b]);
   const fillStyles = new Map<number, string>();
   const strokeStyles = new Map<number, string>();
+  const highlightStyles = new Map<number, string>();
   const styleFor = (cache: Map<number, string>, color: string, step: number) => {
     let style = cache.get(step);
     if (!style) {
@@ -506,7 +517,12 @@ export function drawPolyhedronScene(
     ctx.closePath();
 
     if (options.showFaces) {
-      const fill = styleFor(fillStyles, options.fillColor, shades[face]);
+      const highlighted = scene.highlights?.[face] && options.highlightColor;
+      const fill = styleFor(
+        highlighted ? highlightStyles : fillStyles,
+        highlighted ? options.highlightColor! : options.fillColor,
+        shades[face],
+      );
       ctx.fillStyle = fill;
       ctx.fill();
       if (sealSeams) {

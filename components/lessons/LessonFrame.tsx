@@ -30,12 +30,14 @@ export function LessonSteps({
   onChange,
   label,
   duration,
+  disabled = false,
 }: {
   step: number;
   max: number;
   onChange: (step: number) => void;
   label: string;
   duration?: number;
+  disabled?: boolean;
 }) {
   const playback = useLessonPlayback(
     step,
@@ -45,7 +47,12 @@ export function LessonSteps({
     duration ? Math.max(1, Math.ceil(max / 100)) : 1,
   );
   return (
-    <fieldset ref={playback.ref} className={styles.controls} aria-label={`${label} steps`}>
+    <fieldset
+      disabled={disabled}
+      ref={playback.ref}
+      className={styles.controls}
+      aria-label={`${label} steps`}
+    >
       <button type="button" disabled={step === 0} onClick={() => playback.change(step - 1)}>
         Previous
       </button>
