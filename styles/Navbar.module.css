@@ -2,16 +2,18 @@
   bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
   position: fixed;
   z-index: 30;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, auto) 44px;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 5px;
+  align-content: center;
+  gap: 5px 8px;
   text-decoration: none;
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
   width: fit-content;
-  max-width: min(180px, calc((100vw - 32px) / 3));
+  max-width: min(240px, calc((100vw - 32px) / 3));
   justify-content: center;
   font-size: var(--explorer-nav-font-size);
   height: var(--explorer-nav-height);
@@ -21,6 +23,8 @@
 }
 
 .direction {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,6 +32,8 @@
 }
 
 .fractalName {
+  grid-column: 1;
+  grid-row: 2;
   min-width: 0;
   max-width: 100%;
   font-size: var(--explorer-nav-name-size);
@@ -37,18 +43,12 @@
   overflow-wrap: anywhere;
 }
 
-.destination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  max-width: 100%;
-}
-
 .preview {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  width: 44px;
+  height: 100%;
+  min-height: 0;
   object-fit: contain;
   border-radius: 2px;
 }
@@ -58,8 +58,18 @@
 }
 
 .next {
+  grid-template-columns: 44px minmax(0, auto);
   right: max(8px, env(safe-area-inset-right));
   text-align: right;
+}
+
+.next .preview {
+  grid-column: 1;
+}
+
+.next .direction,
+.next .fractalName {
+  grid-column: 2;
 }
 
 .linkButton svg {
@@ -79,25 +89,27 @@
 
 @media (max-width: 700px) {
   .linkButton {
+    grid-template-columns: minmax(0, auto) 40px;
+    max-width: calc((100vw - 88px) / 2);
+    font-size: 11px;
     gap: 4px;
     padding: 8px 4px;
   }
 
   .direction {
-    gap: 6px;
-  }
-
-  .destination {
-    gap: 4px;
+    gap: 2px;
   }
 
   .preview {
-    width: 20px;
-    height: 20px;
+    width: 40px;
+  }
+
+  .next {
+    grid-template-columns: 40px minmax(0, auto);
   }
 
   .linkButton svg {
-    width: 18px;
+    width: 10px;
   }
 }
 

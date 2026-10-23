@@ -116,16 +116,14 @@ export const NavElement = () => {
           <NavigationArrow previous />
           <span>Previous</span>
         </span>
-        <span className={styles.destination}>
-          <Image
-            className={styles.preview}
-            src={PAGE_SEO[prev].imagePath}
-            alt=""
-            width={24}
-            height={24}
-          />
-          <span className={styles.fractalName}>{getFractalName(prev)}</span>
-        </span>
+        <span className={styles.fractalName}>{getFractalName(prev)}</span>
+        <Image
+          className={styles.preview}
+          src={PAGE_SEO[prev].imagePath}
+          alt=""
+          width={44}
+          height={44}
+        />
       </Link>
       <Link
         className={`${styles.linkButton} ${styles.next}`}
@@ -137,16 +135,14 @@ export const NavElement = () => {
           <span>Next</span>
           <NavigationArrow />
         </span>
-        <span className={styles.destination}>
-          <Image
-            className={styles.preview}
-            src={PAGE_SEO[next].imagePath}
-            alt=""
-            width={24}
-            height={24}
-          />
-          <span className={styles.fractalName}>{getFractalName(next)}</span>
-        </span>
+        <span className={styles.fractalName}>{getFractalName(next)}</span>
+        <Image
+          className={styles.preview}
+          src={PAGE_SEO[next].imagePath}
+          alt=""
+          width={44}
+          height={44}
+        />
       </Link>
     </nav>
   );

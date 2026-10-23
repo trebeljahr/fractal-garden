@@ -149,7 +149,8 @@
 
 @media (max-width: 700px) {
   .learnMore {
-    padding: 8px;
+    width: 52px;
+    padding: 8px 4px;
     gap: 6px;
   }
 
