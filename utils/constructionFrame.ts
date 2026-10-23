@@ -11,6 +11,8 @@ export function constructionFrame(
   level: number,
   width: number,
   height: number,
+  targetWidth = 720,
+  targetHeight = 480,
 ): unknown {
   if (kind === "polylineScene") {
     const source = params as PolylineSceneParams;
@@ -31,14 +33,14 @@ export function constructionFrame(
   }
   if (kind === "lsystem2d") {
     const source = params as LSystem2DParams;
-    const scale = Math.min(720 / width, 480 / height);
+    const scale = Math.min(targetWidth / width, targetHeight / height);
     return {
       ...source,
       iterations: level,
       initialLength: source.initialLength * scale,
       translation: [
-        360 + (source.translation[0] - width / 2) * scale,
-        240 + (source.translation[1] - height / 2) * scale,
+        targetWidth / 2 + (source.translation[0] - width / 2) * scale,
+        targetHeight / 2 + (source.translation[1] - height / 2) * scale,
       ],
     } satisfies LSystem2DParams;
   }

@@ -1,5 +1,6 @@
 import { expand, interpret } from "../../lsystem/engine";
 import type { LSystemSpec } from "../../lsystem/spec";
+import { type Orientation, viewRotation } from "../../orientation";
 import type { Context2D } from "../types";
 
 /** The editor's current rules, drawn independently of its camera and worker. */
@@ -7,7 +8,14 @@ export function drawLSystemConstruction(
   ctx: Context2D,
   width: number,
   height: number,
-  spec: LSystemSpec,
+  spec: LSystemSpec & {
+    constructionView?: {
+      rotationX: number;
+      rotationY: number;
+      cameraDistance: number;
+      grab?: Orientation;
+    };
+  },
 ) {
   ctx.fillStyle = spec.background;
   ctx.fillRect(0, 0, width, height);
@@ -22,10 +30,23 @@ export function drawLSystemConstruction(
     sy = Math.sin(yaw);
   const cp = Math.cos(pitch),
     sp = Math.sin(pitch);
+  const rotation =
+    spec.constructionView && spec.dimension === "3d"
+      ? viewRotation(
+          spec.constructionView.rotationX,
+          spec.constructionView.rotationY,
+          spec.constructionView.grab,
+        )
+      : null;
   const project = (index: number) => {
     const x = geometry.positions[index];
     const y = geometry.positions[index + 1];
     const z = geometry.positions[index + 2];
+    if (rotation)
+      return [
+        rotation[0] * x + rotation[1] * y + rotation[2] * z,
+        -(rotation[3] * x + rotation[4] * y + rotation[5] * z),
+      ] as const;
     return [cy * x + sy * z, -(sy * sp * x + cp * y - cy * sp * z)] as const;
   };
   let minX = Infinity,
@@ -43,6 +64,10 @@ export function drawLSystemConstruction(
     (width * 0.84) / Math.max(maxX - minX, 1e-6),
     (height * 0.84) / Math.max(maxY - minY, 1e-6),
   );
+  const zoom =
+    spec.dimension === "3d" && spec.constructionView
+      ? 7.5 / spec.constructionView.cameraDistance
+      : 1;
   const paths = new Map<number, Path2D>();
   for (let i = 0; i < geometry.count; i++) {
     const lineWidth = geometry.widths[i];
@@ -54,12 +79,12 @@ export function drawLSystemConstruction(
     const [x1, y1] = project(i * 6),
       [x2, y2] = project(i * 6 + 3);
     path.moveTo(
-      width / 2 + (x1 - (minX + maxX) / 2) * scale,
-      height / 2 + (y1 - (minY + maxY) / 2) * scale,
+      width / 2 + (x1 - (minX + maxX) / 2) * scale * zoom,
+      height / 2 + (y1 - (minY + maxY) / 2) * scale * zoom,
     );
     path.lineTo(
-      width / 2 + (x2 - (minX + maxX) / 2) * scale,
-      height / 2 + (y2 - (minY + maxY) / 2) * scale,
+      width / 2 + (x2 - (minX + maxX) / 2) * scale * zoom,
+      height / 2 + (y2 - (minY + maxY) / 2) * scale * zoom,
     );
   }
   ctx.strokeStyle = spec.color;

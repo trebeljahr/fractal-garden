@@ -88,7 +88,7 @@ export function ExplorerContextMenu({
     setMounted(true);
     setSupported(!!document.fullscreenEnabled);
     const syncFullscreen = () => {
-      const active = !!document.fullscreenElement;
+      const active = document.fullscreenElement === document.documentElement;
       setFullscreen(active);
       document.body.toggleAttribute("data-fractal-fullscreen", active);
     };
@@ -135,7 +135,8 @@ export function ExplorerContextMenu({
       document.removeEventListener("keydown", restore);
       document.body.removeAttribute("data-fractal-clean");
       document.body.removeAttribute("data-fractal-fullscreen");
-      if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+      if (document.fullscreenElement === document.documentElement)
+        void document.exitFullscreen().catch(() => {});
     };
   }, []);
 

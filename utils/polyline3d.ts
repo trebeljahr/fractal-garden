@@ -15,6 +15,8 @@ export type Polyline3DDrawOptions = {
   nearColor: string;
   farColor: string;
   farAlpha: number;
+  /** Fraction of the shorter canvas side used for a unit of model space. */
+  viewScale?: number;
   lineWidth: number;
 };
 
@@ -300,7 +302,7 @@ export function drawPolyline3D(
     options.rotationY,
     options.grab,
   );
-  const scale = Math.min(width, height) * 0.42;
+  const scale = Math.min(width, height) * (options.viewScale ?? 0.42);
   const projected = new Float32Array(count * 3);
   const clipped = new Uint8Array(count);
 

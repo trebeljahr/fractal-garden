@@ -1,3 +1,4 @@
+import { applyCanvasViewport, type CanvasViewport } from "../canvasViewport";
 import { CONSTRUCTION_MOTION_MS } from "../constructionMotion";
 import type { Context2D, Renderer } from "./types";
 
@@ -6,6 +7,8 @@ export type ConstructionParams = {
   params: unknown;
   level: number;
   animate: boolean;
+  viewport?: CanvasViewport;
+  resetKey?: number;
 };
 
 function canvasLike(ctx: Context2D) {
@@ -29,11 +32,25 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
   private sourceRunning = false;
   private started = 0;
   private blend = false;
+  private sourceKey = "";
 
   constructor(private readonly create: (kind: string) => Renderer<unknown>) {}
 
   update(next: ConstructionParams) {
     const previous = this.params;
+    const sourceKey = JSON.stringify([
+      next.kind,
+      next.params,
+      next.animate,
+      next.level,
+      next.resetKey,
+    ]);
+    if (previous && next.resetKey !== previous.resetKey) this.source?.restoreView?.(0);
+    if (sourceKey === this.sourceKey) {
+      this.params = next;
+      return;
+    }
+    this.sourceKey = sourceKey;
     const sameKind = previous?.kind === next.kind;
     if (!sameKind) {
       if (next.kind === "construction") throw new Error("A construction cannot contain itself");
@@ -61,7 +78,14 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
 
   draw(ctx: Context2D, width: number, height: number) {
     if (!this.source || !this.params) return false;
-    if (this.params.kind === "scene3d") return this.source.draw(ctx, width, height);
+    const sourceParams = this.params.params as {
+      config?: { autoRotate?: boolean; background?: string };
+    };
+    if (
+      this.params.kind === "scene3d" ||
+      (this.params.kind === "polylineScene" && sourceParams.config?.autoRotate)
+    )
+      return this.source.draw(ctx, width, height);
     const refresh =
       this.pending ||
       !this.current ||
@@ -74,13 +98,21 @@ export class ConstructionRenderer implements Renderer<ConstructionParams> {
       this.pending = false;
       if (refresh) this.started = performance.now();
     }
-    if (!this.current || !this.previous || !this.blend) return this.sourceRunning;
-    const t = Math.min(1, (performance.now() - this.started) / CONSTRUCTION_MOTION_MS);
+    if (!this.current) return this.sourceRunning;
+    const t =
+      this.previous && this.blend
+        ? Math.min(1, (performance.now() - this.started) / CONSTRUCTION_MOTION_MS)
+        : 1;
     const progress = t * t * (3 - 2 * t);
-    ctx.drawImage(this.previous, 0, 0, width, height);
-    ctx.globalAlpha = progress;
+    const params = this.params.params as { background?: string };
+    ctx.fillStyle = params.background ?? sourceParams.config?.background ?? "#252424";
+    ctx.fillRect(0, 0, width, height);
+    ctx.save();
+    applyCanvasViewport(ctx, width, height, this.params.viewport);
+    if (this.previous && t < 1) ctx.drawImage(this.previous, 0, 0, width, height);
+    ctx.globalAlpha = this.previous ? progress : 1;
     ctx.drawImage(this.current, 0, 0, width, height);
-    ctx.globalAlpha = 1;
+    ctx.restore();
     if (t === 1) this.previous = null;
     return this.sourceRunning || t < 1;
   }

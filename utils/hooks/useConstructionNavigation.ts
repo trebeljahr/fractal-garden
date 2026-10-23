@@ -1,0 +1,143 @@
+import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
+import { moveCanvasViewport } from "../canvasViewport";
+import type { ConstructionView } from "../constructionView";
+import { dragRotation, IDENTITY } from "../orientation";
+import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
+
+export function zoomConstruction(view: ConstructionView, scene: boolean, factor: number) {
+  return scene
+    ? {
+        ...view,
+        autoRotate: false,
+        cameraDistance: Math.max(2, Math.min(12, view.cameraDistance / factor)),
+      }
+    : { ...view, ...moveCanvasViewport(view, 1, 1, factor, 0.5, 0.5) };
+}
+
+export function useConstructionNavigation(
+  canvas: HTMLCanvasElement | null,
+  scene: boolean,
+  view: ConstructionView,
+  setView: Dispatch<SetStateAction<ConstructionView>>,
+  onInteract: () => void,
+  onReset: () => void,
+) {
+  const latest = useRef({ view, onInteract, onReset });
+  latest.current = { view, onInteract, onReset };
+  useEffect(() => {
+    if (!canvas) return;
+    const pointers = new Map<number, { x: number; y: number }>();
+    const change = (factor: number, x: number, y: number, dx = 0, dy = 0) => {
+      latest.current.onInteract();
+      const rect = canvas.getBoundingClientRect();
+      setView((old) =>
+        scene
+          ? factor !== 1
+            ? zoomConstruction(old, true, factor)
+            : {
+                ...old,
+                autoRotate: false,
+                grab: dragRotation(
+                  old.grab ?? IDENTITY,
+                  dx,
+                  dy,
+                  (Math.hypot(dx, dy) / Math.max(1, Math.min(rect.width, rect.height))) * Math.PI,
+                ),
+              }
+          : {
+              ...old,
+              ...moveCanvasViewport(
+                old,
+                rect.width,
+                rect.height,
+                factor,
+                x - rect.left,
+                y - rect.top,
+                dx,
+                dy,
+              ),
+            },
+      );
+    };
+    const down = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      canvas.focus({ preventScroll: true });
+      canvas.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      canvas.style.cursor = "grabbing";
+      latest.current.onInteract();
+    };
+    const move = (e: PointerEvent) => {
+      const before = pointers.get(e.pointerId);
+      if (!before) return;
+      const other = Array.from(pointers).find(([id]) => id !== e.pointerId)?.[1];
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const dx = e.clientX - before.x,
+        dy = e.clientY - before.y;
+      if (other) {
+        const distance = Math.hypot(before.x - other.x, before.y - other.y);
+        change(
+          distance ? Math.hypot(e.clientX - other.x, e.clientY - other.y) / distance : 1,
+          (before.x + other.x) / 2,
+          (before.y + other.y) / 2,
+          dx / 2,
+          dy / 2,
+        );
+      } else change(1, before.x, before.y, dx, dy);
+    };
+    const up = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      canvas.style.cursor = "grab";
+    };
+    const guard = createZoomWheelGuard(canvas);
+    const wheel = (e: WheelEvent) => {
+      if (
+        !guard.shouldZoom(
+          e,
+          scene ? latest.current.view.cameraDistance >= 7.5 : latest.current.view.zoom <= 1,
+        )
+      )
+        return;
+      e.preventDefault();
+      change(Math.exp(-zoomWheelDelta(e, canvas)), e.clientX, e.clientY);
+    };
+    const reset = () => {
+      latest.current.onInteract();
+      latest.current.onReset();
+    };
+    const key = (e: KeyboardEvent) => {
+      if (["+", "=", "-"].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        latest.current.onInteract();
+        setView((old) => zoomConstruction(old, scene, e.key === "-" ? 0.8 : 1.25));
+      } else if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        e.stopPropagation();
+        reset();
+      }
+    };
+    canvas.style.touchAction = "none";
+    canvas.style.cursor = "grab";
+    canvas.tabIndex = 0;
+    const stopWheel = listenForZoomWheel(canvas, wheel);
+    canvas.addEventListener("pointerdown", down);
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", up);
+    canvas.addEventListener("lostpointercapture", up);
+    canvas.addEventListener("dblclick", reset);
+    canvas.addEventListener("keydown", key);
+    return () => {
+      guard.dispose();
+      stopWheel();
+      canvas.removeEventListener("pointerdown", down);
+      canvas.removeEventListener("pointermove", move);
+      canvas.removeEventListener("pointerup", up);
+      canvas.removeEventListener("pointercancel", up);
+      canvas.removeEventListener("lostpointercapture", up);
+      canvas.removeEventListener("dblclick", reset);
+      canvas.removeEventListener("keydown", key);
+    };
+  }, [canvas, scene, setView]);
+}

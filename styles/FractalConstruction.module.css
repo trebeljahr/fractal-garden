@@ -1,70 +1,119 @@
-.frame {
-  aspect-ratio: 3 / 2;
-  max-width: 720px;
-  margin: 1rem auto;
-  background: #252424;
-  overflow: hidden;
-  touch-action: none;
-  cursor: grab;
+.demo {
+  width: calc(100vw - 8vw);
+  margin: 2.5rem calc((100% - (100vw - 8vw)) / 2);
+  color: var(--explorer-ink);
+  font-family: "Montserrat", sans-serif;
 }
-.frame:active {
-  cursor: grabbing;
+.title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.workspace {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: clamp(380px, 78svh, 840px);
+  background: var(--explorer-surface);
+  border: 1px solid #f5f1d129;
+}
+.viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 .surface {
   width: 100%;
   height: 100%;
 }
 .surface canvas {
+  display: block;
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
 }
-.caption {
+.surface canvas:focus-visible {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -3px;
+}
+.studioPanel {
+  top: 0;
+  left: auto;
+  width: auto;
+  max-width: 100%;
+  gap: 0;
+}
+.studioPanel > aside {
+  width: min(320px, calc(92vw - 2px));
+  max-height: min(54svh, 480px);
+}
+.transport {
+  border: 0;
+  border-top: 1px solid #f5f1d129;
+  padding: 8px;
+  margin: 0;
+  align-items: center;
+  min-width: 0;
+  background: var(--explorer-surface);
+  font-size: 12px;
+}
+.transport button {
+  flex-shrink: 0;
+}
+.step {
+  flex: 1;
+  min-width: 72px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  margin: 1rem 0;
-  font-size: 1.3rem;
 }
-.controls {
-  position: relative;
-  inset: auto;
-  z-index: 1;
-  display: block;
-  pointer-events: auto;
-  margin: 1.5rem 0 0;
-  font-size: 1.4rem;
+.step span {
+  white-space: nowrap;
+  font-size: 12px;
 }
-.controls summary {
-  cursor: pointer;
-  padding: 1rem 0;
+.step input {
+  width: 100%;
+  min-width: 30px;
 }
-.controls :global(.react-dat-gui.exploration-gui) {
+.workspace:fullscreen {
+  width: 100%;
+  height: 100dvh;
+  border: 0;
+}
+.error {
+  position: absolute;
+  bottom: 60px;
+  left: 8px;
+  padding: 8px;
+  font-size: 13px;
   background: var(--explorer-surface);
-  padding: 0.5rem 0;
 }
 @media (max-width: 700px) {
-  .controls {
-    position: relative;
-    inset: auto;
+  .workspace {
+    height: 76svh;
+    min-height: 400px;
   }
-  .caption {
-    align-items: flex-start;
+  .transport {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .transport button {
+    width: clamp(36px, calc((92vw - 44px) / 7), 44px);
+    height: 44px;
+  }
+  .step {
+    flex-basis: 100%;
+    order: -1;
+  }
+  .step span {
+    font-size: 11px;
   }
 }
 
-.controls :global(.react-dat-gui.exploration-gui .dg.main) {
-  max-height: none;
-  overflow: visible;
-}
-.controls :global(.react-dat-gui.exploration-gui .dg.main) {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 1.5rem;
-  padding: 0.75rem;
-}
-@media (max-width: 700px) {
-  .controls :global(.react-dat-gui.exploration-gui .dg.main) {
-    grid-template-columns: 1fr;
-  }
+.explanation {
+  max-width: 900px;
+  margin: 0 auto 1rem;
+  font-size: 1.6rem;
+  line-height: 1.6;
 }

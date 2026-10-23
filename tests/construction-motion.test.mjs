@@ -42,6 +42,15 @@ function constructionCanvas(t) {
   const ctx = {
     canvas: new Canvas(480, 320),
     globalAlpha: 1,
+    fillRect() {},
+    translate() {},
+    scale() {},
+    save() {
+      this.savedAlpha = this.globalAlpha;
+    },
+    restore() {
+      this.globalAlpha = this.savedAlpha;
+    },
     drawImage(image) {
       composites.push({ frame: image.frame, alpha: this.globalAlpha });
     },
@@ -83,7 +92,11 @@ test("construction restores the source view and discards frames from the old vie
   assert.equal(renderer.draw(ctx, 480, 320), false);
   assert.deepEqual(views, [12, 12, 0]);
   assert.deepEqual(ctx.canvas.frame, { yaw: 0, level: 1 });
-  assert.equal(composites.length, 0, "reset must not blend in a stale camera view");
+  assert.deepEqual(
+    composites,
+    [{ frame: { yaw: 0, level: 1 }, alpha: 1 }],
+    "reset must not blend in a stale camera view",
+  );
 });
 
 test("construction keeps live polyline frames running through a finite growth blend", (t) => {
@@ -120,11 +133,45 @@ test("construction keeps live polyline frames running through a finite growth bl
   assert.equal(renderer.draw(ctx, 480, 320), true);
   composites.length = 0;
   assert.equal(renderer.draw(ctx, 480, 320), true);
-  assert.equal(composites.length, 0, "continuous frames must not restart the growth blend");
+  assert.deepEqual(
+    composites,
+    [{ frame: 6, alpha: 1 }],
+    "continuous frames must not restart the growth blend",
+  );
   running = false;
   assert.equal(renderer.draw(ctx, 480, 320), false);
   assert.equal(frames, 7);
   assert.equal(ctx.globalAlpha, 1);
+});
+
+test("2D navigation reuses the current drawing while applying the latest viewport", (t) => {
+  const { ctx, composites } = constructionCanvas(t);
+  const transforms = [];
+  ctx.translate = (...args) => transforms.push(["translate", ...args]);
+  ctx.scale = (...args) => transforms.push(["scale", ...args]);
+  let draws = 0;
+  const renderer = new ConstructionRenderer(() => ({
+    update() {},
+    draw() {
+      ctx.canvas.frame = ++draws;
+      return false;
+    },
+    describe: () => null,
+  }));
+  const params = { kind: "carpet", params: { iterations: 2 }, level: 2, animate: true };
+  renderer.update(params);
+  renderer.draw(ctx, 480, 320);
+  composites.length = 0;
+  transforms.length = 0;
+  renderer.update({ ...params, viewport: { x: 0.25, y: -0.1, zoom: 3 } });
+  assert.equal(renderer.draw(ctx, 480, 320), false);
+  assert.equal(draws, 1, "panning must not rebuild the underlying geometry");
+  assert.deepEqual(composites, [{ frame: 1, alpha: 1 }]);
+  assert.deepEqual(transforms, [
+    ["translate", 240, 160],
+    ["scale", 3, 3],
+    ["translate", -320, -128],
+  ]);
 });
 
 test("construction delegates native scene motion and view state without a cached blend", (t) => {

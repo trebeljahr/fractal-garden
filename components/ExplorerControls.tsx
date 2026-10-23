@@ -103,7 +103,7 @@ type SharedControlProps = {
 
 type ColorProps = SharedControlProps;
 
-type BooleanProps = SharedControlProps;
+type BooleanProps = SharedControlProps & { respectExplorerZoom?: boolean };
 
 type SelectProps = SharedControlProps & {
   optionLabels?: string[];
@@ -643,13 +643,14 @@ export const PanelBoolean = ({
   path,
   style,
   _onUpdateValue,
+  respectExplorerZoom = true,
 }: BooleanProps) => {
   const labelId = useId();
   const { active: zoomActive } = useZoomActivity();
   const checked = getValueFromPath(data, path) === true;
   const labelText = label ?? humanizePath(path);
 
-  if (zoomActive && ANIMATION_KEYS.includes(path)) return null;
+  if (respectExplorerZoom && zoomActive && ANIMATION_KEYS.includes(path)) return null;
 
   return (
     <li className={joinClassNames("cr", "boolean", className)} style={style}>

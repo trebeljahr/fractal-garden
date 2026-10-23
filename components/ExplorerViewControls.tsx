@@ -23,7 +23,7 @@ function VisibilityIcon({ hidden = false }: { hidden?: boolean }) {
   );
 }
 
-function FullscreenIcon({ active }: { active: boolean }) {
+export function FullscreenIcon({ active }: { active: boolean }) {
   return (
     <svg
       width="20"

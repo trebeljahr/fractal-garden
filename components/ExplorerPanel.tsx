@@ -1,4 +1,4 @@
-import { Children, isValidElement, type ReactNode, useState } from "react";
+import { Children, cloneElement, isValidElement, type ReactNode, useState } from "react";
 import DatGui, { DatFolder } from "react-dat-gui";
 import styles from "../styles/ExplorerPanel.module.css";
 import { explorerControlNodes } from "../utils/explorerControlNodes";
@@ -103,14 +103,6 @@ export function ExplorerPanel<T>({
   const defaults = PANEL_COPY[mode];
   const [viewControlsHost, setViewControlsHost] = useState<HTMLDivElement | null>(null);
 
-  const folderTitle = (
-    <div className={styles.folderTitle}>
-      <span className={styles.folderHeading}>
-        {hasConstruction ? "View controls" : CONTROLS_TITLE}
-      </span>
-    </div>
-  ) as unknown as string;
-
   return (
     <>
       <FractalHeader
@@ -122,26 +114,14 @@ export function ExplorerPanel<T>({
               <div ref={setViewControlsHost} className={styles.viewControlsHost} />
               {places && <div className={styles.placesHost}>{places}</div>}
               {mainControls && (
-                <aside
-                  className={styles.studio}
-                  aria-label={hasConstruction ? "View controls" : CONTROLS_TITLE}
+                <FractalStudioControls
+                  data={data}
+                  defaultOpen={defaultOpen}
+                  onUpdate={onUpdate}
+                  title={hasConstruction ? "View controls" : CONTROLS_TITLE}
                 >
-                  <DatGui
-                    className="exploration-gui"
-                    data={data}
-                    labelWidth={160}
-                    onUpdate={onUpdate}
-                  >
-                    <DatFolder
-                      className="exploration-folder"
-                      closed={!defaultOpen}
-                      title={folderTitle}
-                    >
-                      {/* DatFolder clones every child, so drop the null ones conditional controls leave. */}
-                      {explorerControlNodes(mainControls)}
-                    </DatFolder>
-                  </DatGui>
-                </aside>
+                  {mainControls}
+                </FractalStudioControls>
               )}
             </div>
           </div>
@@ -172,5 +152,36 @@ export function ExplorerPanel<T>({
         />
       </div>
     </>
+  );
+}
+
+/** DatGui binds direct children; use the shared flattening and give nested fields unique keys. */
+function studioControls(children: ReactNode): ReactNode[] {
+  return explorerControlNodes(children).map((child) =>
+    isValidElement(child) ? cloneElement(child, { key: child.props.path ?? child.key }) : child,
+  );
+}
+
+/** Studio fields without page-level sharing or header registration. */
+export function FractalStudioControls<T>({
+  data,
+  children,
+  defaultOpen = false,
+  onUpdate,
+  title = CONTROLS_TITLE,
+}: Pick<Props<T>, "data" | "children" | "defaultOpen" | "onUpdate"> & { title?: string }) {
+  const folderTitle = (
+    <div className={styles.folderTitle}>
+      <span className={styles.folderHeading}>{title}</span>
+    </div>
+  ) as unknown as string;
+  return (
+    <aside className={styles.studio} aria-label={title}>
+      <DatGui className="exploration-gui" data={data} labelWidth={160} onUpdate={onUpdate}>
+        <DatFolder className="exploration-folder" closed={!defaultOpen} title={folderTitle}>
+          {studioControls(children)}
+        </DatFolder>
+      </DatGui>
+    </aside>
   );
 }
