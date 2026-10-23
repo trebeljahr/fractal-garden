@@ -1,5 +1,6 @@
 import { fixedFromNumber, fixedToFloatExp, rescaleFixed } from "../deepZoom/math";
 import { finite, isRecord } from "../explorerShare";
+import { easeFlightAtmosphere } from "./smoothing";
 
 export type VoxelPattern = "menger" | "vicsek" | "mosely-light" | "mosely-heavy";
 export type Vec3 = [number, number, number];
@@ -11,6 +12,9 @@ export type FlightCamera = {
   viewLevel?: number;
   /** Continuous local travel scale, adapting to passages and forward approach. */
   navigationLevel?: number;
+  /** Damped visual scale, independent of immediate directional collision braking. */
+  atmosphereLevel?: number;
+  atmosphereVelocity?: number;
   yaw: number;
   pitch: number;
 };
@@ -75,6 +79,8 @@ export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCam
       level: 0,
       viewLevel: 0,
       navigationLevel: snowflake ? (pattern === "mosely-light" ? 1 : 2) : 0,
+      atmosphereLevel: snowflake ? (pattern === "mosely-light" ? 1 : 2) : 0,
+      atmosphereVelocity: 0,
       yaw: snowflake ? -Math.PI / 4 : 0,
       pitch: snowflake ? -Math.asin(1 / Math.sqrt(3)) : 0,
     },
@@ -226,7 +232,7 @@ function gridFrame(
 // Navigation changes continuously while collision detail follows local geometry.
 export const FLIGHT_COLLISION_DEPTH = 8;
 export const FLIGHT_WALL_MARGIN = 1e-5;
-export const FLIGHT_NAVIGATION_RATE = 1.5;
+export const FLIGHT_NAVIGATION_RATE = 0.75;
 const FLIGHT_APPROACH_FACTOR = 4;
 const LOG_THREE = Math.log(3);
 
@@ -332,9 +338,9 @@ function flightRoute(
   return { intervals, wall: t, normalAxis };
 }
 
-/** Integrate continuous speed, splitting exactly at passage boundaries.
- * Acceleration is a log-scale ramp. A directional distance cap brakes before
- * smaller passages and approaches retained walls exponentially. */
+/** Integrate passage speed with a logistic recovery curve. Acceleration eases
+ * to zero as the surrounding scale is reached. Directional caps still approach
+ * retained walls exponentially, including after an abrupt turn toward one. */
 function flightTravel(
   route: TravelRoute,
   coordinateLevel: number,
@@ -358,8 +364,6 @@ function flightTravel(
     const interval = route.intervals[index];
     const targetScale = 3 ** (coordinateLevel - interval.level);
     let cap = route.wall;
-    // Every narrower passage must be entered at its local speed. Its virtual
-    // boundary starts braking before the entrance instead of snapping there.
     for (let future = index + 1; future < route.intervals.length; future++) {
       const next = route.intervals[future];
       cap = Math.min(
@@ -369,53 +373,50 @@ function flightTravel(
     }
     scale = Math.min(scale, targetScale, (cap - distance) * FLIGHT_APPROACH_FACTOR);
     if (scale <= 0) return result();
-    // A ramp can reach its target or the spatial cap before leaving this cell.
-    for (let phase = 0; phase < 3 && remaining > 0; phase++) {
-      const velocity = scale * throttle;
-      const gap = cap - distance;
-      const toExit = interval.end - distance;
-      const ramp = scale < targetScale * (1 - 1e-12) ? acceleration : 0;
-      const untilTarget = ramp ? Math.log(targetScale / scale) / ramp : Infinity;
-      const untilCap = !Number.isFinite(cap)
-        ? Infinity
-        : Math.max(
-            0,
-            ramp
-              ? Math.log((braking * (ramp * gap + velocity)) / (velocity * (ramp + braking))) / ramp
-              : gap / velocity - 1 / braking,
-          );
-      const freeTime = Math.min(remaining, untilTarget, untilCap);
-      const freeDistance = ramp
-        ? (velocity * Math.expm1(ramp * freeTime)) / ramp
-        : velocity * freeTime;
-      if (freeDistance >= toExit) {
-        const travelTime = ramp ? Math.log1p((ramp * toExit) / velocity) / ramp : toExit / velocity;
-        remaining = Math.max(0, remaining - travelTime);
-        scale *= Math.exp(ramp * travelTime);
-        distance = interval.end;
-        break;
+    const ratio = scale / targetScale;
+    const freeDistance = (time: number) =>
+      (throttle * targetScale * Math.log1p(ratio * Math.expm1(acceleration * time))) / acceleration;
+    const freeScale = (time: number) =>
+      (scale * Math.exp(acceleration * time)) / (1 + ratio * Math.expm1(acceleration * time));
+    // Free speed rises monotonically while the approach cap falls. Their one
+    // intersection is bounded, avoiding frame-dependent clamp/release cycles.
+    let untilCap = remaining;
+    const gap = cap - distance;
+    if (
+      Number.isFinite(cap) &&
+      freeScale(remaining) > FLIGHT_APPROACH_FACTOR * (gap - freeDistance(remaining))
+    ) {
+      let low = 0;
+      for (let iteration = 0; iteration < 48; iteration++) {
+        const mid = (low + untilCap) / 2;
+        if (freeScale(mid) > FLIGHT_APPROACH_FACTOR * (gap - freeDistance(mid))) untilCap = mid;
+        else low = mid;
       }
-      distance += freeDistance;
-      remaining = Math.max(0, remaining - freeTime);
-      scale *= Math.exp(ramp * freeTime);
-      if (remaining <= 0) return result();
-      if (untilCap <= untilTarget) {
-        const cappedGap = cap - distance;
-        const exitGap = cap - interval.end;
-        const exitTime = exitGap > 0 ? Math.log(cappedGap / exitGap) / braking : Infinity;
-        const travelTime = Math.min(remaining, exitTime);
-        const decay = Math.exp(-braking * travelTime);
-        distance += cappedGap * -Math.expm1(-braking * travelTime);
-        scale = FLIGHT_APPROACH_FACTOR * cappedGap * decay;
-        remaining = Math.max(0, remaining - travelTime);
-        if (travelTime === exitTime) {
-          distance = interval.end;
-          break;
-        }
-        return result();
-      }
-      scale = targetScale;
     }
+    const toExit = interval.end - distance;
+    if (freeDistance(untilCap) >= toExit) {
+      const travelTime =
+        Math.log1p(Math.expm1((acceleration * toExit) / (throttle * targetScale)) / ratio) /
+        acceleration;
+      scale = freeScale(travelTime);
+      distance = interval.end;
+      remaining = Math.max(0, remaining - travelTime);
+      continue;
+    }
+    distance += freeDistance(untilCap);
+    scale = freeScale(untilCap);
+    remaining = Math.max(0, remaining - untilCap);
+    if (remaining <= 0) return result();
+    const cappedGap = cap - distance;
+    const exitGap = cap - interval.end;
+    const exitTime = exitGap > 0 ? Math.log(cappedGap / exitGap) / braking : Infinity;
+    const travelTime = Math.min(remaining, exitTime);
+    const decay = Math.exp(-braking * travelTime);
+    distance += cappedGap * -Math.expm1(-braking * travelTime);
+    scale = FLIGHT_APPROACH_FACTOR * cappedGap * decay;
+    remaining = Math.max(0, remaining - travelTime);
+    if (travelTime !== exitTime) return result();
+    distance = interval.end;
   }
   return result();
 }
@@ -467,20 +468,30 @@ export function moveFlightCamera(
   ) as FlightCamera["position"];
   const limit = BigInt(64) << BigInt(bits);
   if (position.some((p) => p < -limit || p > limit)) return camera;
+  const nextNavigationLevel =
+    distance < travel.distance
+      ? Math.min(
+          travel.navigationLevel,
+          collisionLevel - Math.log(FLIGHT_APPROACH_FACTOR * (route.wall - distance)) / LOG_THREE,
+        )
+      : travel.navigationLevel;
+  const atmosphere = easeFlightAtmosphere(
+    camera.atmosphereLevel ?? navigationLevel,
+    camera.atmosphereVelocity ?? 0,
+    navigationLevel,
+    nextNavigationLevel,
+    duration,
+    throttle,
+  );
   return fitFlightPrecision(
     {
       ...camera,
       position,
       bits,
       viewLevel,
-      navigationLevel:
-        distance < travel.distance
-          ? Math.min(
-              travel.navigationLevel,
-              collisionLevel -
-                Math.log(FLIGHT_APPROACH_FACTOR * (route.wall - distance)) / LOG_THREE,
-            )
-          : travel.navigationLevel,
+      navigationLevel: nextNavigationLevel,
+      atmosphereLevel: atmosphere.level,
+      atmosphereVelocity: atmosphere.velocity,
     },
     pattern,
   );
@@ -573,6 +584,14 @@ function dollyScale(camera: FlightCamera, next: FlightCamera, pattern: VoxelPatt
   return {
     ...next,
     viewLevel: nextViewLevel,
+    atmosphereLevel: Math.max(
+      0,
+      Math.min(
+        MAX_VOXEL_DEPTH,
+        (camera.atmosphereLevel ?? camera.navigationLevel ?? viewLevel) + nextViewLevel - viewLevel,
+      ),
+    ),
+    atmosphereVelocity: 0,
     navigationLevel: Math.max(
       0,
       Math.min(
@@ -624,6 +643,8 @@ export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): Fli
     !Number.isInteger(value.level) ||
     (value.viewLevel !== undefined && !finite(value.viewLevel, 0, MAX_FLIGHT_LEVEL)) ||
     (value.navigationLevel !== undefined && !finite(value.navigationLevel, 0, MAX_VOXEL_DEPTH)) ||
+    (value.atmosphereLevel !== undefined && !finite(value.atmosphereLevel, 0, MAX_VOXEL_DEPTH)) ||
+    (value.atmosphereVelocity !== undefined && !finite(value.atmosphereVelocity, -16, 16)) ||
     !finite(value.bits, bitsForLevel(value.level), 2048) ||
     !Number.isInteger(value.bits) ||
     !finite(value.yaw, -1e6, 1e6) ||
@@ -666,5 +687,7 @@ export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): Fli
   camera.navigationLevel ??= pattern
     ? Math.max(viewLevel, passageLevel(camera, pattern))
     : viewLevel;
+  camera.atmosphereLevel = (value.atmosphereLevel as number | undefined) ?? camera.navigationLevel;
+  camera.atmosphereVelocity = (value.atmosphereVelocity as number | undefined) ?? 0;
   return pattern ? fitFlightPrecision(camera, pattern) : camera;
 }

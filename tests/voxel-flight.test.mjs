@@ -137,6 +137,10 @@ test("flight orientation remains orthonormal and bounded links reject unsafe cam
     { ...saved, viewLevel: 245 },
     { ...saved, navigationLevel: NaN },
     { ...saved, navigationLevel: 257 },
+    { ...saved, atmosphereLevel: NaN },
+    { ...saved, atmosphereLevel: 257 },
+    { ...saved, atmosphereVelocity: Infinity },
+    { ...saved, atmosphereVelocity: 17 },
     { ...saved, position: ["f".repeat(9999), "0", "0"] },
     { ...saved, position: ["1".repeat(100), "0", "0"] },
   ])
@@ -449,7 +453,7 @@ test("each smaller recursive passage slows flight by its physical scale", () => 
       const zoomed = passageCamera(pattern, depth, depth + 1);
       const moved = moveFlightCamera(zoomed, pattern, [0.03, 0, 0], 0.04);
       const acceleration = FLIGHT_NAVIGATION_RATE * Math.log(3);
-      const expected = (1.5 * Math.expm1(acceleration * 0.04)) / acceleration;
+      const expected = (4.5 * Math.log1p(Math.expm1(acceleration * 0.04) / 3)) / acceleration;
       assert.ok(Math.abs(worldDelta(zoomed, moved)[0] * 3 ** (depth + 1) - expected) < 1e-8);
       assert.ok(
         moved.navigationLevel < zoomed.navigationLevel,
@@ -494,7 +498,7 @@ test("surroundings change travel speed continuously at passage entrances and exi
     if (camera.position[2] < -one) exited = true;
   }
   assert.ok(entered && exited);
-  assert.equal(camera.navigationLevel, 0, "open surroundings gradually recover exterior speed");
+  assert.ok(camera.navigationLevel < 0.25, "open surroundings gradually recover exterior speed");
 });
 
 test("elapsed time controls the scale ramp independently of Shift throttle", () => {
@@ -503,8 +507,10 @@ test("elapsed time controls the scale ramp independently of Shift throttle", () 
   for (const boost of [1, 4]) {
     const before = { ...cameraAt([0, 0, 3.2]), navigationLevel: 4, viewLevel: 4 };
     const after = moveFlightCamera(before, "menger", [0.75 * boost * duration, 0, 0], duration);
-    assert.ok(Math.abs(after.navigationLevel - (4 - FLIGHT_NAVIGATION_RATE * duration)) < 1e-12);
-    const expected = (1.5 * boost * 3 ** -4 * Math.expm1(acceleration * duration)) / acceleration;
+    const endScale = 1 / (1 + (3 ** 4 - 1) * Math.exp(-acceleration * duration));
+    assert.ok(Math.abs(after.navigationLevel + Math.log(endScale) / Math.log(3)) < 1e-12);
+    const expected =
+      (1.5 * boost * Math.log1p(3 ** -4 * Math.expm1(acceleration * duration))) / acceleration;
     assert.ok(Math.abs(worldDelta(before, after)[0] - expected) < 1e-9);
   }
 });
@@ -656,4 +662,63 @@ test("wheel entry into fine snowflake holes first selects sufficient detail", ()
     assert.ok(camera.viewLevel + FLIGHT_COLLISION_DEPTH >= 10);
     assert.ok(flightClearance(camera, pattern) > 0, "zoom stays outside retained solid");
   }
+});
+
+test("speed recovery eases near the surrounding scale without a final gear change", () => {
+  let camera = { ...cameraAt([0, 0, 3.2]), navigationLevel: 1 };
+  const dt = 1 / 60;
+  let previousRate = Infinity;
+  for (let frame = 0; frame < 360; frame++) {
+    const before = camera;
+    camera = moveFlightCamera(camera, "menger", [0.75 * dt, 0, 0], dt);
+    const rate = (before.navigationLevel - camera.navigationLevel) / dt;
+    assert.ok(rate > 0 && rate < FLIGHT_NAVIGATION_RATE);
+    assert.ok(rate < previousRate, "recovery eases continuously toward cruising speed");
+    previousRate = rate;
+  }
+  assert.ok(camera.navigationLevel < 0.02);
+});
+
+test("turning toward a nearby wall brakes safely without flashing the atmosphere", () => {
+  const dt = 1 / 60;
+  let camera = cameraAt([0.4, 0.4, 1.000001]);
+  camera = moveFlightCamera(camera, "menger", [0.75 * dt, 0, 0], dt);
+  const before = camera;
+  camera = moveFlightCamera(camera, "menger", [0, 0, 0.75 * dt], dt);
+  assert.ok(camera.navigationLevel > 11, "nearby wall still applies its safety speed");
+  assert.ok(camera.position[2] > 1n << BigInt(camera.bits));
+  assert.ok(
+    3 ** (camera.atmosphereLevel - before.atmosphereLevel) < 1.01,
+    "the fog volume must not copy the abrupt collision scale",
+  );
+  const retreat = moveFlightCamera(camera, "menger", [0, 0, -0.75 * dt], dt);
+  assert.ok(
+    retreat.navigationLevel >= camera.navigationLevel - FLIGHT_NAVIGATION_RATE * dt,
+    "retreat keeps the actual travel speed, rather than jumping to the fog scale",
+  );
+  assert.ok(worldDelta(camera, retreat)[2] > 0);
+  assert.equal(
+    moveFlightCamera(camera, "menger", [0, 0, 0], dt),
+    camera,
+    "releasing movement freezes fog and camera",
+  );
+  assert.deepEqual(restoreFlightCamera(serializeFlightCamera(camera), "menger"), camera);
+});
+
+test("sustained boosted refinement keeps fog inside the numerical horizon", () => {
+  let camera = cameraAt([0.8, 0.8, 1.1]);
+  const dt = 1 / 60;
+  for (let frame = 0; frame < 600; frame++) {
+    camera = moveFlightCamera(camera, "menger", [0, 0, 3 * dt], dt);
+    assert.ok(
+      camera.navigationLevel - camera.atmosphereLevel < 8,
+      "atmosphere must keep up with continuous boosted zoom",
+    );
+    assert.ok(
+      96 * 3 ** (camera.level - camera.atmosphereLevel) < 1e29,
+      "numerical clipping must not replace the fog fade",
+    );
+  }
+  assert.ok(camera.level > 100, "boost still refines deeply");
+  assert.deepEqual(restoreFlightCamera(serializeFlightCamera(camera), "menger"), camera);
 });

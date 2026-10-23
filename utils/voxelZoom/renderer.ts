@@ -107,7 +107,10 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.useProgram(shader.program);
       gl.viewport(0, 0, w, h);
       const navigationLevel = camera.navigationLevel ?? camera.viewLevel ?? camera.level;
-      const nextAtmosphere = flightAtmosphere(camera.level, navigationLevel);
+      const nextAtmosphere = flightAtmosphere(
+        camera.level,
+        camera.atmosphereLevel ?? navigationLevel,
+      );
       const basis = flightBasis(camera);
       const visible = flightScreenBounds(
         flightRootBounds(camera),
@@ -131,6 +134,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previous?.level !== camera.level ||
         previous?.viewLevel !== camera.viewLevel ||
         previous?.navigationLevel !== camera.navigationLevel ||
+        previous?.atmosphereLevel !== camera.atmosphereLevel ||
         previous?.bits !== camera.bits ||
         previousPattern !== pattern
       ) {

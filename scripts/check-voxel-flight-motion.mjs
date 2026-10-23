@@ -94,10 +94,11 @@ async function check(page, baseURL) {
     );
   };
   const assertFog = (frame, name) => {
-    const units = 3 ** (frame.camera.level - navigationLevel(frame.camera));
+    const units =
+      3 ** (frame.camera.level - (frame.camera.atmosphereLevel ?? navigationLevel(frame.camera)));
     assert(
       Math.abs(frame.u_fogDistanceScale * units - 1 / 96) < 1e-10,
-      `${name}: fog does not follow the continuous navigation scale`,
+      `${name}: fog does not follow the damped atmosphere scale`,
     );
     assert(Math.abs(frame.u_farDistance / units - 96) < 1e-7, `${name}: incorrect fog horizon`);
     assert(frame.u_fogDensity === 4, `${name}: incorrect fog density`);
@@ -213,7 +214,7 @@ async function check(page, baseURL) {
         `${name}: displacement disagrees with continuous navigation speed (${speed}, ${low}–${high})`,
       );
       assert(
-        beforeLevel - afterLevel <= 1.5 * dt + 1e-6,
+        beforeLevel - afterLevel <= 0.75 * dt + 1e-6,
         `${name}: outward navigation scale accelerated abruptly`,
       );
       maxLocalSpeedRatio = Math.max(maxLocalSpeedRatio, speed / throttle);
@@ -235,9 +236,9 @@ async function check(page, baseURL) {
       const speed =
         Math.hypot(...localDelta(first.camera, second.camera, navigationLevel(first.camera))) / dt;
       assert(
-        navigationLevel(first.camera) >= 150 - 1.5 * 0.5 &&
+        navigationLevel(first.camera) >= 150 - 0.75 * 0.5 &&
           speed >= 0.75 - 1e-6 &&
-          speed <= 0.75 * 3 ** (1.5 * dt) + 1e-6,
+          speed <= 0.75 * 3 ** (0.75 * dt) + 1e-6,
         `${name}: first motion lost the saved local scale`,
       );
       assert(
@@ -342,6 +343,50 @@ async function check(page, baseURL) {
       retreat: true,
     });
   }
+  // Turning into a close wall changes safety speed, not the whole fog volume.
+  await page.goto(`${baseURL}/menger-sponge`);
+  await page.getByRole("button", { name: "Explore inside", exact: true }).click();
+  const turnParts = await capture();
+  turnParts.voxelCamera = {
+    kind: "voxel-flight",
+    bits: 600,
+    level: 0,
+    viewLevel: 0,
+    navigationLevel: 0,
+    yaw: 0,
+    pitch: 0,
+    position: position([0.4, 0.4, 1.000001]),
+  };
+  const turnHash = Buffer.from(
+    JSON.stringify({ version: 1, path: "/menger-sponge", parts: turnParts }),
+  ).toString("base64url");
+  await page.goto(`${baseURL}/menger-sponge#view=${turnHash}`);
+  await page.getByLabel("Explore the fractal interior", { exact: true }).focus();
+  await page.evaluate(() => {
+    window.__flightMotion = [];
+  });
+  await page.keyboard.down("w");
+  await page.waitForTimeout(200);
+  await page.keyboard.up("w");
+  const turnFrames = await page.evaluate(() => window.__flightMotion);
+  assert(turnFrames.length > 0, "close-wall turn did not render");
+  for (const frame of turnFrames) {
+    assertFog(frame, "close-wall turn");
+    assert(navigationLevel(frame.camera) > 10, "close-wall safety speed was lost");
+    assert(
+      frame.camera.atmosphereLevel < navigationLevel(frame.camera) - 5,
+      "fog flashed to the collision scale",
+    );
+    assert(coordinate(frame.camera, 2) > 1n << BigInt(frame.camera.bits), "turn crossed the wall");
+  }
+  await assertIdle("close-wall turn");
+  results.push({
+    name: "close-wall turn",
+    samples: turnFrames.length,
+    navigationLevel: navigationLevel(turnFrames.at(-1).camera),
+    atmosphereLevel: turnFrames.at(-1).camera.atmosphereLevel,
+    stayedOutside: true,
+  });
   // Wheel remains an optional dolly; copied views retain the current scale.
   await page.goto(`${baseURL}/menger-sponge`);
   await page.getByRole("button", { name: "Explore inside", exact: true }).click();
@@ -368,6 +413,11 @@ async function check(page, baseURL) {
   assert(
     navigationLevel(restored.voxelCamera) === navigationLevel(zoomed.voxelCamera),
     "Saved view lost its continuous navigation scale",
+  );
+  assert(
+    restored.voxelCamera.atmosphereLevel === zoomed.voxelCamera.atmosphereLevel &&
+      restored.voxelCamera.atmosphereVelocity === zoomed.voxelCamera.atmosphereVelocity,
+    "Saved view lost its damped atmosphere state",
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await canvas.screenshot({ path: "/private/tmp/stable-flight-phone.png" });
