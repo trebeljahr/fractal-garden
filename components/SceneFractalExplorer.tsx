@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
+import flightStyles from "../styles/VoxelFlight.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
 import type { Scene3DParams, SceneSpec } from "../utils/render/scene3d";
+import type { VoxelPattern } from "../utils/voxelZoom/camera";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
+import { FlightInstructions, VoxelFlight } from "./VoxelFlight";
 
 export type SceneVariant = {
   label: string;
@@ -20,6 +23,7 @@ export type SceneVariant = {
 
 type Config<V extends string> = {
   variant: V;
+  navigation: "orbit" | "explore";
   iterations: number;
   animateIterations: boolean;
   autoRotate: boolean;
@@ -78,6 +82,7 @@ export function SceneFractalExplorer<V extends string>({
   const { width, height } = useWindowSize();
   const [config, setConfig] = useState<Config<V>>({
     variant: initialVariant,
+    navigation: "orbit",
     iterations: 0,
     animateIterations: true,
     autoRotate: true,
@@ -92,6 +97,17 @@ export function SceneFractalExplorer<V extends string>({
     lineWidth,
   });
   const variant = variants[config.variant];
+  const pattern: VoxelPattern | null =
+    variant.spec.kind === "menger"
+      ? "menger"
+      : variant.spec.kind === "vicsek3d"
+        ? "vicsek"
+        : variant.spec.kind === "mosely"
+          ? variant.spec.variant === "lighter"
+            ? "mosely-light"
+            : "mosely-heavy"
+          : null;
+  const exploring = config.navigation === "explore" && pattern !== null;
   const maxIterations = variant.maxIterations;
   const iterations = Math.min(config.iterations, maxIterations);
   const variantOptions = Object.keys(variants) as V[];
@@ -146,7 +162,7 @@ export function SceneFractalExplorer<V extends string>({
   });
 
   useOrbitZoomControls({
-    canvas,
+    canvas: exploring ? null : canvas,
     cameraDistance: config.cameraDistance,
     setConfig,
     minDistance: 3,
@@ -158,6 +174,17 @@ export function SceneFractalExplorer<V extends string>({
     setConfig((old) => ({ ...old, iterations: maxIterations }));
   }, [config.iterations, maxIterations]);
 
+  const backOutside = () =>
+    setConfig((old) => ({
+      ...old,
+      navigation: "orbit",
+      cameraDistance: INITIAL_CAMERA_DISTANCE,
+      rotationX,
+      rotationY,
+      grab: undefined,
+      autoRotate: false,
+      animateIterations: false,
+    }));
   const handleUpdate = (newData: Config<V>) => {
     setConfig((old) => ({
       ...old,
@@ -170,10 +197,35 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={[hint]}
+        lines={[exploring ? "Drag to look. Scroll to move. WASD to fly." : hint]}
+        places={
+          pattern && (
+            <button
+              className={flightStyles.navigation}
+              type="button"
+              data-fractal-places
+              onClick={() =>
+                exploring
+                  ? backOutside()
+                  : setConfig((old) => ({
+                      ...old,
+                      navigation: "explore",
+                      autoRotate: false,
+                      animateIterations: false,
+                    }))
+              }
+            >
+              {exploring ? "Back outside" : "Explore inside"}
+            </button>
+          )
+        }
         mode="scene"
         onUpdate={handleUpdate}
         shareRules={[
+          { path: "navigation", kind: "select", options: ["orbit", "explore"] },
+          { path: "cameraDistance", kind: "number", min: 3, max: INITIAL_CAMERA_DISTANCE },
+          { path: "rotationX", kind: "number", min: -180, max: 180 },
+          { path: "rotationY", kind: "number", min: -180, max: 180 },
           {
             path: "iterations",
             kind: "number",
@@ -201,17 +253,36 @@ export function SceneFractalExplorer<V extends string>({
             options={variantOptions}
           />
         )}
-        <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />
-        <PanelBoolean path="animateIterations" label={animateLabel} />
-        <PanelBoolean path="autoRotate" />
-        <PanelNumber path="rotationX" min={-180} max={180} step={1} />
-        <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-        <PanelNumber path="cameraDistance" min={3} max={INITIAL_CAMERA_DISTANCE} step={0.1} />
+        {exploring && <FlightInstructions />}
+        {!exploring && <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />}
+        {!exploring && <PanelBoolean path="animateIterations" label={animateLabel} />}
+        {!exploring && <PanelBoolean path="autoRotate" />}
+        {!exploring && <PanelNumber path="rotationX" min={-180} max={180} step={1} />}
+        {!exploring && <PanelNumber path="rotationY" min={-180} max={180} step={1} />}
+        {!exploring && (
+          <PanelNumber path="cameraDistance" min={3} max={INITIAL_CAMERA_DISTANCE} step={0.1} />
+        )}
+
         <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
         <PanelBoolean path="showFaces" />
         <PanelBoolean path="showWireframe" />
       </ExplorerPanel>
-      <div className={styles.fullScreen} ref={containerRef} />
+      <div
+        className={styles.fullScreen}
+        ref={containerRef}
+        aria-hidden={exploring || undefined}
+        style={exploring ? { visibility: "hidden", pointerEvents: "none" } : undefined}
+      />
+      {exploring && width && height && (
+        <VoxelFlight
+          key={config.variant}
+          pattern={pattern}
+          style={config}
+          width={width}
+          height={height}
+          onExit={backOutside}
+        />
+      )}
       <SideDrawer description={description} />
       <NavElement />
     </main>

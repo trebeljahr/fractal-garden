@@ -1,0 +1,111 @@
+.stage {
+  position: absolute;
+  inset: 0;
+  height: 100vh;
+  z-index: 5;
+}
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+}
+.stage canvas:active {
+  cursor: grabbing;
+}
+.stage canvas:focus-visible {
+  outline: 1px solid var(--explorer-accent);
+  outline-offset: -2px;
+}
+.navigation {
+  height: var(--explorer-control-height);
+  padding: 0 16px;
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 3px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  font:
+    500 14px "Montserrat",
+    sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.navigation:hover {
+  background: var(--explorer-field);
+  color: var(--explorer-accent);
+}
+.navigation:focus-visible,
+.movement button:focus-visible {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -2px;
+}
+.instructions {
+  padding: 10px 12px;
+  margin: 0;
+  color: var(--explorer-ink);
+  font:
+    12px / 1.6 "Montserrat",
+    sans-serif;
+  border-top: 1px solid rgba(245, 241, 209, 0.12);
+}
+.movement {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  z-index: 22;
+  left: 50%;
+  bottom: calc(var(--explorer-nav-height) + var(--explorer-nav-gap) + 16px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.movement button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(245, 241, 209, 0.24);
+  border-radius: 3px;
+  color: var(--explorer-ink);
+  background: var(--explorer-surface);
+  font:
+    20px "Montserrat",
+    sans-serif;
+  cursor: pointer;
+  touch-action: none;
+}
+.movement button:active {
+  color: var(--explorer-accent);
+  background: var(--explorer-field);
+}
+.error {
+  position: absolute;
+  top: calc(var(--explorer-header-height) + 16px);
+  left: 16px;
+  right: 16px;
+  padding: 12px;
+  color: var(--explorer-ink);
+  background: var(--explorer-surface);
+  font:
+    13px / 1.5 "Montserrat",
+    sans-serif;
+  border-left: 2px solid var(--explorer-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .movement {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .navigation {
+    transition: none;
+  }
+}

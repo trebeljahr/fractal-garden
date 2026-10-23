@@ -25,3 +25,9 @@ $$
 It approaches zero as the number of steps grows without limit. The exposed surface area grows without bound. The on-screen sponge is a finite approximation, with positive volume and a finite number of faces.
 
 The [3D Vicsek fractal](/vicsek-fractal-3d) keeps seven cubes per step. The [Mosely snowflake](/mosely-snowflake) removes different cubes, producing a different arrangement of openings.
+
+## Explore the interior
+
+Choose **Explore inside** to move through the openings. Drag to look around, then scroll to move forward or backward. Shift-drag moves sideways. On a keyboard, use WASD to move and Q/E to move down or up. On a touch screen, drag to look, pinch to move, or hold the movement buttons.
+
+Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Detail smaller than a few screen pixels is omitted, and difficult views can draw more coarsely. Choose **Back outside**, or press Escape while the view is focused, to return to the whole shape.
