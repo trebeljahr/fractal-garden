@@ -20,6 +20,8 @@ uniform vec3 u_stroke;
 uniform bool u_faces;
 uniform bool u_wire;
 uniform float u_lineWidth;
+uniform int u_lighting;
+uniform int u_aoMode;
 
 bool kept(vec3 digit) {
     float centers = (digit.x == 1.0 ? 1.0 : 0.0) + (digit.y == 1.0 ? 1.0 : 0.0) + (digit.z == 1.0 ? 1.0 : 0.0);
@@ -27,6 +29,70 @@ bool kept(vec3 digit) {
     if (u_pattern == 1) return centers >= 2.0;
     if (u_pattern == 2) return centers > 0.0 && centers < 3.0;
     return centers > 0.0;
+}
+
+float occupiedRoot(vec3 p) {
+    return all(greaterThan(p, u_low)) && all(lessThan(p, u_high)) ? 1.0 : 0.0;
+}
+
+float occupiedRule(vec3 p, vec4 grid, vec3 base) {
+    return kept(mod(base + floor((p - grid.xyz) / grid.w), 3.0)) ? 1.0 : 0.0;
+}
+
+float cornerDarkness(float a, float b, float diagonal) {
+    return a * b > 0.5 ? 1.0 : (a + b + diagonal) / 3.0;
+}
+
+// The surface's actual cavity scale, not its pixel-detail or outline level.
+// All neighbours share an ancestor scan; no secondary rays are traced.
+float surfaceOcclusion(vec3 p, vec3 normal, vec4 surfaceGrid, int surfaceLevel) {
+    if (surfaceLevel < 0) return 0.0; // An outer root face has no enclosing neighbours.
+    float size = surfaceGrid.w;
+    vec3 U = abs(normal.x) > 0.5 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    vec3 V = abs(normal.z) > 0.5 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+    vec3 low = surfaceGrid.xyz + floor((p - normal * size * 0.001 - surfaceGrid.xyz) / size) * size;
+    vec2 face = clamp(vec2(dot(p - low, U), dot(p - low, V)) / size, 0.0, 1.0);
+    vec4 weights = vec4(1.0);
+    if (u_aoMode == 1) {
+        vec4 distance = vec4(face.x, 1.0 - face.x, face.y, 1.0 - face.y);
+        weights = 1.0 - smoothstep(vec4(0.0), vec4(0.18), distance);
+        if (dot(weights, vec4(1.0)) == 0.0) return 0.0;
+    }
+    vec3 center = low + vec3(0.5 * size);
+    // Anchor the outside layer to the exact crossed plane, even at deep zoom.
+    center += normal * (dot(p - center, normal) + 0.5 * size);
+    vec3 left = center - U * size, right = center + U * size;
+    vec3 bottom = center - V * size, top = center + V * size;
+    vec3 lb = left - V * size, rb = right - V * size;
+    vec3 lt = left + V * size, rt = right + V * size;
+    vec4 sides = vec4(occupiedRoot(left), occupiedRoot(right), occupiedRoot(bottom), occupiedRoot(top));
+    sides *= step(vec4(0.0001), weights);
+    vec4 corners = vec4(0.0);
+    if (u_aoMode == 2) corners = vec4(occupiedRoot(lb), occupiedRoot(rb), occupiedRoot(lt), occupiedRoot(rt));
+    for (int level = 0; level < 256; level++) {
+        if (level > surfaceLevel || level >= u_levels) break;
+        if (dot(sides + corners, vec4(1.0)) < 0.5) break;
+        float x = (float(level) + 0.5) / 256.0;
+        vec4 grid = texture2D(u_grid, vec2(x, 0.25));
+        vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
+        sides *= vec4(occupiedRule(left, grid, base), occupiedRule(right, grid, base),
+                      occupiedRule(bottom, grid, base), occupiedRule(top, grid, base));
+        if (u_aoMode == 2) {
+            corners *= vec4(occupiedRule(lb, grid, base), occupiedRule(rb, grid, base),
+                            occupiedRule(lt, grid, base), occupiedRule(rt, grid, base));
+        }
+    }
+    if (u_aoMode == 1) {
+        // Contact bands fade smoothly away from occupied side neighbours.
+        vec4 contact = sides * weights;
+        return 1.0 - (1.0 - contact.x) * (1.0 - contact.y) * (1.0 - contact.z) * (1.0 - contact.w);
+    }
+    // Minecraft's two-side/one-diagonal corner rule, bilinearly interpolated.
+    vec4 dark = vec4(cornerDarkness(sides.x, sides.z, corners.x),
+                     cornerDarkness(sides.y, sides.z, corners.y),
+                     cornerDarkness(sides.x, sides.w, corners.z),
+                     cornerDarkness(sides.y, sides.w, corners.w));
+    return mix(mix(dark.x, dark.y, face.x), mix(dark.z, dark.w, face.x), face.y);
 }
 
 void main() {
@@ -48,11 +114,18 @@ void main() {
     float cellSize = 1.0;
     float footprint = u_nearFootprint;
     vec3 rootNormal = normal;
+    vec4 surfaceGrid = vec4(0.0);
+    int surfaceLevel = -1;
+    float surfaceDepth = 0.0;
+    float surfaceT = t;
     // Retry unusually expensive grazing rays at a coarser footprint instead
     // of turning an unfinished traversal into a false hole.
     for (int attempt = 0; attempt < 2; attempt++) {
       t = max(0.0, near);
       normal = rootNormal;
+      surfaceLevel = -1;
+      surfaceDepth = 0.0;
+      surfaceT = t;
       int retainedLevels = 0;
       vec3 retainedLow = vec3(-1e30);
       vec3 retainedHigh = vec3(1e30);
@@ -94,7 +167,8 @@ void main() {
                 // Stop before evaluating holes smaller than the ray's pixel cone.
                 // Distance and clearance share the camera's zoom-scaled units.
                 if (size < footprint) break;
-                vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
+                vec4 rule = texture2D(u_grid, vec2(x, 0.75));
+                vec3 base = rule.xyz;
                 vec3 cell = floor((p - grid.xyz) / size);
                 vec3 digit = mod(base + cell, 3.0);
                 vec3 low = grid.xyz + cell * size;
@@ -105,6 +179,11 @@ void main() {
                     float jump = min(min(distances.x, distances.y), distances.z);
                     normal = distances.x <= distances.y && distances.x <= distances.z ? vec3(-sign(ray.x), 0.0, 0.0)
                         : distances.y <= distances.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
+                    surfaceGrid = grid;
+                    surfaceLevel = level;
+                    surfaceDepth = rule.w;
+                    // Remove the traversal's forward bias from the shading position.
+                    surfaceT = t + footprint * 0.025 + jump;
                     t += max(jump + footprint * 0.03, footprint * 0.05);
                     empty = true;
                     break;
@@ -134,6 +213,24 @@ void main() {
         float facing = 0.15 * max(0.0, dot(normal, -ray));
         float light = 0.38 + 0.62 * diffuse + facing;
         color = u_fill * light;
+        float occlusion = 0.0;
+        if (u_aoMode > 0 && u_faces && surfaceLevel >= 0) {
+            float resolved = smoothstep(2.0, 8.0, surfaceGrid.w / footprint);
+            // CPU-pruned ancestors are valid in the local horizon, including these neighbours.
+            resolved *= 1.0 - smoothstep(0.125, 0.25, surfaceGrid.w / u_farDistance);
+            if (resolved > 0.0) occlusion = resolved * surfaceOcclusion(ray * surfaceT, normal, surfaceGrid, surfaceLevel);
+        }
+        float ambientVisibility = 1.0 - (u_aoMode == 2 ? 0.7 : 0.55) * occlusion;
+        if (u_lighting == 1 && u_faces) {
+            // Absolute cavity depth stays attached to geometry as precision and LOD change.
+            float nested = 0.5 + 0.5 * sin(surfaceDepth * 0.9);
+            vec3 material = u_fill * mix(vec3(1.07, 0.99, 0.91), vec3(0.91, 0.99, 1.07), nested);
+            vec3 ambient = mix(vec3(0.29, 0.34, 0.43), vec3(0.43, 0.43, 0.40), 0.5 + 0.5 * normal.y);
+            vec3 illumination = ambient * ambientVisibility + 0.62 * diffuse * vec3(1.08, 1.0, 0.88) + facing * 0.75;
+            color = material * illumination;
+        } else if (u_aoMode > 0) {
+            color = u_fill * (0.38 * ambientVisibility + 0.62 * diffuse + facing);
+        }
         vec3 faceEdges = min(local, 1.0 - local);
         // Ignore the surface-normal axis when finding edges on this face.
         faceEdges += abs(normal) * 2.0;
@@ -146,7 +243,10 @@ void main() {
         float distance = t * u_fogDistanceScale;
         float haze = 1.0 - exp(-u_fogDensity * max(0.0, distance - u_fogStart));
         float fog = clamp(haze / (1.0 - exp(-u_fogDensity * (1.0 - u_fogStart))), 0.0, 1.0);
-        color = mix(color, u_background, fog);
+        // A cool middle distance separates layers; the horizon still matches the backdrop.
+        vec3 atmosphere = u_background;
+        if (u_lighting == 1 && u_faces) atmosphere = mix(u_background, vec3(0.13, 0.18, 0.23), 0.3 * (1.0 - fog));
+        color = mix(color, atmosphere, fog);
     }
     gl_FragColor = vec4(color, 1.0);
 }

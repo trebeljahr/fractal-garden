@@ -38,6 +38,8 @@ type Config<V extends string> = {
   showFaces: boolean;
   showWireframe: boolean;
   lineWidth: number;
+  lighting: "classic" | "depth";
+  occlusion: "off" | "soft" | "minecraft";
 };
 
 type Props<V extends string> = {
@@ -97,6 +99,8 @@ export function SceneFractalExplorer<V extends string>({
     showFaces: true,
     showWireframe: true,
     lineWidth,
+    lighting: "depth",
+    occlusion: "soft",
   });
   const variant = variants[config.variant];
   const pattern: VoxelPattern | null =
@@ -225,6 +229,8 @@ export function SceneFractalExplorer<V extends string>({
         onUpdate={handleUpdate}
         shareRules={[
           { path: "navigation", kind: "select", options: ["orbit", "explore"] },
+          { path: "lighting", kind: "select", options: ["classic", "depth"] },
+          { path: "occlusion", kind: "select", options: ["off", "soft", "minecraft"] },
           { path: "cameraDistance", kind: "number", min: 3, max: INITIAL_CAMERA_DISTANCE },
           { path: "rotationX", kind: "number", min: -180, max: 180 },
           { path: "rotationY", kind: "number", min: -180, max: 180 },
@@ -256,6 +262,17 @@ export function SceneFractalExplorer<V extends string>({
           />
         )}
         {exploring && <FlightInstructions />}
+        {exploring && (
+          <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
+        )}
+        {exploring && (
+          <PanelSelect
+            path="occlusion"
+            label="Corner shading"
+            options={["off", "soft", "minecraft"]}
+            optionLabels={["Off", "Soft", "Minecraft AO"]}
+          />
+        )}
         {!exploring && <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />}
         {!exploring && <PanelBoolean path="animateIterations" label={animateLabel} />}
         {!exploring && <PanelBoolean path="autoRotate" />}

@@ -21,6 +21,8 @@ export type FlightStyle = {
   showFaces: boolean;
   showWireframe: boolean;
   lineWidth: number;
+  lighting?: "classic" | "depth";
+  occlusion?: "off" | "soft" | "minecraft";
 };
 const rgb = (hex: string) =>
   [1, 3, 5].map((at) => Number.parseInt(hex.slice(at, at + 2), 16) / 255) as [
@@ -80,6 +82,8 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     "faces",
     "wire",
     "lineWidth",
+    "lighting",
+    "aoMode",
   ];
   const u = Object.fromEntries(
     names.map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
@@ -181,6 +185,11 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.uniform1i(u.faces, style.showFaces ? 1 : 0);
       gl.uniform1i(u.wire, style.showWireframe ? 1 : 0);
       gl.uniform1f(u.lineWidth, style.lineWidth);
+      gl.uniform1i(u.lighting, style.lighting === "classic" ? 0 : 1);
+      gl.uniform1i(
+        u.aoMode,
+        style.occlusion === "off" ? 0 : style.occlusion === "minecraft" ? 2 : 1,
+      );
       gl.enable(gl.SCISSOR_TEST);
       gl.scissor(visible.x, visible.y, visible.width, visible.height);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
