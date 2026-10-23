@@ -27,3 +27,13 @@
 .viewport canvas {
   display: block;
 }
+
+.endlessPattern {
+  composes: fullScreen;
+}
+
+/* The opening tree clears chrome; explored branches fill the whole screen. */
+:global(body[data-fractal-zoom]) .endlessPattern {
+  --fractal-viewport-top: 0px;
+  --fractal-viewport-bottom: 0px;
+}

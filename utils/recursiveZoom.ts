@@ -1,3 +1,4 @@
+import { canopyFrame } from "./canopyZoom";
 import { finite, isRecord } from "./explorerShare";
 import {
   fixedCosSinOf,
@@ -7,6 +8,7 @@ import {
   rescale,
 } from "./lsystem/bigfixed";
 import { MAX_ZOOM } from "./lsystem/zoom";
+import type { FractalCanopyParams } from "./render/drawings/fractalCanopy";
 import type { NFlakeParams } from "./render/drawings/nFlake";
 import { usesCenterPolygon } from "./render/drawings/nFlake";
 import type { SierpinskiCarpetParams } from "./render/drawings/sierpinskiCarpet";
@@ -14,6 +16,7 @@ import type { TSquareParams } from "./render/drawings/tSquare";
 import { VICSEK_OFFSETS, type VicsekFractal2DParams } from "./render/drawings/vicsekFractal2D";
 
 export type RecursivePattern =
+  | { kind: "canopy"; config: FractalCanopyParams }
   | { kind: "carpet"; config: SierpinskiCarpetParams }
   | { kind: "vicsek"; config: VicsekFractal2DParams }
   | { kind: "flake"; config: NFlakeParams }
@@ -34,7 +37,12 @@ const ONE = BigInt(1);
 const TWO = BigInt(2);
 const THREE = BigInt(3);
 
-export function initialPatternCamera(pattern: RecursivePattern): PatternCamera {
+export function initialPatternCamera(
+  pattern: RecursivePattern,
+  width = 1000,
+  height = 1000,
+): PatternCamera {
+  if (pattern.kind === "canopy") return canopyFrame(pattern.config, width, height).camera;
   let frame = pattern.kind === "carpet" ? 0.8 : pattern.kind === "flake" ? 0.42 : 0.84;
   if (pattern.kind === "tSquare") {
     const { ratio: r, iterations: n } = pattern.config;
@@ -76,7 +84,7 @@ export function restorePatternCamera(saved: unknown): PatternCamera {
   if (
     !isRecord(saved) ||
     !finite(saved.zoom, 1, MAX_ZOOM) ||
-    !finite(saved.frame, 0.01, 1) ||
+    !finite(saved.frame, 1e-8, 10) ||
     !finite(saved.bits, 96, 2048) ||
     !Number.isInteger(saved.bits) ||
     saved.bits < Math.ceil(Math.log2(saved.zoom)) + 64 ||
@@ -105,6 +113,7 @@ export type PatternModel = {
 };
 
 export function patternModel(pattern: RecursivePattern, bits: number): PatternModel {
+  if (pattern.kind === "canopy") throw new Error("Canopies use branch geometry");
   const one = ONE << BigInt(bits);
   const half = one / TWO;
   const square: [bigint, bigint][] = [

@@ -1,3 +1,5 @@
+import { buildCanopyGeometry } from "../canopyZoom";
+import { rgb } from "../ctxHelpers";
 import {
   buildPatternGeometry,
   carpetDetailOpacity,
@@ -19,6 +21,10 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
   update(params: RecursiveZoomParams) {
     const { iterations: _, ...shape } = params.pattern.config;
     const key = JSON.stringify([params.pattern.kind, shape, params.camera.bits]);
+    if (params.pattern.kind === "canopy") {
+      this.params = params;
+      return;
+    }
     if (this.key !== key) {
       this.model = patternModel(params.pattern, params.camera.bits);
       this.key = key;
@@ -27,7 +33,28 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
   }
 
   draw(ctx: Context2D, width: number, height: number) {
-    if (!this.params || !this.model) return false;
+    if (!this.params) return false;
+    if (this.params.pattern.kind === "canopy") {
+      const { config } = this.params.pattern;
+      const geometry = buildCanopyGeometry(config, this.params.camera, width, height);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.lineCap = "butt";
+      for (const [depth, level] of Array.from(geometry.levels)) {
+        const path = new Path2D();
+        for (const [x, y, endX, endY] of level.lines) {
+          path.moveTo(x, y);
+          path.lineTo(endX, endY);
+        }
+        const colorLevel = Math.min(depth, config.iterations - 1);
+        ctx.strokeStyle = rgb(100 + colorLevel * 5, 100 + colorLevel * 15.5, 100);
+        ctx.lineWidth = level.width;
+        ctx.stroke(path);
+      }
+      this.work = geometry.visited;
+      return false;
+    }
+    if (!this.model) return false;
     const { pattern, camera } = this.params;
     const { config } = pattern;
     const geometry = buildPatternGeometry(pattern, camera, width, height, this.model);

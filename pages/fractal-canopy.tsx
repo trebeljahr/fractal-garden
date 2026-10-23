@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
+import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { getDescription } from "../utils/readFiles";
 import type { FractalCanopyParams } from "../utils/render/drawings/fractalCanopy";
 
@@ -138,19 +137,6 @@ const FractalTree = ({ description }: Props) => {
     [config],
   );
 
-  // Drawn on a worker: deep, many-branched trees take a while to stroke.
-  const { containerRef, canvas, setParams } = useRenderSurface({
-    kind: "fractalCanopy",
-    params,
-    width,
-    height,
-  });
-
-  const viewport = useCanvasViewport(canvas);
-  useEffect(() => {
-    setParams({ ...params, viewport });
-  }, [params, viewport, setParams]);
-
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => {
       if (newData.option !== prevState.option) {
@@ -161,34 +147,36 @@ const FractalTree = ({ description }: Props) => {
   };
 
   return (
-    <>
-      <main className={styles.fullScreen}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate} onRestore={setConfig}>
-          <PanelColor path="background" />
-          <PanelSelect
-            path="option"
-            label="Starting shape"
-            optionLabels={canopyOptions.map((option) => canopyLabels[option])}
-            options={canopyOptions}
-          />
-          <PanelNumber path="angle" min={0} max={360} step={1} />
-          <PanelBoolean path="animateAngle" />
-          <PanelNumber path="maxIterations" min={1} max={9} step={1} />
-          <PanelNumber path="branches" min={2} max={6} step={1} />
-          <PanelNumber path="lengthFactor" min={0} max={1} step={0.01} />
-          <PanelNumber path="widthFactor" min={0} max={2} step={0.1} />
-          <PanelNumber path="rootWidth" min={1} max={60} step={0.5} />
-        </ExplorerPanel>
-        <div
-          data-fractal-viewport
-          className={styles.viewport}
-          style={{ background: config.background }}
-          ref={containerRef}
+    <main className={styles.endlessPattern}>
+      <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate} onRestore={setConfig}>
+        <PanelColor path="background" />
+        <PanelSelect
+          path="option"
+          label="Starting shape"
+          optionLabels={canopyOptions.map((option) => canopyLabels[option])}
+          options={canopyOptions}
         />
-        <SideDrawer description={description} />
-        <NavElement />
-      </main>
-    </>
+        <PanelNumber path="angle" min={0} max={360} step={1} />
+        <PanelBoolean path="animateAngle" />
+        <PanelNumber path="maxIterations" min={1} max={9} step={1} />
+        <PanelNumber path="branches" min={2} max={6} step={1} />
+        <PanelNumber path="lengthFactor" min={0} max={1} step={0.01} />
+        <PanelNumber path="widthFactor" min={0} max={2} step={0.1} />
+        <PanelNumber path="rootWidth" min={1} max={60} step={0.5} />
+      </ExplorerPanel>
+      <div
+        data-fractal-viewport
+        className={styles.viewport}
+        style={{ background: config.background }}
+      />
+      <RecursivePatternZoom
+        pattern={{ kind: "canopy", config: params }}
+        width={width}
+        height={height}
+      />
+      <SideDrawer description={description} />
+      <NavElement />
+    </main>
   );
 };
 
