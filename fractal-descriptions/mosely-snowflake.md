@@ -8,6 +8,8 @@ It belongs to the same family of recursive cube fractals as the [2D Vicsek Fract
 
 ## A Koch snowflake inside the cubes
 
+<figure data-article-images="mosely-koch"></figure>
+
 Look along a cube's body diagonal, from one corner toward the opposite corner. From this direction, a cube has a hexagonal outline. Repeatedly removing its corner cubes turns that outline into the boundary of a [Koch Snowflake](/l-system/koch-snowflake).
 
 The connection comes from the construction. Each smaller cube projects to a smaller hexagon, with one third of the original width. Their overlapping projections leave an outline that approaches the same Koch boundary as the familiar construction with triangles. Projecting the cubes preserves their scale and placement, so the relationship continues at every level.

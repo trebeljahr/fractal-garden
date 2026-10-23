@@ -298,7 +298,7 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
   }
 }
 
-@media (min-width: 701px) and (max-width: 1100px) {
+@media (min-width: 701px) and (max-width: 1280px) {
   :root:has([data-fractal-header-controls]) {
     --explorer-header-height: 88px;
   }
@@ -311,7 +311,7 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
 }
 
 @media (max-width: 700px) {
-  :root:has([data-fractal-header-controls] [data-fractal-places]) {
+  :root:has([data-fractal-header-controls] [data-fractal-studio]) {
     --explorer-header-height: 156px;
   }
 }

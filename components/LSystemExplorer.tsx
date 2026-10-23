@@ -32,7 +32,7 @@ import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
 
-type Props = { presets: Preset[] };
+type Props = { presets: Preset[]; viewControlsHost?: HTMLElement | null };
 
 type Field = { kind: "axiom" } | { kind: "rule"; index: number };
 
@@ -146,7 +146,7 @@ function sameSpec(a: LSystemSpec, b: LSystemSpec) {
   return encodeSpec(a) === encodeSpec(b);
 }
 
-export const LSystemExplorer = ({ presets }: Props) => {
+export const LSystemExplorer = ({ presets, viewControlsHost }: Props) => {
   const [spec, setSpec] = useState<LSystemSpec>(presets[0].spec);
   const [presetSlug, setPresetSlug] = useState(presets[0].slug);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
@@ -736,6 +736,7 @@ export const LSystemExplorer = ({ presets }: Props) => {
       </div>
 
       <ExplorerContextMenu
+        viewControlsHost={viewControlsHost}
         onCopyLink={() => copy(shareLink(), "Link copied.")}
         onSavePng={savePng}
         onUIVisibilityChange={setUiVisible}

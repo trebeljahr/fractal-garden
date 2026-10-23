@@ -28,8 +28,6 @@ export function ExplorerTools<T>({
 }: Props<T>) {
   const [message, setMessage] = useState("");
   const [manualLink, setManualLink] = useState("");
-  const [sharedLink, setSharedLink] = useState("");
-  const [pngUrl, setPngUrl] = useState("");
   const [saving, setSaving] = useState(false);
   useExplorerPart(
     "config",
@@ -43,7 +41,6 @@ export function ExplorerTools<T>({
     const check = () => {
       setMessage("");
       setManualLink("");
-      setSharedLink("");
       try {
         decodeView(window.location.hash, window.location.pathname);
       } catch {
@@ -59,6 +56,12 @@ export function ExplorerTools<T>({
     };
   }, []);
 
+  useEffect(() => {
+    if (message !== "Link copied." && message !== "PNG ready.") return;
+    const timer = setTimeout(() => setMessage(""), 3000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   const copyLink = async () => {
     try {
       const parts: Record<string, unknown> = {};
@@ -66,7 +69,6 @@ export function ExplorerTools<T>({
       window.dispatchEvent(new CustomEvent(CAPTURE_VIEW, { detail: { parts, pending } }));
       await Promise.all(pending);
       const url = `${window.location.origin}${window.location.pathname}${encodeView(window.location.pathname, parts)}`;
-      setSharedLink(url);
       try {
         await navigator.clipboard.writeText(url);
         setManualLink("");
@@ -103,7 +105,6 @@ export function ExplorerTools<T>({
         if (!canvas) throw new Error("Drawing not ready");
         const url = canvas.toDataURL("image/png");
         if (url === "data:,") throw new Error("Empty drawing");
-        setPngUrl(url);
         const link = document.createElement("a");
         link.download = `fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`;
         link.href = url;
@@ -127,33 +128,21 @@ export function ExplorerTools<T>({
       animation={animation}
       viewControlsHost={viewControlsHost}
     >
-      <div className={styles.tools}>
-        <p className={styles.status} role="status">
-          {message}
-        </p>
-        {sharedLink && !manualLink && (
-          <a className={styles.savedLink} href={sharedLink}>
-            Open saved view
-          </a>
-        )}
-        {pngUrl && (
-          <a
-            className={styles.savedLink}
-            href={pngUrl}
-            download={`fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`}
-          >
-            Download PNG
-          </a>
-        )}
-        {manualLink && (
-          <input
-            aria-label="Link to this view"
-            readOnly
-            value={manualLink}
-            onFocus={(event) => event.target.select()}
-          />
-        )}
-      </div>
+      {(message || manualLink) && (
+        <div className={styles.tools}>
+          <p className={styles.status} role="status">
+            {message}
+          </p>
+          {manualLink && (
+            <input
+              aria-label="Link to this view"
+              readOnly
+              value={manualLink}
+              onFocus={(event) => event.target.select()}
+            />
+          )}
+        </div>
+      )}
     </ExplorerContextMenu>
   );
 }

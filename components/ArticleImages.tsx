@@ -1,7 +1,19 @@
 import Image from "next/legacy/image";
 import styles from "../styles/ArticleImages.module.css";
+import { MOSELY_KOCH_LINK } from "../utils/moselyKochView";
 
 const IMAGES = {
+  "mosely-koch": [
+    {
+      name: "mosely-koch-opening",
+      alt: "A dark Koch snowflake opening surrounded by blue recursive cube walls inside the Mosely snowflake",
+      caption:
+        "From the central cavity, a view along a body diagonal reveals a Koch-shaped opening.",
+      href: MOSELY_KOCH_LINK,
+      width: 1200,
+      height: 750,
+    },
+  ],
   carpet: [
     {
       name: "carpet-depth-1",
@@ -74,20 +86,60 @@ export function isArticleImageKind(value: unknown): value is ArticleImageKind {
 }
 
 export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
+  const openView = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    event.preventDefault();
+    if (window.location.hash !== new URL(href, window.location.origin).hash)
+      window.history.pushState(null, "", href);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLCanvasElement>('canvas[aria-label="Explore the fractal interior"]')
+        ?.focus({ preventScroll: true });
+    });
+  };
   return (
     <div className={styles.images}>
-      {IMAGES[kind].map((image) => (
-        <figure key={image.name}>
+      {IMAGES[kind].map((image) => {
+        const href = "href" in image ? image.href : undefined;
+        const picture = (
           <Image
             src={`/assets/article-images/${image.name}.webp`}
-            width={1280}
-            height={720}
+            width={"width" in image ? image.width : 1280}
+            height={"height" in image ? image.height : 720}
             alt={image.alt}
             layout="responsive"
           />
-          <figcaption>{image.caption}</figcaption>
-        </figure>
-      ))}
+        );
+        return (
+          <figure key={image.name}>
+            {href ? (
+              <a
+                href={href}
+                onClick={(event) => openView(event, href)}
+                aria-label="Explore the Koch snowflake opening"
+              >
+                {picture}
+              </a>
+            ) : (
+              picture
+            )}
+            <figcaption>
+              {image.caption}
+              {href && (
+                <>
+                  {" "}
+                  <a href={href} onClick={(event) => openView(event, href)}>
+                    Explore this view
+                  </a>
+                </>
+              )}
+            </figcaption>
+          </figure>
+        );
+      })}
     </div>
   );
 }

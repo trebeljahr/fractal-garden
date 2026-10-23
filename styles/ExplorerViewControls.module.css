@@ -8,6 +8,40 @@
   flex: 0 0 auto;
   pointer-events: auto;
 }
+.controls .capture {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.feedback {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: min(320px, calc(100vw - 24px));
+  padding: 10px;
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 3px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+}
+@media (max-width: 700px) {
+  .controls {
+    gap: 6px;
+  }
+  .controls .capture {
+    flex-direction: column;
+    gap: 2px;
+    width: 68px;
+    padding: 2px;
+    font-size: 10px;
+  }
+}
 .controls button,
 .restore button {
   display: grid;

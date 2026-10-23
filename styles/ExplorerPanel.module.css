@@ -923,13 +923,14 @@
 }
 
 @media (max-width: 700px) {
-  .headerControls .studioGroup:has(.placesHost) {
+  .headerControls .studioGroup {
     display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px 12px;
   }
 
-  .headerControls .studioGroup:has(.placesHost) .studio {
+  .headerControls .viewControlsHost,
+  .headerControls .studioGroup:not(:has(.placesHost)) .studio {
     grid-column: 1 / -1;
   }
 

@@ -70,7 +70,7 @@
   min-width: 0;
 }
 
-@media (min-width: 701px) and (max-width: 1100px) {
+@media (min-width: 701px) and (max-width: 1280px) {
   .withControls {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -94,7 +94,7 @@
     padding: 8px 12px;
   }
 
-  .withControls:has([data-fractal-places]) {
+  .withControls:has([data-fractal-studio]) {
     grid-template-rows: var(--explorer-control-height) calc(
         2 *
         var(--explorer-control-height) +

@@ -10,14 +10,6 @@
 .status:empty {
   display: none;
 }
-.savedLink {
-  display: inline-block;
-  padding: 0.4rem 0;
-  font-size: 12px;
-  color: var(--explorer-ink);
-  text-underline-offset: 0.25em;
-  margin-right: 1rem;
-}
 .tools input {
   width: 100%;
   margin-top: 0.6rem;

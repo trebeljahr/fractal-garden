@@ -145,7 +145,7 @@ export function ExplorerPanel<T>({
         lines={lines ?? defaults.lines}
         controls={
           <div className={`${styles.panel} ${styles.headerControls}`}>
-            <div className={styles.studioGroup}>
+            <div className={styles.studioGroup} data-fractal-studio>
               <div ref={setViewControlsHost} className={styles.viewControlsHost} />
               {places && <div className={styles.placesHost}>{places}</div>}
               <aside className={styles.studio} aria-label={CONTROLS_TITLE}>

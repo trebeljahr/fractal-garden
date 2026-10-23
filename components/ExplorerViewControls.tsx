@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/ExplorerViewControls.module.css";
 
@@ -52,6 +52,10 @@ type Props = {
   error: string;
   onToggleUI: () => void;
   onToggleFullscreen: () => void;
+  onCopyLink: () => void;
+  onSavePng: () => void;
+  saving?: boolean;
+  feedback?: ReactNode;
 };
 
 export function ExplorerViewControls({
@@ -62,6 +66,10 @@ export function ExplorerViewControls({
   error,
   onToggleUI,
   onToggleFullscreen,
+  onCopyLink,
+  onSavePng,
+  saving,
+  feedback,
 }: Props) {
   const wasClean = useRef(false);
   const hideButton = useRef<HTMLButtonElement>(null);
@@ -79,6 +87,55 @@ export function ExplorerViewControls({
 
   const controls = (
     <div className={clean ? styles.restore : styles.controls}>
+      {!clean && (
+        <>
+          <button
+            type="button"
+            className={styles.capture}
+            onClick={onCopyLink}
+            title="Copy a link to this view"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m10 13 4-4m-6 2-2 2a3.5 3.5 0 0 0 5 5l3-3m-4-8 3-3a3.5 3.5 0 0 1 5 5l-2 2" />
+            </svg>
+            <span>Copy link</span>
+          </button>
+          <button
+            type="button"
+            className={styles.capture}
+            onClick={onSavePng}
+            disabled={saving}
+            title="Save this view as a PNG image"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4" />
+            </svg>
+            <span>{saving ? "Saving…" : "Save image"}</span>
+          </button>
+        </>
+      )}
       {animation && !clean && (
         <button
           type="button"
@@ -127,6 +184,7 @@ export function ExplorerViewControls({
           {error}
         </p>
       )}
+      {feedback && !clean && <div className={styles.feedback}>{feedback}</div>}
     </div>
   );
   return clean ? createPortal(controls, document.body) : controls;

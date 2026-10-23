@@ -214,6 +214,10 @@ export function ExplorerContextMenu({
               setClean(!clean);
             }}
             onToggleFullscreen={() => void toggleFullscreen(false)}
+            onCopyLink={onCopyLink}
+            onSavePng={onSavePng}
+            saving={saving}
+            feedback={position ? undefined : children}
           />,
           viewControlsHost,
         )}
