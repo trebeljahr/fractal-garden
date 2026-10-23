@@ -1,6 +1,8 @@
+import type { CanvasViewport } from "../../canvasViewport";
 import type { Context2D } from "../types";
 
 export type ApollonianGasketParams = {
+  viewport?: CanvasViewport;
   iterations: number;
   background: string;
   color: string;

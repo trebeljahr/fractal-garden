@@ -27,7 +27,7 @@ const DragonCurve = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#9af4ff",
     lineWidth: 1.5,

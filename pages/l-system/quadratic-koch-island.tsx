@@ -27,7 +27,7 @@ const QuadraticKochIsland = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#a0e7a0",
     lineWidth: 1.5,

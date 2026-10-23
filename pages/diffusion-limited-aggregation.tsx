@@ -5,6 +5,8 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { applyCanvasViewport } from "../utils/canvasViewport";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 
@@ -33,7 +35,7 @@ const INITIAL_CONFIG: Config = {
   firstColor: "#ffd27a",
   lastColor: "#3fc9c1",
   background: "#252424",
-  paused: false,
+  paused: true,
 };
 
 // Size of one lattice cell in CSS pixels.
@@ -57,6 +59,14 @@ function parseHexColor(hex: string) {
 const DiffusionLimitedAggregation = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const viewport = useCanvasViewport(ctx?.canvas ?? null);
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
+  const redraw = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    viewportRef.current = viewport;
+    redraw.current?.();
+  }, [viewport]);
   const [config, setConfig] = useState(INITIAL_CONFIG);
   const [restartCount, setRestartCount] = useState(0);
   const pausedRef = useRef(config.paused);
@@ -268,7 +278,11 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
       offCtx.putImageData(image, 0, 0);
       ctx.resetTransform();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(offscreen, 0, 0, renderWidth, renderHeight);
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, renderWidth, renderHeight);
+      ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+      applyCanvasViewport(ctx, width, height, viewportRef.current);
+      ctx.drawImage(offscreen, 0, 0, width, height);
       ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
       ctx.font = "14px monospace";
       ctx.fillStyle = lastColor;
@@ -297,10 +311,22 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
       frameId = requestAnimationFrame(tick);
     };
 
+    // Build a small opening cluster without playing its construction.
+    const openingStarted = performance.now();
+    while (
+      particles < Math.min(1000, particleBudget) &&
+      !done &&
+      performance.now() - openingStarted < 80
+    ) {
+      if (!hasWalker) spawn();
+      walk(4096);
+    }
+    redraw.current = draw;
     draw();
     frameId = requestAnimationFrame(tick);
 
     return () => {
+      redraw.current = null;
       shouldStop = true;
       cancelAnimationFrame(frameId);
     };

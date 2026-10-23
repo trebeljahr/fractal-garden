@@ -5,7 +5,9 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { applyCanvasViewport } from "../utils/canvasViewport";
 import { radians } from "../utils/ctxHelpers";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { contractingProjection, tribonacciWord } from "../utils/rauzy";
 import { getDescription } from "../utils/readFiles";
@@ -31,6 +33,7 @@ const PADDING = 0.08;
 const RauzyFractal = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const viewport = useCanvasViewport(ctx?.canvas ?? null);
   const [config, setConfig] = useState<Config>({
     pointCount: 150000,
     pointSize: 1.2,
@@ -97,6 +100,7 @@ const RauzyFractal = ({ description }: Props) => {
     ctx.fillStyle = config.background;
     ctx.fillRect(0, 0, width, height);
 
+    applyCanvasViewport(ctx, width, height, viewport);
     const size = config.pointSize;
     const half = size / 2;
     const colors = [config.color1, config.color2, config.color3];
@@ -112,7 +116,7 @@ const RauzyFractal = ({ description }: Props) => {
       }
       ctx.fill();
     });
-  }, [config, ctx, width, height, points, word]);
+  }, [config, ctx, width, height, points, word, viewport]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));

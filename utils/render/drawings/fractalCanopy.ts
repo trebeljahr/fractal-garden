@@ -1,8 +1,10 @@
+import type { CanvasViewport } from "../../canvasViewport";
 import { radians, rgb } from "../../ctxHelpers";
 import { remapper } from "../../scaling";
 import type { Context2D } from "../types";
 
 export type FractalCanopyParams = {
+  viewport?: CanvasViewport;
   /** The canopy's depth, named for the iteration budget. */
   iterations: number;
   angle: number;

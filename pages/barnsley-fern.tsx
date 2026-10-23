@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Canvas } from "../components/Canvas";
-import { PanelColor, PanelSelect } from "../components/ExplorerControls";
+import { PanelBoolean, PanelColor, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { CLASSIC_FERN_MATRIX } from "../utils/barnsleyFern";
+import { applyCanvasViewport } from "../utils/canvasViewport";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 import type { Scalable } from "../utils/scaling";
@@ -18,6 +20,7 @@ type Fern = "tree" | "fishbone" | "culcita" | "modifiedBarnsley" | "cyclosorus" 
 
 type Config = {
   detail: number;
+  paused: boolean;
   color: string;
   background: string;
   fernToUse: Fern;
@@ -108,12 +111,14 @@ const fernLabels: Record<Fern, string> = {
 const BarnsleyFern = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     detail: 60,
+    paused: true,
     color: "#96f78e",
     background: "#252424",
     fernToUse: "barnsley",
   });
   const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const viewport = useCanvasViewport(ctx?.canvas ?? null);
 
   useEffect(() => {
     if (!ctx || !width || !height) return;
@@ -129,8 +134,12 @@ const BarnsleyFern = ({ description }: Props) => {
       };
     };
 
+    let rngState = 42;
     const generateNewCoords = () => {
-      const r = Math.random();
+      rngState ^= rngState << 13;
+      rngState ^= rngState >>> 17;
+      rngState ^= rngState << 5;
+      const r = (rngState >>> 0) / 4294967296;
       const prob1 = matrix[1][6];
       const prob2 = matrix[2][6];
       const prob3 = matrix[3][6];
@@ -214,9 +223,13 @@ const BarnsleyFern = ({ description }: Props) => {
     ctx.fillStyle = config.background;
     ctx.fillRect(0, 0, width, height);
 
+    applyCanvasViewport(ctx, width, height, viewport);
+    // Open on a complete fern; only add samples when playback is requested.
+    for (let i = 0; i < config.detail; i++) draw();
+    if (config.paused) return;
     const id = setInterval(draw, 100);
     return () => clearInterval(id);
-  }, [config, ctx, width, height]);
+  }, [config, ctx, width, height, viewport]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -232,6 +245,7 @@ const BarnsleyFern = ({ description }: Props) => {
             optionLabels={fernOptions.map((option) => fernLabels[option])}
             options={fernOptions}
           />
+          <PanelBoolean path="paused" />
           <PanelColor path="background" />
           <PanelColor path="color" />
         </ExplorerPanel>

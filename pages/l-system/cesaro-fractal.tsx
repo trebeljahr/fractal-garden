@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import type { CanvasViewport } from "../../utils/canvasViewport";
+import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { getDescription } from "../../utils/readFiles";
@@ -13,6 +15,7 @@ type Props = {
 };
 
 type Config = {
+  viewport?: CanvasViewport;
   iterations: number;
   angle: number;
   animateIterations: boolean;
@@ -28,13 +31,13 @@ const CesaroFractal = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 1,
     angle: 85,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#f7b267",
     lineWidth: 1.5,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
     kind: "cesaroFractal",
     storageKey: "cesaro-fractal",
     config,
@@ -47,6 +50,11 @@ const CesaroFractal = ({ description }: Props) => {
     stepDelay: 900,
     holdDelay: 1800,
   });
+
+  const viewport = useCanvasViewport(canvas);
+  useEffect(() => {
+    setParams({ ...config, viewport });
+  }, [config, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));

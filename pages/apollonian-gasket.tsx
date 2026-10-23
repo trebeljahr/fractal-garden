@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import type { CanvasViewport } from "../utils/canvasViewport";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
@@ -13,6 +15,7 @@ type Props = {
 };
 
 type Config = {
+  viewport?: CanvasViewport;
   iterations: number;
   animateIterations: boolean;
   background: string;
@@ -29,7 +32,7 @@ const ApollonianGasket = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#efdfb6",
     fillCircles: false,
@@ -38,7 +41,7 @@ const ApollonianGasket = ({ description }: Props) => {
     showOuterCircle: true,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
     kind: "apollonianGasket",
     storageKey: "apollonian-gasket",
     config,
@@ -49,6 +52,11 @@ const ApollonianGasket = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 1050,
   });
+
+  const viewport = useCanvasViewport(canvas);
+  useEffect(() => {
+    setParams({ ...config, viewport });
+  }, [config, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({

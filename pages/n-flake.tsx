@@ -35,7 +35,7 @@ const NFlake = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     sides: 5,
     iterations: 0,
-    animateIterations: true,
+    animateIterations: false,
     includeCenter: true,
     rotation: 0,
     background: "#252424",

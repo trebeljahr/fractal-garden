@@ -30,7 +30,7 @@ const TSquareFractal = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: true,
+    animateIterations: false,
     ratio: 0.5,
     background: "#252424",
     color: "#ffffff",

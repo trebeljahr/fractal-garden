@@ -4,6 +4,7 @@ import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { getDescription } from "../utils/readFiles";
@@ -11,7 +12,7 @@ import type { FractalCanopyParams } from "../utils/render/drawings/fractalCanopy
 
 const defaultTree = {
   angle: 43,
-  animateAngle: true,
+  animateAngle: false,
   maxIterations: 7,
   branches: 3,
   background: "#252424",
@@ -138,7 +139,17 @@ const FractalTree = ({ description }: Props) => {
   );
 
   // Drawn on a worker: deep, many-branched trees take a while to stroke.
-  const { containerRef } = useRenderSurface({ kind: "fractalCanopy", params, width, height });
+  const { containerRef, canvas, setParams } = useRenderSurface({
+    kind: "fractalCanopy",
+    params,
+    width,
+    height,
+  });
+
+  const viewport = useCanvasViewport(canvas);
+  useEffect(() => {
+    setParams({ ...params, viewport });
+  }, [params, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => {

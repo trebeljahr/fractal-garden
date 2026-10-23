@@ -99,7 +99,7 @@ const INITIAL_CONFIG: Config = {
   offsetY: 0,
   background: "#252424",
   color: "#f3b561",
-  autoRotate: true,
+  autoRotate: false,
 };
 
 const Mandelbulb = ({ description }: Props) => {

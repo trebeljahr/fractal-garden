@@ -1,3 +1,4 @@
+import { applyCanvasViewport, type CanvasViewport } from "../canvasViewport";
 import type { Context2D, Renderer } from "./types";
 
 /**
@@ -12,7 +13,10 @@ export type StaticDrawing<P extends { iterations: number }> = (
   params: P,
 ) => number;
 
-export class StaticRenderer<P extends { iterations: number }> implements Renderer<P> {
+export class StaticRenderer<
+  P extends { iterations: number; viewport?: CanvasViewport; background?: string },
+> implements Renderer<P>
+{
   private params: P | null = null;
   private work = 0;
 
@@ -25,6 +29,11 @@ export class StaticRenderer<P extends { iterations: number }> implements Rendere
   draw(ctx: Context2D, width: number, height: number) {
     if (!this.params) return false;
     ctx.save();
+    if (this.params.viewport) {
+      ctx.fillStyle = this.params.background ?? "#252424";
+      ctx.fillRect(0, 0, width, height);
+      applyCanvasViewport(ctx, width, height, this.params.viewport);
+    }
     this.work = this.drawing(ctx, width, height, this.params);
     ctx.restore();
     return false;

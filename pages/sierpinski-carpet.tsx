@@ -27,7 +27,7 @@ const MAX_ITERATIONS = 5;
 const SierpinskiCarpetComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: MIN_ITERATIONS,
-    animateIterations: true,
+    animateIterations: false,
     color: "#ffe100",
     background: "#252424",
     holeColor: "#000000",

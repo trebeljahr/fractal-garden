@@ -75,7 +75,7 @@ async function check(page, baseURL, output) {
   };
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/l-system/board`);
-  await page.getByRole("button", { name: "Pause animation", exact: true }).click();
+  await page.getByRole("button", { name: "Play animation", exact: true }).waitFor();
   await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
   await page.getByRole("textbox", { name: "Iterations", exact: true }).fill("4");
   await page.getByRole("textbox", { name: "Iterations", exact: true }).press("Enter");

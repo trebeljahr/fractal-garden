@@ -89,7 +89,7 @@ const LSystem = ({ ruleset, children }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
     iterations: minVisibleIteration,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     ruleset: ruleset,
   }));

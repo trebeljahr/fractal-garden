@@ -37,7 +37,7 @@ const VicsekFractal2D = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: true,
+    animateIterations: false,
     variant: "saltire",
     background: "#252424",
     color: "#f2efde",

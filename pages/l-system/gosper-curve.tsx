@@ -27,7 +27,7 @@ const GosperCurve = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#89f7d1",
     lineWidth: 1.3,

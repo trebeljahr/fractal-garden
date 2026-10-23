@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { PanelColor, PanelNumber } from "../components/ExplorerControls";
+import { useEffect, useState } from "react";
+import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { getDescription } from "../utils/readFiles";
@@ -16,6 +17,7 @@ type Props = {
 type Config = BuddhabrotParams;
 
 const INITIAL_CONFIG: Config = {
+  paused: true,
   maxIterations: 160,
   minOrbitLength: 25,
   samplesPerFrame: 450,
@@ -29,7 +31,17 @@ const Buddhabrot = ({ description }: Props) => {
   const [config, setConfig] = useState(INITIAL_CONFIG);
 
   // Sampling runs on a worker, so high sample counts no longer stall the page.
-  const { containerRef } = useRenderSurface({ kind: "buddhabrot", params: config, width, height });
+  const { containerRef, canvas, setParams } = useRenderSurface({
+    kind: "buddhabrot",
+    params: config,
+    width,
+    height,
+  });
+
+  const viewport = useCanvasViewport(canvas);
+  useEffect(() => {
+    setParams({ ...config, viewport });
+  }, [config, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));
@@ -39,6 +51,7 @@ const Buddhabrot = ({ description }: Props) => {
     <>
       <main className={styles.fullScreen}>
         <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+          <PanelBoolean path="paused" />
           <PanelColor path="background" />
           <PanelColor path="color" />
           <PanelNumber path="maxIterations" min={40} max={400} step={10} />

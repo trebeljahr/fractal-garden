@@ -29,7 +29,7 @@ const MinkowskiSausage = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 1,
     island: false,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#ff8fab",
     lineWidth: 1.5,

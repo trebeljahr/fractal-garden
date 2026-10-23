@@ -24,10 +24,10 @@ const MAX_ITERATIONS = 5;
 
 const INITIAL_CONFIG: Config = {
   iterations: MIN_ITERATIONS,
-  animateIterations: true,
+  animateIterations: false,
   animateTrail: false,
   trailSpeed: 20,
-  autoRotate: true,
+  autoRotate: false,
   rotationX: 24,
   rotationY: 28,
   cameraDistance: 4.5,

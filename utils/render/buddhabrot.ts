@@ -1,6 +1,9 @@
+import { type CanvasViewport, INITIAL_CANVAS_VIEW } from "../canvasViewport";
 import type { Context2D, Renderer } from "./types";
 
 export type BuddhabrotParams = {
+  paused?: boolean;
+  viewport?: CanvasViewport;
   maxIterations: number;
   minOrbitLength: number;
   samplesPerFrame: number;
@@ -39,6 +42,21 @@ function getViewportForAspect(aspect: number) {
   };
 }
 
+function getZoomedViewport(aspect: number, view: CanvasViewport) {
+  const base = getViewportForAspect(aspect);
+  const side = Math.min(base.maxX - base.minX, base.maxY - base.minY);
+  const centerX = (base.minX + base.maxX) / 2 + view.x * side;
+  const centerY = (base.minY + base.maxY) / 2 - view.y * side;
+  const halfWidth = (base.maxX - base.minX) / (2 * view.zoom);
+  const halfHeight = (base.maxY - base.minY) / (2 * view.zoom);
+  return {
+    minX: centerX - halfWidth,
+    maxX: centerX + halfWidth,
+    minY: centerY - halfHeight,
+    maxY: centerY + halfHeight,
+  };
+}
+
 function isInsideCardioidOrBulb(cx: number, cy: number) {
   const q = (cx - 0.25) * (cx - 0.25) + cy * cy;
   if (q * (q + (cx - 0.25)) <= 0.25 * cy * cy) return true;
@@ -65,6 +83,7 @@ type Accumulation = {
   maxVisits: number;
   samples: number;
   frames: number;
+  rng: number;
 };
 
 /**
@@ -90,32 +109,41 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
 
     const renderWidth = Math.max(1, ctx.canvas.width);
     const renderHeight = Math.max(1, ctx.canvas.height);
-    const key = `${params.maxIterations}:${params.minOrbitLength}:${renderWidth}x${renderHeight}`;
+    const view = params.viewport ?? INITIAL_CANVAS_VIEW;
+    const key = `${params.maxIterations}:${params.minOrbitLength}:${renderWidth}x${renderHeight}:${view.x}:${view.y}:${view.zoom}`;
     if (this.state?.key !== key) {
       this.state = {
         key,
         width: renderWidth,
         height: renderHeight,
-        viewport: getViewportForAspect(renderWidth / renderHeight),
+        viewport: getZoomedViewport(renderWidth / renderHeight, view),
         histogram: new Float32Array(renderWidth * renderHeight),
         image: ctx.createImageData(renderWidth, renderHeight),
         maxVisits: 1,
         samples: 0,
         frames: 0,
+        rng: 42,
       };
     }
 
     const state = this.state;
-    for (let i = 0; i < params.samplesPerFrame; i++) {
+    // Populate the opening still without starting the playback loop.
+    const samples =
+      state.frames === 0
+        ? Math.max(12000, params.samplesPerFrame)
+        : params.paused
+          ? 0
+          : params.samplesPerFrame;
+    for (let i = 0; i < samples; i++) {
       this.sampleOrbit(state, params);
     }
-    state.samples += params.samplesPerFrame;
+    state.samples += samples;
     state.frames++;
 
-    if (state.frames % 2 === 0 || state.frames === 1) {
+    if (params.paused || state.frames % 2 === 0 || state.frames === 1) {
       this.paint(ctx, state, params, width, height);
     }
-    return true;
+    return !params.paused;
   }
 
   describe() {
@@ -123,9 +151,15 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
   }
 
   private sampleOrbit(state: Accumulation, params: BuddhabrotParams) {
-    const { viewport } = state;
-    const cx = viewport.minX + Math.random() * (viewport.maxX - viewport.minX);
-    const cy = Math.random() * viewport.maxY;
+    const viewport = getViewportForAspect(state.width / state.height);
+    const random = () => {
+      state.rng ^= state.rng << 13;
+      state.rng ^= state.rng >>> 17;
+      state.rng ^= state.rng << 5;
+      return (state.rng >>> 0) / 4294967296;
+    };
+    const cx = viewport.minX + random() * (viewport.maxX - viewport.minX);
+    const cy = random() * viewport.maxY;
 
     if (isInsideCardioidOrBulb(cx, cy)) return;
 
@@ -158,23 +192,16 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
       const x = orbit[i * 2];
       const y = orbit[i * 2 + 1];
 
-      if (x < viewport.minX || x > viewport.maxX || y < viewport.minY || y > viewport.maxY) {
-        continue;
+      if (x < viewport.minX || x > viewport.maxX) continue;
+      const px = Math.min(width - 1, Math.floor((x - viewport.minX) * toPixelX));
+      for (const sampleY of [y, -y]) {
+        if (sampleY < viewport.minY || sampleY > viewport.maxY) continue;
+        const py = Math.min(height - 1, Math.floor((viewport.maxY - sampleY) * toPixelY));
+        const index = py * width + px;
+        const next = histogram[index] + 1;
+        histogram[index] = next;
+        if (next > state.maxVisits) state.maxVisits = next;
       }
-
-      const px = Math.floor((x - viewport.minX) * toPixelX);
-      const index = Math.floor((viewport.maxY - y) * toPixelY) * width + px;
-      const next = histogram[index] + 1;
-      histogram[index] = next;
-      if (next > state.maxVisits) state.maxVisits = next;
-
-      const mirroredY = -y;
-      if (mirroredY < viewport.minY || mirroredY > viewport.maxY) continue;
-
-      const mirroredIndex = Math.floor((viewport.maxY - mirroredY) * toPixelY) * width + px;
-      const mirroredNext = histogram[mirroredIndex] + 1;
-      histogram[mirroredIndex] = mirroredNext;
-      if (mirroredNext > state.maxVisits) state.maxVisits = mirroredNext;
     }
   }
 

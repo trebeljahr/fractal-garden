@@ -27,7 +27,7 @@ const KochAntiSnowflake = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: true,
+    animateIterations: false,
     background: "#252424",
     color: "#c3b1e1",
     lineWidth: 1.5,
