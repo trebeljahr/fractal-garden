@@ -1,0 +1,39 @@
+/* Shared interaction treatment for explorer actions, navigation and disclosures. */
+.button,
+.group button,
+.group summary,
+.folder :global(.react-dat-gui.exploration-gui li.folder > .dg > .title) {
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.button:hover:not(:disabled),
+.group button:hover:not(:disabled),
+.group summary:hover,
+.folder :global(.react-dat-gui.exploration-gui li.folder > .dg > .title:hover) {
+  border-color: var(--explorer-accent);
+  background: var(--explorer-field);
+  color: var(--explorer-accent);
+}
+
+.button:focus-visible,
+.group button:focus-visible,
+.group summary:focus-visible,
+.folder :global(.react-dat-gui.exploration-gui li.folder > .dg > .title:focus-visible) {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .group button,
+  .group summary,
+  .folder :global(.react-dat-gui.exploration-gui li.folder > .dg > .title) {
+    transition: none;
+  }
+}

@@ -1,4 +1,5 @@
 .linkButton {
+  composes: button from "./ExplorerButton.module.css";
   bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
   position: fixed;
   z-index: 30;
@@ -10,8 +11,6 @@
   gap: 5px 8px;
   text-decoration: none;
   text-align: right;
-  background: var(--explorer-surface);
-  color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
   width: fit-content;
   max-width: min(240px, calc((100vw - 32px) / 3));
@@ -19,7 +18,6 @@
   font-size: var(--explorer-nav-font-size);
   height: var(--explorer-nav-height);
   padding: 10px 8px;
-  border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 6px;
 }
 
@@ -80,16 +78,6 @@
 .linkButton svg {
   flex: 0 0 auto;
   color: var(--explorer-accent);
-}
-
-.linkButton:hover {
-  color: var(--explorer-accent);
-  background: var(--explorer-field);
-}
-
-.linkButton:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: -3px;
 }
 
 @media (max-width: 700px) {

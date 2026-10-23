@@ -1,5 +1,6 @@
 .controls,
 .restore {
+  composes: group from "./ExplorerButton.module.css";
   position: relative;
   display: flex;
   flex-direction: row;
@@ -14,24 +15,8 @@
   width: 44px;
   height: var(--explorer-control-height);
   padding: 0;
-  border: 1px solid rgba(245, 204, 117, 0.25);
   border-radius: 3px;
-  background: var(--explorer-surface);
-  color: var(--explorer-accent);
   cursor: pointer;
-  transition:
-    background 150ms,
-    color 150ms;
-}
-.controls button:hover:not(:disabled),
-.restore button:hover:not(:disabled) {
-  background: var(--explorer-field);
-  color: var(--explorer-ink);
-}
-.controls button:focus-visible,
-.restore button:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: -2px;
 }
 .restore {
   position: fixed;

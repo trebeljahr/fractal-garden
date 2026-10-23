@@ -34,24 +34,12 @@
 }
 
 .button {
-  border: 1px solid rgba(245, 241, 209, 0.16);
+  composes: button from "./ExplorerButton.module.css";
   border-radius: 3px;
   padding: 0.72rem 1.05rem;
-  background: rgba(245, 241, 209, 0.08);
-  color: var(--explorer-ink);
   font-size: 1rem;
   font-family: "Montserrat", sans-serif;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.button:hover {
-  background: rgba(245, 241, 209, 0.14);
-  border-color: var(--explorer-accent);
-  color: var(--explorer-accent);
 }
 
 @media screen and (max-width: 700px) {
@@ -60,11 +48,6 @@
     max-width: none;
     padding: 1rem 1.05rem;
   }
-}
-
-.button:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

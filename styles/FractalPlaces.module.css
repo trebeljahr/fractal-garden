@@ -1,4 +1,5 @@
 .places {
+  composes: group from "./ExplorerButton.module.css";
   position: relative;
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
@@ -10,18 +11,12 @@
   gap: 12px;
   height: var(--explorer-control-height);
   padding: 0 18px;
-  border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 3px;
-  background: var(--explorer-surface);
-  color: var(--explorer-ink);
   list-style: none;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
 }
 .places summary::-webkit-details-marker {
   display: none;
@@ -40,10 +35,6 @@
   margin-top: 4px;
   transform: rotate(225deg);
 }
-.places summary:hover {
-  background: var(--explorer-field);
-  color: var(--explorer-accent);
-}
 .places ul {
   list-style: none;
   margin: 0;
@@ -58,16 +49,12 @@
   gap: 0.75rem;
   width: 100%;
   min-height: 44px;
-  border: 0;
   padding: 14px 0.65rem;
   border-radius: 4px;
-  background: none;
-  color: inherit;
   font: inherit;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: color 150ms;
 }
 .destinations {
   position: absolute;
@@ -115,9 +102,6 @@
   line-height: 1.45;
   color: #b8c2cb;
 }
-.places button:hover {
-  color: var(--explorer-accent);
-}
 .places button[aria-pressed="true"] {
   background: rgba(245, 204, 117, 0.12);
   box-shadow: inset 3px 0 #f5cc75;
@@ -133,11 +117,6 @@
 .places .currentPlace {
   color: #f5cc75;
   font-size: 11px;
-}
-.places button:focus-visible,
-.places summary:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
   .places button,

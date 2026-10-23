@@ -77,6 +77,7 @@
 }
 
 .learnMore {
+  composes: button from "./ExplorerButton.module.css";
   position: absolute;
   bottom: calc(100% + max(var(--explorer-nav-gap), env(safe-area-inset-bottom)));
   left: 50%;
@@ -90,11 +91,8 @@
   width: var(--explorer-nav-width);
   max-width: calc(100% - 28px);
   padding: 10px 14px;
-  border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 6px;
   cursor: pointer;
-  background: var(--explorer-surface);
-  color: var(--explorer-ink);
   font:
     var(--explorer-nav-font-size) / 1.4 "Montserrat",
     sans-serif;
@@ -113,16 +111,6 @@
   animation: caretBounce 4s ease-in-out infinite;
 }
 
-.learnMore:hover {
-  color: var(--explorer-accent);
-}
-
-.learnMore:hover .caret,
-.learnMore:focus-visible .caret {
-  animation: none;
-  transform: translateY(3px) rotate(45deg);
-}
-
 @keyframes caretBounce {
   0%,
   84%,
@@ -136,11 +124,6 @@
   96% {
     transform: translateY(2px) rotate(45deg);
   }
-}
-
-.learnMore:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: 4px;
 }
 
 .openedDrawer:focus {
@@ -160,9 +143,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret,
-  .learnMore:hover .caret,
-  .learnMore:focus-visible .caret {
+  .learnMore {
+    transition: none;
+  }
+
+  .caret {
     animation: none;
     transform: rotate(45deg);
     transition: none;
