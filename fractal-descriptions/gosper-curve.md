@@ -1,13 +1,25 @@
 # Gosper Curve
 
-The Gosper curve winds around hexagonal-looking islands without breaking its route. Seven smaller pieces join in different orientations to replace each larger piece.
+The Gosper curve replaces one route with seven smaller routes on a triangular lattice. Its turns are multiples of 60 degrees. The limiting path fills a region called the Gosper island. That region can itself be assembled from seven reduced copies.<sup><a id="gosper-curve-ref-1" href="#gosper-curve-source-1">1</a></sup>
 
-## A route with a hexagonal rhythm
+The main drawing starts with `XF` and uses:
 
-Its 60-degree turns live on a triangular lattice. Two rewrite symbols arrange the pieces. Forward instructions draw the path between those turns.
+```
+X → X+YF++YF-FX--FXFX-YF+
+Y → -FX+YFYF++YF+FX--FX-Y
+```
+
+Only F draws. X and Y choose how the next copies turn and connect. The lesson below uses an equivalent two-letter form in which both letters draw.
 
 <figure data-investigation="gosper-curve"></figure>
 
-The endpoint distance of a seven-part replacement is $\sqrt{7}$ times one small segment. Rescaling to the old span gives seven copies at scale $1/\sqrt{7}$.
+Each production contains seven X/Y symbols and six new F strokes. Existing F strokes remain. Starting from one X and one F gives exactly $7^n$ strokes after $n$ rewrites.
 
-The similarity dimension is $\log 7/\log\sqrt{7}=2$. The limiting path fills a region, although each finite approximation consists of line segments. The [Hilbert curve](/l-system/hilbert-curve) achieves a related result on a square grid.
+The chord of a seven-stroke replacement spans $\sqrt{7}$ unit lengths. Each reduced copy therefore has scale $1/\sqrt{7}$, and $7(1/\sqrt{7})^2=1$. The same equation expresses area balance in the seven-piece island substitution.
+
+“Flowsnake” is another name for the curve. Gardner introduced Gosper's construction in his December 1976 Mathematical Games column.<sup><a id="gosper-curve-ref-2" href="#gosper-curve-source-2">2</a></sup> Its hexagonal arrangement offers a different route to filling area from the four square pieces of the [Hilbert curve](/l-system/hilbert-curve).
+
+## Sources and notes
+
+1. <span id="gosper-curve-source-1"></span> Bielefeld University, [Gosper Curve Substitution Tiling](https://tilings.math.uni-bielefeld.de/substitution/gosper_curve/), Tilings Encyclopedia. Confirms Gosper’s attribution, the substitution and inflation factor √7. The local stroke count follows from the displayed productions. [Back](#gosper-curve-ref-1)
+2. <span id="gosper-curve-source-2"></span> Martin Gardner, [Mathematical Games](https://doi.org/10.1038/scientificamerican1276-124), Scientific American 235(6), 124–133, December 1976, as catalogued by the Bielefeld entry above. The curve’s area-filling construction also appears in Gardner’s [Penrose Tiles to Trapdoor Ciphers](https://rexresearch1.com/GardnerMath/PenrosetilestrapdoorciphersGardner.pdf), chapter 1. [Back](#gosper-curve-ref-2)

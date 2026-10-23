@@ -1,37 +1,35 @@
 # Jerusalem Cube
 
-The Jerusalem Cube is a close cousin of the [Menger Sponge](/menger-sponge), but it plays by a stranger rule. Instead of cutting a cube into a neat `3 x 3 x 3` grid, you cut a cross through every face of the cube. What remains are eight cubes in the corners and twelve smaller cubes sitting in the middle of each edge. Then you repeat that same cut on every cube that is left.
+Every cube leaves eight corner cubes and twelve smaller edge cubes. Cross-shaped passages replace the square tunnels of the [Menger sponge](/menger-sponge). Eric Baird dates his construction to 2010.<sup><a id="jerusalem-cube-ref-1" href="#jerusalem-cube-source-1">1</a></sup>
 
 <figure data-investigation="jerusalem-cube"></figure>
 
-The name comes from the cross-shaped holes, which look like a [Jerusalem cross](https://en.wikipedia.org/wiki/Jerusalem_cross) on every face. The object was first described by Eric Baird in 2011.
+## Two scales, one edge
 
-The fun part is the scale factor. The corner cubes are scaled by
-
-$$
-k = \sqrt{2} - 1 \approx 0.414
-$$
-
-and the edge cubes are scaled by $k^2 \approx 0.172$. Along one edge of the big cube you get a corner cube, an edge cube and another corner cube, and these fit together perfectly because
+Let a corner cube have side ratio $k$. The edge cube between two corner cubes has ratio $k^2$. They fit because
 
 $$
-k + k^2 + k = 2(\sqrt{2} - 1) + (3 - 2\sqrt{2}) = 1.
+2k+k^2=1,\qquad k=\sqrt2-1.
 $$
 
-The irrational scale prevents a single equal-cell grid from describing every generation. Corner cubes and edge cubes keep their two distinct sizes.
+The two ratios are approximately $0.4142$ and $0.1716$. Each smaller cube repeats both sizes, so the construction never reduces to a uniform three-by-three grid.
 
-Since there are two different scale factors, the copies have different "ages". A corner cube is one step smaller than its parent (rank $+1$), an edge cube is two steps smaller (rank $+2$). In this viewer, an iteration splits every cube whose rank is still below the iteration count, so all cubes on screen end up with a similar size.
+The viewer counts **rank**, rather than replacing every cube once per displayed iteration. Corner children gain one rank. Edge children gain two. A cube keeps splitting until its rank reaches the selected level. That makes the smallest visible cubes differ in side length by at most a factor of $1/k$.
 
-The Hausdorff dimension $D$ is the solution of
+The disjoint cube interiors give the dimension equation:<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
 
 $$
-8 k^D + 12 k^{2D} = 1,
+8k^D+12k^{2D}=1.
 $$
 
-which gives $D \approx 2.529$. That is a bit lower than the Menger Sponge's $\ln 20 / \ln 3 \approx 2.727$, so the Jerusalem Cube is the more hollow of the two.
+Put $x=k^D$. Then $12x^2+8x-1=0$, so $x=(\sqrt7-2)/6$ and $D\approx2.529$. Counting twenty copies without their two sizes would give the wrong dimension.
 
-## The Jerusalem square is its shadow
+If every cube undergoes one complete replacement, the retained volume fraction is $8k^3+12k^6\approx0.629$. Repeating complete replacements drives volume to zero. This volume formula uses full generations, not the viewer's rank levels.
 
-Project the cube straight onto one of its face planes with parallel rays. Front and back copies overlap, leaving a planar pattern called the **Jerusalem square**. Its cross-shaped gaps inherit the same two scales, $k$ and $k^2$, as the solid.
+Baird calls its face-on parallel shadow the **Jerusalem square**.<sup><a id="jerusalem-cube-ref-3" href="#jerusalem-cube-source-3">3</a></sup> Front and back cubes overlap in that projection. Perspective views in the explorer change their apparent sizes.
 
-This is the irrational-scale counterpart of the [Menger sponge's carpet shadow](/menger-sponge). Eric Baird describes the relationship in [The Jerusalem Square](https://alt-fractals.blogspot.com/2011/11/jerusalem-square.html). In a face-on perspective view, near and far pieces still differ in apparent size. An orthographic shadow uses parallel rays and removes that size difference.
+## Sources and notes
+
+1. <span id="jerusalem-cube-source-1"></span> Eric Baird, [Jerusalem Cube](https://www.coroflot.com/erkdemon/Jerusalem-Cube), creator’s portfolio. Baird states that he devised it in 2010, before his 2011 blog description. [Back](#jerusalem-cube-ref-1)
+2. <span id="jerusalem-cube-source-2"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), §§3 and 5. Separation and dimension theorem; numerical results here follow from the displayed rule. [Back](#jerusalem-cube-ref-2)
+3. <span id="jerusalem-cube-source-3"></span> Eric Baird, [The Jerusalem Square](https://alt-fractals.blogspot.com/2011/11/jerusalem-square.html), 30 November 2011. Irrational scale ratio and the cube’s shadow. [Back](#jerusalem-cube-ref-3)

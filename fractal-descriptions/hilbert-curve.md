@@ -1,27 +1,26 @@
 # Hilbert Curve
 
-Look for a small U-shaped path repeated inside four smaller squares. The copies turn to meet at their ends, making one continuous route through a square grid. Each stage adds a finer grid without crossing an earlier part of that stage's path.
+Divide a square into four squares. Put a smaller U-shaped route in each, then rotate the copies so their ends connect. Repeat inside every smaller square. The limiting route is a continuous map from an interval onto the entire square.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
 
-## Letters that draw and letters that rewrite
+This page starts with W and rewrites:
 
-This page starts with **W**. Two replacement rules expand **V** and **W** into smaller copies joined by forward moves and turns. **F** draws a segment. **V** and **W** do not draw; they carry instructions for the next rewrite.
+```
+V → -WF+VFV+FW-
+W → +VF-WFW-FV+
+```
+
+F draws forward. V and W draw nothing. They mark the orientations of later copies. Each production supplies four V/W symbols and three connecting strokes.
 
 <figure data-lesson="lsystem-hilbert"></figure>
 
-The initial W draws nothing. Its first rewrite creates a U with three segments. W and V guide future replacements without adding strokes.
+The first rewrite makes a U with three strokes. At order $n$, the path visits every point of a $2^n\times2^n$ grid exactly once. It contains $4^n-1$ segments. If $s_n$ is the segment count, four copies plus three joins give $s_{n+1}=4s_n+3$.
 
-Each smaller U turns to meet its neighbors. Those orientation changes let one continuous route visit every cell without jumping between disconnected paths.
+Each finite path leaves gaps. To understand the limit, follow one nested sequence of squares. Their side lengths tend to zero, so they identify one point. Every point belongs to such a sequence, which explains how the limit reaches the whole square.
 
-## A finite grid and an infinite limit
+Continuity does not imply a reversible address system with unique addresses. Neighboring positions along the path stay nearby in the square. Nearby square positions can still have distant path addresses.
 
-After $n$ rewrites, the finite path visits the points of a $2^n$ by $2^n$ grid. It has:
+The [3D version](/l-system/hilbert-curve-3d) visits cubes instead. Compare the [Sierpinski curve](/l-system/sierpinski-curve) and [Dragon curve](/l-system/dragon-curve) for different arrangements of right-angle turns.
 
-$$
-N_n = 4^n - 1
-$$
+## Sources and notes
 
-segments. The scaled paths approach a continuous curve that fills a square as the number of rewrites grows without limit. A finite drawing still consists of line segments and leaves gaps.
-
-Points near each other along the path stay near each other in the square. The reverse does not always hold: nearby positions in the square can lie far apart along the path.
-
-The [3D Hilbert curve](/l-system/hilbert-curve-3d) applies a related arrangement to cubes. The [Dragon curve](/l-system/dragon-curve) also grows through right-angle turns, while the [Sierpinski curve](/l-system/sierpinski-curve) uses another route through nested squares.
+1. <span id="hilbert-curve-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and section 2 describe nested subdivisions and continuous, surjective mappings. The local productions and segment recurrence are derived from this page’s rules. [Back](#hilbert-curve-ref-1)

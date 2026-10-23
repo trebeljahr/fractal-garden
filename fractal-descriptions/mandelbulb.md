@@ -1,13 +1,37 @@
 # Mandelbulb
 
-The Mandelbulb is one of the best-known attempts to build a three-dimensional relative of the [Mandelbrot Set](/mandelbrot). Instead of iterating points in the complex plane, it applies a power-like transformation in spherical coordinates, then adds the original point back in again. Points that do not escape under that process belong to the set.
+Choose a point $\mathbf c$ in three-dimensional space. Start at $\mathbf z_0=0$, apply a spherical power, then add $\mathbf c$. Repeat, keeping the same $\mathbf c$:
+
+$$
+\mathbf z_{n+1}=P_p(\mathbf z_n)+\mathbf c.
+$$
+
+For a vector with radius $r$, polar angle $\theta$ from the positive z-axis, and azimuth $\phi$, the power is
+
+$$
+P_p(\mathbf z)=r^p\begin{pmatrix}
+\sin(p\theta)\cos(p\phi)\\
+\sin(p\theta)\sin(p\phi)\\
+\cos(p\theta)
+\end{pmatrix}.
+$$
+
+At zero, define $P_p(0)=0$. The explorer defaults to $p=8$. It raises the radius to the eighth power and multiplies both angles by eight.
 
 <figure data-investigation="mandelbulb"></figure>
 
-That gives the Mandelbulb the same basic spirit as the [Julia Set](/julia-set) and the Mandelbrot view: a tiny iterative rule creates an object with an enormous amount of structure packed into its boundary. The difference is that here the structure lives in space rather than on a flat plane.
+Daniel White published his spherical-coordinate construction in 2007. Paul Nylander later tried higher powers. Their eighth-power renders attracted attention in 2009. White's account documents the earlier quadratic experiments and the higher-power breakthrough.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
-Because the Mandelbulb is a 3D object, it is usually rendered with **ray marching** rather than polygons. Instead of tracing triangles, the renderer estimates how far a ray can safely travel before it gets close to the surface. Repeating that estimate over and over makes it possible to shade the bulb as if it were a solid sculpture.
+This power is an explicit geometric rule. It borrows the radius-and-angle idea from complex powers, then extends it to two angles. Different three-dimensional extensions need not produce the same object.
 
-The power operation treats radius and angles differently. A radius below one shrinks under a higher power, while angular multiplication folds directions around the sphere.
+The mathematical set contains parameters whose orbits remain bounded. The surface marks the edge of that volume. A finite iteration limit approximates the distinction between bounded and escaping orbits.
 
-[Daniel White’s construction account](https://www.skytopia.com/project/fractal/mandelbulb.html) traces the spherical-power idea and its higher-power forms.
+The renderer casts a ray through each pixel. At successive positions it estimates distance to the bulb from the orbit's radius and accumulated derivative estimate. It advances by that estimate until it reaches a small surface tolerance. These are approximate distance estimates, so detail depends on numerical limits and rendering tolerance.
+
+Orbit-trap colors record close approaches to coordinate planes and the origin. Changing **Power** changes the iterated rule itself.
+
+Compare the planar [Mandelbrot set](/mandelbrot) and fixed-parameter [Julia sets](/julia-set).
+
+## Sources and notes
+
+1. <span id="mandelbulb-source-1"></span> Daniel White, [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), 8 November 2009, and his linked [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). Creator's history credits Nylander's higher-power experiments. Formula and rendering details above match this explorer's spherical-power shader. [Back](#mandelbulb-ref-1)

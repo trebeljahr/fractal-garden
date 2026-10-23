@@ -1,37 +1,28 @@
 # Sierpinski Tetrahedron
 
-The Sierpinski Tetrahedron, sometimes called the tetrix, is what you get when you take the [Sierpinski Triangle](/l-system/sierpinski-triangle) and give it one more dimension. Start with a regular tetrahedron, shrink it to half its size, and put one copy at each of its four corners. Then do the same thing to every copy, again and again.
+Keep four half-size copies of a regular tetrahedron, one at each vertex. Neighboring copies meet at edge midpoints. The missing center is a regular octahedron. Repeat on every surviving tetrahedron.
 
 <figure data-investigation="sierpinski-tetrahedron"></figure>
 
-Neighbouring copies touch at a single point, the midpoint of the edge between them, and each step carves an octahedron-shaped hole out of the middle of every tetrahedron. After $n$ steps there are $4^n$ tiny tetrahedra, and the volume has dropped to $\left(\tfrac{1}{2}\right)^n$ of the start. The surface area does something stranger: every copy has a quarter of the area of its parent, and there are four of them, so the total surface area never changes.
+After $n$ steps, $4^n$ tetrahedra remain. Each has $1/8^n$ of the original volume, so the total volume fraction is $(1/2)^n$. Their total face area stays constant: four copies each contribute one-quarter of their parent's area.
 
-Because each step makes $N = 4$ copies at scale $r = \tfrac{1}{2}$, the Hausdorff dimension is
+The Hausdorff dimension is $\log4/\log2=2$. This integer dimension does not make the set a flat surface.
 
-$$
-D = \frac{\log 4}{\log 2} = 2
-$$
+The square-pyramid option uses five half-size corner copies. Its base is square and its four side faces are equilateral triangles. That different rule gives dimension $\log5/\log2\approx2.322$.
 
-Its Hausdorff dimension equals that of a flat surface, although the object extends through three-dimensional space.
+## One object, incompatible shadows
 
-The square-based variant uses a pyramid with a square base and four equilateral sides. It makes $N = 5$ copies at scale $\tfrac{1}{2}$, one at the apex and one at each base corner, which gives
+Project the tetrahedron along the line between midpoints of opposite edges. Its shadow is a filled square. The four smaller tetrahedra fill its quadrants, and the same happens at every scale. Hideki Tsuiki shows that three mutually perpendicular directions give square shadows.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
 
-$$
-D = \frac{\log 5}{\log 2} \approx 2.32
-$$
-
-Both shapes are three-dimensional [N-Flakes](/n-flake): copies of a solid, shrunk towards each of its corners. The [Polyhedron Flake](/polyhedron-flake) page does the same with the octahedron, dodecahedron and icosahedron, and the [Menger Sponge](/menger-sponge) and [3D Vicsek Fractal](/vicsek-fractal-3d) are the cube members of the family.
-
-## A solid square shadow from a hollow tetrahedron
-
-Look along the line joining the midpoints of two opposite edges. With parallel viewing rays, the tetrahedron casts a completely filled square shadow. Its four half-size copies project into the square's four quadrants. Every later subdivision fills those quadrants again, so no holes appear in this shadow, even in the infinite limit.
-
-Tsuiki illustrates the square shadow in his [2007 paper](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf).
-
-Now look parallel to an edge. Two of the four corner copies overlap exactly in projection. Three distinct half-size triangular copies remain, producing an affine version of the [Sierpinski triangle](/l-system/sierpinski-triangle). Its triangle is stretched compared with the equilateral version in the 2D explorer.
+Project parallel to an edge instead. Two corner copies overlap, leaving three half-size triangular positions. This gives a stretched [Sierpinski triangle](/l-system/sierpinski-triangle), with zero area.
 
 <figure data-projection="tetrahedron"></figure>
 
-The same object can therefore have a shadow with positive area in one direction and zero area in another. Its dimension of two alone does not imply these particular shadows. They follow from the arrangement of its copies.
+These are orthographic shadows, made with parallel rays. The main explorer uses perspective.
 
-Hideki Tsuiki studies this property as a **fractal imaginary cube**, with square shadows in three mutually perpendicular directions. His [2025 paper on projected Sierpinski tetrahedra](https://ems.press/journals/jfg/articles/14298648) examines which directions give shadows with positive area. These exact statements use orthographic projection. The full 3D explorer uses perspective.
+The remaining tetrahedral edges also contain knots. Broden and colleagues construct every **pretzel knot** in a finite stage, using edges that survive later subdivisions.<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> Their 2024 paper leaves the corresponding all-knots statement for this tetrahedron as a conjecture. It proves the all-knots statement for the [Menger sponge](/menger-sponge).
+
+## Sources and notes
+
+1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007. Square projections of the Sierpinski tetrahedron, including all finite stages. [Back](#sierpinski-tetrahedron-ref-1)
+2. <span id="sierpinski-tetrahedron-source-2"></span> Joshua Broden, Malors Espinosa, Noah Nazareth and Niko Voth, [Knots Inside Fractals](https://arxiv.org/pdf/2409.03639), 2024 preprint, Theorem B. Pretzel-knot embeddings are proved; arbitrary tetrahedral knot embeddings are conjectural there. [Back](#sierpinski-tetrahedron-ref-2)

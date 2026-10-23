@@ -1,30 +1,26 @@
 # Koch Snowflake
 
-Look along the snowflake's edge for a triangular bump. Each side of that bump carries smaller bumps with the same shape. Repeating this replacement creates the jagged boundary.
-
-## Replace one straight edge
-
-Divide an edge into three equal parts. Replace the middle part with the other two sides of an outward equilateral triangle. Four shorter segments now join the original endpoints.
+Replace the middle third of a segment with two sides of an outward equilateral triangle. Four segments, each one-third as long, now connect the old endpoints. Apply the rule to all three sides of an equilateral triangle.
 
 <figure data-construction="koch"></figure>
 
-The diagram follows one edge. The full snowflake applies the same replacement to all three edges of an equilateral triangle.
-
-## A longer boundary inside a bounded shape
-
-Each replacement multiplies the number of segments by four and divides their length by three. The perimeter after $n$ replacements is:
+After $n$ replacements, a starting side length $s$ gives $3\cdot4^n$ segments of length $s/3^n$. Thus
 
 $$
-P_n = P_0\left(\frac{4}{3}\right)^n
+P_n=3s(4/3)^n.
 $$
 
-The perimeter grows without bound. The added triangles get smaller quickly enough that the enclosed area approaches a finite limit. Every stage you see on screen has a finite perimeter.
+The perimeter diverges. The added area converges.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup> If $A_0$ is the original triangle's area, round $n\ge1$ adds $3\cdot4^{n-1}$ triangles, each with area $A_0/9^n$. Summing gives
 
-The [Harvey Mudd explanation](https://math.hmc.edu/funfacts/koch-snowflake/) follows the area and perimeter calculations. The [Koch anti-snowflake](/l-system/koch-anti-snowflake) turns the bumps inward. The [Cesàro fractal](/l-system/cesaro-fractal) changes their angle.
+$$
+A_n=A_0\left[\frac85-\frac35\left(\frac49\right)^n\right].
+$$
 
-## How the drawing instructions repeat
+The limiting snowflake therefore encloses exactly $8/5$ of the starting area. Its boundary has dimension $\log4/\log3\approx1.262$. The filled region has dimension $2$. Every displayed stage still has a finite polygonal perimeter.
 
-This page uses an L-system. **F** means draw forward. The symbols **+** and **−** turn by 60 degrees in opposite directions. Each replacement expands a forward instruction into:
+## Draw the rule as a sentence
+
+The L-system uses **F** to draw and **+** or **−** to turn by 60 degrees:
 
 ```text
 F → F-F++F-F
@@ -32,12 +28,11 @@ F → F-F++F-F
 
 <figure data-lesson="lsystem-koch"></figure>
 
-A turn changes direction without adding length. The two adjacent turns at the tip make a 120-degree change between the two new sides.
+The two adjacent turns at a tip change heading by 120 degrees. Edit this rule in the [L-system explorer](/l-system/explorer). The [anti-snowflake](/l-system/koch-anti-snowflake) reverses the bumps, while the [Cesàro fractal](/l-system/cesaro-fractal) changes their angle.
 
-The [L-system explorer](/l-system/explorer) lets you edit rules and compare the resulting paths.
+A cube can produce the same outline. Remove its eight corner thirds recursively, then project along a body diagonal. The [Mosely snowflake](/mosely-snowflake) approaches a Koch silhouette because overlapping cube shadows form the corresponding hexagonal construction.<sup><a id="koch-snowflake-ref-2" href="#koch-snowflake-source-2">2</a></sup> This exact relationship uses parallel viewing rays.
 
-## A snowflake made from cube shadows
+## Sources and notes
 
-A [Mosely snowflake](/mosely-snowflake) has this boundary in an orthographic view along a cube's body diagonal. A cube projects to a hexagon in that direction. Repeated corner removal changes the overlapping hexagon shadows into the Koch outline.
-
-The lighter Mosely construction also develops snowflake-shaped openings inside the solid. Its explanation includes a screenshot and a link into one of those openings. Eric Baird describes both the [outer profile](https://alt-fractals.blogspot.com/2011/04/impossible-snowflake.html) and the [internal holes](https://alt-fractals.blogspot.com/2011/05/koch-snowflake-sponge.html).
+1. <span id="koch-snowflake-source-1"></span> Francis Su and collaborators, [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/), Harvey Mudd College, Math Fun Facts. Perimeter and geometric-series area argument; the formulas above expand that calculation. [Back](#koch-snowflake-ref-1)
+2. <span id="koch-snowflake-source-2"></span> Eric Baird, [The Impossible Snowflake](https://alt-fractals.blogspot.com/2011/04/impossible-snowflake.html), 30 April 2011. Corner-removal cube construction and Koch silhouette. [Back](#koch-snowflake-ref-2)

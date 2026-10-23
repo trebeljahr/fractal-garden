@@ -1,31 +1,28 @@
 # 2D Vicsek Fractal
 
-Look for five squares arranged as a cross, then five smaller squares inside each of those. The Vicsek fractal repeats one layout at a third of the previous size.
+Keep five squares from a three-by-three grid. The **diagonal cross** keeps the four corners and center. The **Greek cross** keeps the four side centers and center. Repeat inside every surviving square.
 
 <figure data-investigation="vicsek-fractal-2d"></figure>
 
-## Compare two crosses
-
-At the first replacement, only five cells of a three-by-three grid survive. The arrangement decides which gaps repeat.
-
-The diagonal cross keeps four corners and the center. The Greek cross keeps the center and its four side neighbors.
-
-Both layouts keep the same number of squares at each stage. Their area and scaling dimension agree, although their gaps have different positions.
-
-## What stays the same
-
-After $n$ replacements, there are $5^n$ squares. Their side length is $1/3^n$ of the original. The remaining fraction of area is:
+After $n$ replacements, $5^n$ squares have side $3^{-n}$ relative to the seed. Both versions therefore have area fraction $(5/9)^n$ and Hausdorff dimension
 
 $$
-A_n = \left(\frac{5}{9}\right)^n
+D=\frac{\log5}{\log3}\approx1.465.
 $$
 
-The fraction tends to zero as the steps continue without limit. The dimension is $\log(5)/\log(3)$, about 1.465, for either layout. Counting copies alone does not tell you their arrangement.
+The area tends to zero. The dimension calculation uses the five contractions with disjoint square interiors.<sup><a id="vicsek-fractal-2d-ref-1" href="#vicsek-fractal-2d-source-1">1</a></sup>
 
-The [Sierpinski carpet](/sierpinski-carpet) keeps eight cells in the same grid. The [3D Vicsek fractal](/vicsek-fractal-3d) uses seven cubes in a three-dimensional cross.
+## Two crosses, one limiting shape
 
-## A cross hidden in a 3D shadow
+The two finite constructions look different because they begin with the same axis-aligned square. Their **infinite limits** are similar: rotate the diagonal-cross limit by 45 degrees, then scale it by $1/\sqrt2$ about its center.
 
-The **Greek cross** layout is the face-on orthographic shadow of this garden's [3D Vicsek fractal](/vicsek-fractal-3d). Three cubes align along the viewing axis and merge into the central projected square. Four other cubes form its arms.
+This follows directly from their five copy positions. Rotation sends the four diagonal offsets to four axis offsets. Rescaling gives precisely the Greek-cross offsets. The central offset stays fixed. The different initial seed matters less at each contraction, so it does not change that limiting relationship.
 
-Seven 3D copies therefore become five distinct 2D copies. Because this happens again at every scale, the relationship holds for the full fractals, as well as their finite stages. The 3D explanation includes the projected construction.
+The diagonal cross also serves as a deterministic model for diffusion-limited aggregation. M. Wolf studies how random walkers reach different boundary sites, where exposed tips and recessed regions have different hitting probabilities.<sup><a id="vicsek-fractal-2d-ref-2" href="#vicsek-fractal-2d-source-2">2</a></sup> That physical question needs more information than dimension alone.
+
+The Greek cross is the face-on parallel shadow of this garden's seven-cube [3D Vicsek fractal](/vicsek-fractal-3d). Three cubes overlap at the shadow's center, leaving five projected positions. The [Sierpinski carpet](/sierpinski-carpet) uses the same grid but retains eight cells.
+
+## Sources and notes
+
+1. <span id="vicsek-fractal-2d-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), §§3 and 5. General contraction and dimension results; calculations here use the stated local construction. [Back](#vicsek-fractal-2d-ref-1)
+2. <span id="vicsek-fractal-2d-source-2"></span> M. Wolf, [A Toy Model for the Diffusion-Limited Aggregation](https://cmst.eu/wp-content/uploads/files/10.12921_cmst.2021.0000031_WOLF.pdf), Computational Methods in Science and Technology 27 (2021), 151–157. Vicsek snowflake and boundary hitting probabilities. The rotation and projection statements above derive from this explorer’s copy positions. [Back](#vicsek-fractal-2d-ref-2)

@@ -1,41 +1,36 @@
 # Lorenz Attractor
 
-Follow the trail around the butterfly's two wings. One moving point draws the whole path. It circles one wing, moves to the other, and leaves another loop behind.
+A moving point traces a path through three-dimensional phase space. Its coordinates follow
 
-## Build a trail one batch at a time
+$$
+\frac{dx}{dt}=\sigma(y-x),\qquad
+\frac{dy}{dt}=x(\rho-z)-y,\qquad
+\frac{dz}{dt}=xy-\beta z.
+$$
 
-One point circles a wing, crosses to the other, and folds back. Two projections reveal different parts of that same three-dimensional path.
+Edward Lorenz derived these equations from a severely simplified model of thermal convection in 1963. Here $x$ measures circulation intensity. The other variables describe temperature differences and distortion of the vertical temperature profile.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup> The butterfly is a path through these variables, rather than a parcel's route through the air.
+
+The defaults are $\sigma=10$, $\rho=28$ and $\beta=8/3$.
 
 <figure data-lesson="lorenz"></figure>
 
-The nearby start differs by 0.001 along the x-axis. Its separation uses all three coordinates, because a projection can hide part of the distance.
+A nearby start differs by 0.001 in $x$. Its distance from the first trajectory can grow and shrink. Sensitivity means sufficiently small initial uncertainty can eventually defeat a detailed prediction. It does not require separation to increase at every instant.
 
-The equations give the point's velocity at its current position:
+The equations combine local stretching with overall contraction. Their divergence is
 
 $$
-\frac{dx}{dt} = \sigma (y - x), \qquad
-\frac{dy}{dt} = x (\rho - z) - y, \qquad
-\frac{dz}{dt} = x y - \beta z
+\nabla\cdot f=-\sigma-1-\beta=-\frac{41}{3}
 $$
 
-The default values are $\sigma = 10$, $\rho = 28$ and $\beta = 8/3$. The trail approaches a bounded region with repeated folding. Nearby starting points can follow different routes through that region. This sensitivity does not mean their distance grows at every step, or that every possible starting point behaves the same way.
+at the default parameters. By the phase-volume equation, a volume transported by this flow shrinks as $V(t)=V(0)e^{-41t/3}$. This is a direct calculation. A volume can stretch in one direction while it contracts overall.
 
-## Sensitivity and numerical approximation
+Warwick Tucker later proved that the classical Lorenz equations support a strange attractor. His proof used interval arithmetic to bound numerical errors, rather than treating a plotted butterfly as proof.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
 
-A numerical trajectory samples a continuous flow at finite time intervals. Its trail connects those samples into a visible curve.
+The explorer uses fourth-order Runge–Kutta integration. Halving **Time step** and doubling **Steps** preserves duration while improving numerical resolution. Changing parameters changes the flow, and need not preserve its chaotic behavior.
 
-The renderer uses fourth-order Runge–Kutta integration. A smaller time step can reduce numerical error over a fixed duration. To compare that duration, reduce **Time step** and increase **Steps** together. Chaotic trajectories can eventually separate even when both numerical approximations are useful.
+The two small views are projections. A Poincaré section instead records crossings of a chosen plane. Compare the [Rössler attractor](/rossler-attractor) or the discrete [logistic map](/logistic-map).
 
-Changing the parameter $\rho$ changes the flow itself. The butterfly at $\rho=28$ does not imply every parameter or starting point has the same behavior.
+## Sources and notes
 
-The trail is a curve through three-dimensional space. The gaps between passes remain empty. The [Rössler attractor](/rossler-attractor) makes another folded trajectory. The [logistic map](/logistic-map) explores changing behavior through a recurrence with one variable.
-
-## Crossings in a shadow can hide separation
-
-The familiar butterfly is a projection of a trajectory in three-dimensional phase space. A crossing in its 2D drawing can join points with different hidden coordinates. Switch the small diagram's projection to see how the same path changes.
-
-A **Poincaré section** is a different operation: record the points where the trajectory crosses a chosen plane in one direction. Joining every projected position gives a shadow of the path; recording those crossings gives a section of the dynamics. The lesson above compares projections, and does not compute a Poincaré section.
-
-[ChaosBook explains the section and return map](https://chaosbook.org/chapters/maps.pdf).
-
-Compare the [Rössler attractor's spiral and side view](/rossler-attractor), or the geometric shadow and slice comparison in the [Menger sponge](/menger-sponge).
+1. <span id="lorenz-attractor-source-1"></span> Edward N. Lorenz, [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf), *Journal of the Atmospheric Sciences* 20 (1963), 130–141, especially section 5. Derives the three-variable convection model and identifies its variables. [Back](#lorenz-attractor-ref-1)
+2. <span id="lorenz-attractor-source-2"></span> Warwick Tucker, [A Rigorous ODE Solver and Smale's 14th Problem](https://research.monash.edu/en/publications/a-rigorous-ode-solver-and-smales-14th-problem/), *Foundations of Computational Mathematics* 2 (2002), 53–117. Reports the proof with directed rounding and interval arithmetic. [Back](#lorenz-attractor-ref-2)

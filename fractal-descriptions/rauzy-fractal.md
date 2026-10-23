@@ -1,35 +1,38 @@
 # Rauzy Fractal
 
-The Rauzy Fractal looks like a blob of three colored puzzle pieces with fuzzy, crinkly borders. It comes from a very small rule about words, studied by Gérard Rauzy in 1982.
+Start with `1`. Replace every letter simultaneously using
+
+$$
+1\to12,\qquad2\to13,\qquad3\to1.
+$$
+
+The words begin `1`, `12`, `1213`, `1213121`, … Their lengths are $1,2,4,7,13,\ldots$. Each later length is the sum of the previous three.
 
 <figure data-investigation="rauzy"></figure>
 
-Start with the letter `1` and repeatedly apply the tribonacci substitution:
+Read the infinite word as a staircase in three dimensions. Each `1` takes one step along x, each `2` along y, and each `3` along z. Record the corners. The substitution matrix is
 
 $$
-1 \to 12, \qquad 2 \to 13, \qquad 3 \to 1
+M=\begin{pmatrix}1&1&1\\1&0&0\\0&1&0\end{pmatrix}.
 $$
 
-This gives `1`, `12`, `1213`, `1213121`, `1213121121312`, … Each word is the start of the next one, so in the limit you get one infinite word. The lengths are the tribonacci numbers $1, 2, 4, 7, 13, 24, \dots$, where each number is the sum of the three before it. That is the same idea as the [Fibonacci Word Fractal](/l-system/fibonacci-word-fractal), just with three letters instead of two.
+Its expanding eigenvalue is the tribonacci constant $\beta\approx1.839286$, which solves $\beta^3=\beta^2+\beta+1$. The staircase follows its expanding direction on average. Project along that direction onto the contracting plane. The projected corners remain bounded, and their closure forms the tile.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
 
-Now turn the word into a path in 3D space. Read it letter by letter and take one step along the $x$, $y$ or $z$ axis for each `1`, `2` or `3`. That staircase grows in the direction of the eigenvector of the substitution matrix
+The other eigenvalues are conjugates $\alpha,\overline\alpha$, with $|\alpha|=\beta^{-1/2}<1$. This explorer uses complex coordinates where a projected x-step equals $1$ and substitution acts as multiplication by $\alpha$.
+
+Color each corner by its next letter. Call the three closed pieces $R_1,R_2,R_3$ and their union $R$. The substitution directly gives
 
 $$
-M = \begin{pmatrix} 1 & 1 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{pmatrix}
+R_1=\alpha R,\qquad R_2=1+\alpha^2R,\qquad R_3=1+\alpha+\alpha^3R.
 $$
 
-that belongs to the tribonacci constant $\beta \approx 1.8393$, the real root of $x^3 = x^2 + x + 1$. The two other eigenvalues are complex with $|\alpha| = 1/\sqrt{\beta} < 1$. Their plane is the contracting plane. When you project every corner of the staircase onto it along the growing direction, the points do not wander off. They stay in a bounded region and fill in the Rauzy Fractal.
+Every substituted word starts with `1`. A `2` follows the first `1` in `12`, while a `3` follows it in `13`. These facts give the three equations. Their linear scale factors are $|\alpha|$, $|\alpha|^2$ and $|\alpha|^3$, rather than one common factor.
 
-Each point is colored by the letter that comes right after it. This splits the shape into three pieces, and each piece is a shrunken, rotated copy of the whole, scaled by the complex number $\alpha$. The tile itself has positive area, so its dimension is $2$. Its boundary is a true fractal curve with Hausdorff dimension of about $1.0933$.
+The tile has nonempty interior and dimension two. Translated copies tile the plane. Its symbolic dynamics also gives a geometric representation of translation on a two-dimensional torus, a connection Rauzy introduced in 1982.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
 
-The pieces fit together without gaps, and copies of the whole shape tile the plane. In number theory and dynamical systems it shows how the tribonacci word, a rotation on a 2D torus and $\beta$-expansions of numbers are the same thing in disguise.
+The projection is generally oblique. Compare the [Fibonacci word](/l-system/fibonacci-word-fractal), or the higher-dimensional construction behind [Penrose tilings](/penrose-tiling).
 
-Early prefixes visit only a sparse selection of corners. Longer prefixes fill the same bounded tile rather than expanding its outer scale.
+## Sources and notes
 
-## A projection that keeps the sideways deviations
-
-The staircase above grows without bound in 3D, but its projection stays bounded. The projection removes its average growing direction and keeps the deviations from that direction. The letter counts determine those deviations, so the word's ordering becomes the tile's geometry.
-
-This construction uses projection along the expanding eigenvector onto the contracting plane. Those directions need not be perpendicular. It differs from the parallel, perpendicular shadows of the [Sierpinski tetrahedron](/sierpinski-tetrahedron), and from the flat slice inside the [Menger sponge](/menger-sponge).
-
-[Berthé's account of discrete geometry and symbolic dynamics](https://www.irif.fr/~berthe/Articles/KF_Revised.pdf) explains the staircase and its projected tile. The [Penrose tiling](/penrose-tiling) has another connection to higher-dimensional lattices through cut and project.
+1. <span id="rauzy-fractal-source-1"></span> Valérie Berthé, [Discrete Geometry and Symbolic Dynamics](https://www.irif.fr/~berthe/Articles/KF_Revised.pdf), researcher survey, section 6.1. Defines the projected staircase, next-letter pieces, compact tile and positive area. The displayed piece equations are derived from this substitution in the explorer's complex normalization. [Back](#rauzy-fractal-ref-1)
+2. <span id="rauzy-fractal-source-2"></span> Gérard Rauzy, [Nombres algébriques et substitutions](https://www.numdam.org/item/BSMF_1982__110__147_0/), *Bulletin de la Société Mathématique de France* 110 (1982), 147–178. See also Ali Messaoudi, [Propriétés arithmétiques et dynamiques du fractal de Rauzy](https://www.numdam.org/item/JTNB_1998__10_1_135_0.pdf), *Journal de Théorie des Nombres de Bordeaux* 10 (1998), 135–162, for planar tiling and the torus correspondence. [Back](#rauzy-fractal-ref-2)

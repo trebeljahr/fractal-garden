@@ -1,17 +1,32 @@
 # Koch Surface
 
-The Koch Surface is the [Koch Snowflake](/l-system/koch-snowflake) idea moved into 3D. The snowflake takes a line, cuts it into thirds, and raises a small triangle on the middle third. The surface does the same thing to a triangle: split it into four smaller triangles by connecting the midpoints of its sides, then replace the middle one with a small tetrahedron that pokes out of the surface.
+Join a triangle's edge midpoints, producing four half-size triangles. Keep the three corner triangles. Replace the middle triangle with the three exposed walls of an outward regular tetrahedron.<sup><a id="koch-surface-ref-1" href="#koch-surface-source-1">1</a></sup>
 
 <figure data-investigation="koch-surface"></figure>
 
-Each step turns one triangle into six: the three corner triangles that stay flat, and the three walls of the new tetrahedron. All six are half the size of the original, so the Hausdorff dimension is
+Every old triangle becomes six triangles with half its edge length and one-quarter its area. Starting from one triangle, round $n$ has $6^n$ faces and total face area
 
 $$
-D = \frac{\log 6}{\log 2} \approx 2.585
+A_n=A_0(6/4)^n=A_0(3/2)^n.
 $$
 
-That is more than 2 and less than 3. The surface stays a surface, but it gets so crinkled that it starts to fill space. Its area grows by a factor of $\tfrac{6}{4} = 1.5$ at every step and so goes to infinity, just like the length of the [Koch Snowflake](/l-system/koch-snowflake) boundary.
+The face area diverges while the construction stays bounded. The limiting single-face Koch surface has Hausdorff dimension
 
-There are two starting shapes here. The single triangle shows the rule on its own. The tetrahedron applies the rule to all four faces at once, which is the 3D cousin of starting the snowflake from a triangle instead of a line. Watch what happens to the outline as it grows: the spikes fill in more and more of a cube that has the original tetrahedron's corners as four of its eight corners.
+$$
+D=\frac{\log6}{\log2}\approx2.585.
+$$
 
-For other 3D shapes built from tetrahedra, see the [Sierpinski Tetrahedron](/sierpinski-tetrahedron), which cuts tetrahedra away instead of adding them. The flat [Quadratic Snowflake](/l-system/quadratic-snowflake) uses the same "add a bump to the middle" rule with squares.
+Ferrer and Vélez-Santiago prove this dimension for their Koch 2-surface, the half-scale construction used here.<sup><a id="koch-surface-ref-2" href="#koch-surface-source-2">2</a></sup>
+
+## Four rough faces can enclose a smooth cube
+
+Choose the tetrahedron start to apply the rule to all four original faces. The added tetrahedra approach a cube whose alternate corners are the original tetrahedron's vertices. This is a special feature of the half-scale rule.
+
+The distinction between the recursive surface and the enclosed solid matters here. The limiting solid is a cube, with an ordinary two-dimensional exterior. The recursive Koch surfaces also retain fractal structure inside that exterior. Their dimension remains $\log6/\log2$.<sup><a href="#koch-surface-source-2">2</a></sup> Adding every triangle's area therefore does not measure the cube's outer boundary area.
+
+This separates two ways to extend the [Koch snowflake](/l-system/koch-snowflake) into space. This page raises tetrahedral bumps. The [Mosely snowflake](/mosely-snowflake) removes cube corners to obtain a Koch **shadow**. The [Sierpinski tetrahedron](/sierpinski-tetrahedron) keeps four half-size corner tetrahedra and removes the central octahedron.
+
+## Sources and notes
+
+1. <span id="koch-surface-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Triangle and square surface generators. [Back](#koch-surface-ref-1)
+2. <span id="koch-surface-source-2"></span> Giovanni Ferrer and Alejandro Vélez-Santiago, [3D Koch-type crystals](https://ems.press/content/serial-article-files/37384), Journal of Fractal Geometry 10 (2023), 109–149, Example 3 and §3. Dimension of the Koch 2-surface and the exceptional cube limit. The area formula counts generated faces. [Back](#koch-surface-ref-2)

@@ -1,51 +1,34 @@
 # Burning Ship Fractal
 
-Zoom into the Burning Ship fractal to find smaller ships and rows of thin towers. Its main outline resembles a hull with masts above it. The colored bands trace the edges, where the towers split into finer detail.
+Each pixel supplies a complex parameter $c$. Start from zero, make both coordinates nonnegative, square the result, then add $c$:
 
-Smaller ships repeat the hull-and-mast arrangement along the boundary. Their surrounding towers differ, even when their broad outlines resemble the whole.
+$$
+z_0=0,\qquad z_{n+1}=\left(|\operatorname{Re}(z_n)|+i|\operatorname{Im}(z_n)|\right)^2+c.
+$$
 
-## A fold changes the boundary
+For $z_n=x_n+iy_n$ and $c=a+ib$, this becomes
 
-The absolute-value operation identifies points from different quadrants before the next square. It erases sign differences that the Mandelbrot rule preserves.
+$$
+x_{n+1}=x_n^2-y_n^2+a,\qquad y_{n+1}=2|x_ny_n|+b.
+$$
 
-That folding changes the arrangement of filaments and towers. Near a small ship, thin ridges split again into finer ridges.
-
-The bright bands record escape behavior. Their colors are a choice of display, while their locations come from the iterated rule.
+The absolute values fold four quadrants together before each square. They preserve the real part of the square and force its imaginary contribution nonnegative.
 
 <figure data-article-images="burning-ship"></figure>
 
-## How it relates to Mandelbrot
+Michael Michelitsch and Otto Rössler introduced the Burning Ship in 1992. Their paper also studied its fixed-parameter relatives, which they called quasi-Julia sets.<sup><a id="burning-ship-ref-1" href="#burning-ship-source-1">1</a></sup> The fold makes this map non-analytic: complex differentiation no longer describes the whole rule.
 
-The [Mandelbrot set](/mandelbrot) has round bulbs and curled branches. Burning Ship uses almost the same rule, with one change. Before each square, it makes both parts of the complex number positive or zero.
-
-This folds all four quadrants into one before the next step. Smaller ships echo the main outline, with different arrangements of towers around them.
-
-The explorer displays the imaginary axis downward so the hull and masts appear upright.
-
-## The rule and the colors
-
-Each pixel supplies a complex number $c$. The [Burning Ship rule](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf) starts from zero:
-
-$$
-z_0 = 0, \qquad z_{n+1} = \left(|\operatorname{Re}(z_n)| + i|\operatorname{Im}(z_n)|\right)^2 + c
-$$
-
-The absolute values act on the real and imaginary parts separately. They leave the squared real terms unchanged, but make their product nonnegative in the imaginary part.
-
-The dashed amber line below marks the fold before squaring and addition. The plot uses the usual upward imaginary axis.
+The explorer displays the imaginary axis downward, the usual Burning Ship convention. That orientation gives the main shape its hull and rising masts. The orbit diagram below uses the usual upward imaginary axis.
 
 <figure data-orbit="burning-ship"></figure>
 
-The set contains the values of $c$ whose sequences stay bounded forever. Default coloring uses smooth escape time for the points that escape. Black marks points that do not escape within the current **Iterations** limit.
+Small ships relate to periodic returns of the orbit. Researchers can locate their centers numerically by solving for a return to zero. Claude Heiland-Allen's 2019 paper develops this method using a real Jacobian matrix, which tracks changes in both coordinates.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
 
-Some boundary points escape only after a long delay. A finite calculation can leave them dark alongside points with bounded orbits.
+The mathematical set contains parameters whose orbits remain bounded forever. **Smooth escape time** colors escaping orbits. Black means no escape within the chosen iteration limit, which can include slowly escaping parameters.
 
-For another view of the same escape-time idea, the [Julia set explorer](/julia-set) fixes $c$ and varies the starting point.
+The [Mandelbrot set](/mandelbrot) uses the same square-and-add operation without the fold. The [Julia explorer](/julia-set) instead fixes its parameter and varies the starting point.
 
-### Long delays near the edge
+## Sources and notes
 
-A fold can bring an orbit back toward an axis before the square sends it away again. Repeated returns produce long escape delays.
-
-Escape-time bands distinguish those delays. A darker band need not belong to the set.
-
-The mathematical set requires boundedness forever. Every finite rendering approximates that condition.
+1. <span id="burning-ship-source-1"></span> Michael Michelitsch and Otto E. Rössler, [The “burning ship” and its quasi-Julia sets](https://www.sciencedirect.com/science/article/pii/009784939290032Q), *Computers & Graphics* 16(4) (1992), 435–438. Original paper's public abstract confirms the nonanalytic construction and quasi-Julia family. [Back](#burning-ship-ref-1)
+2. <span id="burning-ship-source-2"></span> Claude Heiland-Allen, [At the Helm of the Burning Ship](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf), *Electronic Visualisation and the Arts* (2019), 402–408. Gives the real-coordinate recurrence, axis convention, periodic mini-ships and Jacobian methods. [Back](#burning-ship-ref-2)

@@ -1,41 +1,32 @@
 # Newton Fractal
 
-Look for three colored regions with smaller patches around their boundaries. Each pixel starts a calculation that tries to reach a root. Nearby starting points can lead to different roots.
+Start Newton's method at every point in the complex plane. Color each point by the root its orbit approaches. For $f(z)=z^3-1$, the three roots are
 
-## Turn a tangent into the next estimate
+$$
+1,\qquad -\frac12+\frac{\sqrt3}{2}i,\qquad -\frac12-\frac{\sqrt3}{2}i.
+$$
 
-[Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) starts with an estimate. Draw a tangent to the function there, then use its crossing of the horizontal axis as the next estimate. Repeat at the new point.
+The update subtracts the function value divided by its derivative:
+
+$$
+z_{n+1}=z_n-\frac{z_n^3-1}{3z_n^2}=\frac{2z_n^3+1}{3z_n^2}.
+$$
+
+On the real graph, this uses the tangent's intersection with the horizontal axis as the next estimate. The complex calculation applies the same algebraic formula.
 
 <figure data-lesson="newton"></figure>
 
-Start with **Real tangent** to follow the crossings. Compare **Start at 2** with **Start at 0.5**. The **Flat tangent (0)** has no crossing, so the update stops. Switch to **Complex orbit** to follow the same rule in the complex plane.
+Each root has a **basin of attraction**: all starting points whose iterates converge to it. Near a simple root, Newton's method converges quadratically. Roughly, the number of correct digits doubles each step once the estimate is close enough.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
 
-For the version shown here, the equation is
+The three basins share one boundary. Every neighborhood of a boundary point contains starting values for all three roots. This explains why a border between two colors repeatedly reveals pieces of the third.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup> Grant Sanderson's [animated explanation](https://www.youtube.com/watch?v=-RdOwhmqP5s) develops this boundary property from Newton's method.
 
-$$
-f(z) = z^3 - 1
-$$
+A direct calculation explains the picture's rotational symmetry. If $\omega^3=1$, the Newton map satisfies $N(\omega z)=\omega N(z)$. A 120° rotation permutes the three roots and their basins.
 
-which has three roots:
+At zero, the derivative vanishes and the update divides by zero. Nearby points can take large jumps. This renderer stops after at most 48 updates and assigns unresolved pixels their last point's nearest root. Their color therefore does not establish convergence.
 
-$$
-1,\quad -\frac{1}{2} + \frac{\sqrt{3}}{2}i,\quad -\frac{1}{2} - \frac{\sqrt{3}}{2}i
-$$
+The boundary is itself the Julia set of this rational Newton map. The [quadratic Julia explorer](/julia-set) uses a different iterated function.
 
-The Newton update is:
+## Sources and notes
 
-$$
-z_{n+1} = z_n - \frac{z_n^3 - 1}{3z_n^2}
-$$
-
-The denominator is the derivative. A zero derivative prevents this division. Starting close to zero can also cause a large jump.
-
-## Read the colors as a numerical result
-
-Red names the real root at $1$. Green and blue name the roots above and below the real axis. Near a boundary, a small change in the starting point can change which root the iteration approaches.
-
-The full image takes at most 48 updates per pixel. It stops near a root, when the derivative becomes too small, or when a value exceeds its numerical limit. If no root meets the tolerance, it colors the last point by its nearest root, with slightly lower brightness. A pixel's color alone therefore does not prove convergence.
-
-Near a basin boundary, a small change to the starting point can send Newton’s method toward a different root. Repeated preimages spread that sensitivity across finer scales.
-
-The [Mandelbrot set](/mandelbrot) and [Burning Ship fractal](/burning-ship) also iterate complex numbers, but color their images using escape tests. The [Julia set](/julia-set) varies the starting point of a fixed rule, as this Newton picture does.
+1. <span id="newton-fractal-source-1"></span> Marco Abate, [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf), lecture of 23 March 2013, sections 1–2. Explains tangent iteration, local quadratic convergence, and basins. [Back](#newton-fractal-ref-1)
+2. <span id="newton-fractal-source-2"></span> Abate, same lecture, section 3. Explains the common basin boundary and Fatou's work. See also Grant Sanderson, [Newton's Fractal](https://www.3blue1brown.com/lessons/newtons-fractal/), 3Blue1Brown video lesson, 12 October 2021, especially 17:56 onward. The rotational identity above is a direct derivation. [Back](#newton-fractal-ref-2)

@@ -1,29 +1,24 @@
 # Diffusion-Limited Aggregation
 
-Watch new particles collect on the tips of a growing cluster. Branches extend into open space while narrow gaps receive fewer arrivals. Diffusion-limited aggregation, or DLA, builds this pattern from moving particles that stick to frozen ones.
+Place a frozen seed on a grid. Release a particle some distance away. Let it walk randomly until it touches the cluster, then freeze it there. Repeat with another particle.
 
-## Follow one particle
+Thomas Witten and Leonard Sander introduced this model in 1981. Their original simulation released particles one at a time. Exposed ends grew faster because the cluster sheltered its inner perimeter from incoming walkers.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup>
 
-Start with a frozen seed. A walker chooses a direction, moves, and checks whether it touches the cluster. In this grid model, each short move goes up, down, left or right. Contact includes all eight neighboring cells, so a diagonal touch counts too.
+That screening explains the open branches. A walker must avoid many exposed sites before it can reach a deep gap. Tips intercept more walkers and extend farther. No particle needs instructions about the final shape.
 
 <figure data-lesson="dla"></figure>
 
-The three paths have different outcomes: edge contact, diagonal contact, and departure from the window. Their random steps do not point toward the cluster.
+In this explorer, short steps move up, down, left or right. Contact includes all eight neighboring cells, so diagonal contact counts. The small diagram uses sticking chance one. A walker freezes on its first contact.
 
-The small diagram uses sticking chance 1. The first contact freezes the walker. Adding more walkers repeats the same local rule around the enlarged cluster.
+Reducing **Sticking chance** lets some contacting walkers continue. A point seed starts radial growth. A line seed starts branches along an extended base. The full simulation uses longer jumps away from contact and discards distant walkers. Those shortcuts approximate the walk while keeping growth responsive.
 
-## A seed changes the early growth
+The usual two-dimensional DLA model has an empirically estimated fractal dimension near 1.7. That number describes how particle count grows with cluster radius. It is not an exact dimension proved for every finite cluster.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup>
 
-A point seed grows outward in all directions. A line seed gives walkers an extended base, so early branches compete along that line.
+Witten later explained that DLA did not describe the iron aggregates that first inspired it. Those aggregates formed through a different aggregation process.<sup><a id="diffusion-limited-aggregation-ref-3" href="#diffusion-limited-aggregation-source-2">2</a></sup>
 
-A particle that does not stick can continue walking. This lets it reach places beyond its first contact, changing how material arrives at the cluster.
+**First arrivals** and **Last arrivals** color particle age. Compare the [Barnsley fern](/barnsley-fern), where random choices select fixed transformations, or the [fractal canopy](/fractal-canopy), where geometry prescribes each branch.
 
-**First arrivals** and **Last arrivals** set the colors for the oldest and newest frozen particles. The gradient shows their relative arrival order. **Particle budget** limits the cluster's size, while **Walkers per frame** changes how much work the animation attempts per frame.
+## Sources and notes
 
-## Why the gaps stay open
-
-An approaching walker can reach an exposed tip before it reaches a sheltered gap. As the tips gain particles, they intercept more walkers. This local growth can produce branching patterns without repeating an exact geometric copy of the whole cluster.
-
-The full explorer starts walkers near the growing cluster, discards distant walkers, and uses longer jumps far from contact. Those shortcuts keep it responsive. The inline diagram uses unit moves inside a fixed window so each decision stays visible.
-
-The [Barnsley fern](/barnsley-fern) also chooses moves at random, but applies fixed transformations to a point. The [fractal canopy](/fractal-canopy) uses explicit branching geometry. The [Buddhabrot](/buddhabrot) builds a picture from many sampled orbits.
+1. <span id="diffusion-limited-aggregation-source-1"></span> T. A. Witten Jr. and L. M. Sander, [Diffusion-Limited Aggregation, a Kinetic Critical Phenomenon](https://doi.org/10.1103/PhysRevLett.47.1400), *Physical Review Letters* 47 (1981), 1400–1403. Original random-walk construction and shielding explanation. [Back](#diffusion-limited-aggregation-ref-1)
+2. <span id="diffusion-limited-aggregation-source-2"></span> Thomas A. Witten Jr., [Fractal Growth: A Continuing Mystery](https://garfield.library.upenn.edu/classics1993/A1993KX31200001.pdf), *Current Contents* 18, 3 May 1993. Creator's retrospective reports dimension near 1.7 and explains why the motivating iron aggregates required a different model. [Back](#diffusion-limited-aggregation-ref-2) · [Back to history](#diffusion-limited-aggregation-ref-3)

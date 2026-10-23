@@ -1,33 +1,30 @@
 # Polyhedron Flake
 
-A polyhedron flake is the three-dimensional version of an [N-Flake](/n-flake). Take a regular solid, make one smaller copy of it for every corner, and push each copy into its corner. Then repeat that on every copy. The [Sierpinski Tetrahedron](/sierpinski-tetrahedron) is the flake you get from a tetrahedron, and the cube version leads to the [Menger Sponge](/menger-sponge) and [3D Vicsek Fractal](/vicsek-fractal-3d) family. This page covers the other three Platonic solids.
+Replace a solid with one smaller copy toward each vertex. Every copy keeps the parent's orientation. This explorer uses three Platonic solids and three specific shrink ratios.
 
 <figure data-investigation="polyhedron-flake"></figure>
 
-The scale of each copy is picked so that neighbouring copies just touch and never overlap. With $N$ copies at scale $r$, the Hausdorff dimension is
+The **octahedron** has six vertices. Six half-size copies remain, giving
 
 $$
-D = \frac{\log N}{\log (1/r)}
+D=\frac{\log6}{\log2}\approx2.585.
 $$
 
-**Octahedron flake.** Six copies at half size, one per corner. What gets removed at each step is eight small tetrahedra, one under each face, because an octahedron splits exactly into six half-size octahedra and eight tetrahedra. The dimension is
+A parent octahedron splits into those six octahedra and eight small tetrahedra. The rule removes the tetrahedra. Each remaining octahedron repeats the same gaps.
+
+The **dodecahedron** has twenty vertices and uses $r=1/(2+\varphi)\approx0.2764$. The **icosahedron** has twelve and uses $r=1/(1+\varphi)\approx0.3820$. Their dimensions are
 
 $$
-D = \frac{\log 6}{\log 2} \approx 2.585
+D_{\rm dodeca}=\frac{\log20}{\log(2+\varphi)}\approx2.330,\qquad
+D_{\rm icosa}=\frac{\log12}{\log(1+\varphi)}\approx2.582.
 $$
 
-**Dodecahedron flake.** Twenty copies, scaled by $r = \frac{1}{2 + \varphi} \approx 0.276$, where $\varphi = \frac{1 + \sqrt{5}}{2}$ is the golden ratio. A dodecahedron is wide compared to its edge length, so the copies have to shrink a lot before neighbours stop overlapping. That gives
+Here $\varphi=(1+\sqrt5)/2$. The golden ratio enters the solids' vertex coordinates and the fitted copy sizes. These values use the non-overlapping corner maps shown here, with the usual self-similar dimension theorem.<sup><a id="polyhedron-flake-ref-1" href="#polyhedron-flake-source-1">1</a></sup>
 
-$$
-D = \frac{\log 20}{\log (2 + \varphi)} \approx 2.330
-$$
+Copy count alone gives the wrong intuition. Twenty smaller dodecahedra produce a lower dimension than twelve larger icosahedra. Their retained volume fractions per replacement are approximately $0.422$ and $0.669$, respectively. Both volumes tend to zero.
 
-**Icosahedron flake.** Twelve copies, scaled by $r = \frac{1}{1 + \varphi} \approx 0.382$, which leads to
+A tetrahedron with four half-size corner copies gives the [Sierpinski tetrahedron](/sierpinski-tetrahedron). Eight half-size corner copies of a cube would fill the cube completely. The [Menger sponge](/menger-sponge) instead keeps twenty third-size cubes at corners **and edges**. The seven-cube [3D Vicsek construction](/vicsek-fractal-3d) uses face centers. Neither follows the vertex-only rule of this page.
 
-$$
-D = \frac{\log 12}{\log (1 + \varphi)} \approx 2.582
-$$
+## Sources and notes
 
-The golden ratio shows up in the last two because it is already built into the dodecahedron and icosahedron: the corner coordinates of both solids are written with $\varphi$. Twenty copies per step grow fast, so the dodecahedron flake stops at two iterations here, while the icosahedron goes one level further.
-
-For flat versions of the same idea, such as the pentaflake and hexaflake, try the [N-Flake](/n-flake) page.
+1. <span id="polyhedron-flake-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), §§3 and 5. Separation and dimension theorem; numerical results here follow from the displayed rule. [Back](#polyhedron-flake-ref-1)

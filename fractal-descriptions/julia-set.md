@@ -1,47 +1,28 @@
 # Julia Set
 
-A single constant determines every spiral and branch in a quadratic Julia set. Some constants produce connected sets. Others produce disconnected dust.
+Fix one complex number $c$. Every pixel supplies a different starting point $z_0$, then follows the same recurrence:
 
-Repeated iteration spreads the effect of that constant across the entire plane. Changing it can reshape every part of the boundary.
+$$
+z_{n+1}=z_n^2+c.
+$$
 
-## One rule, different starting points
-
-Two pixels share the same rule and constant, but start their orbits at different complex values. Their later paths can approach the same cycle or escape.
-
-A small change to the constant can change the fate of the critical orbit starting at zero. That orbit determines whether the Julia set is connected.
-
-Coloring measures the behavior of these orbits. It does not change which infinite orbits remain bounded.
+Squaring squares the distance from zero and doubles the angle. Adding $c$ shifts the result. Repeating these operations separates starting points with bounded orbits from those that escape.
 
 <figure data-article-images="julia"></figure>
 
-## One Julia set for each Mandelbrot point
+The **filled Julia set** contains all starting points with bounded orbits. Its boundary is the **Julia set**. For $c=0$, the filled set is the closed unit disk, and its boundary is a circle. Points inside approach zero. Points outside escape. Points on the circle stay there as their angles double.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
-The [Mandelbrot set](/mandelbrot) and these Julia sets share the rule:
+For this quadratic family, one orbit decides connectedness: start at the critical point $0$. If its orbit stays bounded, the Julia set is connected. If it escapes, the Julia set is a Cantor set, a completely disconnected dust. The [Mandelbrot set](/mandelbrot) records precisely the connected parameters.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
 
-$$
-z_{n+1} = z_n^2 + c
-$$
-
-The Mandelbrot explorer starts every sequence at $z_0 = 0$ and uses each pixel as a different value of $c$. The Julia explorer keeps $c$ fixed and uses each pixel as a different starting value $z_0$.
-
-This makes the Mandelbrot set a [map of the Julia family](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). A value of $c$ in the Mandelbrot set gives a connected Julia set. A value outside it gives disconnected dust. Near the Mandelbrot boundary, small changes to $c$ can produce large changes in the Julia image.
-
-Below, $c=-0.8+0.156i$ stays fixed. Only the starting point changes. This separates the role of the parameter from the role of the iterated value.
+In the diagram, $c=-0.8+0.156i$ stays fixed while the starting point changes.
 
 <figure data-orbit="julia"></figure>
 
-## What the image shows
+There is also an exact symmetry you can derive from the formula. Since $(-z)^2=z^2$, opposite starting points share every iterate after the first. The filled set and its boundary therefore have half-turn symmetry for every $c$. A particular palette can obscure it.
 
-The filled Julia set contains all starting points whose sequences stay bounded forever. Its boundary is the Julia set itself.
+**Smooth escape time** describes escaping orbits. Dark pixels approximate the filled set at a finite iteration limit, which can leave slow escapes unresolved. **Orbit trap** instead measures the orbit's closest approach to the origin. Neither palette changes the mathematical set.
 
-With default **Smooth escape time** coloring, the dark region approximates the filled set. The surrounding colors describe how quickly other starting points escape. The finite **Iterations** limit means that a slowly escaping point can still appear dark.
+## Sources and notes
 
-**Orbit trap** colors points by how close their sequences come to the origin, including points that do not escape. This can reveal patterns inside the dark region. The [Burning Ship explorer](/burning-ship) offers the same coloring controls with a different iteration rule.
-
-### A finite test of an infinite orbit
-
-Some starting points spend a long time near the boundary before escaping. A finite iteration limit can leave those points dark.
-
-The filled set contains every bounded starting orbit. The Julia set is the boundary between that behavior and escape.
-
-Magnification changes which starting points occupy the screen. It does not change the constant or the recurrence.
+1. <span id="julia-set-source-1"></span> Chris Lipa, [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html), Cornell Math Explorers' Club, undated teaching notes. Defines filled Julia sets and explains the unit-circle example. [Back](#julia-set-ref-1)
+2. <span id="julia-set-source-2"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), 467–511, introduction. States the equivalence between bounded critical orbit and connected filled Julia set. Lipa's notes also explain the Cantor alternative. The half-turn argument above is a direct derivation. [Back](#julia-set-ref-2)

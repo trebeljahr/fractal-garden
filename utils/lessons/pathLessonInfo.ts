@@ -4,7 +4,7 @@ export const PATH_LESSONS = {
     max: 3,
     idea: "Seven forward segments replace each old segment. The four right turns bring the heading back to its starting direction.",
     detail:
-      "The middle of the replacement walks around a small square. Its endpoint is three unit steps from its start.",
+      "The middle of the replacement walks around a small square. Its departure retraces one unit edge before finishing three units from the start.",
     takeaway: "The path length grows by 7/3 per replacement when its endpoint spacing stays fixed.",
   },
   crystal: {
@@ -92,8 +92,9 @@ export const PATH_LESSONS = {
     max: 3,
     idea: "X inserts new detours while existing forward strokes remain. The right-angle turns keep the route on a square grid.",
     detail:
-      "The full curve stays connected even as more gaps appear inside its repeated square motifs.",
-    takeaway: "Following drawing order reveals connections that a dense still image can hide.",
+      "The seed has four F strokes and two X symbols. Its first rewrites draw 20, 84 and 340 strokes.",
+    takeaway:
+      "Each X inserts eight F strokes and four new X symbols. The existing F strokes connect the new groups.",
   },
   "koch-anti-snowflake": {
     title: "The same bend points inward",
@@ -154,7 +155,7 @@ export const PATH_LESSONS = {
     detail:
       "One path runs from the first endpoint to the second. Its partner returns from the second endpoint to the first.",
     takeaway:
-      "The two folds form the boundary of a region. Translated copies of the limiting tile cover the plane.",
+      "The limiting paths cover the tile’s interior as well as its outline. Translated copies of that tile cover the plane.",
   },
   "hilbert-curve-3d": {
     title: "Visit each little cube once",

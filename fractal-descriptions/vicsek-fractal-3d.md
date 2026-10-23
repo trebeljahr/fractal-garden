@@ -1,27 +1,37 @@
 # 3D Vicsek Fractal
 
-The 3D Vicsek Fractal takes the same idea as the [2D Vicsek Fractal](/vicsek-fractal-2d) and lifts it into space. Start with a cube, divide it into `3 x 3 x 3` smaller cubes, and then keep only the center cube together with the six cubes that touch the middle of each face. Repeat that step on every surviving cube, and a branching three-dimensional cross begins to form.
+Split a cube into 27 equal cubes. Keep the center and its six face neighbors. Repeat inside each of those seven cubes. This page uses the seven-cube spatial cross.
 
 <figure data-investigation="vicsek-fractal-3d"></figure>
 
-Because only seven cubes survive at each stage, the structure stays surprisingly open even after several iterations. That is why it is sometimes also called a **Menger flake**: it belongs to the same family of cube-based recursive solids as the [Mosely Snowflake](/mosely-snowflake) and the [Menger Sponge](/menger-sponge), but it keeps a much smaller set of cubes at every step.
+After $n$ replacements, $7^n$ cubes have side $3^{-n}$ relative to the seed. The volume fraction and dimension are
 
-It is also a nice example of how a very simple 2D recursion can turn into a very different object in 3D. The square cross from the 2D page becomes a spatial lattice here, with tunnels and arms that only really become obvious once the solid starts to rotate.
+$$
+V_n=(7/27)^n,\qquad D=\frac{\log7}{\log3}\approx1.771.
+$$
 
-## Thin arms replace solid walls
+The dimension comes from seven contractions whose cube interiors are disjoint.<sup><a id="vicsek-fractal-3d-ref-1" href="#vicsek-fractal-3d-source-1">1</a></sup>
 
-The six arms connect through the central cube. Their side faces open onto empty space rather than the broad perforated walls of a Menger sponge.
+## Surface area tends to zero
 
-Each arm contains a smaller cross. Large empty regions remain between the arms at every stage.
+For a unit starting cube, let $N=7^n$. The graph that joins face-sharing cubes is a tree. Each replacement contributes six internal adjacencies, and each old adjacency survives as one new adjacency. There are therefore $N-1$ shared-face pairs.
 
-The construction becomes sparser by volume at every scale, even as the number of connected pieces increases.
+Each cube contributes six faces. Every shared pair hides two. The exposed area is consequently
 
-## Seven cubes cast a five-square shadow
+$$
+A_n=\frac{6N-2(N-1)}{9^n}=\frac{4\cdot7^n+2}{9^n}.
+$$
 
-Look straight along one of the cube's axes using parallel viewing rays. The front, central and back cubes overlap in the shadow. The seven surviving cubes therefore occupy five square positions: a Greek cross.
+It tends to zero, unlike the increasing area of the [Menger sponge](/menger-sponge). This is a calculation for the displayed finite cube unions, not a claim that their limiting set is an ordinary surface.
 
-Projection preserves the one-third scale of each copy. Repeating the construction gives exactly the **Greek cross** variant of the [2D Vicsek fractal](/vicsek-fractal-2d). The diagonal-cross variant on that page uses a different arrangement.
+## Seven cubes cast five squares
+
+Look along a cube axis with parallel rays. The front, central and back cubes overlap. Four other cubes supply the arms of a Greek cross. Projection preserves the one-third copy scale, so the shadow follows exactly the [2D Vicsek fractal's](/vicsek-fractal-2d) Greek-cross rule.
 
 <figure data-projection="vicsek"></figure>
 
-This connection follows directly from the seven cube positions used here. It explains why counting copies gives different dimensions: the 3D construction keeps seven, while its shadow has five distinct positions. The full explorer uses perspective, so its near and far cubes have different apparent sizes. The diagram shows the exact orthographic shadow.
+The whole object retains three straight central axes. Its recursive attachments shrink toward point contacts in the limit: repeated subdivision of a contact face retains only its central square, then its center.
+
+## Sources and notes
+
+1. <span id="vicsek-fractal-3d-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), §§3 and 5. General contraction and dimension results; calculations here use the stated local construction. [Back](#vicsek-fractal-3d-ref-1)

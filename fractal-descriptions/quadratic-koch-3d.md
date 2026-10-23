@@ -1,19 +1,43 @@
 # Quadratic Koch Surface
 
-This is the three-dimensional version of the quadratic type 1 Koch curve. In 2D, that curve takes a line segment, splits it into three parts and pushes the middle part out into a square bump. You can see the closed version of it on the [Quadratic Snowflake](/l-system/quadratic-snowflake) page.
+Divide a square into nine equal squares. Replace the middle square with the five exposed faces of an outward cube. Eight flat squares and five bump faces replace the original face.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup> This explorer starts from all six faces of a cube.
 
 <figure data-investigation="quadratic-koch-3d"></figure>
 
-In 3D, the same idea works on squares instead of line segments. Start with a cube. Split each square face into a `3 x 3` grid and grow a small cube, a third of the size, out of the middle cell. Now each old face has turned into 13 smaller squares: the 8 flat cells around the bump and the 5 visible faces of the new cube. Repeat the same step on every one of those squares.
-
-Every face on screen at a given iteration has exactly the same size, which is why the surface looks so even, almost like it was built out of Lego. Each step multiplies the number of faces by 13 and shrinks them by a factor of 3, so the Hausdorff dimension is
+Each replacement produces thirteen squares with one-third the edge length. After $n$ rounds, the mesh has
 
 $$
-D = \frac{\ln 13}{\ln 3} \approx 2.335.
+F_n=6\cdot13^n
 $$
 
-That makes it a surface that is "more than two-dimensional", in the same way the [Koch Snowflake](/l-system/koch-snowflake) is a curve with dimension $\ln 4 / \ln 3 \approx 1.262$.
+faces. For a unit starting cube, summing those faces gives
 
-Along each axis the solid grows by $\tfrac{1}{3} + \tfrac{1}{9} + \tfrac{1}{27} + \dots = \tfrac{1}{2}$ of the starting cube's edge on each side, so the finished shape fits inside a cube twice as wide as the one it started from. The surface area, on the other hand, grows by a factor of $\tfrac{13}{9}$ at every step and goes to infinity.
+$$
+A_n=6(13/9)^n.
+$$
 
-If you like cube-based fractals, compare it with the [Menger Sponge](/menger-sponge), which removes cubes instead of adding them, and the [Jerusalem Cube](/jerusalem-cube).
+Every square shrinks, yet the total generated face area grows without bound. The generator's similarity dimension is
+
+$$
+D=\frac{\log13}{\log3}\approx2.335.
+$$
+
+This value describes the scaling rule for the limiting surface. Each finite displayed mesh consists of ordinary flat squares, whose individual dimension is $2$.
+
+## Bounded reach, unbounded detail
+
+A stack of successive outward bumps adds heights
+
+$$
+\frac13+\frac19+\frac1{27}+\cdots=\frac12
+$$
+
+relative to the starting cube's side. The construction therefore fits within a cube twice as wide as its seed.
+
+Neel Shrestha gives an origami construction of this same thirteen-square generator. His second-stage model uses separate folding modules for the square surface and neighboring faces.<sup><a href="#quadratic-koch-3d-source-1">1</a></sup> A finite version can therefore be assembled without a computer.
+
+The [Koch surface](/koch-surface) replaces each triangle with six half-size triangles. The [quadratic snowflake](/l-system/quadratic-snowflake) replaces line segments with square bumps. The [Menger sponge](/menger-sponge) removes cubes, whereas this construction adds bumps to faces.
+
+## Sources and notes
+
+1. <span id="quadratic-koch-3d-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Original folding method and thirteen-square generator. Counts, area, reach and similarity dimension above are calculations from that generator. [Back](#quadratic-koch-3d-ref-1)

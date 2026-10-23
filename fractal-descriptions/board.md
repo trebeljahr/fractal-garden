@@ -1,13 +1,15 @@
 # Board
 
-A line can travel around a small square and still finish three steps from where it began. The Board repeats that detour on every edge of a larger square.
+The Board starts with a square, `F+F+F+F`. Every F becomes `FF+F+F+F+FF`, using 90-degree turns. This preset uses parallel L-system rewriting.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
-## A path that spends length without gaining distance
-
-Its replacement is `F → FF+F+F+F+FF`, with right-angle turns. Seven forward strokes span the distance of three straight strokes. Four turns restore the original heading.
+Follow one replacement from left to right. Two strokes advance along the old edge. Three more travel around a small square. The final two continue forward. Seven strokes finish three unit lengths from the start, facing the original direction.
 
 <figure data-investigation="board"></figure>
 
-At a fixed outer scale, the instruction count grows by seven and each segment shrinks by three. The drawn length multiplies by $7/3$.
+With the original corners fixed, each child stroke has one third of the parent's length. After $n$ rewrites, the four-sided word contains $4\cdot7^n$ forward instructions. Its total travelled length is $4(7/3)^n$ when the initial sides have unit length.
 
-The extra length folds into smaller square motifs. This makes the Board a useful comparison with the [Crystal](/l-system/crystal), where the replacement includes a half-turn and retraces part of its path.
+There is a catch in that count. The square detour returns to an earlier point, and the departure retraces one unit edge. One isolated first replacement therefore draws six distinct unit edges with seven strokes. The visible set and the turtle's travelled path have different length counts. [Crystal](/l-system/crystal) makes this distinction even clearer with an immediate out-and-back branch.
+
+## Sources and notes
+
+1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.2–1.3 explain parallel rewriting and turtle interpretation. Counts, displacement and retracing above are direct derivations from this garden’s rule. [Back](#board-ref-1)

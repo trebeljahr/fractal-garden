@@ -1,31 +1,29 @@
 # Sierpinski Carpet
 
-Look for a square hole surrounded by eight smaller copies of the same pattern. Each copy contains another hole, with still smaller holes around it. The Sierpinski carpet repeats this arrangement at every scale.
-
-## Make the first few cuts
-
-Start with a filled square. Divide it into a three-by-three grid and remove the middle square. Apply the same cut to each of the eight remaining squares.
+Divide a square into a three-by-three grid. Remove the open middle square, keeping its boundary. Repeat inside each of the eight surviving squares. The infinite carpet is the intersection of these nested stages.<sup><a id="sierpinski-carpet-ref-1" href="#sierpinski-carpet-source-1">1</a></sup>
 
 <figure data-construction="carpet"></figure>
 
-Each hole separates remaining material at its own scale. Eight surviving squares surround it, and each of those contains the same arrangement.
+At level $n$, the construction contains $8^n$ squares of side $3^{-n}$ relative to the seed. Its area fraction is
+
+$$
+A_n=(8/9)^n,
+$$
+
+which tends to zero. The limiting set still contains the entire outer border and every hole's border. It is connected, despite containing no filled disk. Every finite stage retains positive area.
 
 <figure data-article-images="carpet"></figure>
 
-## Zero area does not mean empty
+The Hausdorff dimension is $\log8/\log3\approx1.893$. A ternary coordinate test expresses the same construction: exclude points whose two coordinates both use digit $1$ at the same scale. Boundary points need the expansion consistent with the retained closed squares.
 
-Each cut keeps eight ninths of the previous area. After $n$ cuts, the fraction left is:
+## Square holes are not essential
 
-$$
-A_n = \left(\frac{8}{9}\right)^n
-$$
+Mario Bonk proves that the standard carpet can map to a **round carpet**, with circular complementary holes.<sup><a href="#sierpinski-carpet-source-1">1</a></sup> The map is quasisymmetric: it controls relative distance distortion while preserving which points and paths connect. The square corners can disappear without tearing the carpet apart.
 
-That fraction tends to zero as the number of cuts grows without limit. The carpet still contains points, including its entire outer border. Zero area describes how much surface it covers, not whether anything exists there. Every finite stage on this screen still has positive area.
+A different connection keeps the squares exactly. The [Menger sponge](/menger-sponge) has this carpet on each outside face and in every face-on parallel shadow. A projected cell survives whenever some cube survives along its viewing ray. Choosing an outer-third depth coordinate leaves precisely the eight allowed planar cells.
 
-The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. The [2D Vicsek fractal](/vicsek-fractal-2d) uses the same three-by-three grid but keeps only five squares.
+A central diagonal slice through the sponge instead has six-pointed star holes. Its page compares the slice with the shadow. The [2D Vicsek fractal](/vicsek-fractal-2d) keeps five cells from the carpet's grid and has a lower dimension.
 
-## A carpet can be a 3D shadow
+## Sources and notes
 
-The [Menger sponge](/menger-sponge) projects to this carpet when viewed straight along a cube axis with parallel rays. Its depth collapses onto the plane. The rule for a surviving projected square is the same rule used here: remove the middle cell, then repeat.
-
-A diagonal slice through that same sponge reveals six-pointed star holes instead. The Menger explanation includes an interactive comparison. Projection combines a whole line of sight; slicing keeps one plane.
+1. <span id="sierpinski-carpet-source-1"></span> Mario Bonk, [Uniformization of Sierpiński carpets in the plane](https://arxiv.org/pdf/1009.4094), Inventiones Mathematicae 186 (2011), 559–665, Corollary 1.2 and §12. Standard carpet construction, topology and quasisymmetric round uniformization. Area and digit test follow from the displayed rule. [Back](#sierpinski-carpet-ref-1)
