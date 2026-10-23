@@ -49,7 +49,14 @@ export function drawFractalCanopy(
 
   // Every branch of one depth shares its width and colour, so each depth is
   // one path and one stroke instead of a stroke per branch.
-  const paths: Path2D[] = [];
+  const levels: {
+    path: Path2D;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    lineWidth: number;
+  }[] = [];
   let segments = 0;
 
   const branch = (x: number, y: number, heading: number, len: number, depth: number) => {
@@ -57,9 +64,21 @@ export function drawFractalCanopy(
 
     const endX = x + Math.sin(heading) * len;
     const endY = y - Math.cos(heading) * len;
-    paths[depth] ??= new Path2D();
-    paths[depth].moveTo(x, y);
-    paths[depth].lineTo(endX, endY);
+    levels[depth] ??= {
+      path: new Path2D(),
+      minX: Infinity,
+      minY: Infinity,
+      maxX: -Infinity,
+      maxY: -Infinity,
+      lineWidth: config.rootWidth * config.widthFactor ** depth,
+    };
+    const level = levels[depth];
+    level.path.moveTo(x, y);
+    level.path.lineTo(endX, endY);
+    level.minX = Math.min(level.minX, x, endX);
+    level.minY = Math.min(level.minY, y, endY);
+    level.maxX = Math.max(level.maxX, x, endX);
+    level.maxY = Math.max(level.maxY, y, endY);
     segments++;
 
     const childHeading = heading + spread;
@@ -70,15 +89,41 @@ export function drawFractalCanopy(
 
   ctx.fillStyle = config.background;
   ctx.fillRect(0, 0, width, height);
-  branch(width / 2, height, 0, base, 0);
+  branch(0, 0, 0, base, 0);
 
-  for (let depth = 0; depth < paths.length; depth++) {
+  // Wide angles send branches below the root. Fit their full ink bounds,
+  // including strokes, rather than anchoring the root at the canvas edge.
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const level of levels) {
+    if (level.lineWidth <= 0) continue;
+    const radius = level.lineWidth / 2;
+    minX = Math.min(minX, level.minX - radius);
+    minY = Math.min(minY, level.minY - radius);
+    maxX = Math.max(maxX, level.maxX + radius);
+    maxY = Math.max(maxY, level.maxY + radius);
+  }
+  const scale = Math.min(
+    1,
+    paddedWidth / (maxX - minX),
+    (height * (1 - 2 * padding)) / (maxY - minY),
+  );
+  ctx.save();
+  ctx.translate(width / 2 - ((minX + maxX) / 2) * scale, height / 2 - ((minY + maxY) / 2) * scale);
+  ctx.scale(scale, scale);
+
+  for (let depth = 0; depth < levels.length; depth++) {
+    const level = levels[depth];
+    if (level.lineWidth <= 0) continue;
     // The deepest level reuses the colour above it, as it always has.
     const colorLevel = Math.min(depth, maxIterations - 1);
     ctx.strokeStyle = rgb(remapR(colorLevel), remapG(colorLevel), 100);
-    ctx.lineWidth = config.rootWidth * config.widthFactor ** depth;
-    ctx.stroke(paths[depth]);
+    ctx.lineWidth = level.lineWidth;
+    ctx.stroke(level.path);
   }
+  ctx.restore();
 
   return segments;
 }
