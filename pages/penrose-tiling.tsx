@@ -3,6 +3,7 @@ import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../component
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
+import { useZoomActivity } from "../components/ZoomActivity";
 import styles from "../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
@@ -77,6 +78,8 @@ const startLabels: Record<PenroseStart, string> = {
 
 const PenroseTiling = ({ description }: Props) => {
   const { width, height } = useWindowSize();
+  const [zoomed, setZoomed] = useState(false);
+  const { setActive: setZoomActive } = useZoomActivity();
   const [config, setConfig] = useState<Config>({
     variant: "p2",
     start: "sun",
@@ -130,12 +133,27 @@ const PenroseTiling = ({ description }: Props) => {
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
+  useEffect(() => {
+    setZoomActive(zoomed);
+    return () => setZoomActive(false);
+  }, [zoomed, setZoomActive]);
+
+  const onViewportChange = useCallback(() => {
+    const active = viewportRef.current.zoomSize < INITIAL_ZOOM_SIZE;
+    setZoomed(active);
+    // Keep the current tiles fixed while exploring, just like L-system zoom.
+    if (active) {
+      setConfig((old) => (old.animateIterations ? { ...old, animateIterations: false } : old));
+    }
+    requestRender();
+  }, [requestRender]);
+
   useShaderViewportControls({
     canvas,
     viewportRef,
     minZoomSize: MIN_ZOOM_SIZE,
     maxZoomSize: INITIAL_ZOOM_SIZE,
-    onViewportChange: requestRender,
+    onViewportChange,
     flipY: true,
   });
 
@@ -144,8 +162,8 @@ const PenroseTiling = ({ description }: Props) => {
       center: [0, 0],
       zoomSize: INITIAL_ZOOM_SIZE,
     };
-    requestRender();
-  }, [requestRender]);
+    onViewportChange();
+  }, [onViewportChange]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
