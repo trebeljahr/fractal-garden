@@ -34,7 +34,6 @@
   position: relative;
   padding: 4vw;
   padding-bottom: max(4vw, calc(var(--explorer-nav-height) + var(--explorer-nav-gap) + 24px));
-  scroll-margin-top: var(--explorer-header-height);
   font-size: 1.5rem;
   /* transition: all 1s; */
   /* position: absolute; */

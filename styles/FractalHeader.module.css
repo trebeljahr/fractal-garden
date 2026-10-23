@@ -1,5 +1,5 @@
 .header {
-  position: fixed;
+  position: absolute;
   inset: 0 0 auto;
   z-index: 35;
   height: var(--explorer-header-height);

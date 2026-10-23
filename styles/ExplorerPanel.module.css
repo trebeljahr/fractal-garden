@@ -898,7 +898,7 @@
 }
 
 .headerControls .studio {
-  position: relative;
+  position: static;
   flex: 0 0 264px;
   width: 264px;
   height: var(--explorer-control-height);
@@ -927,7 +927,7 @@
 }
 
 .headerControls :global(.react-dat-gui.exploration-gui li.folder > .dg > ul) {
-  position: fixed;
+  position: absolute;
   top: var(--explorer-header-height);
   right: 0;
   width: min(352px, 100vw);

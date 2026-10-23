@@ -152,8 +152,12 @@
     padding: 0 12px;
   }
 
+  .places {
+    position: static;
+  }
+
   .destinations {
-    position: fixed;
+    position: absolute;
     top: var(--explorer-header-height);
     right: 12px;
   }
