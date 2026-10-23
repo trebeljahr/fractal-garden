@@ -178,7 +178,7 @@ for (const fixture of fixtures.slice(0, 4)) {
     frame: { ...frame, texture: Array.from(frame.texture) },
     distanceScale,
     level: camera.level,
-    atmosphere: flightAtmosphere(camera.level, { zoomLevel: 0 }, 0),
+    atmosphere: flightAtmosphere(camera.level, 0),
     expected: fixture.expected.map((ray) => ({
       ...ray,
       distance: ray.distance === null ? null : ray.distance * distanceScale,

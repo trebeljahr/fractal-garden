@@ -18,47 +18,45 @@ const {
   FLIGHT_FOG_START,
 } = require("../utils/voxelZoom/atmosphere.ts");
 
-test("fog and horizon stay visible at every recursive viewing scale", () => {
-  for (const level of [0, 1, 8, 60, 100, 150, 244]) {
-    const atmosphere = flightAtmosphere(level);
-    assert.equal(atmosphere.farDistance, FLIGHT_FAR_DISTANCE);
-    assert.equal(atmosphere.fogStart / atmosphere.fogDistanceScale, FLIGHT_FOG_START);
-    assert.equal(atmosphere.fogDensity, 7);
-    assert.equal(atmosphere.settling, false);
-  }
-});
-
-test("camera-unit changes cannot flash fog or move the physical horizon", () => {
-  for (const level of [0, 10, 150, 243]) {
-    const before = flightAtmosphere(level);
-    const after = flightAtmosphere(level + 1, before.state, 0);
-    assert.ok(Math.abs(after.farDistance / 3 - before.farDistance) < 1e-12);
-    assert.ok(Math.abs(after.fogDistanceScale * 3 - before.fogDistanceScale) < 1e-12);
-    assert.equal(after.settling, true);
-  }
-});
-
-test("view-scale transitions settle smoothly at comparable rates across frame rates", () => {
-  const distances = [];
-  for (const rate of [30, 60, 120]) {
-    let atmosphere = flightAtmosphere(0);
-    let last = atmosphere.farDistance * 3;
-    for (let frame = 0; frame < rate; frame++) {
-      atmosphere = flightAtmosphere(1, atmosphere.state, 1 / rate);
-      assert.ok(atmosphere.farDistance <= last);
-      assert.ok(atmosphere.farDistance >= FLIGHT_FAR_DISTANCE);
-      last = atmosphere.farDistance;
+test("fog and horizon retain their physical density through render-level changes", () => {
+  for (const viewLevel of [0, 8, 60, 150, 243]) {
+    const reference = flightAtmosphere(viewLevel, viewLevel);
+    for (const level of [viewLevel, Math.min(244, viewLevel + 1)]) {
+      const atmosphere = flightAtmosphere(level, viewLevel);
+      const factor = 3 ** (level - viewLevel);
+      assert.ok(Math.abs(atmosphere.farDistance / factor - reference.farDistance) < 1e-10);
+      assert.ok(
+        Math.abs(atmosphere.fogDistanceScale * factor - reference.fogDistanceScale) < 1e-10,
+      );
+      assert.equal(atmosphere.fogDensity, 7);
+      assert.equal(atmosphere.fogStart, FLIGHT_FOG_START / FLIGHT_FAR_DISTANCE);
     }
-    distances.push(atmosphere.farDistance);
-    for (let frame = 0; frame < rate * 4; frame++)
-      atmosphere = flightAtmosphere(1, atmosphere.state, 1 / rate);
-    assert.equal(atmosphere.settling, false);
-    assert.equal(atmosphere.farDistance, FLIGHT_FAR_DISTANCE);
   }
-  assert.ok(Math.max(...distances) / Math.min(...distances) < 1.001);
 });
 
-test("a paused frame cannot skip through the visual transition", () => {
-  const before = flightAtmosphere(0);
-  assert.deepEqual(flightAtmosphere(1, before.state, 10), flightAtmosphere(1, before.state, 0.1));
+test("ordinary flight changes precision without morphing the atmosphere", () => {
+  const { initialFlightCamera, moveFlightCamera } = require("../utils/voxelZoom/camera.ts");
+  let camera = initialFlightCamera();
+  const start = flightAtmosphere(camera.level, camera.viewLevel);
+  for (let i = 0; i < 60; i++) {
+    camera = moveFlightCamera(camera, "vicsek", [0, 0, 0.05]);
+    const atmosphere = flightAtmosphere(camera.level, camera.viewLevel);
+    assert.equal(camera.viewLevel, 0);
+    assert.ok(
+      Math.abs(atmosphere.fogDistanceScale * 3 ** camera.level - start.fogDistanceScale) < 1e-10,
+    );
+  }
+  assert.ok(camera.level > 0);
+});
+
+test("explicit zoom selects a continuous exploration scale", () => {
+  const { initialFlightCamera, dollyFlightCamera } = require("../utils/voxelZoom/camera.ts");
+  const before = initialFlightCamera();
+  const after = dollyFlightCamera(before, "vicsek", 0.2);
+  assert.ok(after.viewLevel > before.viewLevel);
+  assert.ok(after.viewLevel < 1);
+  assert.notEqual(
+    flightAtmosphere(after.level, after.viewLevel).fogDistanceScale,
+    flightAtmosphere(before.level, before.viewLevel).fogDistanceScale,
+  );
 });

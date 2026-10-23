@@ -7,6 +7,8 @@ export type FlightCamera = {
   position: [bigint, bigint, bigint];
   bits: number;
   level: number;
+  /** User-selected exploration scale, independent of render precision. */
+  viewLevel?: number;
   yaw: number;
   pitch: number;
 };
@@ -23,6 +25,16 @@ const modulo3 = (a: bigint) => Number(((a % BigInt(3)) + BigInt(3)) % BigInt(3))
 const localFloat = (value: bigint, bits: number) => {
   const [m, e] = fixedToFloatExp(value, bits);
   return Math.max(-LOCAL_COORDINATE_LIMIT, Math.min(LOCAL_COORDINATE_LIMIT, m * 2 ** e));
+};
+// Collision sweeps need double precision; GPU-rounded planes can put a stop
+// point just behind a wall. Keep the BigInt-relative conversion on the CPU.
+const localDouble = (value: bigint, bits: number) => {
+  if (value === BigInt(0)) return 0;
+  const sign = value < BigInt(0) ? -1 : 1;
+  const magnitude = value < BigInt(0) ? -value : value;
+  const drop = Math.max(0, magnitude.toString(2).length - 53);
+  const result = sign * Number(magnitude >> BigInt(drop)) * 2 ** (drop - bits);
+  return Math.max(-LOCAL_COORDINATE_LIMIT, Math.min(LOCAL_COORDINATE_LIMIT, result));
 };
 export const PATTERNS: VoxelPattern[] = ["menger", "vicsek", "mosely-light", "mosely-heavy"];
 export function keepVoxel(pattern: VoxelPattern, digit: Vec3) {
@@ -54,6 +66,7 @@ export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCam
     ],
     bits,
     level: 0,
+    viewLevel: 0,
     yaw: 0,
     pitch: 0,
   };
@@ -99,20 +112,22 @@ function gridFrame(
   pattern: VoxelPattern,
   maxDepth: number,
   geometry: boolean,
+  upload = true,
 ): GridFrame {
+  const coordinate = geometry && !upload ? localDouble : localFloat;
   const one = BigInt(1) << BigInt(camera.bits);
   const denominator = one * BigInt(2);
   const localScale = powers[camera.level];
   const low = camera.position.map((p) =>
-    localFloat((-one - p) * localScale, camera.bits + 1),
+    coordinate((-one - p) * localScale, camera.bits + 1),
   ) as Vec3;
   const high = camera.position.map((p) =>
-    localFloat((one - p) * localScale, camera.bits + 1),
+    coordinate((one - p) * localScale, camera.bits + 1),
   ) as Vec3;
   const outside = Math.hypot(...low.map((v, axis) => Math.max(v, -high[axis], 0)));
   let clearance = outside;
   const levels: GridLevel[] = [];
-  const texture = new Float32Array(geometry ? MAX_VOXEL_DEPTH * 8 : 0);
+  const texture = new Float32Array(geometry && upload ? MAX_VOXEL_DEPTH * 8 : 0);
   for (let depth = 1; depth <= Math.min(MAX_VOXEL_DEPTH, maxDepth); depth++) {
     const exactWidth = 3 ** (camera.level - depth);
     const width = Math.min(LOCAL_COORDINATE_LIMIT, exactWidth);
@@ -144,7 +159,7 @@ function gridFrame(
         -width / 2,
         Math.min(
           width / 2,
-          localFloat(
+          coordinate(
             ((boundary * denominator - numerator) * localScale) / powers[depth],
             camera.bits + 1,
           ),
@@ -180,15 +195,113 @@ function gridFrame(
       plane.every((p, axis) => Math.abs(p) >= LOCAL_COORDINATE_LIMIT || digit[axis] === 0);
     if (constant && keepVoxel(pattern, cameraDigit)) continue;
     const index = levels.length;
-    texture.set([...plane, width], index * 4);
-    texture.set([...digit, depth], (MAX_VOXEL_DEPTH + index) * 4);
+    if (upload) {
+      texture.set([...plane, width], index * 4);
+      texture.set([...digit, depth], (MAX_VOXEL_DEPTH + index) * 4);
+    }
     levels.push({ plane, width, digit });
   }
   return { levels, texture, low, high, clearance: Math.max(outside, clearance) };
 }
 
-/** Integrate in safe balls of empty space; scale follows clearance, not a fixed world speed. */
+/** Sweep a straight flight segment through hierarchical empty cells. Unlike
+ * clearance-sized balls, this can travel parallel to a nearby wall at full speed. */
+function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, distance: number) {
+  const frame = gridFrame(camera, pattern, camera.level + 10, true, false);
+  let near = 0,
+    far = distance;
+  for (let axis = 0; axis < 3; axis++) {
+    if (Math.abs(ray[axis]) < 1e-15) {
+      if (frame.low[axis] > 0 || frame.high[axis] < 0) return distance;
+      continue;
+    }
+    const a = frame.low[axis] / ray[axis],
+      b = frame.high[axis] / ray[axis];
+    near = Math.max(near, Math.min(a, b));
+    far = Math.min(far, Math.max(a, b));
+  }
+  if (far <= near) return distance;
+  let t = near;
+  const margin = Math.min(1e-8, distance * 1e-6);
+  for (let step = 0; step < 512; step++) {
+    const epsilon = Math.max(1e-14, Math.abs(t) * 1e-13);
+    const point = ray.map((v) => v * (t + epsilon));
+    let empty = false;
+    for (const { plane, width, digit } of frame.levels) {
+      // Resolve collision detail well below a pixel without dividing far-away
+      // coordinates by cells smaller than double-precision position accuracy.
+      if (width < epsilon * 4) break;
+      const cell = point.map((p, axis) => Math.floor((p - plane[axis]) / width));
+      const child = cell.map((c, axis) => (((digit[axis] + c) % 3) + 3) % 3) as Vec3;
+      if (keepVoxel(pattern, child)) continue;
+      let jump = Infinity;
+      for (let axis = 0; axis < 3; axis++) {
+        if (Math.abs(ray[axis]) < 1e-15) continue;
+        const edge = plane[axis] + (cell[axis] + Number(ray[axis] > 0)) * width;
+        jump = Math.min(jump, (edge - point[axis]) / ray[axis]);
+      }
+      t += Math.max(epsilon, jump + epsilon);
+      empty = true;
+      break;
+    }
+    if (!empty) return Math.max(0, t - margin);
+    if (t >= far) return distance;
+  }
+  // Unresolved segments stop conservatively, rather than crossing geometry.
+  return Math.max(0, t - margin);
+}
+
+/** Constant displacement in the explicit exploration scale. Geometry only
+ * clips a segment that would actually hit a surface; it never sets velocity. */
 export function moveFlightCamera(
+  camera: FlightCamera,
+  pattern: VoxelPattern,
+  motion: Vec3,
+): FlightCamera {
+  const magnitude = Math.hypot(...motion);
+  if (!Number.isFinite(magnitude) || magnitude === 0) return camera;
+  const { right, forward } = flightBasis(camera);
+  const direction = right.map(
+    (v, axis) => v * motion[0] + (axis === 1 ? motion[1] : 0) + forward[axis] * motion[2],
+  ) as Vec3;
+  const length = Math.hypot(...direction);
+  if (length < 1e-12) return camera;
+  for (let axis = 0; axis < 3; axis++) direction[axis] /= length;
+  const viewLevel = camera.viewLevel ?? camera.level;
+  // Collision coordinates follow the exploration scale, so tiny render units
+  // beside a wall cannot shrink a long, unobstructed movement segment.
+  const collisionLevel = Math.floor(viewLevel);
+  const collisionCamera = { ...camera, level: collisionLevel };
+  const distance = flightTravel(
+    collisionCamera,
+    pattern,
+    direction,
+    magnitude * 3 ** (collisionLevel - viewLevel),
+  );
+  let level = camera.level;
+  const bits = Math.max(camera.bits, bitsForLevel(level), bitsForLevel(collisionLevel));
+  const position = camera.position.map(
+    (p, axis) =>
+      rescaleFixed(p, camera.bits, bits) +
+      fixedFromNumber(direction[axis] * distance * 2, bits) / powers[collisionLevel],
+  ) as FlightCamera["position"];
+  const limit = BigInt(64) << BigInt(bits);
+  if (position.some((p) => p < -limit || p > limit)) return camera;
+  const next = { ...camera, position, bits, viewLevel };
+  const clearance = flightClearance(next, pattern);
+  if (clearance < 0.16 && level < MAX_FLIGHT_LEVEL) level++;
+  else if (clearance > 1.5 && level > 0) level--;
+  const nextBits = Math.max(bits, bitsForLevel(level));
+  return {
+    ...next,
+    position: position.map((p) => rescaleFixed(p, bits, nextBits)) as FlightCamera["position"],
+    bits: nextBits,
+    level,
+  };
+}
+
+/** Wheel dolly follows local detail; ordinary flight uses its own stable scale. */
+function moveFlightCameraByClearance(
   camera: FlightCamera,
   pattern: VoxelPattern,
   motion: Vec3,
@@ -232,13 +345,33 @@ export function atFlightZoomLimit(camera: FlightCamera, pattern: VoxelPattern) {
   return Math.hypot(...worldPosition(camera)) >= zoomRadius(pattern) - 1e-7;
 }
 
+function dollyScale(camera: FlightCamera, next: FlightCamera, pattern: VoxelPattern): FlightCamera {
+  const before = flightClearance(camera, pattern);
+  const after = flightClearance(next, pattern);
+  const viewLevel = camera.viewLevel ?? camera.level;
+  return {
+    ...next,
+    viewLevel:
+      before > 0 && after > 0
+        ? Math.max(
+            0,
+            Math.min(
+              MAX_FLIGHT_LEVEL,
+              viewLevel + next.level - camera.level + Math.log(before / after) / Math.log(3),
+            ),
+          )
+        : viewLevel,
+  };
+}
+
 /** Wheel and pinch stop at the opening distance; free flight remains unrestricted. */
 export function dollyFlightCamera(camera: FlightCamera, pattern: VoxelPattern, amount: number) {
-  const next = moveFlightCamera(camera, pattern, [0, 0, amount]);
+  const moved = moveFlightCameraByClearance(camera, pattern, [0, 0, amount]);
+  const next = { ...moved, viewLevel: camera.viewLevel ?? camera.level };
   const start = worldPosition(camera),
     end = worldPosition(next);
   const radius = Math.max(zoomRadius(pattern), Math.hypot(...start));
-  if (Math.hypot(...end) <= radius) return next;
+  if (Math.hypot(...end) <= radius) return dollyScale(camera, next, pattern);
   // The limiting sphere lies entirely outside the root cube. The segment
   // from the safely integrated camera to its boundary cannot cross geometry.
   const delta = end.map((v, axis) => v - start[axis]);
@@ -248,13 +381,17 @@ export function dollyFlightCamera(camera: FlightCamera, pattern: VoxelPattern, a
   const c = start.reduce((sum, v) => sum + v * v, 0) - radius * radius;
   const fraction = Math.max(0, Math.min(1, (-b + Math.sqrt(Math.max(0, b * b - a * c))) / a));
   if (fraction < 1e-9) return camera;
-  return {
-    ...next,
-    position: next.position.map((p, axis) => {
-      const from = rescaleFixed(camera.position[axis], camera.bits, next.bits);
-      return from + ((p - from) * BigInt(Math.round(fraction * 1e9))) / BigInt(1e9);
-    }) as FlightCamera["position"],
-  };
+  return dollyScale(
+    camera,
+    {
+      ...next,
+      position: next.position.map((p, axis) => {
+        const from = rescaleFixed(camera.position[axis], camera.bits, next.bits);
+        return from + ((p - from) * BigInt(Math.round(fraction * 1e9))) / BigInt(1e9);
+      }) as FlightCamera["position"],
+    },
+    pattern,
+  );
 }
 
 export function serializeFlightCamera(camera: FlightCamera) {
@@ -266,6 +403,7 @@ export function restoreFlightCamera(value: unknown): FlightCamera {
     value.kind !== "voxel-flight" ||
     !finite(value.level, 0, MAX_FLIGHT_LEVEL) ||
     !Number.isInteger(value.level) ||
+    (value.viewLevel !== undefined && !finite(value.viewLevel, 0, MAX_FLIGHT_LEVEL)) ||
     !finite(value.bits, bitsForLevel(value.level), 2048) ||
     !Number.isInteger(value.bits) ||
     !finite(value.yaw, -1e6, 1e6) ||
@@ -281,5 +419,12 @@ export function restoreFlightCamera(value: unknown): FlightCamera {
   const limit = BigInt(64) << BigInt(value.bits);
   if (position.some((p) => p < -limit || p > limit))
     throw new Error("Exploration camera is out of range.");
-  return { position, bits: value.bits, level: value.level, yaw: value.yaw, pitch: value.pitch };
+  return {
+    position,
+    bits: value.bits,
+    level: value.level,
+    viewLevel: value.viewLevel ?? value.level,
+    yaw: value.yaw,
+    pitch: value.pitch,
+  };
 }
