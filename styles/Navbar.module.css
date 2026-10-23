@@ -10,11 +10,12 @@
   background: var(--explorer-surface);
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
-  width: min(180px, calc((100vw - 32px) / 3));
+  width: fit-content;
+  max-width: min(180px, calc((100vw - 32px) / 3));
   justify-content: center;
   font-size: var(--explorer-nav-font-size);
   height: var(--explorer-nav-height);
-  padding: 10px 14px;
+  padding: 10px 8px;
   border: 1px solid rgba(245, 241, 209, 0.16);
   border-radius: 6px;
 }
@@ -27,12 +28,29 @@
 }
 
 .fractalName {
+  min-width: 0;
   max-width: 100%;
   font-size: var(--explorer-nav-name-size);
   line-height: 1.35;
   color: #b8c2cb;
   text-align: center;
   overflow-wrap: anywhere;
+}
+
+.destination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.preview {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 2px;
 }
 
 .previous {
@@ -62,11 +80,20 @@
 @media (max-width: 700px) {
   .linkButton {
     gap: 4px;
-    padding: 8px 6px;
+    padding: 8px 4px;
   }
 
   .direction {
     gap: 6px;
+  }
+
+  .destination {
+    gap: 4px;
+  }
+
+  .preview {
+    width: 20px;
+    height: 20px;
   }
 
   .linkButton svg {

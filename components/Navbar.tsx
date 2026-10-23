@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Navbar.module.css";
-import { getFractalName } from "../utils/pageSeo";
+import { getFractalName, PAGE_SEO } from "../utils/pageSeo";
 
 function useLinks() {
   const router = useRouter();
@@ -115,7 +116,16 @@ export const NavElement = () => {
           <NavigationArrow previous />
           <span>Previous</span>
         </span>
-        <span className={styles.fractalName}>{getFractalName(prev)}</span>
+        <span className={styles.destination}>
+          <Image
+            className={styles.preview}
+            src={PAGE_SEO[prev].imagePath}
+            alt=""
+            width={24}
+            height={24}
+          />
+          <span className={styles.fractalName}>{getFractalName(prev)}</span>
+        </span>
       </Link>
       <Link
         className={`${styles.linkButton} ${styles.next}`}
@@ -127,7 +137,16 @@ export const NavElement = () => {
           <span>Next</span>
           <NavigationArrow />
         </span>
-        <span className={styles.fractalName}>{getFractalName(next)}</span>
+        <span className={styles.destination}>
+          <Image
+            className={styles.preview}
+            src={PAGE_SEO[next].imagePath}
+            alt=""
+            width={24}
+            height={24}
+          />
+          <span className={styles.fractalName}>{getFractalName(next)}</span>
+        </span>
       </Link>
     </nav>
   );
