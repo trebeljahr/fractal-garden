@@ -75,7 +75,7 @@ const broccoli = {
   rootWidth: 47.5,
 };
 
-const configs: Record<string, Config> = {
+const configs: Record<string, Omit<Config, "option">> = {
   defaultTree,
   broccoli,
   sierpinski,
@@ -103,7 +103,7 @@ type Config = {
   lengthFactor: number;
   widthFactor: number;
   rootWidth: number;
-  option?: string;
+  option: string;
 };
 
 type Props = {
@@ -111,7 +111,7 @@ type Props = {
 };
 
 const FractalTree = ({ description }: Props) => {
-  const [config, setConfig] = useState<Config>(defaultTree);
+  const [config, setConfig] = useState<Config>({ ...defaultTree, option: "defaultTree" });
   const { width, height } = useFractalViewportSize();
 
   useEffect(() => {
@@ -142,8 +142,8 @@ const FractalTree = ({ description }: Props) => {
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => {
-      if (newData.option) {
-        return configs[newData.option];
+      if (newData.option !== prevState.option) {
+        return { ...configs[newData.option], option: newData.option };
       }
       return { ...prevState, ...newData };
     });
@@ -152,7 +152,7 @@ const FractalTree = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate} onRestore={setConfig}>
           <PanelColor path="background" />
           <PanelSelect
             path="option"
