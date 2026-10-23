@@ -12,7 +12,7 @@
 .restore button {
   display: grid;
   place-items: center;
-  width: 44px;
+  width: var(--explorer-control-height);
   height: var(--explorer-control-height);
   padding: 0;
   border-radius: 3px;

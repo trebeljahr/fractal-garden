@@ -4,8 +4,8 @@
   --semi-dark-grey: #252424;
   --dark-grey: #091115;
   --yellow-white: #f5f1d1;
-  --explorer-control-height: 52px;
-  --explorer-header-height: 72px;
+  --explorer-control-height: 36px;
+  --explorer-header-height: 52px;
   --explorer-nav-height: 68px;
   --explorer-nav-font-size: 13px;
   --explorer-nav-name-size: 11px;
@@ -276,7 +276,8 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
 
 @media (max-width: 700px) {
   :root {
-    --explorer-header-height: 124px;
+    --explorer-control-height: 44px;
+    --explorer-header-height: 104px;
     --explorer-nav-height: 84px;
     --explorer-nav-font-size: 12px;
     --explorer-nav-name-size: 10px;
@@ -285,24 +286,24 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
 
 @media (min-width: 701px) and (max-width: 1100px) {
   :root:has([data-fractal-header-controls]) {
-    --explorer-header-height: 124px;
+    --explorer-header-height: 88px;
   }
 }
 
 @media (max-width: 700px) {
   :root:has([data-fractal-header-controls]) {
-    --explorer-header-height: 124px;
+    --explorer-header-height: 104px;
   }
 }
 
 @media (max-width: 700px) {
   :root:has([data-fractal-header-controls] [data-fractal-places]) {
-    --explorer-header-height: 184px;
+    --explorer-header-height: 156px;
   }
 }
 
 @media (max-width: 700px) {
   :root:not(:has([data-fractal-header-controls], [data-fractal-places])) {
-    --explorer-header-height: 72px;
+    --explorer-header-height: 60px;
   }
 }

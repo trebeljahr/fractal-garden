@@ -4,7 +4,6 @@ import styles from "../styles/Fullscreen.module.css";
 import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { ZoomFrame } from "../utils/lsystem/pageZoom";
-import { explorerHref } from "../utils/lsystem/share";
 import { DEFAULT_SPEC, dimensionOf, type LSystemSpec } from "../utils/lsystem/spec";
 import type { LSystem2DParams } from "../utils/render/lsystem2d";
 import { EndlessZoom } from "./EndlessZoom";
@@ -48,30 +47,6 @@ function expandSentence(sentence: string, replace: Record<string, string>) {
   }
 
   return nextSentence;
-}
-
-// Hands the page's ruleset to the L-system explorer. initRotation is replayed
-// against a stub context to recover the starting direction in degrees.
-function openInExplorer(ruleset: Ruleset, iterations: number) {
-  let startAngle = 0;
-  const stub = { rotate: (angle: number) => (startAngle += (angle * 180) / Math.PI) };
-  ruleset.initRotation?.(stub as unknown as CanvasRenderingContext2D);
-
-  window.location.href = explorerHref({
-    ...DEFAULT_SPEC,
-    name: document.title.split(" | ")[0] || DEFAULT_SPEC.name,
-    axiom: ruleset.axiom,
-    rules: Object.entries(ruleset.replace).map(([symbol, replacement]) => ({
-      symbol,
-      replacement,
-    })),
-    angle: ruleset.angle,
-    iterations,
-    startAngle,
-    color: ruleset.color.toLowerCase(),
-    colorEnd: ruleset.color.toLowerCase(),
-    colorMode: "solid",
-  });
 }
 
 function hasDrawableSegment(sentence: string) {
@@ -196,17 +171,7 @@ const LSystem = ({ ruleset }: Props) => {
 
   return (
     <>
-      <ExplorerPanel
-        actions={[
-          {
-            label: "Edit these rules",
-            onClick: () => openInExplorer(config.ruleset, config.ruleset.maxIterations),
-          },
-        ]}
-        data={config}
-        mode="pattern"
-        onUpdate={handleUpdate}
-      >
+      <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
         <PanelColor path="background" />
         <PanelColor path="ruleset.color" />
         <PanelNumber
