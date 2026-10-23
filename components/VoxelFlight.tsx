@@ -236,13 +236,18 @@ export function VoxelFlight({
       document.removeEventListener("visibilitychange", blur);
       window.removeEventListener("keyup", keyup);
       window.removeEventListener("blur", blur);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      // Strict Mode and Fast Refresh replay effects on a connected canvas.
+      // Wait for DOM removal before releasing the context itself.
+      queueMicrotask(() => {
+        if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
+      });
     };
   }, []);
   return (
-    <div className={styles.stage}>
+    <div className={styles.stage} style={{ background: style.background }}>
       <canvas
         ref={canvasRef}
+        style={{ opacity: error ? 0 : undefined }}
         tabIndex={0}
         aria-label="Explore the fractal interior"
         aria-describedby="flight-instructions"

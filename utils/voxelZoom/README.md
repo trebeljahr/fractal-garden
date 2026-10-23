@@ -12,4 +12,8 @@ Current limits: 256 global subdivision levels, camera levels 0–244, 512 local 
 
 Supported rules: Menger, seven-copy Vicsek, and both Mosely variants. Jerusalem and polyhedron flakes have different subdivision rules and do not use this path.
 
+Effect cleanup deletes renderer resources immediately. Context release waits until the canvas leaves the DOM, so development Strict Mode and Fast Refresh can replay effects on the same canvas without losing its context. Real context loss pauses rendering; restoration recreates resources and draws the current camera. The stage keeps the selected background while graphics are unavailable.
+
 Validation: `node --test tests/voxel-flight.test.mjs tests/explorer-share.test.mjs`. `node scripts/check-voxel-flight-gpu.mjs /tmp/check-voxel-flight.js` generates a Playwright CLI payload comparing GPU rays to independent finite-box intersections and level-150 boundary/nested-copy fixtures. The generated result must report `passed: true`. Keep the oracle recurrence/traversal independent; do not weaken its checks to accommodate a renderer mismatch.
+
+Lifecycle regression: start `next dev` on an owned port, then run `node scripts/check-voxel-flight-lifecycle.mjs /tmp/check-voxel-flight-lifecycle.js http://127.0.0.1:PORT`. Execute the generated payload with Playwright CLI `run-code --filename`. It requires development Strict Mode replay, checks all supported patterns, verifies resource cleanup and re-entry, and exercises context restoration and Mosely variant swaps. A production-only check cannot catch this replay regression.
