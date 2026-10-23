@@ -1,179 +1,158 @@
 export const PATH_LESSONS = {
   board: {
-    title: "A long detour between the same corners",
+    title: "Walk around a little square",
     max: 3,
-    idea: "Seven forward segments replace each old segment. The four right turns bring the heading back to its starting direction.",
+    idea: "Replace one line with seven drawing steps. Every turn is a right angle.",
     detail:
-      "The middle of the replacement walks around a small square. Its departure retraces one unit edge before finishing three units from the start.",
-    takeaway: "The path length grows by 7/3 per replacement when its endpoint spacing stays fixed.",
+      "The little square returns to a point you already visited. Part of the way out follows a line twice.",
+    takeaway:
+      "Seven steps finish three step lengths ahead. Shorter steps keep the old ends in place.",
   },
   crystal: {
-    title: "A return path inside each edge",
+    title: "Out along a line, then back",
     max: 3,
-    idea: "Five forward segments replace one segment. A half-turn sends part of the path back toward its start.",
-    detail:
-      "Some strokes retrace earlier positions. A count of instructions therefore differs from a count of distinct edges.",
-    takeaway:
-      "Overlaps matter: a similarity count alone does not establish the dimension of the visible set.",
+    idea: "Go forward twice, step sideways, walk back, then go forward once more.",
+    detail: "Five drawing steps make four different edges because one edge is drawn twice.",
+    takeaway: "The pen travels farther than the length of the separate lines you see.",
   },
   "fern-1": {
-    title: "A branch remembers where it began",
+    title: "Remember the fork",
     max: 4,
-    idea: "Brackets save the position and direction, then restore them. Nested brackets create branches on branches.",
+    idea: "An opening bracket saves your place and direction. A closing bracket returns there without drawing.",
     detail:
-      "The X symbols mark future growth. They draw no line themselves. Each F doubles at the next rewrite.",
+      "X marks a tip that grows next time. Each F draws a step and becomes two steps in the next round.",
     takeaway:
-      "The paired inner branches share a base. Their later copies produce the fern’s repeated leaflet pattern.",
+      "Branches can start from the same fork. Repeat inside each branch to make smaller leaflets.",
   },
   "fern-2": {
-    title: "Two kinds of growing tip",
+    title: "Two letters grow different branches",
     max: 4,
-    idea: "Y creates the main branching structure. X creates pairs of short leaflets along its stems.",
+    idea: "Y makes the main forks. X adds pairs of short side branches.",
     detail:
-      "Unlike Fern 1, this rule does not double every existing F. New line segments arrive through X and Y.",
+      "Old F steps stay the same length in the string. X and Y add all the new drawing steps.",
     takeaway:
-      "Two interacting tip rules can separate the shape of a stem from the shape of its leaflets.",
+      "Follow a Y fork, then an X branch. The two rules give different parts of the plant their shapes.",
   },
   "fern-3": {
-    title: "Long side branches and short side branches",
+    title: "Long branches, then short ones",
     max: 3,
-    idea: "Every F becomes nine forward strokes. Four bracketed branches leave the main stem and return to it.",
-    detail: "The first pair of branches has two strokes each. The later pair has one stroke each.",
-    takeaway:
-      "Each child stroke grows the same whole pattern at the next rewrite. Unequal branch lengths survive at every scale.",
+    idea: "One line becomes a stem with four side branches. Nine drawing steps replace one.",
+    detail: "The lower branches each get two steps. The upper branches each get one.",
+    takeaway: "Every new line grows this same little plant on the next round.",
   },
   "fern-4": {
-    title: "A tip that keeps turning",
+    title: "Watch the continuing tip bend",
     max: 4,
-    idea: "Two side branches leave the stem before the final X continues with a turn.",
+    idea: "Two side branches leave the stem. Then the continuing tip turns.",
     detail:
-      "Restoring a bracketed branch keeps its bend from changing the stem. The final bend remains outside the brackets.",
-    takeaway:
-      "That unpaired final turn biases the growing tip and gives this plant a different outline from Fern 1.",
+      "Brackets bring the side branches back to the fork. The last turn sits outside them, so it stays.",
+    takeaway: "Move that last turn inside the brackets and the continuing tip loses its bend.",
   },
   "gosper-curve": {
-    title: "Seven pieces on a hexagonal grid",
+    title: "Seven smaller routes join up",
     max: 3,
-    idea: "The turns lie on a 60° grid. X and Y arrange the same seven-part motif with different orientations.",
-    detail:
-      "The turns keep neighboring copies connected while their directions change. The pale path shows the whole stage.",
-    takeaway:
-      "With endpoint spacing held fixed, seven smaller copies replace the old path at a scale of 1/√7.",
+    idea: "The path uses 60-degree turns. Two letter rules choose how the smaller routes face.",
+    detail: "Each round has seven times as many lines. Follow how their ends stay joined.",
+    takeaway: "Each new line is about 38% as long to keep the old ends in place.",
   },
   "levy-curve": {
-    title: "Two segments make one right-angle fold",
+    title: "Bend one line into two",
     max: 7,
-    idea: "A straight edge becomes two edges meeting at a right angle. The endpoint distance sets the scale.",
+    idea: "Replace a straight line with two equal lines meeting at a right angle.",
     detail:
-      "Each child is 1/√2 of the parent chord. Two such lengths exceed the old straight length.",
-    takeaway:
-      "The count doubles at every stage. The limiting curve occupies a planar region, although each finite stage is a line.",
+      "Each new line is about 71% as long. Together, they make a longer route between the same ends.",
+    takeaway: "The line count doubles each round. The infinite path fills a region with area.",
   },
   "quadratic-snowflake": {
-    title: "A square bump in every edge",
+    title: "Put a square bump in a line",
     max: 3,
-    idea: "Five strokes replace one stroke. The middle three go around three sides of a square.",
+    idea: "Five steps replace one line. The middle three go around three sides of a square.",
     detail:
-      "The replacement travels three unit lengths along the original direction. Keeping that span fixed shrinks each stroke to one third.",
-    takeaway:
-      "The boundary length multiplies by 5/3. This is the flat relative of the quadratic Koch surface.",
+      "The route finishes three little step lengths ahead. Make the steps one third as long to keep the ends fixed.",
+    takeaway: "Five one-third-size lines make the route longer each round.",
   },
   "sierpinski-arrowhead": {
-    title: "One path around triangular gaps",
+    title: "Follow the triangular gaps",
     max: 5,
-    idea: "A and B both draw forward. Their three-part replacements bend in opposite directions.",
+    idea: "A and B both draw forward. Their rules bend three smaller parts in opposite directions.",
     detail:
-      "Each rewrite triples the segment count. The alternating turns leave triangular gaps between connected parts.",
-    takeaway:
-      "The arrowhead approaches the Sierpinski triangle through a single continuous path, rather than by removing filled triangles.",
+      "Each round triples the line count. The path stays joined while triangular gaps appear between its parts.",
+    takeaway: "Keep repeating and the path approaches the Sierpinski triangle.",
   },
   "sierpinski-curve": {
-    title: "A connected route through nested squares",
+    title: "Add detours around smaller squares",
     max: 3,
-    idea: "X inserts new detours while existing forward strokes remain. The right-angle turns keep the route on a square grid.",
-    detail:
-      "The seed has four F strokes and two X symbols. Its first rewrites draw 20, 84 and 340 strokes.",
-    takeaway:
-      "Each X inserts eight F strokes and four new X symbols. The existing F strokes connect the new groups.",
+    idea: "X adds detours. Old F steps stay in the string and connect the new parts.",
+    detail: "The first drawing has four steps. The next rounds have 20, 84 and 340.",
+    takeaway: "Each X adds eight F steps and four new X symbols for the next round.",
   },
   "koch-anti-snowflake": {
-    title: "The same bend points inward",
+    title: "Cut the bumps inward",
     max: 3,
-    idea: "The Koch replacement has four strokes with 60° turns. Here the starting triangle makes the spikes face inward.",
-    detail: "The boundary grows longer while the construction cuts into the enclosed region.",
-    takeaway:
-      "Orientation changes where the empty space appears, even when the local replacement rule stays the same.",
+    idea: "Each old line becomes four shorter lines. The starting triangle sends the bumps inward.",
+    detail: "Each cut removes area while making the outline longer.",
+    takeaway: "Compare the ordinary Koch snowflake: the bumps point outward there.",
   },
   "quadratic-koch-island": {
-    title: "Eighteen steps replace one edge",
+    title: "Eighteen steps between the same ends",
     max: 2,
-    idea: "This square-grid replacement takes eighteen strokes to cross a distance of six unit steps.",
-    detail: "At a fixed endpoint spacing, every new stroke has one sixth of the old length.",
-    takeaway:
-      "The boundary length triples at each rewrite: 18 copies times a length factor of 1/6.",
+    idea: "A winding path of eighteen steps replaces one straight line.",
+    detail:
+      "Those steps finish six little step lengths ahead. Make each step one sixth as long to keep the ends fixed.",
+    takeaway: "Eighteen one-sixth-size lines make the total route three times as long.",
   },
   "minkowski-sausage": {
-    title: "Outward and inward bumps balance",
+    title: "One bump on each side",
     max: 3,
-    idea: "Eight strokes replace one straight edge. The endpoint lies four unit steps along the old direction.",
-    detail:
-      "One bump turns outward and the other inward. Their signed areas cancel in a closed island.",
-    takeaway:
-      "Each rewrite doubles boundary length while the corresponding island retains its enclosed area.",
+    idea: "Eight steps replace a straight line. They finish four little step lengths ahead.",
+    detail: "One bump adds area outside the island. The other cuts the same amount inside it.",
+    takeaway: "The route doubles in length each round while those area changes balance.",
   },
   "cesaro-fractal": {
-    title: "A sharper spike needs a longer detour",
+    title: "Sharpen the notch",
     max: 3,
-    idea: "Four equal strokes replace one edge. Changing the bend changes the distance between their endpoints.",
-    detail:
-      "At bend α, the chord spans 2(1 + cos α) unit strokes. Larger bends shorten that chord.",
-    takeaway:
-      "With the chord fixed, sharper bends increase the total length and crowd neighboring spikes together.",
+    idea: "Four equal lines replace one. Change the bend and watch the notch sharpen.",
+    detail: "The old ends stay in place. Sharper notches need longer lines between those ends.",
+    takeaway: "As the lines get longer, neighboring spikes crowd together.",
   },
   "fibonacci-word-fractal": {
-    title: "The position of a digit changes its turn",
+    title: "Count the digits as you walk",
     max: 10,
-    idea: "The word grows by 0 → 01 and 1 → 0. Every digit draws a step.",
+    idea: "Replace 0 with 01 and 1 with 0. Every digit draws one step.",
     detail:
-      "A zero turns after drawing: right at odd positions, left at even positions. A one leaves the direction unchanged.",
-    takeaway:
-      "The same digit can turn in opposite directions. Geometry depends on both the word and each digit’s position.",
+      "After a zero, turn right at odd positions and left at even positions. After a one, keep going straight.",
+    takeaway: "A zero can turn either way. Its place in the string decides which.",
   },
   terdragon: {
-    title: "Three copies turn through a triangular lattice",
+    title: "Turn three lines into a winding path",
     max: 5,
-    idea: "Three forward strokes replace one stroke, with opposite 120° turns between them.",
-    detail:
-      "The new path’s endpoint is √3 unit steps from its start. Its heading rotates as the construction grows.",
+    idea: "Replace each line with three. Turn 120 degrees one way, then 120 degrees back.",
+    detail: "The three steps finish about 1.732 step lengths from the start.",
     takeaway:
-      "Shrinking the chord back to its old size gives three copies at scale 1/√3. Their similarity dimension is 2.",
+      "Make each new line about 58% as long to keep the distance between the old ends fixed.",
   },
   twindragon: {
-    title: "Two folded paths close a tile",
+    title: "Join two dragons",
     max: 7,
-    idea: "The second dragon is the first turned halfway around the midpoint of its endpoint chord.",
-    detail:
-      "One path runs from the first endpoint to the second. Its partner returns from the second endpoint to the first.",
+    idea: "Turn a second dragon halfway around the midpoint between the first dragon’s ends.",
+    detail: "One path goes out. The other joins its end and returns to the start.",
     takeaway:
-      "The limiting paths cover the tile’s interior as well as its outline. Translated copies of that tile cover the plane.",
+      "In the infinite limit, the paths fill a tile. Copies of that tile fit together across the plane.",
   },
   "hilbert-curve-3d": {
-    title: "Visit each little cube once",
+    title: "Visit every little cube",
     max: 3,
-    idea: "Eight octants replace the cube. Their routes connect end to end into one path.",
-    detail:
-      "An order-n path visits all 8ⁿ cells of a 2ⁿ × 2ⁿ × 2ⁿ grid. Consecutive cells share a face.",
-    takeaway:
-      "A flat projection can make separate strokes look crossed. Turning the view separates their depths.",
+    idea: "Split a cube into eight. Turn the smaller paths so their ends join up.",
+    detail: "The grids have 8, then 64, then 512 stops. Each stop connects to a neighbor.",
+    takeaway: "Rotate the view. Lines that seem to cross can sit at different depths.",
   },
   "l-system-explorer": {
-    title: "A bracket changes a branch, not the trunk",
+    title: "Return to the fork",
     max: 4,
-    idea: "The same rewrite can produce a narrow plant or a wide one. The branch angle changes geometry without changing the word.",
-    detail:
-      "Brackets return the turtle to an earlier position and direction. The next stem segment continues from that saved state.",
+    idea: "Change the angle to spread or narrow the plant. The string of instructions stays the same.",
+    detail: "Brackets remember a position and direction, then return there without drawing.",
     takeaway:
-      "A rewriting system separates topology — which branches connect — from geometry — their angles and lengths.",
+      "Move a bracket to change where a branch begins. Change the angle to change where it points.",
   },
 } as const;
 export type PathLessonKind = keyof typeof PATH_LESSONS;

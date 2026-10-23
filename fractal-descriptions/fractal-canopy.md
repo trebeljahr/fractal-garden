@@ -1,27 +1,29 @@
 # Fractal Canopy
 
-Draw a trunk. At its tip, start $b$ shorter branches whose headings differ by a fixed angle. Repeat at every tip. This explorer's **Classic canopy** uses three children per branch, a length ratio of $0.6$, and 43 degrees between neighboring headings.
+Draw a trunk. Put shorter branches at its tip. Give every new tip the same branches. A tree grows from one repeated fork.
 
-The diagram below isolates a two-child fork. It shows how changing the angle changes the outline while preserving the branching rule.
+The **Classic canopy** makes three branches each time. Each is 60% as long as its parent, with 43 degrees between neighboring branches.
+
+The small diagram uses two branches so you can see the fork clearly. Change the angle and watch the tree spread or narrow.
 
 <figure data-construction="canopy"></figure>
 
-A generation numbered $n$ contains $b^n$ branch instances. Each has length $L_0r^n$, so their combined length, counting overlaps, is
+## How can so many branches fit?
 
-$$
-\ell_n=L_0(br)^n.
-$$
+With three branches per fork, each generation has three times as many branches. Yet each branch is shorter. Along any one route from the trunk, those lengths keep shrinking.
 
-Along any one path, however, the total length is at most $L_0/(1-r)$ when $0\le r<1$. Thus a tree can remain bounded while its total counted branch length diverges. The Classic canopy has $br=1.8$, so each generation adds 80 percent more counted length than the previous one.
+At a 60% length ratio, even an endless route is at most two and a half trunk lengths long. The whole tree can stay in a small space while the combined length of all its branches keeps growing.
 
-The length ratio controls geometry. **Width factor** controls stroke thickness separately. Thick strokes can hide gaps between branches, and overlapping branch instances need not add new visible length. A single copy-count formula cannot assign a Hausdorff dimension to every angle and overlap setting.
+**Width factor** changes thickness separately. Thicker lines can hide gaps, so a dense-looking canopy does not always contain more branches.
 
-## Fractal trees in a water tank
+## Trees in a water tank
 
-Researchers at Johns Hopkins use physical fractal trees to study canopy flow.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup> Their model has five generations and three branches at each fork. Some acrylic models match the liquid's refractive index, allowing cameras to measure flow between branches that would otherwise obstruct the view.
+Researchers at Johns Hopkins make physical fractal trees to study how water flows through a canopy. Their models have five generations and three branches at each fork.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
-That experiment uses a particular three-dimensional model, rather than this drawing's presets. It studies how several geometric scales interact with moving fluid. The [Pythagoras tree](/pythagoras-tree) supplies another branching rule, with square areas fixed by a right triangle.
+Some models use acrylic that almost disappears in the liquid. Cameras can then see the water move between the branches.
+
+The [Pythagoras tree](/pythagoras-tree) grows squares instead of lines. A right triangle decides the size of each new pair.
 
 ## Sources and notes
 
-1. <span id="fractal-canopy-source-1"></span> Kunlun Bai, Charles Meneveau, Joseph Katz and the Laboratory for Experimental Fluid Dynamics, [Fractal Canopy](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/), Johns Hopkins University. Physical tree model, five generations and refractive-index-matched flow measurements. Branch counts and length formulas above derive from this explorer’s recursive rule. [Back](#fractal-canopy-ref-1)
+1. <span id="fractal-canopy-source-1"></span> Kunlun Bai, Charles Meneveau, Joseph Katz and the Laboratory for Experimental Fluid Dynamics, [Fractal Canopy](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/), Johns Hopkins University. Physical tree model, five generations and refractive-index-matched flow measurements. Branch counts and length sums follow directly from this explorer’s rule. [Back](#fractal-canopy-ref-1)

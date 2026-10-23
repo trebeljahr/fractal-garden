@@ -1,27 +1,35 @@
 # Sierpinski Triangle
 
-Keep three half-size corner triangles and remove the inverted center triangle. Repeat inside every survivor. After $n$ rounds, $3^n$ triangles retain $(3/4)^n$ of the starting area. The limit has zero area and dimension $\log3/\log2\approx1.585$.
+Split a triangle into four smaller triangles. Remove the upside-down one in the middle. Repeat inside the three that remain.
+
+Each round leaves three times as many triangles, each half as wide. Small triangular holes appear around the big hole.
 
 <figure data-construction-player="sierpinski-triangle"></figure>
 
+The remaining area shrinks by three quarters each round. After infinitely many rounds, it reaches zero. Points and edges remain, even though no filled triangle survives.
+
 ## Start with a fish
 
-The same limit appears if the seed is a square, circle or fish. Make three half-size copies, moving each toward one fixed triangle vertex. Repeat on the whole picture.
+You do not need a triangle to begin. Try a square, a circle or a fish.
+
+Make three half-size copies. Move one toward each corner of a fixed triangle. Repeat on the whole picture.
 
 <figure data-lesson="sierpinski-seeds"></figure>
 
-Any nonempty compact seed approaches the same attractor. After each step, its Hausdorff distance from the limit is at most half the previous distance. Barnsley, Hutchinson and Stenflo illustrate this with fish.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup> At finite levels, the tiny fish remain visible.
+The little fish stay visible at first. Keep shrinking and copying, and they approach the same Sierpinski triangle. Barnsley, Hutchinson and Stenflo used fish to illustrate this result.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
 
-## A puzzle graph and a number triangle
+## A puzzle makes the same pattern
 
-Every legal arrangement of $n$ Tower of Hanoi disks corresponds to one of $3^n$ states. Group states by the largest disk's peg. Each group contains a copy of the $(n-1)$-disk graph. Only specific moves connect the three groups, producing the gasket's recursive pattern. Grant Sanderson explains the link to binary and ternary counting in his *Binary, Hanoi and Sierpinski* videos.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
+In the Tower of Hanoi puzzle, disks move between three pegs. Draw a dot for each legal arrangement. Join two dots when one legal move connects them.
 
-Pascal's triangle gives another route. Color odd binomial coefficients and leave even ones blank. Lucas' theorem says $\binom nk$ is odd exactly when every $1$ bit of $k$ also occurs in $n$.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup> Each binary digit pair has three allowed choices: $(0,0)$, $(1,0)$ and $(1,1)$. Those three choices explain the three half-size copies.
+The resulting network has the Sierpinski triangle's structure. Group the arrangements by the largest disk's peg, and you find three smaller copies of the same network.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
 
-The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) approaches the same set through a continuous path. A [Sierpinski tetrahedron](/sierpinski-tetrahedron) can cast a stretched triangular gasket shadow, although another viewing direction gives a filled square.
+Pascal's triangle hides the pattern too. Color the odd numbers and leave the even numbers blank. The same triangular gaps appear.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup>
+
+The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) approaches this shape with one continuous path. The [tetrahedron](/sierpinski-tetrahedron) repeats the corner-copy idea in three dimensions.
 
 ## Sources and notes
 
 1. <span id="sierpinski-triangle-source-1"></span> Michael Barnsley, John E. Hutchinson and Örjan Stenflo, [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314), 2003 preprint, Figure 1 and introductory contraction discussion. Seed independence and fish example; this page uses its own drawing. [Back](#sierpinski-triangle-ref-1)
 2. <span id="sierpinski-triangle-source-2"></span> Grant Sanderson, 3Blue1Brown, [Binary, Hanoi and Sierpinski, part 1](https://www.youtube.com/watch?v=2SUvWfNJSsM), 25 November 2016, with the linked second part. Original animated explanation of counting and puzzle-graph connections. [Back](#sierpinski-triangle-ref-2)
-3. <span id="sierpinski-triangle-source-3"></span> Andrew Granville, [Arithmetic Properties of Binomial Coefficients I: Binomial coefficients modulo prime powers](https://dms.umontreal.ca/~andrew/Binomial/intro.html), Canadian Mathematical Society Conference Proceedings 20 (1997), 253–276. Lucas’ theorem and its cellular-automaton interpretation. Binary choices above specialize it to parity. [Back](#sierpinski-triangle-ref-3)
+3. <span id="sierpinski-triangle-source-3"></span> Andrew Granville, [Arithmetic Properties of Binomial Coefficients I: Binomial coefficients modulo prime powers](https://dms.umontreal.ca/~andrew/Binomial/intro.html), Canadian Mathematical Society Conference Proceedings 20 (1997), 253–276. Lucas’ theorem and its cellular-automaton interpretation. [Back](#sierpinski-triangle-ref-3)

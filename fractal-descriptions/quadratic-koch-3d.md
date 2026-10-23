@@ -1,43 +1,29 @@
 # Quadratic Koch Surface
 
-Divide a square into nine equal squares. Replace the middle square with the five exposed faces of an outward cube. Eight flat squares and five bump faces replace the original face.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup> This explorer starts from all six faces of a cube.
+Put a small cube-shaped bump in the middle of every cube face. Now put smaller bumps on all the new faces. Keep going.
+
+To make one bump, split a square into nine squares. Replace the middle square with the five exposed faces of a little cube.<sup><a id="quadratic-koch-3d-ref-1" href="#quadratic-koch-3d-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-koch-3d"></figure>
 
-Each replacement produces thirteen squares with one-third the edge length. After $n$ rounds, the mesh has
+Eight flat squares and five bump faces replace one old square. That makes thirteen new faces, each with one ninth of the old area.
+
+So the total face area grows by $13/9$ each round. The bumps shrink, but their faces multiply fast enough that the area grows without end.
+
+## How far can the bumps reach?
+
+Follow a stack of bumps outward. Their heights are one third, one ninth, one twenty-seventh of the starting cube's width, and so on.
 
 $$
-F_n=6\cdot13^n
+\frac13+\frac19+\frac1{27}+\cdots=\frac12.
 $$
 
-faces. For a unit starting cube, summing those faces gives
+Even an endless stack reaches only half a starting cube's width beyond its face. The whole shape fits inside a box twice as wide as the starting cube.
 
-$$
-A_n=6(13/9)^n.
-$$
+Neel Shrestha worked out how to fold this pattern in origami. A finite version can be assembled from paper.<sup><a href="#quadratic-koch-3d-source-1">1</a></sup>
 
-Every square shrinks, yet the total generated face area grows without bound. The generator's similarity dimension is
-
-$$
-D=\frac{\log13}{\log3}\approx2.335.
-$$
-
-This value describes the scaling rule for the limiting surface. Each finite displayed mesh consists of ordinary flat squares, whose individual dimension is $2$.
-
-## Bounded reach, unbounded detail
-
-A stack of successive outward bumps adds heights
-
-$$
-\frac13+\frac19+\frac1{27}+\cdots=\frac12
-$$
-
-relative to the starting cube's side. The construction therefore fits within a cube twice as wide as its seed.
-
-Neel Shrestha gives an origami construction of this same thirteen-square generator. His second-stage model uses separate folding modules for the square surface and neighboring faces.<sup><a href="#quadratic-koch-3d-source-1">1</a></sup> A finite version can therefore be assembled without a computer.
-
-The [Koch surface](/koch-surface) replaces each triangle with six half-size triangles. The [quadratic snowflake](/l-system/quadratic-snowflake) replaces line segments with square bumps. The [Menger sponge](/menger-sponge) removes cubes, whereas this construction adds bumps to faces.
+The [Koch surface](/koch-surface) raises triangular pyramids instead. The [quadratic snowflake](/l-system/quadratic-snowflake) draws square bumps along a flat outline.
 
 ## Sources and notes
 
-1. <span id="quadratic-koch-3d-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Original folding method and thirteen-square generator. Counts, area, reach and similarity dimension above are calculations from that generator. [Back](#quadratic-koch-3d-ref-1)
+1. <span id="quadratic-koch-3d-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Original folding method and thirteen-square generator. The face count, area growth and total bump height are calculations from this explorer’s generator. [Back](#quadratic-koch-3d-ref-1)

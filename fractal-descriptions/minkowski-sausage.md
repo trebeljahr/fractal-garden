@@ -1,20 +1,26 @@
 # Minkowski Sausage
 
-One square bump rises from an edge and another falls below it. Replace every stroke with this eight-stroke route:
+Take a straight line. Add one square bump on one side and another on the other side. Repeat the pattern on every new line.
 
-```
-F → F+F-F-FF+F+F-F
-```
-
-All turns are 90 degrees. The route finishes four unit steps along the original edge, facing the original direction. Divide its stroke length by four to keep the old endpoints fixed.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
+Eight little lines replace one. Each is one quarter as long, so the total route doubles in length.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
 
 <figure data-construction-player="minkowski-sausage"></figure>
 
-After $n$ rewrites, an open curve contains $8^n$ strokes, each of relative length $4^{-n}$. The total length doubles per rewrite. Its similarity dimension is $\log8/\log4=3/2$.
+The drawing rule is:
 
-The island option starts with four sides of a square. The two bumps have equal and opposite signed areas, so each replacement preserves the closed path's signed area. It adds boundary length without a net area increment. The [Quadratic snowflake](/l-system/quadratic-snowflake) uses a single bump instead.
+```text
+F → F+F-F-FF+F+F-F
+```
 
-Finite versions of this route also appear in antenna research. Jibrael, Shareef and Mummo simulated a dipole based on the first replacement stage in 2008. Their reported resonances belong to that particular conductor and electromagnetic model. The curve supplies a repeatable way to fit a longer wire into a smaller span.<sup><a id="minkowski-sausage-ref-2" href="#minkowski-sausage-source-2">2</a></sup>
+F draws forward. Plus and minus turn by 90 degrees. The route finishes four little step lengths ahead, facing the way it started.
+
+Start with a square to make the island version. One bump adds area outside an edge. The other removes the same amount inside it. The outline gets longer while those two changes cancel.
+
+## A longer wire in a smaller span
+
+Researchers use versions of this route in antenna designs. The bends fit more wire between two endpoints. A 2008 study simulated an antenna based on the first replacement stage.<sup><a id="minkowski-sausage-ref-2" href="#minkowski-sausage-source-2">2</a></sup>
+
+The [quadratic snowflake](/l-system/quadratic-snowflake) uses one square bump per replacement. It has no matching bump on the opposite side.
 
 ## Sources and notes
 

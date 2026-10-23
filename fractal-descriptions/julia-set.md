@@ -1,26 +1,34 @@
 # Julia Set
 
-Fix one complex number $c$. Every pixel supplies a different starting point $z_0$, then follows the same recurrence:
+Pick a number $c$ and keep it fixed. Now put a point anywhere on the picture. Square its position, add $c$, and repeat.
+
+Some starting points run away. Others stay nearby. Color them by what happens, and a Julia picture appears.
 
 $$
 z_{n+1}=z_n^2+c.
 $$
 
-Squaring squares the distance from zero and doubles the angle. Adding $c$ shifts the result. Repeating these operations separates starting points with bounded orbits from those that escape.
+Here $z$ gives a point's horizontal and vertical position as one complex number. Every pixel tries the same rule from a different start.
 
 <figure data-article-images="julia"></figure>
 
-The **filled Julia set** contains all starting points with bounded orbits. Its boundary is the **Julia set**. For $c=0$, the filled set is the closed unit disk, and its boundary is a circle. Points inside approach zero. Points outside escape. Points on the circle stay there as their angles double.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
+Try $c=0$. Points inside a unit circle move toward the center. Points outside run away. Points on the circle stay on it.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
-For this quadratic family, one orbit decides connectedness: start at the critical point $0$. If its orbit stays bounded, the Julia set is connected. If it escapes, the Julia set is a Cantor set, a completely disconnected dust. The [Mandelbrot set](/mandelbrot) records precisely the connected parameters.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+The points that stay nearby form the **filled Julia set**. Its edge is the **Julia set**. For $c=0$, that means a filled disk and its circular edge.
 
-In the diagram, $c=-0.8+0.156i$ stays fixed while the starting point changes.
+## One piece or scattered dust?
+
+Change $c$. Some pictures stay connected. Others break into dust.
+
+The [Mandelbrot set](/mandelbrot) tells you which happens. Choose $c$ inside it and the Julia set is connected. Choose $c$ outside it and the Julia set breaks apart.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+
+The small diagram keeps $c=-0.8+0.156i$ fixed. Move the starting point and follow its journey.
 
 <figure data-orbit="julia"></figure>
 
-There is also an exact symmetry you can derive from the formula. Since $(-z)^2=z^2$, opposite starting points share every iterate after the first. The filled set and its boundary therefore have half-turn symmetry for every $c$. A particular palette can obscure it.
+Each picture has half-turn symmetry. Opposite starting points become the same point after squaring, so the rest of their journeys match.
 
-**Smooth escape time** describes escaping orbits. Dark pixels approximate the filled set at a finite iteration limit, which can leave slow escapes unresolved. **Orbit trap** instead measures the orbit's closest approach to the origin. Neither palette changes the mathematical set.
+**Smooth escape time** colors how quickly points escape. Dark pixels have not escaped before the time limit. **Orbit trap** uses how close a journey comes to the origin instead. Changing the colors leaves the rule unchanged.
 
 ## Sources and notes
 

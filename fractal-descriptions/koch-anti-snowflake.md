@@ -1,23 +1,21 @@
 # Koch Anti-Snowflake
 
-Start with an equilateral triangle and replace every edge with four shorter edges. Keep the first and last thirds. Bend the middle third into two sides of a smaller equilateral triangle, pointing inward. This reverses which side receives the bumps in the [Koch snowflake](/l-system/koch-snowflake).<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
+Start with a triangle. Cut a little triangular notch into the middle of each side. Then cut a smaller notch into every new side.
 
-The renderer uses the seed `F++F++F` and the rule `F → F+F--F+F`, with 60-degree turns. The starting triangle's orientation makes each bump point inside it.
+This is the [Koch snowflake](/l-system/koch-snowflake) with its bumps pointing inward.<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
 
 <figure data-construction-player="koch-anti-snowflake"></figure>
 
-At stage $n$, the boundary walk has $3\cdot4^n$ strokes of length $3^{-n}$ times the original side. Its total travelled length is therefore $3(4/3)^n$ for a unit-sided starting triangle.
+Each old line becomes four lines, each one third as long. The edge gets longer by a factor of $4/3$ each round, even though you keep removing pieces.
 
-The area goes the other way. The first rewrite removes three small triangles, each with one ninth of the original triangle's area. Later rewrites remove four times as many triangles, each with one ninth the area of its predecessor.
+The first round removes three triangles. Each has one ninth of the starting triangle's area. Later rounds remove more triangles, but much smaller ones.
 
-If the original area is $A$, the total removed area is
+Add up all the cuts, including infinitely many rounds, and two fifths of the original area remains. The edge grows without end while the shape keeps a finite area.
 
-$$
-\frac A3\left(1+\frac49+\left(\frac49\right)^2+\cdots\right)=\frac{3A}{5}.
-$$
+The computer starts with `F++F++F` and uses `F → F+F--F+F`. F draws forward. Plus and minus turn by 60 degrees. The starting triangle's direction sends the notches inward.
 
-The anti-snowflake retains $2A/5$. The ordinary snowflake instead reaches $8A/5$. The same local segment count permits opposite area changes. The [Cesàro fractal](/l-system/cesaro-fractal) makes the inward spikes sharper by changing their angle.
+The [Cesàro fractal](/l-system/cesaro-fractal) puts notches into a square and lets you sharpen their angle.
 
 ## Sources and notes
 
-1. <span id="koch-anti-snowflake-source-1"></span> Brian J. McCartin, [Mysteries of the Equilateral Triangle](https://www.m-hikari.com/mccartin-2.pdf), Hikari, 2010, page 58. Describes the inward anti-snowflake and its area 2/5, alongside the ordinary snowflake’s 8/5. The series above derives the result from the renderer’s rule. [Back](#koch-anti-snowflake-ref-1)
+1. <span id="koch-anti-snowflake-source-1"></span> Brian J. McCartin, [Mysteries of the Equilateral Triangle](https://www.m-hikari.com/mccartin-2.pdf), Hikari, 2010, page 58. Describes the inward anti-snowflake and its area 2/5, alongside the ordinary snowflake’s 8/5. The four-piece rule and its inward orientation match this explorer. [Back](#koch-anti-snowflake-ref-1)

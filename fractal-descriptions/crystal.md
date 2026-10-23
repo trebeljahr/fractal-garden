@@ -1,14 +1,24 @@
 # Crystal
 
-Crystal starts from the square `F+F+F+F` and replaces each F with `FF+F++F+F`. All turns are 90 degrees. The double plus makes a half-turn. “Crystal” is the name of this local preset, rather than a model of crystal growth.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
+Draw a square. On each side, take a small step sideways, then walk back along that same step. Repeat the pattern on every line.
 
-An isolated replacement advances twice, steps sideways, reverses over that sideways step, then advances once more. Five forward instructions finish three unit lengths from the start. The sideways edge is drawn twice, so only four distinct unit edges appear at this stage.
+Here is the rule:
+
+```text
+F → FF+F++F+F
+```
+
+F draws forward. Each plus turns 90 degrees. Two plus signs turn you around. The starting square is `F+F+F+F`.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
 
 <figure data-construction-player="crystal"></figure>
 
-To preserve the original square's side length, divide each new stroke length by three. The word then contains $4\cdot5^n$ strokes after $n$ rewrites, and its travelled length multiplies by $5/3$ per rewrite.
+One replacement goes forward twice, steps sideways, comes back, then moves forward once more. Five drawing steps finish three step lengths from the start.
 
-The first sideways excursion returns along its own edge. At later stages, those two opposed edges receive their own replacements, so their descendants need separate inspection. Counting five copies cannot by itself establish the visible set's Hausdorff dimension. Compare the [Board](/l-system/board), whose small square detour also repeats part of its route, and the balanced bumps of the [Minkowski sausage](/l-system/minkowski-sausage).
+Make the new steps one third as long to keep the square the same size. The distance travelled grows by $5/3$ each round.
+
+But the pen covers some lines twice. In the first replacement, five steps draw only four different edges. Counting instructions does not tell you how many separate lines you can see.
+
+“Crystal” is this pattern's name. It does not simulate a growing mineral. The [Board](/l-system/board) takes a lap around a little square instead of going straight out and back.
 
 ## Sources and notes
 

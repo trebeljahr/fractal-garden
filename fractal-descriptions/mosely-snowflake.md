@@ -1,31 +1,32 @@
 # Mosely Snowflake
 
-Divide a cube into 27 equal cubes and remove its eight corners. The **heavier** version keeps nineteen cubes. The **lighter** version also removes the center, leaving eighteen. Repeat the chosen rule inside every surviving cube.
+Split a cube into 27 little cubes. Remove the eight corners. Repeat inside every cube that remains.
+
+The **heavier** version keeps nineteen cubes each time. The **lighter** version also removes the middle cube, leaving eighteen.
 
 <figure data-construction-player="mosely-snowflake"></figure>
 
-The dimensions follow directly from these counts:
+Both versions lose volume at every round. Keep going forever and that volume falls to zero. The holes and corners keep gaining smaller detail.
 
-$$
-D_{\rm heavy}=\frac{\log19}{\log3}\approx2.680,\qquad
-D_{\rm light}=\frac{\log18}{\log3}\approx2.631.
-$$
+## A cube with a snowflake shadow
 
-Their volume fractions after $n$ full replacements are $(19/27)^n$ and $(18/27)^n$. Both tend to zero.
+Look at a cube from a corner, along its diagonal. With parallel viewing rays, its shadow is a hexagon.
 
-## Cubes cast a Koch snowflake
+Keep removing corners with the heavier rule, and that shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake).<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup> The cubes make an outline usually built from triangular bumps.
 
 <figure data-article-images="mosely-koch"></figure>
 
-View a cube along a body diagonal with parallel rays. Its shadow is a regular hexagon. In the heavier version, recursive corner removal produces a filled [Koch snowflake](/l-system/koch-snowflake) shadow through overlapping smaller hexagons.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup> This uses cube geometry rather than triangular bumps.
+The lighter version has holes in this shadow. Removing its middle cubes opens gaps that the heavier version fills. The exact filled-snowflake result belongs to the heavier rule.
 
-The lighter version removes each central cavity as well. Its diagonal shadow has holes: even the central viewing ray passes through removed corner cubes and the removed center. Baird’s exact filled-shadow statement concerns the heavier version. The main explorer uses perspective and a finite detail limit, so its apparent outlines vary with camera position.
+The main explorer uses perspective, so moving the camera changes the apparent outline.
 
-The name recognizes Jeannine Mosely. Her construction guide with Margaret Wertheim documents the USC Libraries' 2011–2012 project to assemble the snowflake sponge from business cards.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> The guide specifies 108 X-modules and 216 Y-modules for the planned model. Its roughly 49,000 cards made the finite construction a community origami project.
+## Built from business cards
 
-Compare the [Menger sponge](/menger-sponge): it keeps the corners and removes face centers. This snowflake removes the corners and keeps face centers. Exchanging those positions changes both the passages and the diagonal silhouette.
+The fractal is named for Jeannine Mosely. She and Margaret Wertheim documented a USC Libraries project to assemble a model from roughly 49,000 business cards in 2011–2012.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup>
+
+Compare the [Menger sponge](/menger-sponge). It keeps the corners and removes the face centers. Swapping which cubes remain changes both the tunnels and the shadow.
 
 ## Sources and notes
 
 1. <span id="mosely-snowflake-source-1"></span> Eric Baird, [The Impossible Snowflake](https://alt-fractals.blogspot.com/2011/04/impossible-snowflake.html), 30 April 2011. Nineteen-cube construction and exact diagonal Koch silhouette. [Back](#mosely-snowflake-ref-1)
-2. <span id="mosely-snowflake-source-2"></span> Margaret Wertheim and Jeannine Mosely, [The Mosely Snowflake Sponge: Construction Guide](https://www.theiff.org/exhibits/USC%20Sponge%20Guide.pdf), USC Libraries Discovery Fellowship, 2011–2012. Business-card model, module counts and attribution. Volume and dimension formulas above come from this explorer’s cube counts. [Back](#mosely-snowflake-ref-2)
+2. <span id="mosely-snowflake-source-2"></span> Margaret Wertheim and Jeannine Mosely, [The Mosely Snowflake Sponge: Construction Guide](https://www.theiff.org/exhibits/USC%20Sponge%20Guide.pdf), USC Libraries Discovery Fellowship, 2011–2012. Business-card model, module counts and attribution. The volume comparison follows from this explorer’s cube counts. [Back](#mosely-snowflake-ref-2)

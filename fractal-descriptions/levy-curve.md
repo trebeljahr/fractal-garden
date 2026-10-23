@@ -1,18 +1,22 @@
 # Lévy Curve
 
-Replace a straight segment with the two equal sides of a right isosceles triangle. Repeat on both new segments, keeping the same local choice of side. This produces the Lévy C curve.
+Replace a straight line with two equal lines that meet at a right angle. Keep the old ends in place. Repeat on both new lines, bending each the same way.
 
-The page starts with F and applies `F → -F++F-` at 45 degrees. The initial minus tilts the first stroke. The double plus makes a 90-degree corner. The final minus restores the heading used before the replacement.
+A C-shaped curve starts to curl around itself.
 
 <figure data-construction-player="levy-curve"></figure>
 
-To keep the old endpoints fixed, each new stroke must have length $1/\sqrt{2}$ of the old segment. After $n$ rewrites there are $2^n$ strokes. Their total length is $(\sqrt{2})^n$ times the initial length.
+Two lines replace one, so the count doubles each round. Each new line is about 71% as long as the old line. Together, they make a longer route between the same ends.
 
-The complete limiting image has nonempty interior, although each finite drawing has zero area. Its two self-similar pieces meet along their boundaries. They do not overlap in positive area.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup> The image has Hausdorff dimension 2, while its boundary is a different fractal set.
+At any finite stage, you draw only lines. In the infinite limit, the curve fills a region with area.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
 
-Finding that boundary's dimension is much harder than counting two copies. Duvall and Keesling's calculation uses a 752-by-752 matrix to track how pieces meet.
+Even its outer edge is hard to describe. Duvall and Keesling needed a table with 752 rows to track how the pieces meet.
 
-The [Dragon curve](/l-system/dragon-curve) uses the same $1/\sqrt{2}$ scale with a different orientation scheme.
+## Draw it from symbols
+
+Start with F and replace it with `-F++F-`. F draws forward. Each turn is 45 degrees. The double plus makes the right-angle corner.
+
+The [Dragon curve](/l-system/dragon-curve) shrinks its lines by the same amount but turns its pieces differently. Compare how the two paths pack themselves into the plane.
 
 ## Sources and notes
 

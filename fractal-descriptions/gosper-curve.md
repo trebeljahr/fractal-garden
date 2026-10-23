@@ -1,23 +1,29 @@
 # Gosper Curve
 
-The Gosper curve replaces one route with seven smaller routes on a triangular lattice. Its turns are multiples of 60 degrees. The limiting path fills a region called the Gosper island. That region can itself be assembled from seven reduced copies.<sup><a id="gosper-curve-ref-1" href="#gosper-curve-source-1">1</a></sup>
+One winding path can fill an island. The Gosper curve does it with seven smaller copies of its route, joined using 60-degree turns.<sup><a id="gosper-curve-ref-1" href="#gosper-curve-source-1">1</a></sup>
 
-The main drawing starts with `XF` and uses:
+Take a step through the construction. Each round adds smaller bends between the same two ends.
 
-```
+<figure data-construction-player="gosper-curve"></figure>
+
+The line count goes 1, 7, 49, 343. To keep the ends in place, each new line is about 38% as long as the old one.
+
+The finished island can also split into seven smaller copies of itself. Every finite path leaves gaps. The path fills the island only in the infinite limit.
+
+“Flowsnake” is another name for it. Martin Gardner wrote about Gosper's construction in his December 1976 *Mathematical Games* column.<sup><a id="gosper-curve-ref-2" href="#gosper-curve-source-2">2</a></sup>
+
+## Instructions for the pen
+
+Start with `XF` and use:
+
+```text
 X → X+YF++YF-FX--FXFX-YF+
 Y → -FX+YFYF++YF+FX--FX-Y
 ```
 
-Only F draws. X and Y choose how the next copies turn and connect.
+F draws forward. Plus and minus turn by 60 degrees. X and Y add instructions for the next round without drawing lines themselves.
 
-<figure data-construction-player="gosper-curve"></figure>
-
-Each production contains seven X/Y symbols and six new F strokes. Existing F strokes remain. Starting from one X and one F gives exactly $7^n$ strokes after $n$ rewrites.
-
-The chord of a seven-stroke replacement spans $\sqrt{7}$ unit lengths. Each reduced copy therefore has scale $1/\sqrt{7}$, and $7(1/\sqrt{7})^2=1$. The same equation expresses area balance in the seven-piece island substitution.
-
-“Flowsnake” is another name for the curve. Gardner introduced Gosper's construction in his December 1976 Mathematical Games column.<sup><a id="gosper-curve-ref-2" href="#gosper-curve-source-2">2</a></sup> Its hexagonal arrangement offers a different route to filling area from the four square pieces of the [Hilbert curve](/l-system/hilbert-curve).
+The [Hilbert curve](/l-system/hilbert-curve) also fills a region, using four square-shaped routes instead of seven copies in this arrangement.
 
 ## Sources and notes
 

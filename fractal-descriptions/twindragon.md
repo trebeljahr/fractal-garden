@@ -1,16 +1,22 @@
 # Twindragon
 
-Take a [Heighway dragon](/l-system/dragon-curve) from one endpoint to another. Rotate a second copy by 180 degrees around the midpoint of that chord. Its start becomes the first copy's end, and its end becomes the first copy's start.
+Draw a [dragon curve](/l-system/dragon-curve). Make another copy and turn it halfway around the midpoint between the two ends.
 
-This page draws those two routes in different colours. Each uses `F → F+G`, `G → F-G`, with 90-degree turns and both letters drawing. At order $n$, the two routes together contain $2^{n+1}$ strokes.
+The second dragon starts where the first ends. It finishes where the first began. Together they make a closed route.
 
 <figure data-construction-player="twindragon"></figure>
 
-Joining the endpoints makes a closed walk. The dense limiting traces cover the Twindragon tile, including its interior. They should not be mistaken for a drawing of only the tile's outer boundary.
+The two colors help you follow the two paths. Each follows the dragon rules, `F → F+G` and `G → F-G`, with right-angle turns. Both letters draw forward.
 
-The tile also comes from binary digits in a complex base. Infinite sums with digits 0 and 1 and powers of $1/(1-i)$ describe a congruent version of it.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup> Appending a digit scales by $1/\sqrt2$ and rotates through 45 degrees. Two possible next digits select two smaller copies.
+At early stages, there are gaps between the lines. In the infinite limit, the paths cover a tile's inside as well as its outline.
 
-The tiling view repeats the paired paths by translation along the endpoint chord and its perpendicular. The limiting tiles cover the plane, while finite paths leave visible gaps inside their footprints. The [Terdragon](/l-system/terdragon) gives a related three-piece construction.
+Copies of that tile fit together to cover the plane. The tiling view repeats the paired dragons sideways and along the direction between their ends.
+
+## A tile made from zeros and ones
+
+There is another way to describe the same tile: use binary digits with a complex-number base. Adding each digit chooses one of two smaller copies, shrunk and turned by 45 degrees.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup>
+
+The digits become an address for a point inside the tile. The [Terdragon](/l-system/terdragon) uses a related three-piece construction.
 
 ## Sources and notes
 

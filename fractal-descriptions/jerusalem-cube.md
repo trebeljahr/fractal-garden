@@ -1,32 +1,28 @@
 # Jerusalem Cube
 
-Every cube leaves eight corner cubes and twelve smaller edge cubes. Cross-shaped passages replace the square tunnels of the [Menger sponge](/menger-sponge). Eric Baird dates his construction to 2010.<sup><a id="jerusalem-cube-ref-1" href="#jerusalem-cube-source-1">1</a></sup>
+Look at the holes. They look like crosses, with smaller crosses inside them.
+
+Each cube becomes eight corner cubes and twelve smaller cubes along the edges. Repeat inside all twenty. Eric Baird devised this construction in 2010.<sup><a id="jerusalem-cube-ref-1" href="#jerusalem-cube-source-1">1</a></sup>
 
 <figure data-construction-player="jerusalem-cube"></figure>
 
-## Two scales, one edge
+## Two sizes of cube
 
-Let a corner cube have side ratio $k$. The edge cube between two corner cubes has ratio $k^2$. They fit because
+The corner cubes are about 41% as wide as their parent. The cubes between them are about 17% as wide. Two corners and one small edge cube fit along an old edge.
 
-$$
-2k+k^2=1,\qquad k=\sqrt2-1.
-$$
-
-The two ratios are approximately $0.4142$ and $0.1716$. Each smaller cube repeats both sizes, so the construction never reduces to a uniform three-by-three grid.
-
-The viewer counts **rank**, rather than replacing every cube once per displayed iteration. Corner children gain one rank. Edge children gain two. A cube keeps splitting until its rank reaches the selected level. That makes the smallest visible cubes differ in side length by at most a factor of $1/k$.
-
-The disjoint cube interiors give the dimension equation:<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
+The exact corner size is $k=\sqrt2-1$. The edge size is $k^2$. They fit because:
 
 $$
-8k^D+12k^{2D}=1.
+2k+k^2=1.
 $$
 
-Put $x=k^D$. Then $12x^2+8x-1=0$, so $x=(\sqrt7-2)/6$ and $D\approx2.529$. Counting twenty copies without their two sizes would give the wrong dimension.
+Both sizes repeat inside every child. That makes this different from the [Menger sponge](/menger-sponge), where all the children have the same size.
 
-If every cube undergoes one complete replacement, the retained volume fraction is $8k^3+12k^6\approx0.629$. Repeating complete replacements drives volume to zero. This volume formula uses full generations, not the viewer's rank levels.
+The level control accounts for those two sizes. A small edge cube counts as two levels of shrinking. A larger corner cube counts as one.
 
-Baird calls its face-on parallel shadow the **Jerusalem square**.<sup><a id="jerusalem-cube-ref-3" href="#jerusalem-cube-source-3">3</a></sup> Front and back cubes overlap in that projection. Perspective views in the explorer change their apparent sizes.
+The amount left depends on both cube sizes, not only the count of twenty.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup> Each round removes more material. After endlessly repeating the cuts, the remaining volume is zero.
+
+Viewed straight at a face with parallel rays, the cube casts a flat pattern Baird calls the **Jerusalem square**.<sup><a id="jerusalem-cube-ref-3" href="#jerusalem-cube-source-3">3</a></sup> Turn the cube to see how the cross-shaped passages meet inside.
 
 ## Sources and notes
 

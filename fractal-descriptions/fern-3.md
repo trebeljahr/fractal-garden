@@ -1,20 +1,24 @@
 # Fern 3
 
-Every stroke grows the same nine-stroke plant in this local preset. Start with F, use 22.5-degree turns, and replace:
+One stem carries two pairs of branches. The lower pair is longer. The upper pair is shorter. Now grow that whole little plant on every line.
 
-```
+Start with F and use:
+
+```text
 F → F[+FF][-FF]F[-F][+F]F
 ```
 
-Three unbracketed F strokes form the continuing stem. The first branch pair contains two strokes per branch. The second contains one per branch. Closing each bracket restores the saved position and direction without drawing a return line.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
+F draws forward. Plus and minus turn by 22.5 degrees. Brackets save a fork's position and direction, then return there without drawing.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
 
 <figure data-construction-player="fern-3"></figure>
 
-At the next rewrite, all nine F symbols receive the entire replacement. A two-stroke branch therefore grows two consecutive copies, while a one-stroke branch grows one. The unequal branch lengths recur throughout the image without separate symbols for long and short branches.
+The three F steps outside brackets continue up the stem. The first pair of side branches gets two steps each. The second gets one each.
 
-After $n$ rewrites, the word contains $9^n$ forward strokes. The unbracketed route spans $3^n$ unit strokes, so dividing lengths by three per rewrite preserves that stem's height. The total travelled length then triples at each stage.
+Count them: nine steps replace one. On the next round, all nine grow the same pattern. The step count goes 1, 9, 81, 729.
 
-These are counts of drawing instructions. Branches can overlap in the image, so the counts alone do not determine a geometric dimension. [Fern 2](/l-system/fern-2) distributes growth between two non-drawing symbols instead.
+Shortening each new step to one third keeps the main stem's height fixed. The total distance drawn still triples each round. Some branches overlap, so that total can exceed the length of the separate lines you see.
+
+[Fern 2](/l-system/fern-2) uses different letters for its stem and leaflets. This one gives every line the same job.
 
 ## Sources and notes
 

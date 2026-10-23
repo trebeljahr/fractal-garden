@@ -1,32 +1,32 @@
 # Burning Ship Fractal
 
-Each pixel supplies a complex parameter $c$. Start from zero, make both coordinates nonnegative, square the result, then add $c$:
+Look for the hull near the bottom and the thin masts above it. Zoom into a mast, and you can find smaller ships.
 
-$$
-z_0=0,\qquad z_{n+1}=\left(|\operatorname{Re}(z_n)|+i|\operatorname{Im}(z_n)|\right)^2+c.
-$$
+The rule starts like the [Mandelbrot set](/mandelbrot): begin at zero, square, add a number $c$, and repeat. But before each square, make both coordinates positive or zero. A point to the left flips right. A point below zero flips above it.
 
-For $z_n=x_n+iy_n$ and $c=a+ib$, this becomes
-
-$$
-x_{n+1}=x_n^2-y_n^2+a,\qquad y_{n+1}=2|x_ny_n|+b.
-$$
-
-The absolute values fold four quadrants together before each square. They preserve the real part of the square and force its imaginary contribution nonnegative.
+That extra fold changes the whole picture. Michael Michelitsch and Otto Rössler introduced it in 1992.<sup><a id="burning-ship-ref-1" href="#burning-ship-source-1">1</a></sup>
 
 <figure data-article-images="burning-ship"></figure>
 
-Michael Michelitsch and Otto Rössler introduced the Burning Ship in 1992. Their paper also studied its fixed-parameter relatives, which they called quasi-Julia sets.<sup><a id="burning-ship-ref-1" href="#burning-ship-source-1">1</a></sup> The fold makes this map non-analytic: complex differentiation no longer describes the whole rule.
+Each pixel chooses a different $c$. If its moving point runs away, the pixel gets a color. The color records how quickly it escapes.
 
-The explorer displays the imaginary axis downward, the usual Burning Ship convention. That orientation gives the main shape its hull and rising masts. The orbit diagram below uses the usual upward imaginary axis.
+The rule, written in one line, is:
+
+$$
+z_{n+1}=\left(|\operatorname{Re}(z_n)|+i|\operatorname{Im}(z_n)|\right)^2+c.
+$$
+
+The bars mean “ignore the minus sign.” The two parts inside the brackets are the point's horizontal and vertical coordinates.
 
 <figure data-orbit="burning-ship"></figure>
 
-Small ships relate to periodic returns of the orbit. Researchers can locate their centers numerically by solving for a return to zero. Claude Heiland-Allen's 2019 paper develops this method using a real Jacobian matrix, which tracks changes in both coordinates.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
+The main image flips the usual vertical direction to put the ship upright. The small orbit diagram keeps the usual mathematical direction, with positive values upward.
 
-The mathematical set contains parameters whose orbits remain bounded forever. **Smooth escape time** colors escaping orbits. Black means no escape within the chosen iteration limit, which can include slowly escaping parameters.
+Small ships appear around values of $c$ whose journeys return to zero. Those returns give researchers a way to find their centers.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
 
-The [Mandelbrot set](/mandelbrot) uses the same square-and-add operation without the fold. The [Julia explorer](/julia-set) instead fixes its parameter and varies the starting point.
+A black pixel means no escape was found before the time limit. Some points need longer, so a black pixel is not proof that it stays forever.
+
+The [Julia explorer](/julia-set) keeps $c$ fixed and changes the starting point instead.
 
 ## Sources and notes
 

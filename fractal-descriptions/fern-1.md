@@ -1,26 +1,24 @@
 # Fern 1
 
-This branching preset starts with X and uses two rules:
+Draw a stem. Branch off it, then return to the fork and grow another branch. Repeat at the new tips. Smaller leaflets appear inside larger leaflets.
 
-```
+The instructions start with X and use these rules:
+
+```text
 X → F+[[X]-X]-F[-FX]+X
 F → FF
 ```
 
-F draws forward. X draws nothing: it marks a place that grows during the next rewrite. The preset uses a turn angle of −25 degrees. The bracketed method comes from L-system plant modeling, where a saved turtle state lets several branches leave the same junction.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
+F draws forward. X marks a tip that will grow next time. Plus and minus turn in opposite directions. This fern uses an angle of −25 degrees.
 
 <figure data-construction-player="fern-1"></figure>
 
-Read `[[X]-X]` from the inside outward. Each opening bracket saves position and heading. Each closing bracket restores them without drawing a return stroke. The inner pair shares a starting point, while the outer pair restores the direction used before that whole group.
+An opening bracket means “remember this spot and direction.” A closing bracket means “go back there without drawing.” That lets several branches start from the same fork.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
 
-Each X produces four new X symbols and three F symbols. Existing F symbols double. Starting from X, the number of forward strokes after $n$ rewrites is
+Each X makes four new X tips. Each old F becomes two forward steps. The first three rounds draw 3, 18 and 84 steps. A tiny set of instructions soon makes a crowded plant.
 
-$$
-f_n=\frac{3}{2}(4^n-2^n).
-$$
-
-For example, the first three stages contain 3, 18 and 84 strokes. That count follows from $f_{n+1}=2f_n+3\cdot4^n$. The repeated branch pattern supplies the fern-like outline. [Fern 4](/l-system/fern-4) changes the number and placement of the growing tips.
+[Fern 4](/l-system/fern-4) grows three tips each time and puts a turn at the continuing tip. Compare where the main stems bend.
 
 ## Sources and notes
 
-1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. The recurrence is derived directly from this preset’s productions. [Back](#fern-1-ref-1)
+1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. The step counts follow directly from this preset’s rules. [Back](#fern-1-ref-1)

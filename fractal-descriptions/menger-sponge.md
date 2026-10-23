@@ -1,32 +1,34 @@
 # Menger Sponge
 
-Split a cube into 27 equal cubes. Remove the center and the six face centers. Repeat inside the twenty surviving cubes. In grid coordinates, a cell survives exactly when at most one of its three coordinates is the middle cell.
+Cut a cube into 27 little cubes, like a three-by-three-by-three stack. Remove the middle cube and the cube in the middle of each face. Twenty remain.
+
+Do the same inside every remaining cube. Tunnels open into smaller tunnels.
 
 <figure data-construction-player="menger"></figure>
 
-After $n$ replacements, $20^n$ cubes remain, each with side $3^{-n}$ of the original. For a unit starting cube,
+Each round keeps $20/27$ of the previous volume. Keep cutting forever and the remaining volume falls to zero. Every finite stage still contains solid little cubes.
 
-$$
-V_n=(20/27)^n,\qquad D=\frac{\log20}{\log3}\approx2.727.
-$$
-
-The limit has zero volume. Every finite stage still contains solid cubes. Its six outside faces follow the [Sierpinski carpet](/sierpinski-carpet) rule.
+Each outer face follows the [Sierpinski carpet](/sierpinski-carpet) pattern: a square hole surrounded by eight smaller copies.
 
 <figure data-article-images="menger"></figure>
 
-## Shadows, slices and knots
+## Square holes can hide stars
 
-A face-on parallel shadow is also a carpet. At every scale, a projected square disappears only when both visible coordinates occupy their middle thirds. The hidden coordinate can always take an outer-third value.
+Look straight through the sponge at one face. With parallel viewing rays, its shadow is also a Sierpinski carpet.
 
-A central slice perpendicular to a body diagonal gives a hexagon with six-pointed star holes. The three perpendicular tunnel families meet that plane at different angles. George Hart demonstrates this cut in his *Mathematical Impressions* video.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
+Now cut through the middle at a diagonal. The cut has a hexagonal outline and six-pointed star holes. The square tunnels meet the cut at different angles.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
 
 <figure data-projection="menger"></figure>
 
-A shadow combines a complete viewing ray. A slice keeps one plane. They need not resemble each other.
+A shadow combines everything along your line of sight. A slice shows only the material in one flat cut. The same sponge gives two very different pictures.
 
-The sponge also contains every tame knot type. Broden, Espinosa, Nazareth and Voth give a constructive proof: every knot can follow boundary edges of some finite construction stage.<sup><a id="menger-sponge-ref-2" href="#menger-sponge-source-2">2</a></sup> Those chosen edges survive all later removals. The claim concerns curves **in the remaining material**, rather than strings passed through its tunnels.
+## Knots in the remaining material
 
-Which stage suffices depends on the knot. The result does not say one fixed finite edge graph contains every knot. Their paper also places every pretzel knot in the [Sierpinski tetrahedron](/sierpinski-tetrahedron).
+Take any knot made from finitely many straight segments. You can trace that knot along the sponge's remaining edges at a deep enough stage.<sup><a id="menger-sponge-ref-2" href="#menger-sponge-source-2">2</a></sup> The chosen edges survive later cuts.
+
+The knot follows the material itself. It is not a string threaded through the tunnels. More complicated knots can need deeper stages.
+
+The [Sierpinski tetrahedron](/sierpinski-tetrahedron) has a related result for a family called pretzel knots.
 
 ## Sources and notes
 

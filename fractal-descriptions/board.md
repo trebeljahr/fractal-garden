@@ -1,15 +1,25 @@
 # Board
 
-The Board starts with a square, `F+F+F+F`. Every F becomes `FF+F+F+F+FF`, using 90-degree turns. This preset uses parallel L-system rewriting.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
+Start with a square. Replace each side with a path that takes a lap around a tiny square before continuing. Repeat that detour on every new line.
 
-Follow one replacement from left to right. Two strokes advance along the old edge. Three more travel around a small square. The final two continue forward. Seven strokes finish three unit lengths from the start, facing the original direction.
+The drawing instructions are:
+
+```text
+F → FF+F+F+F+FF
+```
+
+F means draw forward. Each plus means turn 90 degrees. Start with `F+F+F+F` to make the first square.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
 <figure data-construction-player="board"></figure>
 
-With the original corners fixed, each child stroke has one third of the parent's length. After $n$ rewrites, the four-sided word contains $4\cdot7^n$ forward instructions. Its total travelled length is $4(7/3)^n$ when the initial sides have unit length.
+Follow one replacement. Go forward twice, walk around the small square, then carry on. Seven steps finish only three step lengths from where you began.
 
-There is a catch in that count. The square detour returns to an earlier point, and the departure retraces one unit edge. One isolated first replacement therefore draws six distinct unit edges with seven strokes. The visible set and the turtle's travelled path have different length counts. [Crystal](/l-system/crystal) makes this distinction even clearer with an immediate out-and-back branch.
+To keep the original corners in place, make each new step one third as long. The path gets $7/3$ times longer each round.
+
+Part of the route goes over a line it already drew. Seven drawing steps make only six different small edges in the first replacement. That is why counting steps can give a different answer from measuring the visible lines.
+
+[Crystal](/l-system/crystal) makes an even shorter detour: out along one line, then straight back.
 
 ## Sources and notes
 
-1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.2–1.3 explain parallel rewriting and turtle interpretation. Counts, displacement and retracing above are direct derivations from this garden’s rule. [Back](#board-ref-1)
+1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.2–1.3 explain parallel rewriting and turtle interpretation. Step counts, finishing position and repeated edges follow directly from this explorer’s rule. [Back](#board-ref-1)

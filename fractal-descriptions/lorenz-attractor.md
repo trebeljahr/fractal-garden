@@ -1,6 +1,24 @@
 # Lorenz Attractor
 
-A moving point traces a path through three-dimensional phase space. Its coordinates follow
+Follow one point as it loops around two wings. It can circle one wing several times before crossing to the other.
+
+Start a second point almost in the same place. At first, the trails stay close. Later, one can switch wings while the other keeps circling. A tiny difference at the start changes the journey.
+
+<figure data-lesson="lorenz"></figure>
+
+Edward Lorenz found this behavior in a simplified model of moving heat in 1963. The three numbers describe circulation and temperature changes.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup> The butterfly shows how those numbers change together. It is not a butterfly-shaped route through the air.
+
+## No dice, but hard to predict
+
+The rules contain no randomness. Each position decides the next move. Yet a small uncertainty in the starting position can grow until a detailed prediction fails.
+
+The two trails do not have to move farther apart at every moment. Watch them separate, come closer, then separate again.
+
+Warwick Tucker later proved that the classic equations really support this chaotic attractor. He used calculations that bound their own numerical errors.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
+
+## The rule behind the trail
+
+These equations give the point's speed in each direction:
 
 $$
 \frac{dx}{dt}=\sigma(y-x),\qquad
@@ -8,27 +26,11 @@ $$
 \frac{dz}{dt}=xy-\beta z.
 $$
 
-Edward Lorenz derived these equations from a severely simplified model of thermal convection in 1963. Here $x$ measures circulation intensity. The other variables describe temperature differences and distortion of the vertical temperature profile.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup> The butterfly is a path through these variables, rather than a parcel's route through the air.
+The defaults are $\sigma=10$, $\rho=28$ and $\beta=8/3$. Changing them can change the motion completely.
 
-The defaults are $\sigma=10$, $\rho=28$ and $\beta=8/3$.
+The computer approximates the trail in small time steps. Halve **Time step** and double **Steps** to compare the same duration with finer steps.
 
-<figure data-lesson="lorenz"></figure>
-
-A nearby start differs by 0.001 in $x$. Its distance from the first trajectory can grow and shrink. Sensitivity means sufficiently small initial uncertainty can eventually defeat a detailed prediction. It does not require separation to increase at every instant.
-
-The equations combine local stretching with overall contraction. Their divergence is
-
-$$
-\nabla\cdot f=-\sigma-1-\beta=-\frac{41}{3}
-$$
-
-at the default parameters. By the phase-volume equation, a volume transported by this flow shrinks as $V(t)=V(0)e^{-41t/3}$. This is a direct calculation. A volume can stretch in one direction while it contracts overall.
-
-Warwick Tucker later proved that the classical Lorenz equations support a strange attractor. His proof used interval arithmetic to bound numerical errors, rather than treating a plotted butterfly as proof.<sup><a id="lorenz-attractor-ref-2" href="#lorenz-attractor-source-2">2</a></sup>
-
-The explorer uses fourth-order Runge–Kutta integration. Halving **Time step** and doubling **Steps** preserves duration while improving numerical resolution. Changing parameters changes the flow, and need not preserve its chaotic behavior.
-
-The two small views are projections. A Poincaré section instead records crossings of a chosen plane. Compare the [Rössler attractor](/rossler-attractor) or the discrete [logistic map](/logistic-map).
+The [Rössler attractor](/rossler-attractor) loops around one main spiral. The [logistic map](/logistic-map) reaches chaos by repeatedly updating a single number.
 
 ## Sources and notes
 

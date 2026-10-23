@@ -1,26 +1,22 @@
 # 2D Vicsek Fractal
 
-Keep five squares from a three-by-three grid. The **diagonal cross** keeps the four corners and center. The **Greek cross** keeps the four side centers and center. Repeat inside every surviving square.
+Divide a square into nine little squares. Keep five. Repeat inside each square you kept.
+
+The **diagonal cross** keeps the middle and four corners. The **Greek cross** keeps the middle and its four side neighbors, making a plus sign.
 
 <figure data-construction-player="vicsek-fractal-2d"></figure>
 
-After $n$ replacements, $5^n$ squares have side $3^{-n}$ relative to the seed. Both versions therefore have area fraction $(5/9)^n$ and Hausdorff dimension
+Each round keeps five ninths of the previous area. After infinitely many rounds, that area falls to zero. Both rules use five one-third-size copies.<sup><a id="vicsek-fractal-2d-ref-1" href="#vicsek-fractal-2d-source-1">1</a></sup>
 
-$$
-D=\frac{\log5}{\log3}\approx1.465.
-$$
+## Turn one cross into the other
 
-The area tends to zero. The dimension calculation uses the five contractions with disjoint square interiors.<sup><a id="vicsek-fractal-2d-ref-1" href="#vicsek-fractal-2d-source-1">1</a></sup>
+The two finite drawings look different. But their infinite versions are the same shape at a different size and angle.
 
-## Two crosses, one limiting shape
+Turn the diagonal version by 45 degrees and shrink it to about 71% of its width. It matches the plus-shaped version. The corners move onto the four arms.
 
-The two finite constructions look different because they begin with the same axis-aligned square. Their **infinite limits** are similar: rotate the diagonal-cross limit by 45 degrees, then scale it by $1/\sqrt2$ about its center.
+Researchers use the diagonal version as a simple model for studying where wandering particles land. Exposed tips are easier to reach than deep gaps.<sup><a id="vicsek-fractal-2d-ref-2" href="#vicsek-fractal-2d-source-2">2</a></sup> The [aggregation explorer](/diffusion-limited-aggregation) lets those arrivals build branches of their own.
 
-This follows directly from their five copy positions. Rotation sends the four diagonal offsets to four axis offsets. Rescaling gives precisely the Greek-cross offsets. The central offset stays fixed. The different initial seed matters less at each contraction, so it does not change that limiting relationship.
-
-The diagonal cross also serves as a deterministic model for diffusion-limited aggregation. M. Wolf studies how random walkers reach different boundary sites, where exposed tips and recessed regions have different hitting probabilities.<sup><a id="vicsek-fractal-2d-ref-2" href="#vicsek-fractal-2d-source-2">2</a></sup> That physical question needs more information than dimension alone.
-
-The Greek cross is the face-on parallel shadow of this garden's seven-cube [3D Vicsek fractal](/vicsek-fractal-3d). Three cubes overlap at the shadow's center, leaving five projected positions. The [Sierpinski carpet](/sierpinski-carpet) uses the same grid but retains eight cells.
+The plus-shaped version is also the straight-on shadow of the [3D Vicsek fractal](/vicsek-fractal-3d). The [Sierpinski carpet](/sierpinski-carpet) uses the same nine-square grid but keeps eight squares.
 
 ## Sources and notes
 

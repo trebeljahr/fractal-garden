@@ -1,22 +1,18 @@
 # Cesàro Fractal
 
-Four inward-pointing curves turn a square into a torn square. Each edge receives the replacement `F → F+F--F+F`. The square's corners keep their 90-degree turns, while the plus and minus bends use the adjustable angle $\alpha$.<sup><a id="cesaro-fractal-ref-1" href="#cesaro-fractal-source-1">1</a></sup>
+Take a square and push a pointed notch into each side. Add smaller notches to every new edge. The square starts to look torn.
 
-Two of the four child strokes follow the old direction. The other two point at angles $\alpha$ and $-\alpha$. Four unit strokes therefore span $2+2\cos\alpha$ units along the old edge, with no net sideways displacement.
+Each old line becomes four equal lines. The first and last go straight ahead. The middle two bend inward and back out.<sup><a id="cesaro-fractal-ref-1" href="#cesaro-fractal-source-1">1</a></sup>
 
 <figure data-construction-player="cesaro-fractal"></figure>
 
-Keeping the old endpoints fixed gives the child scale
+Change the angle and watch the notches sharpen. The ends of each old line stay in place. A sharper notch needs a longer detour between those ends, so nearby spikes crowd together.
 
-$$
-r=\frac{1}{2(1+\cos\alpha)}.
-$$
+At 60 degrees, each new line is one third as long as the old one. That is the same size used by the [Koch snowflake](/l-system/koch-snowflake). At 85 degrees, each line is nearly half as long.
 
-At 60 degrees, $r=1/3$, exactly the Koch scale. At 85 degrees, $r\approx0.460$. A sharper bend needs larger child segments, which explains why neighbouring spikes crowd together.
+The drawing rule is `F → F+F--F+F`. F draws a line. Plus and minus turn in opposite directions. The double minus turns twice.
 
-Four copies give similarity dimension $\log4/\log[2(1+\cos\alpha)]$. This tends to 2 as the bend approaches 90 degrees. It is a similarity count, rather than an automatic dimension theorem for overlapping copies.
-
-There is also an area calculation. For an initial chord of unit length, the region between one curve and its chord has area $\sin\alpha/[4(2+\cos\alpha)]$. McCartney derives it by adding one triangle and four reduced copies of that same region. The [Koch anti-snowflake](/l-system/koch-anti-snowflake) instead places three inward curves around a triangle.
+The square's four original corners stay at right angles. The angle control changes the little notches. For a triangular shape with inward notches, try the [Koch anti-snowflake](/l-system/koch-anti-snowflake).
 
 ## Sources and notes
 

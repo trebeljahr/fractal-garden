@@ -1,21 +1,25 @@
 # Fern 2
 
-Two symbols divide the growth in this local preset. Start with Y and apply:
+This fern has two jobs for two letters. Y grows the main forks. X adds pairs of short side branches.
 
-```
+Start with Y and replace the letters like this:
+
+```text
 Y → YFX[+Y][-Y]
 X → X[-FFF][+FFF]FX
 ```
 
-F draws a stroke. X and Y only expand. The angle is 25.7 degrees. Square brackets save and restore a branch's position and heading, following the standard bracketed L-system method.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
+F draws forward. X and Y draw nothing until their rules add new F steps. Plus and minus turn by 25.7 degrees.
 
 <figure data-construction-player="fern-2"></figure>
 
-Each Y keeps one continuing Y and adds two side Y branches. It also inserts one F and one X. Each X makes two X symbols and seven F strokes, including two three-stroke side branches.
+Brackets let a branch leave the stem and return to the same fork. Remember the position and direction at `[`. Restore both at `]`, without drawing a line back.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
 
-Existing F symbols have no replacement rule, so they remain single strokes in the next word. This differs from [Fern 1](/l-system/fern-1), where every old F doubles.
+Each Y makes three Y tips: one continues, and two branch sideways. Each X makes two X tips and seven drawing steps. The `FFF` groups give its side branches three steps each.
 
-Let $x_n,y_n,f_n$ count the three symbols after $n$ rewrites. Their recurrences are $y_{n+1}=3y_n$, $x_{n+1}=2x_n+y_n$, and $f_{n+1}=f_n+7x_n+y_n$. Starting from Y gives forward counts 0, 1, 11 and 55. The growing symbols create all the new length.
+Old F steps stay as they are. That differs from [Fern 1](/l-system/fern-1), where each old F doubles. Here, all the extra drawing instructions come from X and Y.
+
+Starting with Y, the first three rounds draw 1, 11 and 55 steps.
 
 ## Sources and notes
 

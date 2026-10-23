@@ -1,36 +1,34 @@
 # Koch Snowflake
 
-Replace the middle third of a segment with two sides of an outward equilateral triangle. Four segments, each one-third as long, now connect the old endpoints. Apply the rule to all three sides of an equilateral triangle.
+Start with a triangle. On each side, replace the middle third with a little triangular bump. Each old line is now four shorter lines.
+
+Do the same to every new line. Smaller bumps grow on the sides of bigger bumps.
 
 <figure data-construction-player="koch"></figure>
 
-After $n$ replacements, a starting side length $s$ gives $3\cdot4^n$ segments of length $s/3^n$. Thus
+## An endless edge in a small space
 
-$$
-P_n=3s(4/3)^n.
-$$
+Each round makes four times as many lines, each one third as long. So the edge gets $4/3$ times longer: first 3 sides, then the length of 4, then $16/3$.
 
-The perimeter diverges. The added area converges.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup> If $A_0$ is the original triangle's area, round $n\ge1$ adds $3\cdot4^{n-1}$ triangles, each with area $A_0/9^n$. Summing gives
+Keep going forever and the edge has infinite length. Yet the added triangles get small fast enough that the enclosed area stays finite.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
 
-$$
-A_n=A_0\left[\frac85-\frac35\left(\frac49\right)^n\right].
-$$
+The final area is exactly $8/5$ of the starting triangle's area. That is 60% more room inside, with an edge that never stops getting longer.
 
-The limiting snowflake therefore encloses exactly $8/5$ of the starting area. Its boundary has dimension $\log4/\log3\approx1.262$. The filled region has dimension $2$. Every displayed stage still has a finite polygonal perimeter.
+Every stage on screen still has a finite edge. Infinity describes what happens if you never stop adding bumps.
 
-## Draw the rule as a sentence
+## The drawing rule
 
-The L-system uses **F** to draw and **+** or **−** to turn by 60 degrees:
+F means draw forward. Plus and minus turn by 60 degrees. Replace every F with:
 
 ```text
 F → F-F++F-F
 ```
 
-The two adjacent turns at a tip change heading by 120 degrees. Edit this rule in the [L-system explorer](/l-system/explorer). The [anti-snowflake](/l-system/koch-anti-snowflake) reverses the bumps, while the [Cesàro fractal](/l-system/cesaro-fractal) changes their angle.
+Try it in the [L-system explorer](/l-system/explorer). Reverse the bumps to make the [anti-snowflake](/l-system/koch-anti-snowflake).
 
-A cube can produce the same outline. Remove its eight corner thirds recursively, then project along a body diagonal. The [Mosely snowflake](/mosely-snowflake) approaches a Koch silhouette because overlapping cube shadows form the corresponding hexagonal construction.<sup><a id="koch-snowflake-ref-2" href="#koch-snowflake-source-2">2</a></sup> This exact relationship uses parallel viewing rays.
+A cube can cast this snowflake's shadow too. Remove its corners again and again, then look straight along a diagonal. The heavier [Mosely snowflake](/mosely-snowflake) has a Koch outline from that direction.<sup><a id="koch-snowflake-ref-2" href="#koch-snowflake-source-2">2</a></sup>
 
 ## Sources and notes
 
-1. <span id="koch-snowflake-source-1"></span> Francis Su and collaborators, [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/), Harvey Mudd College, Math Fun Facts. Perimeter and geometric-series area argument; the formulas above expand that calculation. [Back](#koch-snowflake-ref-1)
+1. <span id="koch-snowflake-source-1"></span> Francis Su and collaborators, [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/), Harvey Mudd College, Math Fun Facts. Perimeter and geometric-series area argument; the length and area values here follow that calculation. [Back](#koch-snowflake-ref-1)
 2. <span id="koch-snowflake-source-2"></span> Eric Baird, [The Impossible Snowflake](https://alt-fractals.blogspot.com/2011/04/impossible-snowflake.html), 30 April 2011. Corner-removal cube construction and Koch silhouette. [Back](#koch-snowflake-ref-2)

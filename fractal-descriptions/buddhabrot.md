@@ -1,26 +1,28 @@
 # Buddhabrot
 
-A Buddhabrot counts the places that escaping Mandelbrot orbits visit. A bright pixel means many recorded visits to that location.
+The [Mandelbrot set](/mandelbrot) asks whether a point escapes. The Buddhabrot asks where it went along the way.
 
-Choose a complex parameter $c$, start at zero, and iterate:
+Choose a number $c$. Start at zero, square it, add $c$, and repeat:
 
 $$
-z_0=0,\qquad z_{n+1}=z_n^2+c.
+z_{n+1}=z_n^2+c.
 $$
 
-If the orbit escapes, add its recorded positions to a grid of counters. Repeat for many randomly sampled parameters. The image gradually resolves as those counters accumulate.
+If the point escapes, draw its earlier stops. Then try another $c$. Places that get more visits grow brighter.
 
 <figure data-investigation="buddhabrot"></figure>
 
-The [Mandelbrot explorer](/mandelbrot) colors the location of $c$. The Buddhabrot deposits visits at the locations of $z_1,z_2,\ldots$. These are different coordinates with different meanings. An escaping parameter can send its orbit through a region whose *parameters* belong to the Mandelbrot set.
+Each escaping journey adds a faint trail. Many trails together make the picture. Melinda Green developed this method in 1993. Lori Gardi later named it the Buddhabrot.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
 
-Melinda Green developed the method in 1993. Artist Lori Gardi later supplied its name. Green also combined three orbit histograms with different iteration limits into red, green and blue channels. Those colors distinguish orbit populations rather than wavelengths.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
+The location of $c$ chooses the journey. The bright dots show the journey's stops. Those can be far apart, which is why this picture differs from the Mandelbrot set.
 
-This explorer records an orbit only when it exceeds radius two within **Max iterations** and meets **Min orbit length**. An unresolved orbit contributes nothing, even if it would escape later. Raising the maximum therefore adds a different population of paths. Raising the minimum removes short paths.
+## Which journeys count?
 
-The implementation samples the upper half-plane and reflects each recorded visit across the real axis. This uses conjugate symmetry: conjugating $c$ conjugates every iterate. That statement follows directly from the recurrence.
+**Max iterations** sets how long the explorer waits for an escape. A journey that does not escape in time adds no dots.
 
-**Exposure** changes the logarithmic display of the counters. It reveals faint trails without changing the recorded orbits.
+**Min orbit length** removes short journeys. Raise it to keep only paths that wander longer before escaping.
+
+**Exposure** brightens faint trails without adding new visits. The explorer also reflects each trail across the horizontal axis. The square-and-add rule has the same symmetry.
 
 ## Sources and notes
 

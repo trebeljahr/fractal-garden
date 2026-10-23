@@ -1,16 +1,28 @@
 # Fibonacci Word Fractal
 
-Start with `0` and rewrite `0 → 01`, `1 → 0`. The first words are `0`, `01`, `010`, `01001`, and `01001010`. Each word joins the previous two, in that order. Their lengths are 1, 2, 3, 5 and 8.<sup><a id="fibonacci-word-fractal-ref-1" href="#fibonacci-word-fractal-source-1">1</a></sup>
+A string of zeros and ones can tell a pen where to go.
 
-Every digit draws one unit step. After a zero, turn right at odd positions and left at even positions, counting from one. After a one, keep the same heading. The usual turn is 90 degrees. This page also lets you change it.
+Start with `0`. Replace every `0` with `01` and every `1` with `0`. The first strings are:
+
+```text
+0
+01
+010
+01001
+01001010
+```
+
+Their lengths are 1, 2, 3, 5 and 8. Each length is the sum of the two before it.<sup><a id="fibonacci-word-fractal-ref-1" href="#fibonacci-word-fractal-source-1">1</a></sup>
 
 <figure data-construction-player="fibonacci-word-fractal"></figure>
 
-Parity explains why joining two words is not always the same as joining two unchanged drawings. If the first word has odd length, every position in the appended word changes parity. Its left and right turns swap. If the first word has even length, the turn choices remain unchanged.
+Every digit draws one step. After a `1`, keep going straight. After a `0`, turn right at odd positions and left at even positions. Count positions from one. The usual turn is 90 degrees.
 
-The word contains neither `11` nor `000`. Thus, two consecutive straight-through digits never occur, and at most two zero-triggered turns occur consecutively. These restrictions come from the substitution, without any reference to the drawing angle.
+You can make each new string by joining the previous two. But joining their drawings takes care. If the first string has odd length, the second string starts on the opposite odd-or-even count. Its left and right turns swap.
 
-At 90 degrees, Monnerot-Dumaine identifies a geometric scale of $1+\sqrt{2}$ between related stages three rewrites apart.<sup><a id="fibonacci-word-fractal-ref-2" href="#fibonacci-word-fractal-source-2">2</a></sup> The word grows through the golden ratio, while the geometric scale uses the silver ratio. The [Rauzy fractal](/rauzy-fractal) gives another way to turn a substitution into a planar set.
+At 90 degrees, related shapes three rounds apart grow by a factor of $1+\sqrt2$, about 2.414.<sup><a id="fibonacci-word-fractal-ref-2" href="#fibonacci-word-fractal-source-2">2</a></sup> The line counts follow Fibonacci numbers, while the picture uses a different growth factor.
+
+Try changing the angle. The digits stay the same, but the route changes. The [Rauzy fractal](/rauzy-fractal) turns a string into a picture another way, using steps in three directions.
 
 ## Sources and notes
 

@@ -1,29 +1,24 @@
 # Polyhedron Flake
 
-Replace a solid with one smaller copy toward each vertex. Every copy keeps the parent's orientation. This explorer uses three Platonic solids and three specific shrink ratios.
+Put a smaller solid at every corner of a larger one. Repeat inside each little solid. The corner shapes multiply while gaps open between them.
 
 <figure data-construction-player="polyhedron-flake"></figure>
 
-The **octahedron** has six vertices. Six half-size copies remain, giving
+Choose an **octahedron**, the eight-faced shape. It has six corners, so each round makes six half-size copies. Each copy keeps the same orientation as its parent.
 
-$$
-D=\frac{\log6}{\log2}\approx2.585.
-$$
+The **dodecahedron** has twelve faces and twenty corners. Its twenty copies are about 28% as wide as their parent.
 
-A parent octahedron splits into those six octahedra and eight small tetrahedra. The rule removes the tetrahedra. Each remaining octahedron repeats the same gaps.
+The **icosahedron** has twenty faces and twelve corners. Its twelve copies are about 38% as wide.
 
-The **dodecahedron** has twenty vertices and uses $r=1/(2+\varphi)\approx0.2764$. The **icosahedron** has twelve and uses $r=1/(1+\varphi)\approx0.3820$. Their dimensions are
+## More copies can leave more space
 
-$$
-D_{\rm dodeca}=\frac{\log20}{\log(2+\varphi)}\approx2.330,\qquad
-D_{\rm icosa}=\frac{\log12}{\log(1+\varphi)}\approx2.582.
-$$
+Twenty sounds denser than twelve. But the twenty dodecahedron copies are much smaller. They keep about 42% of the old volume. The twelve icosahedron copies keep about 67%.
 
-Here $\varphi=(1+\sqrt5)/2$. The golden ratio enters the solids' vertex coordinates and the fitted copy sizes. These values use the non-overlapping corner maps shown here, with the usual self-similar dimension theorem.<sup><a id="polyhedron-flake-ref-1" href="#polyhedron-flake-source-1">1</a></sup>
+These volume fractions come from the copy counts and sizes in this explorer.<sup><a id="polyhedron-flake-ref-1" href="#polyhedron-flake-source-1">1</a></sup>
 
-Copy count alone gives the wrong intuition. Twenty smaller dodecahedra produce a lower dimension than twelve larger icosahedra. Their retained volume fractions per replacement are approximately $0.422$ and $0.669$, respectively. Both volumes tend to zero.
+All three rules keep losing volume. After infinitely many rounds, zero volume remains, despite the repeated structure.
 
-A tetrahedron with four half-size corner copies gives the [Sierpinski tetrahedron](/sierpinski-tetrahedron). Eight half-size corner copies of a cube would fill the cube completely. The [Menger sponge](/menger-sponge) instead keeps twenty third-size cubes at corners **and edges**. The seven-cube [3D Vicsek construction](/vicsek-fractal-3d) uses face centers. Neither follows the vertex-only rule of this page.
+The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses four half-size corner copies. Eight half-size corner cubes would fill their parent cube completely. The [Menger sponge](/menger-sponge) leaves gaps by using a different cube arrangement.
 
 ## Sources and notes
 

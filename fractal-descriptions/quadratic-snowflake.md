@@ -1,17 +1,27 @@
 # Quadratic Snowflake
 
-A square bump takes the place of the triangular Koch bump. The local replacement is `F → F+F-F-F+F`, with 90-degree turns. Five strokes span three unit lengths: one forward step, three sides of a small square, then another forward step.<sup><a id="quadratic-snowflake-ref-1" href="#quadratic-snowflake-source-1">1</a></sup>
+Take a straight line and put a square bump in its middle. Five little lines now connect the same two ends.
 
-This page starts with `FF+FF+FF+FF`. Each side of the initial square contains two strokes, so the first rewrite places two bumps along each side. The turns send those bumps toward the square's interior.
+Repeat on every line. Each bump grows smaller bumps of its own.<sup><a id="quadratic-snowflake-ref-1" href="#quadratic-snowflake-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-snowflake"></figure>
 
-Keep the starting square fixed by dividing the new stroke length by three. Stage $n$ then has $8\cdot5^n$ forward strokes. Its boundary walk's length multiplies by $5/3$ per stage. The corresponding similarity exponent is $\log5/\log3\approx1.465$.
+This version starts with a square whose sides each contain two drawing steps. The first round puts two bumps along each side, pointing into the square.
 
-The extra strokes come from a detour around three sides of a square. Unlike the [Minkowski sausage](/l-system/minkowski-sausage), this generator has no second bump to cancel the first bump's signed area.
+Each new step is one third as long. Five steps replace one, so the total route grows by $5/3$ each round.
 
-The [quadratic Koch surface](/quadratic-koch-3d) moves the bump idea into three dimensions. It divides a square face into nine smaller faces and adds the exposed faces of a cube over the middle one.
+The rule is:
+
+```text
+F → F+F-F-F+F
+```
+
+F draws forward. Plus and minus turn by 90 degrees. The middle three F steps walk around three sides of the little square.
+
+The [Minkowski sausage](/l-system/minkowski-sausage) adds a matching bump on the opposite side of each edge. This rule has only one bump.
+
+The [quadratic Koch surface](/quadratic-koch-3d) moves the idea into space, putting little cube-shaped bumps on square faces.
 
 ## Sources and notes
 
-1. <span id="quadratic-snowflake-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain edge replacement and turtle interpretation. The five-piece rule, two-stroke seed sides, inward orientation, counts and similarity exponent are direct derivations from this page’s preset. The linked 3D page implements its own face-replacement construction. [Back](#quadratic-snowflake-ref-1)
+1. <span id="quadratic-snowflake-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain edge replacement and turtle interpretation. The five-step rule, starting square and inward bumps describe this explorer’s preset. The linked 3D page implements its own face-replacement construction. [Back](#quadratic-snowflake-ref-1)

@@ -1,36 +1,30 @@
 # 3D Vicsek Fractal
 
-Split a cube into 27 equal cubes. Keep the center and its six face neighbors. Repeat inside each of those seven cubes. This page uses the seven-cube spatial cross.
+Split a cube into 27 little cubes. Keep the middle cube and the six cubes touching its faces. They make a cross pointing in six directions.
+
+Repeat inside all seven cubes.
 
 <figure data-construction-player="vicsek-fractal-3d"></figure>
 
-After $n$ replacements, $7^n$ cubes have side $3^{-n}$ relative to the seed. The volume fraction and dimension are
+Each round keeps only $7/27$ of the previous volume. The arms gain smaller arms while the volume falls toward zero.
 
-$$
-V_n=(7/27)^n,\qquad D=\frac{\log7}{\log3}\approx1.771.
-$$
+The copies get smaller by a factor of three. Their number grows by a factor of seven.<sup><a id="vicsek-fractal-3d-ref-1" href="#vicsek-fractal-3d-source-1">1</a></sup>
 
-The dimension comes from seven contractions whose cube interiors are disjoint.<sup><a id="vicsek-fractal-3d-ref-1" href="#vicsek-fractal-3d-source-1">1</a></sup>
+## Seven cubes make a five-square shadow
 
-## Surface area tends to zero
+Look straight down one arm with parallel viewing rays. The front, middle and back cubes overlap in the middle of the shadow. Four others make the arms of a plus sign.
 
-For a unit starting cube, let $N=7^n$. The graph that joins face-sharing cubes is a tree. Each replacement contributes six internal adjacencies, and each old adjacency survives as one new adjacency. There are therefore $N-1$ shared-face pairs.
-
-Each cube contributes six faces. Every shared pair hides two. The exposed area is consequently
-
-$$
-A_n=\frac{6N-2(N-1)}{9^n}=\frac{4\cdot7^n+2}{9^n}.
-$$
-
-It tends to zero, unlike the increasing area of the [Menger sponge](/menger-sponge). This is a calculation for the displayed finite cube unions, not a claim that their limiting set is an ordinary surface.
-
-## Seven cubes cast five squares
-
-Look along a cube axis with parallel rays. The front, central and back cubes overlap. Four other cubes supply the arms of a Greek cross. Projection preserves the one-third copy scale, so the shadow follows exactly the [2D Vicsek fractal's](/vicsek-fractal-2d) Greek-cross rule.
+Repeat at smaller sizes and the shadow follows the [2D Vicsek fractal's](/vicsek-fractal-2d) plus-shaped rule.
 
 <figure data-projection="vicsek"></figure>
 
-The whole object retains three straight central axes. Its recursive attachments shrink toward point contacts in the limit: repeated subdivision of a contact face retains only its central square, then its center.
+The full shape keeps three straight lines through its center. They run along the three cube directions, right through all the smaller crosses.
+
+## Even the surface area shrinks
+
+The [Menger sponge](/menger-sponge) gains exposed area as you cut it. This cross eventually loses it.
+
+At the first round, there are more exposed faces than before, but they are much smaller. Count the exposed little faces at each stage and their total area tends to zero. The infinite shape is not an ordinary solid with an ordinary skin.
 
 ## Sources and notes
 

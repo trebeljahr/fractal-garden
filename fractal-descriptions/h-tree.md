@@ -1,18 +1,22 @@
 # H Tree
 
-Draw one horizontal segment. At each endpoint, centre a shorter vertical segment. Repeat at the new endpoints, alternating horizontal and vertical. Each segment produces two children. After depth $n$, the drawing contains $1+2+\cdots+2^n=2^{n+1}-1$ segments.
+Draw a horizontal line. Center a shorter vertical line on each end. You have an H.
 
-The ratio control sets each child's length to $r$ times its parent's. The default is $r=1/\sqrt2$. Two generations then halve the length and create four smaller arrangements.
+Add horizontal lines at the four new ends. Then vertical lines at their ends. Keep alternating.
 
 <figure data-construction-player="h-tree"></figure>
 
-The endpoint positions explain that particular ratio. Along an infinite branch, horizontal displacements have magnitudes $L/2,Lr^2/2,Lr^4/2,\ldots$, with independent plus or minus choices. Vertical displacements have the same series multiplied by $r$.
+Each line gets two children. The number of new lines doubles: 1, 2, 4, 8. The default makes each child about 71% as long as its parent. After two rounds, the new lines are half as long.
 
-At $r^2=1/2$, these are signed binary expansions. They reach every horizontal and vertical coordinate in a rectangle whose width-to-height ratio is $1/r=\sqrt2$. The closure of the growing tree therefore fills that rectangle. It has the same proportions as an A-series paper sheet.
+With that ratio, the branches reach more and more of a rectangle. Include every point they approach, and the infinite result fills it. The rectangle has the same proportions as A-series paper.<sup><a id="h-tree-ref-1" href="#h-tree-source-1">1</a></sup>
 
-Closure matters here. The countable union of the finite straight segments has Hausdorff dimension 1. Adding all its limit points gives the rectangle, with dimension 2.<sup><a id="h-tree-ref-1" href="#h-tree-source-1">1</a></sup>
+Every drawing on screen still leaves gaps. The filled rectangle describes the infinite limit, including all those approached points.
 
-H-tree layouts also distribute clock signals in circuits. Every tip at the same depth has the same path length from the centre, making wire-length matching possible.<sup><a id="h-tree-ref-2" href="#h-tree-source-2">2</a></sup> Compare the binary branching in the [Fractal canopy](/fractal-canopy) and [Pythagoras tree](/pythagoras-tree), or the four-corner placement in the [T-square](/t-square-fractal).
+## Equal journeys to every tip
+
+H-shaped layouts help distribute clock signals inside circuits. Every tip at the same depth has the same wire length back to the center.<sup><a id="h-tree-ref-2" href="#h-tree-source-2">2</a></sup> The repeated forks give each signal an equally long route.
+
+The [fractal canopy](/fractal-canopy) also grows from forks. The [T-square](/t-square-fractal) puts a smaller square at each corner instead.
 
 ## Sources and notes
 

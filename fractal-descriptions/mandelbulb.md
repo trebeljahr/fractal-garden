@@ -1,37 +1,31 @@
 # Mandelbulb
 
-Choose a point $\mathbf c$ in three-dimensional space. Start at $\mathbf z_0=0$, apply a spherical power, then add $\mathbf c$. Repeat, keeping the same $\mathbf c$:
+Move around the bulb and look for smaller bulbs on its surface. Grooves split into finer grooves. The rule keeps making detail at smaller sizes.
 
-$$
-\mathbf z_{n+1}=P_p(\mathbf z_n)+\mathbf c.
-$$
-
-For a vector with radius $r$, polar angle $\theta$ from the positive z-axis, and azimuth $\phi$, the power is
-
-$$
-P_p(\mathbf z)=r^p\begin{pmatrix}
-\sin(p\theta)\cos(p\phi)\\
-\sin(p\theta)\sin(p\phi)\\
-\cos(p\theta)
-\end{pmatrix}.
-$$
-
-At zero, define $P_p(0)=0$. The explorer defaults to $p=8$. It raises the radius to the eighth power and multiplies both angles by eight.
+The [Mandelbrot set](/mandelbrot) tests points on a flat plane. This construction tests points in three-dimensional space.
 
 <figure data-investigation="mandelbulb"></figure>
 
-Daniel White published his spherical-coordinate construction in 2007. Paul Nylander later tried higher powers. Their eighth-power renders attracted attention in 2009. White's account documents the earlier quadratic experiments and the higher-power breakthrough.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
+## Wrap around, then add
 
-This power is an explicit geometric rule. It borrows the radius-and-angle idea from complex powers, then extends it to two angles. Different three-dimensional extensions need not produce the same object.
+Choose a point $\mathbf c$ and start at the center. Measure the moving point's distance from the center and its two angles around it.
 
-The mathematical set contains parameters whose orbits remain bounded. The surface marks the edge of that volume. A finite iteration limit approximates the distinction between bounded and escaping orbits.
+The default rule raises that distance to the eighth power and multiplies both angles by eight. Then add $\mathbf c$. Repeat with the same $\mathbf c$ each time.
 
-The renderer casts a ray through each pixel. At successive positions it estimates distance to the bulb from the orbit's radius and accumulated derivative estimate. It advances by that estimate until it reaches a small surface tolerance. These are approximate distance estimates, so detail depends on numerical limits and rendering tolerance.
+Points whose journeys stay bounded belong to the bulb. Escaping journeys belong outside it. As with the Mandelbrot set, the computer can test only a finite number of steps.
 
-Orbit-trap colors record close approaches to coordinate planes and the origin. Changing **Power** changes the iterated rule itself.
+Daniel White published his spherical-coordinate construction in 2007. Paul Nylander later tried higher powers. The eighth-power images drew attention in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
-Compare the planar [Mandelbrot set](/mandelbrot) and fixed-parameter [Julia sets](/julia-set).
+**Power** changes the rule itself. Try another value and watch the arrangement of lobes change.
+
+## How the surface appears
+
+For each pixel, the renderer follows a ray into the scene. It estimates how far it can move before reaching the bulb. Small steps near the surface reveal the bumps and grooves.
+
+Those estimates have limits. Zooming eventually reveals what the renderer can resolve, rather than all the detail of the mathematical shape.
+
+The colors use how close the journeys pass to the center and coordinate planes. The [Julia explorer](/julia-set) shows another kind of square-and-add picture on a flat plane.
 
 ## Sources and notes
 
-1. <span id="mandelbulb-source-1"></span> Daniel White, [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), 8 November 2009, and his linked [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). Creator's history credits Nylander's higher-power experiments. Formula and rendering details above match this explorer's spherical-power shader. [Back](#mandelbulb-ref-1)
+1. <span id="mandelbulb-source-1"></span> Daniel White, [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), 8 November 2009, and his linked [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). Creator's history credits Nylander's higher-power experiments. The eighth-power rule and rendering method describe this explorer. [Back](#mandelbulb-ref-1)

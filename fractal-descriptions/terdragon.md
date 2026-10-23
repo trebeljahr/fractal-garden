@@ -1,22 +1,26 @@
 # Terdragon
 
-The rule `F → F+F-F` replaces each stroke with three strokes. Plus and minus turn through opposite 120-degree angles. Starting with F gives 1, 3, 9, 27 and then $3^n$ strokes after $n$ rewrites.
+Replace one line with three. Turn 120 degrees one way between the first two, then 120 degrees back between the last two. Repeat on every new line.
 
-The first and third strokes point in the original direction. The middle stroke points 120 degrees away. Their vector sum is
-
-$$
-2+e^{2\pi i/3}=\frac32+\frac{\sqrt3}{2}i.
-$$
-
-Its length is $\sqrt3$ and its direction is 30 degrees. The renderer subtracts another 30 degrees from its initial heading at each stage to keep the endpoint chord horizontal.
+The line count grows 1, 3, 9, 27. The bends make a winding path on a triangular grid.
 
 <figure data-construction-player="terdragon"></figure>
 
-With that chord fixed, every new stroke shrinks by $1/\sqrt3$. Three copies at this scale have similarity exponent $\log3/\log\sqrt3=2$. This count alone is not a proof that a self-similar set has area.
+The drawing rule is:
 
-The same construction has an exact description using three contractions of the complex plane. Mathis and Kawamura express its points through constrained digit sequences, linking the geometric turns to a representation of numbers.<sup><a id="terdragon-ref-1" href="#terdragon-source-1">1</a></sup> A point's infinite address records which of the three pieces contains it at each scale.
+```text
+F → F+F-F
+```
 
-The [Dragon curve](/l-system/dragon-curve) uses two pieces and 90-degree turns. The [Twindragon](/l-system/twindragon) pairs two such paths.
+F draws forward. Plus and minus turn in opposite directions.
+
+Those three steps finish about 1.732 step lengths from the start. Make each new step $1/\sqrt3$ of the old length to keep the distance between the ends fixed.<sup><a id="terdragon-ref-1" href="#terdragon-source-1">1</a></sup>
+
+The route's overall direction turns by 30 degrees with each round. The renderer turns it back so the ends stay horizontally aligned.
+
+Every point in the infinite shape can be described by choosing one of three smaller pieces, then one of its three pieces, and so on. That sequence works like an address inside the fractal.
+
+The [Dragon curve](/l-system/dragon-curve) uses two pieces and right-angle turns. The [Twindragon](/l-system/twindragon) joins two dragons end to end.
 
 ## Sources and notes
 

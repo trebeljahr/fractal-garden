@@ -1,26 +1,26 @@
 # Sierpinski Tetrahedron
 
-Keep four half-size copies of a regular tetrahedron, one at each vertex. Neighboring copies meet at edge midpoints. The missing center is a regular octahedron. Repeat on every surviving tetrahedron.
+Start with a triangular pyramid. Keep a half-size copy at each of its four corners. The middle disappears. Repeat inside the four little pyramids.
+
+Neighboring copies touch halfway along the old edges. The missing middle is an eight-faced solid called an octahedron.
 
 <figure data-construction-player="sierpinski-tetrahedron"></figure>
 
-After $n$ steps, $4^n$ tetrahedra remain. Each has $1/8^n$ of the original volume, so the total volume fraction is $(1/2)^n$. Their total face area stays constant: four copies each contribute one-quarter of their parent's area.
+Each round keeps four copies with one eighth of the old volume each. That halves the remaining volume. Keep going forever and the volume falls to zero.
 
-The Hausdorff dimension is $\log4/\log2=2$. This integer dimension does not make the set a flat surface.
+The square-pyramid option uses five corner copies instead of four. It makes a different fractal.
 
-The square-pyramid option uses five half-size corner copies. Its base is square and its four side faces are equilateral triangles. That different rule gives dimension $\log5/\log2\approx2.322$.
+## A square shadow or a triangle full of holes?
 
-## One object, incompatible shadows
+Turn the tetrahedron to look along the line joining the midpoints of two opposite edges. With parallel viewing rays, its shadow is a filled square. The four smaller copies fill the square's four quarters.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
 
-Project the tetrahedron along the line between midpoints of opposite edges. Its shadow is a filled square. The four smaller tetrahedra fill its quadrants, and the same happens at every scale. Hideki Tsuiki shows that three mutually perpendicular directions give square shadows.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup>
-
-Project parallel to an edge instead. Two corner copies overlap, leaving three half-size triangular positions. This gives a stretched [Sierpinski triangle](/l-system/sierpinski-triangle), with zero area.
+Look parallel to an edge instead. Two copies overlap in the shadow, leaving three triangular positions. The result is a stretched [Sierpinski triangle](/l-system/sierpinski-triangle).
 
 <figure data-projection="tetrahedron"></figure>
 
-These are orthographic shadows, made with parallel rays. The main explorer uses perspective.
+The shape has not changed. Only the viewing direction changed. These exact shadows use parallel rays. The main explorer uses perspective.
 
-The remaining tetrahedral edges also contain knots. Broden and colleagues construct every **pretzel knot** in a finite stage, using edges that survive later subdivisions.<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> Their 2024 paper leaves the corresponding all-knots statement for this tetrahedron as a conjecture. It proves the all-knots statement for the [Menger sponge](/menger-sponge).
+You can also trace every pretzel knot along edges that survive the cuts. A 2024 paper proves this for that knot family. Its authors leave the claim for all knot types as a conjecture.<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> They prove the broader result for the [Menger sponge](/menger-sponge).
 
 ## Sources and notes
 

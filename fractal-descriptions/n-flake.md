@@ -1,28 +1,26 @@
 # N-Flake
 
-Replace a regular polygon with one smaller copy at each vertex. Each copy keeps the parent's orientation. Repeat on every new polygon. The number of sides determines both the copy count and the scale.
+Put a smaller polygon at every corner of a larger one. Give each small polygon its own corner copies. Keep repeating.
+
+Choose a triangle and you get the [Sierpinski triangle](/l-system/sierpinski-triangle). Choose five or six sides and different gaps appear.
 
 <figure data-construction-player="n-flake"></figure>
 
-The explorer uses
+The number of sides changes both the number of copies and how small they need to be. Triangle copies are half-size. Pentagon copies are about 38% as wide. Hexagon copies are one third as wide.
 
-$$
-r=\left[2\left(1+\sum_{j=1}^{\lfloor n/4\rfloor}\cos\frac{2\pi j}{n}\right)\right]^{-1}.
-$$
+The five small pentagons keep about 73% of the old area. The six small hexagons keep only two thirds. More copies can leave less area when those copies are smaller.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup>
 
-This is a geometric placement rule. It gives $r=1/2$ for triangles and squares, $r=1/\varphi^2$ for pentagons, and $r=1/3$ for hexagons. Here $\varphi=(1+\sqrt5)/2$.
+## What happens if you fill the middle?
 
-For the corner-only construction, $n$ non-overlapping copies give dimension $\log n/\log(1/r)$.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup> The triangle becomes the [Sierpinski triangle](/l-system/sierpinski-triangle). Five pentagonal copies give approximately $1.672$, while six hexagonal copies give approximately $1.631$. More vertices can therefore give a smaller dimension.
+The center option adds another copy for squares, pentagons and hexagons.
 
-## The center option changes the rule
+Four half-size corner squares already fill a square. Adding a central square only creates overlap. You still see a filled square.
 
-The explorer permits a central copy for four, five or six sides. Its orientation stays the same as the corner copies.
+The central pentagon also overlaps its neighbors. Counting copies alone cannot tell you how much of the picture they cover.
 
-For squares, four half-size corner copies already tile the entire parent square. A central copy overlaps them. Filled stages stay a square, and the limiting set has dimension $2$. Applying $\log5/\log2$ would incorrectly predict a dimension above the plane's dimension.
+Seven one-third-size hexagons fit without overlapping interiors. They make a different fractal from the six-corner version.
 
-For pentagons, the same-orientation central copy also overlaps corner copies. A dimension formula that assumes disjoint pieces does not apply automatically. For hexagons, the seven one-third-size copies have disjoint interiors, giving $\log7/\log3\approx1.771$.
-
-The [2D Vicsek fractal](/vicsek-fractal-2d) uses five squares at one-third scale. Matching a center-and-corners layout alone does not make the constructions equivalent.
+The [2D Vicsek fractal](/vicsek-fractal-2d) also puts squares at the center and corners, but at one-third size. The size matters as much as the arrangement.
 
 ## Sources and notes
 

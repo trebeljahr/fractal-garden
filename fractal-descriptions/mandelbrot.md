@@ -1,36 +1,42 @@
 # Mandelbrot Set
 
-Each pixel supplies a complex parameter $c$. Start at zero, square, add $c$, and repeat:
+Start with zero. Square it, add a number, and repeat. Does the result stay nearby or run away?
+
+Try adding zero each time. Nothing moves. Try adding $-1$ and the numbers bounce between zero and $-1$. Try adding $1$:
 
 $$
-z_0=0,\qquad z_{n+1}=z_n^2+c.
+0\to1\to2\to5\to26\to\cdots
 $$
 
-The Mandelbrot set contains parameters whose orbits stay bounded forever. For $c=0$, the orbit stays at zero. For $c=-1$, it alternates $0,-1,0,-1,\ldots$. For $c=1$, it starts $0,1,2,5,26,\ldots$ and escapes.
+That one runs away.
 
 <figure data-article-images="mandelbrot"></figure>
 
-The main cardioid contains parameters with an attracting fixed point. The round bulb centered at $-1$ contains an attracting two-cycle. These regions organize the long-term orbit behavior.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
-
-The cardioid's equation follows directly from that fixed point. Write $z=z^2+c$, so $c=z-z^2$. Its multiplier is $2z$. At the attracting region's boundary, put $2z=e^{it}$:
+Each pixel tries a different number $c$. The rule is:
 
 $$
-c(t)=\frac{e^{it}}2-\frac{e^{2it}}4.
+z_{n+1}=z_n^2+c.
 $$
 
-The diagram follows the two-cycle at $c=-1$.
+A complex number gives a position in two directions, so this test makes a whole picture. The Mandelbrot set contains the choices of $c$ whose journeys stay bounded forever.
+
+## What are the bulbs?
+
+Inside the main heart-shaped body, the moving point settles toward one position. Inside the round bulb on its left, it settles into a two-position cycle.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
+
+The diagram follows the cycle at $c=-1$.
 
 <figure data-orbit="mandelbrot"></figure>
 
-Small Mandelbrot copies repeat the arrangement of a main body and attached bulbs. Their surrounding filaments differ. The entire image is not one exact self-similar pattern.
+Zoom along the edge to find smaller copies of the main shape. Their surrounding threads differ. The picture repeats familiar shapes without repeating every detail exactly.
 
-Its boundary has Hausdorff dimension **two**, the full dimension available in the plane. Mitsuhiro Shishikura proved this theorem. Dimension two does not mean the boundary contains an open disk.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
+That edge is so intricate that its fractal dimension is two. Mitsuhiro Shishikura proved this. It does not mean the edge becomes a filled patch.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
 
-**Smooth escape time** colors escaping orbits. Black means no escape before the iteration limit, including some slowly escaping parameters. Escape gives a one-way test. Surviving finitely many steps does not prove membership.
+**Smooth escape time** colors how quickly a point runs away. Black means it did not escape before the time limit. A slow escape can still hide there.
 
-The [Julia explorer](/julia-set) fixes $c$ and varies $z_0$. The [Burning Ship](/burning-ship) adds a coordinate fold before each square.
+The [Julia explorer](/julia-set) keeps $c$ fixed and tries different starting points. The [Burning Ship](/burning-ship) adds a fold before every square.
 
 ## Sources and notes
 
-1. <span id="mandelbrot-source-1"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), especially section 5 on the main cardioid and limbs. The displayed cardioid equation is derived above from the fixed-point equation and multiplier. The two-cycle at $-1$ follows by substitution. [Back](#mandelbrot-ref-1)
+1. <span id="mandelbrot-source-1"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), especially section 5 on the main cardioid and limbs. The two-cycle at $-1$ follows by substitution. [Back](#mandelbrot-ref-1)
 2. <span id="mandelbrot-source-2"></span> Mitsuhiro Shishikura, [The Hausdorff Dimension of the Boundary of the Mandelbrot Set and Julia Sets](https://arxiv.org/abs/math/9201282), 1991 preprint, published in *Annals of Mathematics* 147 (1998), 225–267. Proves the boundary has Hausdorff dimension two. [Back](#mandelbrot-ref-2)
