@@ -4,15 +4,44 @@
   font-family: "Montserrat", sans-serif;
 }
 .places summary {
-  padding: 0.75rem 0;
-  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--explorer-control-height);
+  padding: 0 18px;
+  border: 1px solid rgba(245, 241, 209, 0.16);
+  border-radius: 3px;
+  background: var(--explorer-surface);
+  color: var(--explorer-ink);
+  list-style: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
-.places summary::marker {
-  color: var(--explorer-accent);
+.places summary::-webkit-details-marker {
+  display: none;
 }
-.places[open] summary {
+.places summary::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: -4px;
+  border-right: 1px solid var(--explorer-accent);
+  border-bottom: 1px solid var(--explorer-accent);
+  transform: rotate(45deg);
+}
+.places[open] summary::after {
+  margin-top: 4px;
+  transform: rotate(225deg);
+}
+.places summary:hover {
+  background: var(--explorer-field);
   color: var(--explorer-accent);
 }
 .places ul {
@@ -42,8 +71,8 @@
 }
 .destinations {
   position: absolute;
-  top: calc(100% + 12px);
-  right: -8px;
+  top: 100%;
+  right: 0;
   width: min(360px, calc(100vw - 24px));
   max-height: min(60svh, calc(100svh - var(--explorer-header-height) - 100px));
   background: var(--explorer-surface);
@@ -105,28 +134,22 @@
   color: #f5cc75;
   font-size: 11px;
 }
-.places summary .currentPlace {
-  display: block;
-  margin-top: 0.3rem;
-}
 .places button:focus-visible,
 .places summary:focus-visible {
   outline: 2px solid var(--explorer-accent);
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .places button {
+  .places button,
+  .places summary {
     transition: none;
   }
 }
 
 @media (max-width: 700px) {
   .places summary {
-    font-size: 11px;
-  }
-
-  .places summary .currentPlace {
-    display: none;
+    font-size: 12px;
+    padding: 0 12px;
   }
 
   .destinations {

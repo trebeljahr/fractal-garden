@@ -143,11 +143,11 @@ export function ExplorerPanel<T>({
       <FractalHeader
         title={introTitle}
         lines={lines ?? defaults.lines}
-        places={places}
         controls={
           <div className={`${styles.panel} ${styles.headerControls}`}>
             <div className={styles.studioGroup}>
               <div ref={setViewControlsHost} className={styles.viewControlsHost} />
+              {places && <div className={styles.placesHost}>{places}</div>}
               <aside className={styles.studio} aria-label={CONTROLS_TITLE}>
                 <DatGui
                   className="exploration-gui"

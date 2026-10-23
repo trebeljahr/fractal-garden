@@ -50,11 +50,8 @@ export function FractalPlaces<T extends FractalPlace>({
   const groups = Array.from(new Set(views.map((view) => view.group)));
 
   return (
-    <details ref={menu} className={styles.places}>
-      <summary>
-        Places to explore
-        {activePlace && <small className={styles.currentPlace}>{activePlace.label}</small>}
-      </summary>
+    <details ref={menu} className={styles.places} data-fractal-places>
+      <summary>Places to explore</summary>
       <div className={styles.destinations}>
         {groups.map((group) => (
           <div key={group ?? "places"}>

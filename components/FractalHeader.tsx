@@ -17,6 +17,7 @@ export function FractalHeader({
   controls?: ReactNode;
 }) {
   const router = useRouter();
+  const descriptionLines = lines.filter((line) => !/^Drag to (pan|rotate)\./.test(line));
 
   return (
     <header className={styles.header} data-fractal-chrome>
@@ -30,9 +31,9 @@ export function FractalHeader({
         </Link>
         <div className={styles.overview}>
           <h1>{title || getFractalName(router.pathname)}</h1>
-          {lines.length > 0 && (
+          {descriptionLines.length > 0 && (
             <div className={styles.copy}>
-              {lines.map((line) => (
+              {descriptionLines.map((line) => (
                 <p key={line}>{line}</p>
               ))}
             </div>

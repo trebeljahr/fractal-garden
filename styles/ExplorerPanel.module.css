@@ -887,7 +887,6 @@
 .headerControls {
   position: static;
   display: block;
-  --studio-menu-offset: 18px;
 }
 
 .headerControls .studioGroup {
@@ -927,10 +926,10 @@
 }
 
 .headerControls :global(.react-dat-gui.exploration-gui li.folder > .dg > ul) {
-  position: absolute;
-  top: calc(100% + var(--studio-menu-offset) + 2px);
+  position: fixed;
+  top: var(--explorer-header-height);
   right: 0;
-  width: min(352px, calc(100vw - 24px));
+  width: min(352px, 100vw);
   max-height: calc(100svh - var(--explorer-header-height) - var(--explorer-nav-height) - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -941,18 +940,25 @@
   background: var(--explorer-surface);
 }
 
-@media (max-width: 1100px) {
-  .headerControls {
-    --studio-menu-offset: 6px;
-  }
+.placesHost {
+  flex: 0 0 auto;
+  pointer-events: auto;
 }
 
 @media (max-width: 700px) {
-  .headerControls {
-    --studio-menu-offset: 0px;
+  .headerControls .studioGroup:has(.placesHost) {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0 8px;
   }
 
-  .headerControls .studio {
+  .headerControls .studioGroup:has(.placesHost) .studio {
+    grid-column: 1 / -1;
+  }
+
+  .headerControls .studio,
+  .headerControls .studio:has(:global(.folder.closed)),
+  .placesHost {
     flex: 1 1 auto;
     min-width: 0;
     width: auto;
