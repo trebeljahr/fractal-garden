@@ -6,7 +6,8 @@ uniform float u_farDistance;
 uniform float u_fogDistanceScale;
 uniform float u_fogStart;
 uniform float u_fogDensity;
-uniform sampler2D u_grid;
+// This texture stores geometry, including very large ancestor cell widths.
+uniform highp sampler2D u_grid;
 uniform int u_levels;
 uniform int u_pattern;
 uniform vec3 u_low;
@@ -173,9 +174,17 @@ void main() {
                 vec3 digit = mod(base + cell, 3.0);
                 vec3 low = grid.xyz + cell * size;
                 if (!kept(digit)) {
-                    vec3 edge = low + step(vec3(0.0), ray) * size;
+                    // Add the integer boundary index before scaling. Building
+                    // low first loses a nearby plane when cell == -1 and the
+                    // ancestor width is much larger than the local offset.
+                    vec3 edge = grid.xyz + (cell + step(vec3(0.0), ray)) * size;
                     vec3 distances = (edge - p) / safeRay;
-                    distances = mix(vec3(1e30), distances, step(vec3(1e-15), abs(ray)));
+                    // A parallel-axis quotient can overflow for huge ancestors.
+                    // Select explicitly: arithmetic mix can multiply infinity
+                    // by zero and poison the face-normal comparisons with NaN.
+                    distances = vec3(abs(ray.x) < 1e-15 ? 1e30 : distances.x,
+                                     abs(ray.y) < 1e-15 ? 1e30 : distances.y,
+                                     abs(ray.z) < 1e-15 ? 1e30 : distances.z);
                     float jump = min(min(distances.x, distances.y), distances.z);
                     normal = distances.x <= distances.y && distances.x <= distances.z ? vec3(-sign(ray.x), 0.0, 0.0)
                         : distances.y <= distances.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
@@ -190,7 +199,7 @@ void main() {
                 }
                 retainedLevels = level + 1;
                 retainedLow = max(retainedLow, low);
-                retainedHigh = min(retainedHigh, low + vec3(size));
+                retainedHigh = min(retainedHigh, grid.xyz + (cell + vec3(1.0)) * size);
                 retainedWidth = size;
                 if (size > footprint * 6.0) {
                     local = (p - low) / size;

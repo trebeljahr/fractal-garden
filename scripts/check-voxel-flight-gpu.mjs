@@ -36,11 +36,11 @@ const fragment = readFileSync(
 )
   .replace(
     "precision highp float;",
-    "precision highp float; uniform bool u_checkLighting; uniform float u_checkDistanceScale;",
+    "precision highp float; uniform bool u_checkLighting; uniform bool u_checkSurface; uniform float u_checkDistanceScale;",
   )
   .replace(
     "gl_FragColor = vec4(color, 1.0);",
-    `float code=floor(t/u_checkDistanceScale*100000.0+0.5); if (u_checkLighting) gl_FragColor=vec4(color,1.0); else gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
+    `float code=floor((u_checkSurface ? surfaceT : t)/u_checkDistanceScale*100000.0+0.5); if (u_checkLighting) gl_FragColor=vec4(color,1.0); else gl_FragColor=vec4(mod(code,256.0)/255.0,mod(floor(code/256.0),256.0)/255.0,floor(code/65536.0)/255.0,hit?1.0:(t<far && far>max(0.0,near)?0.5:0.0));`,
   );
 function intersect(low, high, ray) {
   let near = 0,
@@ -230,6 +230,56 @@ for (const pattern of ["mosely-light", "mosely-heavy"]) {
     });
   }
 }
+// Approach an internal first-generation face from either empty corner cavity.
+// The other two coordinates stay at child centers, so the ray meets retained
+// descendants at exactly 0.2 local units. Unlike root-face fixtures, this must
+// cross an empty ancestor whose width dwarfs the camera-to-plane offset.
+for (const pattern of ["mosely-light", "mosely-heavy"]) {
+  for (const level of [0, 12, 40, 150, 244]) {
+    for (const axis of [0, 1, 2]) {
+      for (const sign of [-1, 1]) {
+        const one = 1n << 600n;
+        const position = Array(3).fill((-2n * one) / 3n);
+        position[axis] = BigInt(sign) * (one / 3n + (2n * one) / (5n * 3n ** BigInt(level)));
+        const camera = { position, bits: 600, level, yaw: 0, pitch: 0 };
+        const forward = [0, 0, 0],
+          right = [0, 0, 0],
+          up = [0, 0, 0];
+        forward[axis] = -sign;
+        right[(axis + 1) % 3] = 1;
+        up[(axis + 2) % 3] = 1;
+        const atmosphere = flightAtmosphere(level);
+        const frame = buildGridFrame(
+          camera,
+          pattern,
+          flightDetailDepth(level),
+          atmosphere.farDistance,
+        );
+        fixtures.push({
+          name: `${pattern} internal face axis ${axis} side ${sign} at level ${level}`,
+          level,
+          surfaceDistance: true,
+          pattern: PATTERNS.indexOf(pattern),
+          frame: { ...frame, texture: Array.from(frame.texture) },
+          basis: { forward, right, up },
+          atmosphere,
+          expected: [
+            {
+              x: 32,
+              y: 32,
+              hit: true,
+              distance: 0.2,
+              brightness:
+                0.38 +
+                0.62 * Math.max(0, (sign * [-0.5, 0.8, 0.6][axis]) / Math.hypot(-0.5, 0.8, 0.6)) +
+                0.15,
+            },
+          ],
+        });
+      }
+    }
+  }
+}
 // The same front-facing sponge, nested 150 times in the retained +++ corner.
 // Rays which hit the standalone copy must hit at the same local distance.
 {
@@ -370,6 +420,7 @@ async function check(payload) {
       gl.uniform1f(u("fogStart"), fixture.atmosphere.fogStart);
       gl.uniform1f(u("fogDensity"), fixture.atmosphere.fogDensity);
       gl.uniform1f(u("checkDistanceScale"), fixture.distanceScale ?? 1);
+      gl.uniform1i(u("checkSurface"), fixture.surfaceDistance ? 1 : 0);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
