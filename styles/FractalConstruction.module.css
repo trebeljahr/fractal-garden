@@ -1,6 +1,5 @@
 .demo {
-  width: calc(100vw - 8vw);
-  margin: 2.5rem calc((100% - (100vw - 8vw)) / 2);
+  margin: 2.5rem 0;
   color: var(--explorer-ink);
   font-family: "Montserrat", sans-serif;
 }
@@ -10,6 +9,9 @@
   margin-bottom: 1rem;
 }
 .workspace {
+  /* Only the interactive workspace extends beyond the article column. */
+  width: calc(100vw - 8vw);
+  margin-inline: calc((100% - (100vw - 8vw)) / 2);
   position: relative;
   display: flex;
   flex-direction: column;
