@@ -1,7 +1,13 @@
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import base from "../styles/ConstructionDemo.module.css";
 import styles from "../styles/ConstructionDetails.module.css";
-import { applyFernRule, type FernPoint, traceFern } from "../utils/barnsleyFern";
+import {
+  applyFernRule,
+  CLASSIC_FERN_MATRIX,
+  type FernPoint,
+  traceFern,
+} from "../utils/barnsleyFern";
+import { fernGeneration } from "../utils/fernViewport";
 import { mengerLayers } from "../utils/menger";
 import { type ForkPoint, pythagorasFork } from "../utils/pythagorasFork";
 import { LessonSteps } from "./lessons/LessonFrame";
@@ -293,8 +299,15 @@ const coordinates = (point: FernPoint) => `(${point.x.toFixed(3)}, ${point.y.toF
 function FernLesson() {
   const [step, setStep] = useState(0);
   const [selectedRule, setSelectedRule] = useState(1);
+  const [method, setMethod] = useState<"chaos" | "deterministic">("chaos");
+  const [generation, setGeneration] = useState(0);
   const id = useId();
-  const title = "Four rules, one moving point";
+  const title = "Two constructions, the same four maps";
+  const allMaps = method === "deterministic";
+  const generationPath = useMemo(
+    () => (allMaps ? dotPath(fernGeneration(CLASSIC_FERN_MATRIX, generation)) : ""),
+    [allMaps, generation],
+  );
   const current = FERN_TRACE[step];
   const position = fernPosition(current.point);
   const previous = step > 0 ? FERN_TRACE[step - 1].point : null;
@@ -307,86 +320,140 @@ function FernLesson() {
         {title}
       </figcaption>
       <p className={base.lessonIntro}>
-        Preview a rule’s copy in amber. The outlined point follows a separate, fixed replay.
+        Choose one moving point or copy the entire point set through all four maps.
       </p>
+      <fieldset className={styles.ruleChoices}>
+        <legend>Construction method</legend>
+        <button type="button" aria-pressed={!allMaps} onClick={() => setMethod("chaos")}>
+          Chaos game
+        </button>
+        <button type="button" aria-pressed={allMaps} onClick={() => setMethod("deterministic")}>
+          All four maps
+        </button>
+      </fieldset>
       <div className={styles.fernLayout}>
         <svg
           viewBox="0 0 300 350"
           role="img"
           aria-labelledby={`${id}-title ${id}-copy ${id}-summary`}
         >
-          <title>{`Barnsley fern, ${FERN_RULES[selectedRule].label}, point step ${step}`}</title>
+          <title>
+            {allMaps
+              ? `Barnsley fern, all four maps, generation ${generation}`
+              : `Barnsley fern, ${FERN_RULES[selectedRule].label}, point step ${step}`}
+          </title>
           <path d={FERN_BACKGROUND} className={styles.fernReference} />
-          <path key={selectedRule} d={FERN_COPIES[selectedRule]} className={styles.fernCopy} />
-          <polyline
-            points={FERN_TRACE.slice(0, step + 1)
-              .map(({ point }) => {
-                const p = fernPosition(point);
-                return `${p.x},${p.y}`;
-              })
-              .join(" ")}
-            className={styles.fernTrail}
-          />
-          {previous && (
-            <g>
-              <line
-                x1={fernPosition(previous).x}
-                y1={fernPosition(previous).y}
-                x2={position.x}
-                y2={position.y}
-                pathLength={1}
-                className={styles.fernJump}
+          {allMaps && <path d={generationPath} className={styles.fernCopy} />}
+          {!allMaps && (
+            <>
+              <path key={selectedRule} d={FERN_COPIES[selectedRule]} className={styles.fernCopy} />
+              <polyline
+                points={FERN_TRACE.slice(0, step + 1)
+                  .map(({ point }) => {
+                    const p = fernPosition(point);
+                    return `${p.x},${p.y}`;
+                  })
+                  .join(" ")}
+                className={styles.fernTrail}
               />
-              <circle
-                cx={fernPosition(previous).x}
-                cy={fernPosition(previous).y}
-                r="3"
-                className={styles.fernPrevious}
-              />
-            </g>
+              {previous && (
+                <g>
+                  <line
+                    x1={fernPosition(previous).x}
+                    y1={fernPosition(previous).y}
+                    x2={position.x}
+                    y2={position.y}
+                    pathLength={1}
+                    className={styles.fernJump}
+                  />
+                  <circle
+                    cx={fernPosition(previous).x}
+                    cy={fernPosition(previous).y}
+                    r="3"
+                    className={styles.fernPrevious}
+                  />
+                </g>
+              )}
+              <g
+                className={styles.fernCursor}
+                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+              >
+                <circle r="5" className={styles.fernPoint} />
+              </g>
+            </>
           )}
-          <g
-            className={styles.fernCursor}
-            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-          >
-            <circle r="5" className={styles.fernPoint} />
-          </g>
         </svg>
         <div className={styles.fernControls}>
-          <fieldset className={styles.ruleChoices}>
-            <legend>Preview a transformation</legend>
-            {FERN_RULES.map((rule, index) => (
-              <button
-                key={rule.label}
-                type="button"
-                aria-pressed={selectedRule === index}
-                onClick={() => setSelectedRule(index)}
+          {allMaps ? (
+            <p id={`${id}-copy`} className={base.lessonIntro}>
+              Each generation replaces the previous set. Four maps produce four copies, including
+              repeated positions. No probabilities enter this construction.
+            </p>
+          ) : (
+            <>
+              <fieldset className={styles.ruleChoices}>
+                <legend>Preview a transformation</legend>
+                {FERN_RULES.map((rule, index) => (
+                  <button
+                    key={rule.label}
+                    type="button"
+                    aria-pressed={selectedRule === index}
+                    onClick={() => setSelectedRule(index)}
+                  >
+                    <span>{rule.label}</span>
+                    <span>{rule.chance}</span>
+                  </button>
+                ))}
+              </fieldset>
+              <p
+                id={`${id}-copy`}
+                className={base.lessonIntro}
+                aria-live="polite"
+                aria-atomic="true"
               >
-                <span>{rule.label}</span>
-                <span>{rule.chance}</span>
-              </button>
-            ))}
-          </fieldset>
-          <p id={`${id}-copy`} className={base.lessonIntro} aria-live="polite" aria-atomic="true">
-            <strong>Preview: {FERN_RULES[selectedRule].label}.</strong>{" "}
-            {FERN_RULES[selectedRule].description} Amber shows this rule applied to every point of
-            the whole fern.
-          </p>
+                <strong>Preview: {FERN_RULES[selectedRule].label}.</strong>{" "}
+                {FERN_RULES[selectedRule].description} Amber shows this rule applied to every point
+                of the whole fern.
+              </p>
+            </>
+          )}
         </div>
       </div>
-      <div className={styles.replay}>
-        <h3>Replay one point</h3>
-        <p id={`${id}-summary`} className={styles.summary} aria-live="polite" aria-atomic="true">
-          {previous && current.rule !== null
-            ? `Replay step ${step} uses ${FERN_RULES[current.rule].label.toLowerCase()}: ${coordinates(previous)} → ${coordinates(current.point)}.`
-            : "Start at (0.000, 0.000). The outlined dot marks the moving point."}
-        </p>
-      </div>
-      <Steps name={title} step={step} max={32} onChange={changeStep} />
-      <p className={base.lessonIntro}>
-        This example replays one fixed sequence of weighted choices. Each step selects a rule and
-        applies it to the previous point. The full explorer keeps making fresh choices.
-      </p>
+      {allMaps ? (
+        <>
+          <p id={`${id}-summary`} className={styles.summary} aria-live="polite">
+            Generation {generation}: {4 ** generation} map addresses before coincident points merge.
+            Start with one point at (0, 0). Each step replaces every point with four images.
+          </p>
+          <Steps name="All four fern maps" step={generation} max={8} onChange={setGeneration} />
+          <p className={base.lessonIntro}>
+            Amber shows only the current generation. The gray fern is a reference. Every generation
+            uses every map, with no random choices.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className={styles.replay}>
+            <h3>Replay one point</h3>
+            <p
+              id={`${id}-summary`}
+              className={styles.summary}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {previous && current.rule !== null
+                ? `Replay step ${step} uses ${FERN_RULES[current.rule].label.toLowerCase()}: ${coordinates(previous)} → ${coordinates(current.point)}.`
+                : "Start at (0.000, 0.000). The outlined dot marks the moving point."}
+            </p>
+          </div>
+          <Steps name={title} step={step} max={32} onChange={changeStep} />
+          <p className={base.lessonIntro}>
+            This example replays one fixed sequence of weighted choices. Each step selects a rule
+            and applies it to the previous point. Zoom in the full explorer to sample smaller
+            visible copies with fresh dots.
+          </p>
+        </>
+      )}
     </figure>
   );
 }

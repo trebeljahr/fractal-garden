@@ -1,275 +1,215 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelBoolean, PanelColor, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import { CLASSIC_FERN_MATRIX } from "../utils/barnsleyFern";
-import { applyCanvasViewport } from "../utils/canvasViewport";
-import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { createViewport, type DeepViewport } from "../utils/deepZoom/math";
+import { FERN_LABELS, FERN_OPTIONS, FERN_PRESETS, type FernStyle } from "../utils/fernPresets";
+import {
+  createFernWalker,
+  type FernMethod,
+  fernBounds,
+  fernOpeningSpan,
+} from "../utils/fernViewport";
+import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
-import type { Scalable } from "../utils/scaling";
-
-interface Transformation extends Scalable {
-  matrix: number[][];
-}
-
-type Fern = "tree" | "fishbone" | "culcita" | "modifiedBarnsley" | "cyclosorus" | "barnsley";
 
 type Config = {
-  detail: number;
   paused: boolean;
   color: string;
   background: string;
-  fernToUse: Fern;
+  fernToUse: FernStyle;
+  method: FernMethod;
 };
 
-type Props = {
-  description: string;
-};
-
-const barnsley: Transformation = {
-  matrix: CLASSIC_FERN_MATRIX,
-  ranges: {
-    x: [-2.1818903790071125, 2.6557747667552816],
-    y: [0.02608982485507005, 9.998262444483984],
-  },
-};
-
-const cyclosorus: Transformation = {
-  matrix: [
-    [0, 0, 0, 0.25, 0, -0.4, 0.02],
-    [0.95, 0.005, -0.005, 0.93, -0.002, 0.5, 0.84],
-    [0.035, -0.2, 0.16, 0.04, -0.09, 0.02, 0.07],
-    [-0.04, 0.2, 0.16, 0.04, 0.083, 0.12, 0.07],
-  ],
-  ranges: {
-    x: [-1.481437310172126, 1.4688031414475642],
-    y: [-0.5242181479502903, 7.065303969358817],
-  },
-};
-
-const culcita: Transformation = {
-  matrix: [
-    [0, 0, 0, 0.25, 0, -0.14, 0.02],
-    [0.85, 0.02, -0.02, 0.83, 0, 1, 0.84],
-    [0.09, -0.28, 0.3, 0.11, 0, 0.6, 0.07],
-    [-0.09, 0.28, 0.3, 0.09, 0, 0.7, 0.07],
-  ],
-  ranges: {
-    x: [-1.554095416084085, 1.5541284149808385],
-    y: [-0.16359863938121072, 5.792318591578755],
-  },
-};
-
-const fishbone: Transformation = {
-  matrix: [
-    [0, 0, 0, 0.25, 0, -0.4, 0.02],
-    [0.95, 0.002, -0.002, 0.93, -0.002, 0.5, 0.84],
-    [0.035, -0.11, 0.27, 0.01, -0.05, 0.005, 0.07],
-    [-0.04, 0.11, 0.27, 0.01, 0.047, 0.06, 0.07],
-  ],
-  ranges: {
-    x: [-0.824774321794105, 0.8201509587996155],
-    y: [-0.5253577299921368, 7.115950148147405],
-  },
-};
-
-const tree: Transformation = {
-  matrix: [
-    [0, 0, 0, 0.5, 0, 0, 0.05],
-    [0.42, -0.42, 0.42, 0.42, 0, 0.2, 0.4],
-    [0.42, 0.42, -0.42, 0.42, 0, 0.2, 0.4],
-    [0.1, 0, 0, 0.1, 0, 0.2, 0.15],
-  ],
-  ranges: {
-    x: [-0.23881114077953836, 0.23881256075834323],
-    y: [0.014764991641483417, 0.43881111326061006],
-  },
-};
-
-const matrices: Record<string, Transformation> = {
-  tree,
-  fishbone,
-  culcita,
-  cyclosorus,
-  barnsley,
-};
-
-const fernOptions = Object.keys(matrices) as Fern[];
-const fernLabels: Record<Fern, string> = {
-  tree: "Tree fern",
-  fishbone: "Fishbone fern",
-  culcita: "Culcita",
-  modifiedBarnsley: "Modified Barnsley",
-  cyclosorus: "Cyclosorus",
-  barnsley: "Classic Barnsley",
-};
+type Props = { description: string };
 
 const BarnsleyFern = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
-    detail: 60,
     paused: true,
     color: "#96f78e",
     background: "#252424",
     fernToUse: "barnsley",
+    method: "chaos",
   });
   const { width, height } = useFractalViewportSize();
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const viewport = useCanvasViewport(ctx?.canvas ?? null);
+  const [revision, setRevision] = useState(0);
+  const view = useRef<DeepViewport>(createViewport([0, 0], 1));
+  const bounds = useMemo(
+    () => fernBounds(FERN_PRESETS[config.fernToUse].matrix),
+    [config.fernToUse],
+  );
+  const span = width && height ? fernOpeningSpan(bounds, width, height) : 1;
+  const opening = useMemo(() => createViewport([bounds.x, bounds.y], span), [bounds, span]);
+  const previousOpening = useRef(opening);
+  const initialized = useRef(false);
+  const lastStyle = useRef(config.fernToUse);
+  const paused = useRef(config.paused);
+  paused.current = config.paused;
+
+  // Fit new styles and the opening view on resize. Preserve an explored center.
+  useEffect(() => {
+    if (!width || !height) return;
+    if (
+      !initialized.current ||
+      lastStyle.current !== config.fernToUse ||
+      view.current.logZoom >= previousOpening.current.logZoom - 1e-10
+    ) {
+      view.current = opening;
+      setRevision((n) => n + 1);
+    }
+    initialized.current = true;
+    previousOpening.current = opening;
+    lastStyle.current = config.fernToUse;
+  }, [opening, config.fernToUse, width, height]);
+
+  useDeepZoomControls({
+    canvas: ctx?.canvas ?? null,
+    viewportRef: view,
+    maxZoomSize: span,
+    flipY: false,
+    onChange: () => setRevision((n) => n + 1),
+  });
 
   useEffect(() => {
-    if (!ctx || !width || !height) return;
-    let x = 0;
-    let y = 0;
+    if (!ctx) return;
+    const reset = () => {
+      view.current = opening;
+      setConfig((old) => ({ ...old, paused: true }));
+      setRevision((n) => n + 1);
+    };
+    ctx.canvas.setAttribute(
+      "aria-label",
+      "Interactive fern. Drag to pan; scroll or pinch to reveal new dots; double-click to reset.",
+    );
+    ctx.canvas.addEventListener("dblclick", reset);
+    window.addEventListener("garden:reset-pose", reset);
+    return () => {
+      ctx.canvas.removeEventListener("dblclick", reset);
+      window.removeEventListener("garden:reset-pose", reset);
+    };
+  }, [ctx, opening]);
+
+  useEffect(() => {
+    if (!ctx || !width || !height || !initialized.current) return;
     const ratio = window.devicePixelRatio || 1;
-    const { matrix, ranges } = matrices[config.fernToUse];
-
-    const applyMatrixValues = (matrix: number[]) => {
-      return {
-        x: matrix[0] * x + matrix[1] * y + matrix[4],
-        y: matrix[2] * x + matrix[3] * y + matrix[5],
-      };
-    };
-
-    let rngState = 42;
-    const generateNewCoords = () => {
-      rngState ^= rngState << 13;
-      rngState ^= rngState >>> 17;
-      rngState ^= rngState << 5;
-      const r = (rngState >>> 0) / 4294967296;
-      const prob1 = matrix[1][6];
-      const prob2 = matrix[2][6];
-      const prob3 = matrix[3][6];
-      const prob4 = matrix[0][6];
-      if (r <= prob1) {
-        return applyMatrixValues(matrix[1]);
-      } else if (r <= prob1 + prob2) {
-        return applyMatrixValues(matrix[2]);
-      } else if (r <= prob1 + prob2 + prob3) {
-        return applyMatrixValues(matrix[3]);
-      } else if (r <= prob1 + prob2 + prob3 + prob4) {
-        return applyMatrixValues(matrix[0]);
-      }
-      return {
-        x: 0,
-        y: 0,
-      };
-    };
-
-    const point = (x: number, y: number) => {
-      ctx.fillRect(x, y, 1, 1);
-    };
-
-    const padding = 0.025; // 2.5% padding applied to both borders
-    const warmupIterations = 80;
-    const boundsSamples = 12000;
-
-    for (let i = 0; i < warmupIterations; i++) {
-      ({ x, y } = generateNewCoords());
-    }
-
-    let minX = Number.POSITIVE_INFINITY;
-    let maxX = Number.NEGATIVE_INFINITY;
-    let minY = Number.POSITIVE_INFINITY;
-    let maxY = Number.NEGATIVE_INFINITY;
-
-    for (let i = 0; i < boundsSamples; i++) {
-      ({ x, y } = generateNewCoords());
-      minX = Math.min(minX, x);
-      maxX = Math.max(maxX, x);
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
-    }
-
-    if (
-      !Number.isFinite(minX) ||
-      !Number.isFinite(maxX) ||
-      !Number.isFinite(minY) ||
-      !Number.isFinite(maxY) ||
-      maxX <= minX ||
-      maxY <= minY
-    ) {
-      [minX, maxX] = ranges.x;
-      [minY, maxY] = ranges.y;
-    }
-
-    const availableWidth = width * (1 - 2 * padding);
-    const availableHeight = height * (1 - 2 * padding);
-    const scale = Math.min(availableWidth / (maxX - minX), availableHeight / (maxY - minY));
-    const drawWidth = (maxX - minX) * scale;
-    const drawHeight = (maxY - minY) * scale;
-    const xOffset = (width - drawWidth) / 2;
-    const yOffset = (height - drawHeight) / 2;
-
-    const draw = () => {
-      for (let i = 0; i < 5000; i++) {
-        ctx.fillStyle = config.color;
-
-        const plotX = xOffset + (x - minX) * scale;
-        const plotY = yOffset + (maxY - y) * scale;
-
-        ctx.lineWidth = 0.1;
-        point(plotX, plotY);
-
-        ({ x, y } = generateNewCoords());
-      }
-    };
-
-    ctx.resetTransform();
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.fillStyle = config.background;
     ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = config.color;
+    const walker = createFernWalker(
+      FERN_PRESETS[config.fernToUse].matrix,
+      view.current,
+      width,
+      height,
+      config.method,
+      42 + revision,
+    );
+    ctx.canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
+    ctx.canvas.dataset.fernMethod = config.method;
+    ctx.canvas.dataset.fernComplete = "false";
+    let id = 0;
+    let disposed = false;
+    const draw = () => {
+      const start = performance.now();
+      do {
+        const points = walker.step(800);
+        for (let i = 0; i < points.length; i += 2) ctx.fillRect(points[i], points[i + 1], 1, 1);
+        if (
+          !walker.pending &&
+          (config.method === "deterministic" || walker.samples >= 300000 || walker.tiles === 0)
+        )
+          break;
+      } while (performance.now() - start < 6);
+      const complete =
+        !walker.pending &&
+        (config.method === "deterministic" || walker.samples >= 300000 || walker.tiles === 0);
+      ctx.canvas.dataset.fernSamples = String(walker.samples);
+      ctx.canvas.dataset.fernVisited = String(walker.visited);
+      ctx.canvas.dataset.fernResolution = String(walker.resolution);
+      ctx.canvas.dataset.fernComplete = String(complete);
+      if (
+        !disposed &&
+        (!complete || (!paused.current && config.method === "chaos" && walker.tiles))
+      )
+        id = requestAnimationFrame(draw);
+    };
+    // Every new viewport refines even when continuous playback is paused.
+    draw();
+    const resume = () => {
+      cancelAnimationFrame(id);
+      draw();
+    };
+    ctx.canvas.addEventListener("garden:fern-resume", resume);
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(id);
+      ctx.canvas.removeEventListener("garden:fern-resume", resume);
+    };
+  }, [
+    config.background,
+    config.color,
+    config.fernToUse,
+    config.method,
+    ctx,
+    width,
+    height,
+    revision,
+    opening,
+  ]);
 
-    applyCanvasViewport(ctx, width, height, viewport);
-    // Open on a complete fern; only add samples when playback is requested.
-    for (let i = 0; i < config.detail; i++) draw();
-    if (config.paused) return;
-    const id = setInterval(draw, 100);
-    return () => clearInterval(id);
-  }, [config, ctx, width, height, viewport]);
+  useEffect(() => {
+    if (!config.paused) ctx?.canvas.dispatchEvent(new Event("garden:fern-resume"));
+  }, [config.paused, ctx]);
 
-  const handleUpdate = (newData: Config) => {
-    setConfig((prevState) => ({ ...prevState, ...newData }));
-  };
-
-  return (
+  const controls = (
     <>
-      <main className={styles.fullScreen}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
-          <PanelSelect
-            path="fernToUse"
-            label="Fern style"
-            optionLabels={fernOptions.map((option) => fernLabels[option])}
-            options={fernOptions}
-          />
-          <PanelBoolean path="paused" />
-          <PanelColor path="background" />
-          <PanelColor path="color" />
-        </ExplorerPanel>
-        <div
-          data-fractal-viewport
-          className={styles.viewport}
-          style={{ background: config.background }}
-        >
-          <Canvas setCtx={setCtx} width={width} height={height} />
-        </div>
-        <SideDrawer description={description} />
-        <NavElement />
-      </main>
+      <PanelSelect
+        path="fernToUse"
+        label="Fern style"
+        optionLabels={FERN_OPTIONS.map((option) => FERN_LABELS[option])}
+        options={FERN_OPTIONS}
+      />
+      <PanelSelect
+        path="method"
+        label="Construction method"
+        options={["chaos", "deterministic"]}
+        optionLabels={["Chaos game", "All four maps"]}
+      />
+      {config.method === "chaos" && <PanelBoolean path="paused" />}
+      <PanelColor path="background" />
+      <PanelColor path="color" />
     </>
+  );
+  return (
+    <main className={styles.fullScreen}>
+      <ExplorerPanel
+        data={config}
+        mode="pattern"
+        explorationControls={controls}
+        onUpdate={(data) => setConfig((old) => ({ ...old, ...data }))}
+      >
+        {controls}
+      </ExplorerPanel>
+      <div
+        data-fractal-viewport
+        className={styles.viewport}
+        style={{ background: config.background }}
+      >
+        <Canvas setCtx={setCtx} width={width} height={height} />
+      </div>
+      <SideDrawer description={description} />
+      <NavElement />
+    </main>
   );
 };
 
 export default BarnsleyFern;
 
 export async function getStaticProps() {
-  const description = await getDescription("barnsley-fern.md");
-  return {
-    props: {
-      description,
-    },
-  };
+  return { props: { description: await getDescription("barnsley-fern.md") } };
 }
