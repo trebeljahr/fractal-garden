@@ -46,6 +46,6 @@ For another view of the same escape-time idea, the [Julia set explorer](/julia-s
 
 The explorer keeps more coordinate digits as you zoom. It calculates a precise reference path, then uses the GPU to draw nearby points.
 
-The image stays sharp while you drag or zoom. Movement slows when a view takes longer to calculate. Difficult regions may pause between frames.
+At deeper zooms, a quick preview keeps the image moving while you drag or zoom. Detail returns when you pause. Difficult regions can take longer to refine.
 
 This version supports magnification up to about $10^{4932}$, with an 8,192-step iteration budget. Those are practical limits, so it cannot promise endless detail or a fixed frame rate. Follow a boundary: a solid interior or exterior region stays solid when magnified.

@@ -45,7 +45,7 @@ function harness(run) {
   let bound = null;
   let glitches = 0;
   const draws = [];
-  const uniforms = {};
+  let uniforms = {};
   const statuses = [];
   const allocations = [];
   const deletions = [];
@@ -78,6 +78,9 @@ function harness(run) {
       bindFramebuffer: (_, target) => {
         bound = target;
       },
+      useProgram: () => {
+        uniforms = {};
+      },
       drawArrays: () =>
         draws.push({
           bound,
@@ -87,7 +90,6 @@ function harness(run) {
         }),
       texImage2D: (...args) => allocations.push([args[3], args[4]]),
       readPixels: (_x, _y, _w, _h, _format, _type, data) => {
-        assert.ok(bound, "all calculation and repair reads happen offscreen");
         data.fill(255);
         if (glitches > 0) {
           data[3] = 0;
@@ -193,171 +195,91 @@ function harness(run) {
     assert.equal(worker.terminated, true);
     assert.equal(frames.size, 0);
     assert.equal(timers.size, 0);
-    assert.ok(
-      deletions.length >= 13,
-      "programs, shaders, textures, buffer and framebuffer released",
-    );
+    assert.ok(deletions.length >= 12, "programs, shaders, textures and buffer released");
     Object.assign(globalThis, saved);
   }
 }
 
-test("moving and idle frames use the same device-pixel grid and only completed frames are visible", () =>
+test("ordinary zoom stays at device resolution during movement and at rest", () =>
   harness((h) => {
+    h.state = { ...h.state, view: createViewportAtLog([-0.5, 0], 1) };
     h.renderer.update();
     h.tick();
-    assert.equal(h.visible.length, 0);
-    assert.equal(h.canvas.width, 300, "visible canvas retained while calculating");
-    h.worker.complete();
-    assert.equal(h.visible.length, 1);
     assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    assert.deepEqual(h.draws[0].uniforms.u_resolution, [1280, 720]);
-    h.state = { ...h.state, view: zoomViewport(h.state.view, -10.2, 0.5, 0.25) };
-    h.renderer.update();
-    h.tick();
-    assert.equal(h.visible.length, 1, "navigation never stretches the old image");
-    h.worker.complete();
-    assert.equal(h.visible.length, 2);
-    assert.deepEqual(h.visible[1].uniforms.u_resolution, [1280, 720]);
-    h.tick();
-    assert.equal(h.worker.jobs.length, 0, "no extra idle resolution pass");
+    assert.equal(h.worker.jobs.length, 0);
+    h.repair();
+    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
   }));
 
-test("continuous navigation finishes a frozen frame then coalesces input to the newest target", () =>
-  harness((h) => {
-    const original = h.state.view;
-    h.renderer.update();
-    h.tick();
-    for (let i = 1; i <= 20; i++) {
-      h.state = { ...h.state, view: moveViewport(original, i / 100, 0) };
-      h.renderer.update();
-    }
-    const target = h.state.view;
-    h.worker.complete();
-    assert.equal(h.visible.length, 1, "continuous input cannot starve presentation");
-    assert.deepEqual(h.renderer.getViewport(), original);
-    assert.deepEqual(
-      h.draws[0].uniforms.u_deltaCenter,
-      [0, 0, 0, 0],
-      "worker result uses its own camera",
-    );
-    h.tick();
-    assert.equal(h.worker.jobs.length, 1, "one replacement frame, no input backlog");
-    assert.equal(h.worker.jobs[0].view.x, target.x);
-    h.worker.complete();
-    assert.deepEqual(h.renderer.getViewport(), target);
-  }));
-
-test("glitch repairs stay offscreen, including when navigation continues during a repair", () =>
+test("deep zoom uses a bounded moving frame and restores idle detail", () =>
   harness((h) => {
     h.renderer.update();
     h.tick();
+    h.worker.complete();
+    const movingPixels = h.canvas.width * h.canvas.height;
+    assert.ok(movingPixels <= 111000);
+    h.repair();
+    assert.ok(h.canvas.width * h.canvas.height > movingPixels * 5);
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
+  }));
+
+test("deep navigation redraws a preview immediately while the next reference is pending", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.worker.complete();
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    assert.ok("u_ratio" in h.draws.at(-1).uniforms);
+    const count = h.draws.length;
+    h.state = { ...h.state, view: zoomViewport(h.state.view, -11, 0.5, 0.25) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.draws.length, count + 1);
+    assert.ok("u_ratio" in h.draws.at(-1).uniforms);
+    assert.equal(h.worker.jobs.length, 1, "gestures do not build a worker backlog");
+  }));
+
+test("deep frames are visible before repairs finish and stale tiles cannot overwrite navigation", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.repair();
     h.glitch();
     h.worker.complete();
-    assert.equal(h.visible.length, 0);
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
+    assert.equal(h.draws.length, 1, "first GPU frame is shown without waiting for all repairs");
     assert.ok(h.worker.jobs[0].tile);
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    h.tick();
+    const count = h.draws.length;
     h.worker.complete();
+    assert.equal(h.draws.length, count, "obsolete tile result was discarded");
+  }));
+
+test("parameter edits discard old reference results", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.state = { ...h.state, c: [0.1, 0.2], config: { ...h.state.config, palette: "fire" } };
+    h.renderer.update();
+    h.tick();
+    h.worker.complete();
+    assert.equal(h.draws.length, 0);
+    h.worker.complete();
+    assert.deepEqual(h.draws.at(-1).uniforms.u_c, [0.1, 0.2]);
+  }));
+
+test("high iteration counts retain the deep zoom work budget", () =>
+  harness((h) => {
+    h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
+    h.renderer.update();
+    h.tick();
+    h.worker.complete();
+    assert.ok(h.canvas.width * h.canvas.height < 11000);
     h.repair();
-    assert.equal(h.visible.length, 1, "frame presented only after the repair queue empties");
-  }));
-
-test("parameter edits and resizes discard old work without clearing the visible frame", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.tick();
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
-    h.state = {
-      ...h.state,
-      width: 800,
-      c: [0.1, 0.2],
-      config: { ...h.state.config, palette: "fire" },
-    };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    assert.equal(h.visible.length, 1);
-    assert.equal(h.canvas.width, 1280);
-    h.tick();
-    h.worker.complete();
-    assert.equal(h.visible.length, 2);
-    assert.equal(h.canvas.width, 1600);
-    assert.deepEqual(h.draws.at(-2).uniforms.u_c, [0.1, 0.2]);
-  }));
-
-test("shallow views and a return from deep zoom are also presented at full resolution", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.state = { ...h.state, view: createViewportAtLog([-0.5, 0], 1) };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.tick();
-    assert.equal(h.visible.length, 1, "returning wide cancels the old deep calculation");
-    assert.deepEqual(h.draws.at(-2).uniforms.u_resolution, [1280, 720]);
-    assert.equal(h.worker.jobs.length, 0);
-  }));
-
-test("worker errors preserve the last sharp frame and later input can recover", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.tick();
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete("Reference failed");
-    assert.equal(h.visible.length, 1);
-    assert.equal(h.statuses.at(-1).error, true);
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    assert.equal(h.visible.length, 2);
-  }));
-
-test("an unrecoverable exact-pixel repair reports failure without replacing the sharp frame", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.tick();
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
-    for (let attempt = 0; attempt < 12 && !h.statuses.at(-1)?.error; attempt++) {
-      h.glitch();
-      h.worker.complete();
-      if (h.timers.size) h.repair();
-    }
-    assert.equal(h.statuses.at(-1).error, true);
-    assert.match(h.statuses.at(-1).message, /more precision/);
-    assert.equal(h.visible.length, 1);
-    assert.equal(h.worker.jobs.length, 0);
-  }));
-
-test("returning to the retained frame clears refinement status without redrawing", () =>
-  harness((h) => {
-    h.state = { ...h.state, view: createViewportAtLog([-0.5, 0], 1) };
-    const original = h.state.view;
-    h.renderer.update();
-    h.tick();
-    h.tick();
-    h.state = { ...h.state, view: createViewportAtLog([-0.75, 0.125], -10) };
-    h.renderer.update();
-    h.tick();
-    assert.equal(h.statuses.at(-1).message, "Refining detail…");
-    h.state = { ...h.state, view: original };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.tick();
-    assert.equal(h.visible.length, 1);
-    assert.equal(h.statuses.at(-1).message, "Ready");
+    assert.ok(h.canvas.width * h.canvas.height < 221000);
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
   }));

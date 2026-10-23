@@ -17,14 +17,12 @@ export function useDeepZoomControls({
   viewportRef,
   maxZoomSize,
   flipY,
-  getRenderedViewport,
   onChange,
 }: {
   canvas: HTMLCanvasElement | null;
   viewportRef: MutableRefObject<DeepViewport>;
   maxZoomSize: number;
   flipY: boolean;
-  getRenderedViewport: () => DeepViewport | null;
   onChange: () => void;
 }) {
   const change = useRef(onChange);
@@ -51,18 +49,6 @@ export function useDeepZoomControls({
       };
     };
     const clamp = (log: number) => Math.max(-MAX_DEPTH_BITS, Math.min(Math.log2(maxZoomSize), log));
-    const pace = (log: number) => {
-      const rendered = getRenderedViewport();
-      // A saved destination may still be loading. Do not pull that camera back
-      // to the previous destination if a gesture arrives before it is shown.
-      const base =
-        rendered && Math.abs(viewportRef.current.logZoom - rendered.logZoom) <= 0.5
-          ? rendered.logZoom
-          : viewportRef.current.logZoom;
-      // Queue at most a small zoom step beyond the sharp frame on screen.
-      // Excess wheel/pinch input is discarded, not played back after release.
-      return clamp(Math.max(base - 0.25, Math.min(base + 0.25, log)));
-    };
     const gesture = () => {
       const pair = Array.from(pointers.values());
       const first = pair[0];
@@ -92,7 +78,7 @@ export function useDeepZoomControls({
       if (before.distance && after.distance) {
         view = zoomViewport(
           view,
-          pace(view.logZoom + Math.log2(before.distance / after.distance)),
+          clamp(view.logZoom + Math.log2(before.distance / after.distance)),
           before.x,
           before.y,
         );
@@ -114,10 +100,9 @@ export function useDeepZoomControls({
       const pixels =
         event.deltaY *
         (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1);
-      const next = pace(
+      const next = clamp(
         viewportRef.current.logZoom + Math.max(-2, Math.min(2, (pixels * 0.0015) / Math.LN2)),
       );
-      if (next === viewportRef.current.logZoom) return;
       viewportRef.current = zoomViewport(viewportRef.current, next, anchor.x, anchor.y);
       change.current();
     };
@@ -139,5 +124,5 @@ export function useDeepZoomControls({
       wheelGuard.dispose();
       canvas.style.touchAction = "";
     };
-  }, [canvas, flipY, maxZoomSize, viewportRef, getRenderedViewport]);
+  }, [canvas, flipY, maxZoomSize, viewportRef]);
 }
