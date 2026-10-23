@@ -32,7 +32,7 @@ type Job = {
   view: DeepViewport;
   iterations: number;
   c: [number, number];
-  tile?: Tile;
+  tiles?: { tile: Tile; view: DeepViewport }[];
 };
 
 export function iterationBudget(view: DeepViewport, requested: number) {
@@ -144,7 +144,6 @@ export function createDeepZoomRenderer(
     let destroyed = false;
     let frame = 0;
     let settle: ReturnType<typeof setTimeout> | undefined;
-    let repairTimer: ReturnType<typeof setTimeout> | undefined;
     let version = 0;
     let nextId = 0;
     let pending: Job | null = null;
@@ -300,71 +299,79 @@ export function createDeepZoomRenderer(
       if (!tile) rememberFrame();
       return true;
     };
-    const request = (tile?: Tile) => {
+    const request = (tiles?: Tile[]) => {
       if (destroyed || pending) return;
       const state = getState();
       const bits = precisionForZoom(state.view.logZoom);
-      let view = {
+      const view = {
         ...state.view,
         bits,
         x: rescaleFixed(state.view.x, state.view.bits, bits),
         y: rescaleFixed(state.view.y, state.view.bits, bits),
       };
-      if (tile) {
+      const repairs = tiles?.map((tile) => {
         const size = Math.min(gl.canvas.width, gl.canvas.height);
         const x = (2 * (tile.x + tile.width / 2) - gl.canvas.width) / size;
         const y =
           ((2 * (tile.y + tile.height / 2) - gl.canvas.height) / size) *
           (formula === "burning-ship" ? -1 : 1);
-        view = moveViewport(view, x, y);
-      }
-      if (tile?.width === 1 && tile.height === 1) {
-        // Tangencies can depend on squared offsets. A final exact-pixel orbit
-        // gets twice the depth precision and bypasses GPU coordinate rounding.
-        const exactBits = Math.max(view.bits, 2 * Math.ceil(Math.max(0, -view.logZoom)) + 128);
-        view = {
-          ...view,
-          x: rescaleFixed(view.x, view.bits, exactBits),
-          y: rescaleFixed(view.y, view.bits, exactBits),
-          bits: exactBits,
-        };
-      }
+        let tileView = moveViewport(view, x, y);
+        if (tile.width === 1 && tile.height === 1) {
+          // Tangencies can depend on squared offsets. An exact-pixel orbit
+          // gets twice the depth precision and bypasses GPU coordinate rounding.
+          const exactBits = Math.max(bits, 2 * Math.ceil(Math.max(0, -view.logZoom)) + 128);
+          tileView = {
+            ...tileView,
+            x: rescaleFixed(tileView.x, bits, exactBits),
+            y: rescaleFixed(tileView.y, bits, exactBits),
+            bits: exactBits,
+          };
+        }
+        return { tile, view: tileView };
+      });
       pending = {
         id: ++nextId,
         version,
         view,
         c: [...state.c],
         iterations: iterationBudget(view, state.config.iterations),
-        tile,
+        tiles: repairs,
       };
       worker.postMessage({ ...pending, formula });
     };
     const inspect = (tile: Tile) => {
       const data = new Uint8Array(tile.width * tile.height * 4);
       gl.readPixels(tile.x, tile.y, tile.width, tile.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
-      const cells = new Map<string, Tile>();
       const stepX = Math.max(1, Math.ceil(tile.width / 4));
       const stepY = Math.max(1, Math.ceil(tile.height / 4));
-      for (let y = 0; y < tile.height; y++)
-        for (let x = 0; x < tile.width; x++) {
-          if (data[(y * tile.width + x) * 4 + 3] !== 0) continue;
-          const cx = Math.floor(x / stepX) * stepX;
-          const cy = Math.floor(y / stepY) * stepY;
-          cells.set(`${cx},${cy}`, {
-            x: tile.x + cx,
-            y: tile.y + cy,
-            width: Math.min(stepX, tile.width - cx),
-            height: Math.min(stepY, tile.height - cy),
-          });
+      // Each cell needs one repair regardless of how many invalid pixels it has.
+      // Stop on its first invalid pixel; allocate at most sixteen tiles per read.
+      for (let cy = 0; cy < tile.height; cy += stepY) {
+        for (let cx = 0; cx < tile.width; cx += stepX) {
+          const width = Math.min(stepX, tile.width - cx);
+          const height = Math.min(stepY, tile.height - cy);
+          cell: for (let y = cy; y < cy + height; y++) {
+            for (let x = cx; x < cx + width; x++) {
+              if (data[(y * tile.width + x) * 4 + 3] !== 0) continue;
+              repairQueue.push({ x: tile.x + cx, y: tile.y + cy, width, height });
+              break cell;
+            }
+          }
         }
-      repairQueue.push(...Array.from(cells.values()));
+      }
     };
     const repairNext = () => {
       if (destroyed || moving || pending) return;
-      const tile = repairQueue.shift();
-      if (tile) {
+      if (repairQueue.length) {
+        const state = getState();
+        // Bound worker occupancy as precision and iteration counts grow. Ordinary
+        // repairs share a packet; expensive deep references still run one at a time.
+        const work =
+          precisionForZoom(state.view.logZoom) *
+          iterationBudget(state.view, state.config.iterations);
+        const count = Math.max(1, Math.min(8, Math.floor(1_000_000 / work)));
         report("Refining detail…");
-        request(tile);
+        request(repairQueue.splice(0, count));
       } else {
         rememberFrame();
         report("Detail ready");
@@ -413,7 +420,7 @@ export function createDeepZoomRenderer(
       }
       if (
         !sameParameters(job.c) ||
-        (job.tile && job.version !== version) ||
+        (job.tiles && job.version !== version) ||
         job.view.bits < Math.ceil(-getState().view.logZoom) + 64
       ) {
         // Never let an old tile or parameter edit overwrite the current view.
@@ -421,22 +428,29 @@ export function createDeepZoomRenderer(
         return;
       }
       if (getState().view.logZoom >= -7) return;
-      if (job.tile) {
-        draw(event.data.reference, job.view, job.tile);
-        inspect(job.tile);
-        // If even the exact pixel reference fails, stop and expose the failure.
-        if (
-          job.tile.width === 1 &&
-          job.tile.height === 1 &&
-          repairQueue.some((t) => t.x === job.tile?.x && t.y === job.tile?.y)
-        ) {
-          repairQueue = [];
-          report("This point needs more precision. Try a nearby view.", true);
-          return;
+      if (job.tiles) {
+        // Queue every disjoint draw before reading masks, so one GPU wait covers
+        // the batch instead of serializing each reference upload, draw and read.
+        for (let i = 0; i < job.tiles.length; i++) {
+          const { tile, view } = job.tiles[i];
+          draw(event.data.references[i], view, tile);
         }
-        repairTimer = setTimeout(repairNext, 0);
+        for (const { tile } of job.tiles) {
+          inspect(tile);
+          if (
+            tile.width === 1 &&
+            tile.height === 1 &&
+            repairQueue.some((t) => t.x === tile.x && t.y === tile.y)
+          ) {
+            repairQueue = [];
+            report("This point needs more precision. Try a nearby view.", true);
+            return;
+          }
+        }
+        // Worker replies already yield to the event loop between batches.
+        repairNext();
       } else {
-        reference = event.data.reference;
+        reference = event.data.references[0];
         referenceView = job.view;
         draw(reference, referenceView);
         if (job.version !== version) {
@@ -458,7 +472,6 @@ export function createDeepZoomRenderer(
       version++;
       moving = true;
       repairQueue = [];
-      clearTimeout(repairTimer);
       clearTimeout(settle);
       if (!frame) frame = requestAnimationFrame(render);
       settle = setTimeout(() => {
@@ -478,7 +491,6 @@ export function createDeepZoomRenderer(
         destroyed = true;
         cancelAnimationFrame(frame);
         clearTimeout(settle);
-        clearTimeout(repairTimer);
         for (const dispose of release.splice(0).reverse()) dispose();
       },
     };

@@ -14,7 +14,7 @@ export const ESCAPE_RADIUS = 256;
 
 export type ReferenceOrbit = {
   /** RGBA texels: real mantissa, real exponent, imaginary mantissa, imaginary exponent. */
-  orbit: Float32Array;
+  orbit: Float32Array<ArrayBuffer>;
   length: number;
   iterations: number;
   formula: EscapeFormula;
@@ -22,7 +22,7 @@ export type ReferenceOrbit = {
   escaped: boolean;
   bits: number;
   viewport: SerializedViewport;
-  critical?: { orbit: Float32Array; length: number };
+  critical?: { orbit: Float32Array<ArrayBuffer>; length: number };
 };
 
 const ZERO = BigInt(0);
@@ -76,25 +76,54 @@ function buildOrbit(
   const store = () => {
     const [xm, xe] = fixedToFloatExp(state.x, view.bits);
     const [ym, ye] = fixedToFloatExp(state.y, view.bits);
-    output.set([xm, xe, ym, ye], length * 4);
+    const offset = length * 4;
+    output[offset] = xm;
+    output[offset + 1] = xe;
+    output[offset + 2] = ym;
+    output[offset + 3] = ye;
     length += 1;
   };
   store();
+  // Reuse the bailout squares in the next recurrence instead of multiplying twice.
+  let xx = state.x * state.x;
+  let yy = state.y * state.y;
+  let anchorX = state.x;
+  let anchorY = state.y;
+  let power = 1;
+  let period = 0;
   for (let i = 0; i < iterations; i++) {
-    const xx = state.x * state.x;
-    const yy = state.y * state.y;
     let xy = TWO * state.x * state.y;
     if (formula === "burning-ship" && xy < ZERO) xy = -xy;
     state.x = ((xx - yy) >> shift) + state.cx;
     state.y = (xy >> shift) + state.cy;
     store();
-    if (state.x * state.x + state.y * state.y > bailoutSquared) {
+    xx = state.x * state.x;
+    yy = state.y * state.y;
+    if (xx + yy > bailoutSquared) {
       escaped = true;
       break;
     }
+    // Brent's cycle detection compares complete fixed-point states, never an
+    // approximation. Repeating states produce byte-identical future samples.
+    period++;
+    if (state.x === anchorX && state.y === anchorY) {
+      const cycleStart = length - period;
+      while (length < iterations + 1) {
+        const count = Math.min(length - cycleStart, iterations + 1 - length);
+        output.copyWithin(length * 4, cycleStart * 4, (cycleStart + count) * 4);
+        length += count;
+      }
+      break;
+    }
+    if (period === power) {
+      anchorX = state.x;
+      anchorY = state.y;
+      power *= 2;
+      period = 0;
+    }
   }
   return {
-    orbit: output.slice(0, length * 4),
+    orbit: length === iterations + 1 ? output : output.slice(0, length * 4),
     length,
     iterations,
     formula,

@@ -132,7 +132,11 @@ function harness(run) {
           id: job.id,
           ...(error
             ? { error }
-            : { reference: buildReference(job.view, job.formula, job.c, job.iterations) }),
+            : {
+                references: (job.tiles?.map((repair) => repair.view) ?? [job.view]).map((view) =>
+                  buildReference(view, job.formula, job.c, job.iterations),
+                ),
+              }),
         },
       });
       return job;
@@ -165,6 +169,7 @@ function harness(run) {
   };
   const h = {
     renderer,
+    gl,
     worker,
     canvas,
     draws,
@@ -250,7 +255,7 @@ test("deep frames are visible before repairs finish and stale tiles cannot overw
     h.glitch();
     h.worker.complete();
     assert.equal(h.draws.length, 1, "first GPU frame is shown without waiting for all repairs");
-    assert.ok(h.worker.jobs[0].tile);
+    assert.ok(h.worker.jobs[0].tiles);
     h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
     h.renderer.update();
     h.tick();
@@ -282,4 +287,86 @@ test("high iteration counts retain the deep zoom work budget", () =>
     h.repair();
     assert.ok(h.canvas.width * h.canvas.height < 221000);
     assert.equal(h.statuses.at(-1).message, "Detail ready");
+  }));
+
+test("repairs batch disjoint cells and draw the whole batch before mask readback", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.repair();
+    let reads = 0;
+    let beforeBatch = 0;
+    h.gl.readPixels = (_x, _y, _w, _h, _format, _type, data) => {
+      data.fill(reads++ === 0 ? 0 : 255);
+      if (reads > 1)
+        assert.equal(
+          h.draws.length,
+          beforeBatch + 8,
+          "all eight repairs are queued before the GPU wait",
+        );
+    };
+    h.worker.complete();
+    assert.equal(h.worker.jobs.length, 1, "only one worker packet is pending");
+    const first = h.worker.jobs[0].tiles;
+    assert.equal(first.length, 8);
+    assert.equal(new Set(first.map(({ tile }) => `${tile.x},${tile.y}`)).size, 8);
+    beforeBatch = h.draws.length;
+    h.worker.complete();
+    assert.equal(h.worker.jobs[0].tiles.length, 8, "remaining cells start without a timer hop");
+    beforeBatch = h.draws.length;
+    h.worker.complete();
+    assert.equal(h.worker.jobs.length, 0);
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
+    assert.equal(reads, 17, "full mask and sixteen disjoint repair cells");
+  }));
+
+test("partial edge cells and invalid pixels late in a cell are retained", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.repair();
+    h.gl.readPixels = (_x, _y, width, height, _format, _type, data) => {
+      data.fill(255);
+      data[(width * height - 1) * 4 + 3] = 0;
+    };
+    h.worker.complete();
+    const [{ tile }] = h.worker.jobs[0].tiles;
+    assert.equal(tile.x + tile.width, h.canvas.width);
+    assert.equal(tile.y + tile.height, h.canvas.height);
+  }));
+
+test("expensive deep repair batches stay small and stale batches are discarded", () =>
+  harness((h) => {
+    h.state = {
+      ...h.state,
+      view: createViewportAtLog([-2, 0], -4096),
+      config: { ...h.state.config, iterations: 8192 },
+    };
+    h.renderer.update();
+    h.tick();
+    h.repair();
+    h.gl.readPixels = (_x, _y, _w, _h, _format, _type, data) => data.fill(0);
+    h.worker.complete();
+    assert.equal(h.worker.jobs[0].tiles.length, 1);
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    h.tick();
+    const count = h.draws.length;
+    h.worker.complete();
+    assert.equal(h.draws.length, count);
+  }));
+
+test("a failed exact-pixel repair still reports a precision error", () =>
+  harness((h) => {
+    h.state = { ...h.state, width: 1, height: 1 };
+    h.renderer.update();
+    h.tick();
+    h.repair();
+    h.gl.readPixels = (_x, _y, _w, _h, _format, _type, data) => data.fill(0);
+    h.worker.complete();
+    assert.equal(h.worker.jobs[0].tiles.length, 4);
+    h.worker.complete();
+    assert.equal(h.statuses.at(-1).error, true);
+    assert.match(h.statuses.at(-1).message, /more precision/);
+    assert.equal(h.worker.jobs.length, 0);
   }));

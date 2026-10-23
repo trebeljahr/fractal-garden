@@ -155,3 +155,64 @@ test("deep destination highlighting clears after a sub-ulp pan", () => {
   assert.equal(matchesDeepViewport(moveViewport(target, 1 / 1024, 0), target), false);
   assert.equal(matchesDeepViewport(zoomViewport(target, target.logZoom - 1), target), false);
 });
+
+// Keep the original direct recurrence independent of the optimized orbit builder.
+function directOrbit(view, formula, c, iterations) {
+  const julia = formula === "julia";
+  let x = julia ? view.x : 0n;
+  let y = julia ? view.y : 0n;
+  const cx = julia ? fixedFromNumber(c[0], view.bits) : view.x;
+  const cy = julia ? fixedFromNumber(c[1], view.bits) : view.y;
+  const shift = BigInt(view.bits);
+  const bailout = 65536n << (shift * 2n);
+  const output = [];
+  const store = () =>
+    output.push(...fixedToFloatExp(x, view.bits), ...fixedToFloatExp(y, view.bits));
+  store();
+  let escaped = false;
+  for (let i = 0; i < iterations; i++) {
+    const real = x * x - y * y;
+    let product = x * y;
+    if (formula === "burning-ship" && product < 0n) product = -product;
+    x = (real >> shift) + cx;
+    y = ((2n * product) >> shift) + cy;
+    store();
+    if (x * x + y * y > bailout) {
+      escaped = true;
+      break;
+    }
+  }
+  return { orbit: new Float32Array(output), escaped };
+}
+
+test("optimized references are byte-identical to direct recurrence, including exact cycles", () => {
+  const fixtures = [
+    [[0, 0], [0, 0], -10, 8192],
+    [[-1, 0], [-1, 0], -100, 8192], // Exact period two, with an odd output length.
+    [[-2, 0], [0, 0], -4096, 257], // Transient followed by a fixed point.
+    [[0.125, -0.25], [-0.8, 0.156], -300, 257],
+    [[1.2, -0.4], [-0.8, 0.156], -80, 257],
+    [[-1.77375, -0.055625], [-0.12, 0.745], -20, 1400],
+  ];
+  for (const formula of ["mandelbrot", "julia", "burning-ship"]) {
+    for (const [center, c, depth, iterations] of fixtures) {
+      const view = createViewportAtLog(center, depth);
+      const expected = directOrbit(view, formula, c, iterations);
+      const actual = buildReference(view, formula, c, iterations);
+      assert.deepEqual(actual.orbit, expected.orbit, `${formula}: ${center}, depth ${depth}`);
+      assert.equal(actual.escaped, expected.escaped);
+      assert.equal(actual.length, expected.orbit.length / 4);
+      if (formula === "julia") {
+        const critical = directOrbit({ ...view, x: 0n, y: 0n }, formula, c, iterations);
+        assert.deepEqual(actual.critical.orbit, critical.orbit);
+      }
+    }
+    for (const iterations of [1, 2, 3, 4, 5, 16, 17]) {
+      const view = createViewportAtLog([-1, 0], -80);
+      assert.deepEqual(
+        buildReference(view, formula, [-1, 0], iterations).orbit,
+        directOrbit(view, formula, [-1, 0], iterations).orbit,
+      );
+    }
+  }
+});
