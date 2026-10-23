@@ -32,7 +32,7 @@ test("pixel cones grow with distance and shrink with framebuffer resolution", ()
 test("projected detail stays continuous when camera units change at every zoom level", () => {
   for (const level of [0, 10, 150, 243]) {
     const one = 1n << 600n;
-    const offset = (one * 2n) / (3n ** BigInt(level) * 100n);
+    const offset = (one * 2n) / (3n ** BigInt(level) * 10n);
     const camera = {
       position: [one + offset, one + offset, one + offset],
       bits: 600,
@@ -62,17 +62,32 @@ test("zero clearance and tiny framebuffers keep a finite nonnegative pixel cone"
   }
 });
 
-test("wall contact cannot demand finer pixels at a fixed exploration scale", () => {
-  const reference = flightResolution(0, 1200, 800, 0, 0);
-  for (const clearance of [0, 1e-12, 1e-8, 1e-5, 0.01]) {
-    assert.equal(
-      flightResolution(clearance, 1200, 800, 0, 0).nearFootprint,
-      reference.nearFootprint,
-    );
+test("approaching a snowflake boundary reveals finer detail without wheel zoom", () => {
+  const one = 1n << 600n;
+  let previousPhysicalFootprint = Infinity;
+  for (const level of [0, 10, 40, 150, 243]) {
+    const camera = {
+      position: [0n, (4n * one) / 5n, one + (2n * one) / (5n * 3n ** BigInt(level))],
+      bits: 600,
+      level,
+      viewLevel: 0,
+      yaw: 0,
+      pitch: 0,
+    };
+    const frame = buildGridFrame(camera, "mosely-heavy", flightDetailDepth(0, level));
+    const detail = flightResolution(frame.clearance, 1200, 800, level, 0);
+    const physicalFootprint = detail.nearFootprint / 3 ** level;
+    assert.ok(physicalFootprint < previousPhysicalFootprint, `detail stopped at level ${level}`);
+    assert.ok(Math.abs(detail.nearFootprint - 0.2 * detail.pixelAngle) < 1e-8);
+    previousPhysicalFootprint = physicalFootprint;
   }
-  for (const level of [0, 1, 12, 16]) {
+});
+
+test("numerical detail floor follows local precision instead of a fixed world scale", () => {
+  const reference = flightResolution(0, 1200, 800, 0, 0);
+  for (const level of [0, 1, 12, 40, 150, 244]) {
     const detail = flightResolution(0, 1200, 800, level, 0);
-    assert.ok(Math.abs(detail.nearFootprint / 3 ** level - reference.nearFootprint) < 1e-15);
+    assert.equal(detail.nearFootprint, reference.nearFootprint);
   }
 });
 
@@ -82,16 +97,28 @@ test("explicit zoom refines the minimum physical detail at deep addresses", () =
   assert.ok(Math.abs(after.nearFootprint * 3 - before.nearFootprint) < 1e-15);
 });
 
-test("render grids include a subpixel terminator without following collision precision", () => {
-  for (const viewLevel of [0, 0.5, 8, 150, 243]) {
-    const depth = flightDetailDepth(viewLevel);
+test("render grids follow both proximity and explicit zoom with a subpixel terminator", () => {
+  for (const [viewLevel, level] of [
+    [0, 0],
+    [0.5, 0],
+    [0, 40],
+    [8, 0],
+    [0, 150],
+    [150, 150],
+    [243, 244],
+  ]) {
+    const depth = flightDetailDepth(viewLevel, level);
     assert.ok(depth <= 256);
     if (depth < 256)
       assert.ok(
-        3 ** (viewLevel - depth) < (MIN_FLIGHT_DETAIL_DISTANCE * 1.16) / Math.sqrt(2500000),
+        3 ** (level - depth) <
+          (MIN_FLIGHT_DETAIL_DISTANCE * Math.min(1, 3 ** (level - viewLevel)) * 1.16) /
+            Math.sqrt(2500000),
       );
+    assert.ok(depth > Math.max(viewLevel, level));
   }
   assert.equal(flightDetailDepth(0), 12);
+  assert.ok(flightDetailDepth(0, 40) > 40);
 });
 
 test("extreme saved precision gaps still produce finite GPU detail uniforms", () => {

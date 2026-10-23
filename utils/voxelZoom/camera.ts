@@ -9,6 +9,8 @@ export type FlightCamera = {
   level: number;
   /** User-selected exploration scale, independent of render precision. */
   viewLevel?: number;
+  /** Continuous local travel scale, adapting to passages and forward approach. */
+  navigationLevel?: number;
   yaw: number;
   pitch: number;
 };
@@ -58,18 +60,26 @@ const retained = Object.fromEntries(
 ) as Record<VoxelPattern, Vec3[]>;
 export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCamera {
   const bits = bitsForLevel(0);
-  return {
-    position: [
-      fixedFromNumber(pattern === "menger" ? 0 : pattern === "vicsek" ? 0.7 : 0.8, bits),
-      fixedFromNumber(pattern === "menger" ? 0 : pattern === "vicsek" ? 0.7 : 0.8, bits),
-      fixedFromNumber(3.2, bits),
-    ],
-    bits,
-    level: 0,
-    viewLevel: 0,
-    yaw: 0,
-    pitch: 0,
-  };
+  const snowflake = pattern.startsWith("mosely");
+  const position: Vec3 = snowflake
+    ? pattern === "mosely-light"
+      ? [0, 0, 0]
+      : [-1 / 8, -1 / 8, -1 / 8]
+    : pattern === "menger"
+      ? [0, 0, 3.2]
+      : [0.7, 0.7, 3.2];
+  return fitFlightPrecision(
+    {
+      position: position.map((p) => fixedFromNumber(p, bits)) as FlightCamera["position"],
+      bits,
+      level: 0,
+      viewLevel: 0,
+      navigationLevel: snowflake ? (pattern === "mosely-light" ? 1 : 2) : 0,
+      yaw: snowflake ? -Math.PI / 4 : 0,
+      pitch: snowflake ? -Math.asin(1 / Math.sqrt(3)) : 0,
+    },
+    pattern,
+  );
 }
 export function flightBasis(camera: Pick<FlightCamera, "yaw" | "pitch">) {
   const { yaw, pitch } = camera;
@@ -117,7 +127,7 @@ export function buildGridFrame(
 }
 /** Movement needs a safe distance, without building/uploading a render grid. */
 export function flightClearance(camera: FlightCamera, pattern: VoxelPattern): number {
-  return gridFrame(camera, pattern, camera.level + 10, false).clearance;
+  return gridFrame(camera, pattern, MAX_VOXEL_DEPTH, false).clearance;
 }
 function gridFrame(
   camera: FlightCamera,
@@ -212,31 +222,65 @@ function gridFrame(
   return { levels, texture, low, high, clearance: Math.max(outside, clearance) };
 }
 
-// A stable aperture floor prevents flight through subpixel holes that the
-// renderer shows as a wall. Explicit zoom makes smaller passages accessible.
+// Collision resolves nearby apertures at the current precision scale.
+// Navigation changes continuously while collision detail follows local geometry.
 export const FLIGHT_COLLISION_DEPTH = 8;
 export const FLIGHT_WALL_MARGIN = 1e-5;
+export const FLIGHT_NAVIGATION_RATE = 1.5;
+const FLIGHT_APPROACH_FACTOR = 4;
+const LOG_THREE = Math.log(3);
 
-/** Sweep through empty cells, spending travel time at each passage's scale.
- * The first removed ancestor sets speed, so skimming a wall does not cause
- * clearance-dependent crawling. Outside the root, use the selected zoom. */
-function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, time: number) {
-  const viewLevel = camera.viewLevel ?? camera.level;
-  const unit = 3 ** (camera.level - viewLevel);
+function passageLevel(camera: FlightCamera, pattern: VoxelPattern) {
+  const one = BigInt(1) << BigInt(camera.bits);
+  if (camera.position.some((p) => p <= -one || p >= one)) return 0;
+  for (let depth = 1; depth <= MAX_VOXEL_DEPTH; depth++) {
+    const digit = camera.position.map((p) =>
+      modulo3(floorDiv((p + one) * powers[depth], one * BigInt(2))),
+    ) as Vec3;
+    if (!keepVoxel(pattern, digit)) return depth;
+  }
+  return MAX_VOXEL_DEPTH;
+}
+
+type TravelInterval = { start: number; end: number; level: number };
+type TravelRoute = { intervals: TravelInterval[]; wall: number; normalAxis: number };
+
+/** Find the passages and retained face along the intended movement direction.
+ * Nearby parallel walls do not participate in speed selection. */
+function flightRoute(
+  camera: FlightCamera,
+  pattern: VoxelPattern,
+  ray: Vec3,
+  detailPrecision: number,
+  horizon: number,
+): TravelRoute {
+  const detailLevel = Math.max(camera.navigationLevel ?? camera.level, detailPrecision);
+  const detailUnit = 3 ** (camera.level - detailLevel);
   const frame = gridFrame(
     camera,
     pattern,
-    Math.ceil(viewLevel) + FLIGHT_COLLISION_DEPTH,
+    Math.ceil(detailLevel) + FLIGHT_COLLISION_DEPTH,
     true,
     false,
   );
-  const maximum = time * unit;
+  const intervals: TravelInterval[] = [];
+  const append = (start: number, end: number, level: number) => {
+    if (end <= start) return;
+    const previous = intervals.at(-1);
+    if (previous && previous.level === level && previous.end === start) previous.end = end;
+    else intervals.push({ start, end, level });
+  };
+  const outside = () => ({
+    intervals: [{ start: 0, end: horizon, level: 0 }],
+    wall: Infinity,
+    normalAxis: 2,
+  });
   let near = 0,
     far = Infinity,
     normalAxis = 2;
   for (let axis = 0; axis < 3; axis++) {
     if (Math.abs(ray[axis]) < 1e-15) {
-      if (frame.low[axis] > 0 || frame.high[axis] < 0) return maximum;
+      if (frame.low[axis] > 0 || frame.high[axis] < 0) return outside();
       continue;
     }
     const a = frame.low[axis] / ray[axis],
@@ -248,16 +292,11 @@ function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, ti
     }
     far = Math.min(far, Math.max(a, b));
   }
-  if (far <= near) return maximum;
-  const margin = (axis: number) =>
-    (FLIGHT_WALL_MARGIN * unit) / Math.max(1e-12, Math.abs(ray[axis]));
-  if (near > maximum + margin(normalAxis)) return maximum;
-  let t = near,
-    remaining = time - near / unit;
-  let requestedEnd: number | undefined = remaining < 0 ? maximum : undefined;
-  const stopped = () => Math.min(requestedEnd ?? maximum, Math.max(0, t - margin(normalAxis)));
+  if (far <= near || near >= horizon) return outside();
+  append(0, near, 0);
+  let t = near;
   for (let step = 0; step < 512; step++) {
-    const epsilon = Math.max(unit * 1e-13, Math.abs(t) * 1e-13);
+    const epsilon = Math.max(detailUnit * 1e-13, Math.abs(t) * 1e-13);
     const point = ray.map((v) => v * (t + epsilon));
     let empty = false;
     for (const { plane, width, digit } of frame.levels) {
@@ -265,8 +304,7 @@ function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, ti
       const cell = point.map((p, axis) => Math.floor((p - plane[axis]) / width));
       const child = cell.map((c, axis) => (((digit[axis] + c) % 3) + 3) % 3) as Vec3;
       if (keepVoxel(pattern, child)) continue;
-      if (requestedEnd !== undefined) return requestedEnd;
-      let exit = far;
+      let exit = Math.min(far, horizon);
       let exitAxis = normalAxis;
       for (let axis = 0; axis < 3; axis++) {
         if (Math.abs(ray[axis]) < 1e-15) continue;
@@ -277,37 +315,125 @@ function flightTravel(camera: FlightCamera, pattern: VoxelPattern, ray: Vec3, ti
           exitAxis = axis;
         }
       }
-      const speed = Math.min(unit, width);
-      const travel = Math.max(0, exit - t);
-      if (remaining * speed < travel) {
-        const end = t + remaining * speed;
-        if (exit - end > margin(exitAxis)) return end;
-        // Probe the adjoining cell before allowing an endpoint within the
-        // face margin. An open neighbour leaves the requested travel intact.
-        requestedEnd = end;
-      }
-      remaining -= travel / speed;
-      t = Math.max(exit, t + epsilon);
+      if (exit <= t) return { intervals, wall: t, normalAxis };
+      append(t, exit, Math.max(0, Math.round(camera.level - Math.log(width) / LOG_THREE)));
+      t = exit;
       normalAxis = exitAxis;
       empty = true;
       break;
     }
-    if (!empty) return stopped();
-    if (t >= far) return requestedEnd ?? far + Math.max(0, remaining) * unit;
+    if (!empty) return { intervals, wall: t, normalAxis };
+    if (t >= horizon) return { intervals, wall: Infinity, normalAxis };
+    if (t >= far) {
+      append(far, horizon, 0);
+      return { intervals, wall: Infinity, normalAxis };
+    }
   }
-  // An unresolved segment stops; it never jumps over unexamined geometry.
-  return stopped();
+  return { intervals, wall: t, normalAxis };
 }
 
-/** Motion is elapsed travel at the selected zoom. Smaller recursive passages
- * reduce speed, independently of precision, frame rate and wall clearance. */
+/** Integrate continuous speed, splitting exactly at passage boundaries.
+ * Acceleration is a log-scale ramp. A directional distance cap brakes before
+ * smaller passages and approaches retained walls exponentially. */
+function flightTravel(
+  route: TravelRoute,
+  coordinateLevel: number,
+  navigationLevel: number,
+  throttle: number,
+  duration: number,
+) {
+  const acceleration = FLIGHT_NAVIGATION_RATE * LOG_THREE;
+  const braking = throttle * FLIGHT_APPROACH_FACTOR;
+  let distance = 0;
+  let remaining = duration;
+  let scale = 3 ** (coordinateLevel - navigationLevel);
+  const result = () => ({
+    distance,
+    navigationLevel: Math.max(
+      0,
+      Math.min(MAX_VOXEL_DEPTH, coordinateLevel - Math.log(scale) / LOG_THREE),
+    ),
+  });
+  for (let index = 0; index < route.intervals.length && remaining > 0; index++) {
+    const interval = route.intervals[index];
+    const targetScale = 3 ** (coordinateLevel - interval.level);
+    let cap = route.wall;
+    // Every narrower passage must be entered at its local speed. Its virtual
+    // boundary starts braking before the entrance instead of snapping there.
+    for (let future = index + 1; future < route.intervals.length; future++) {
+      const next = route.intervals[future];
+      cap = Math.min(
+        cap,
+        next.start + 3 ** (coordinateLevel - next.level) / FLIGHT_APPROACH_FACTOR,
+      );
+    }
+    scale = Math.min(scale, targetScale, (cap - distance) * FLIGHT_APPROACH_FACTOR);
+    if (scale <= 0) return result();
+    // A ramp can reach its target or the spatial cap before leaving this cell.
+    for (let phase = 0; phase < 3 && remaining > 0; phase++) {
+      const velocity = scale * throttle;
+      const gap = cap - distance;
+      const toExit = interval.end - distance;
+      const ramp = scale < targetScale * (1 - 1e-12) ? acceleration : 0;
+      const untilTarget = ramp ? Math.log(targetScale / scale) / ramp : Infinity;
+      const untilCap = !Number.isFinite(cap)
+        ? Infinity
+        : Math.max(
+            0,
+            ramp
+              ? Math.log((braking * (ramp * gap + velocity)) / (velocity * (ramp + braking))) / ramp
+              : gap / velocity - 1 / braking,
+          );
+      const freeTime = Math.min(remaining, untilTarget, untilCap);
+      const freeDistance = ramp
+        ? (velocity * Math.expm1(ramp * freeTime)) / ramp
+        : velocity * freeTime;
+      if (freeDistance >= toExit) {
+        const travelTime = ramp ? Math.log1p((ramp * toExit) / velocity) / ramp : toExit / velocity;
+        remaining = Math.max(0, remaining - travelTime);
+        scale *= Math.exp(ramp * travelTime);
+        distance = interval.end;
+        break;
+      }
+      distance += freeDistance;
+      remaining = Math.max(0, remaining - freeTime);
+      scale *= Math.exp(ramp * freeTime);
+      if (remaining <= 0) return result();
+      if (untilCap <= untilTarget) {
+        const cappedGap = cap - distance;
+        const exitGap = cap - interval.end;
+        const exitTime = exitGap > 0 ? Math.log(cappedGap / exitGap) / braking : Infinity;
+        const travelTime = Math.min(remaining, exitTime);
+        const decay = Math.exp(-braking * travelTime);
+        distance += cappedGap * -Math.expm1(-braking * travelTime);
+        scale = FLIGHT_APPROACH_FACTOR * cappedGap * decay;
+        remaining = Math.max(0, remaining - travelTime);
+        if (travelTime === exitTime) {
+          distance = interval.end;
+          break;
+        }
+        return result();
+      }
+      scale = targetScale;
+    }
+  }
+  return result();
+}
+
+/** Throttle controls travel; elapsed seconds control adaptation independently.
+ * Gesture callers may omit elapsed time and use an equivalent brief impulse. */
 export function moveFlightCamera(
   camera: FlightCamera,
   pattern: VoxelPattern,
   motion: Vec3,
+  elapsedSeconds?: number,
 ): FlightCamera {
   const magnitude = Math.hypot(...motion);
   if (!Number.isFinite(magnitude) || magnitude === 0) return camera;
+  if (elapsedSeconds !== undefined && (!Number.isFinite(elapsedSeconds) || elapsedSeconds <= 0))
+    return camera;
+  const duration = Math.min(0.5, elapsedSeconds ?? magnitude / 0.75);
+  const throttle = magnitude / duration;
   const { right, forward } = flightBasis(camera);
   const direction = right.map(
     (v, axis) => v * motion[0] + (axis === 1 ? motion[1] : 0) + forward[axis] * motion[2],
@@ -316,13 +442,23 @@ export function moveFlightCamera(
   if (length < 1e-12) return camera;
   for (let axis = 0; axis < 3; axis++) direction[axis] /= length;
   const viewLevel = camera.viewLevel ?? camera.level;
-  // Collision coordinates follow the exploration scale, so tiny render units
-  // beside a wall cannot shrink a long, unobstructed movement segment.
-  const collisionLevel = Math.floor(viewLevel);
-  const collisionCamera = { ...camera, level: collisionLevel };
-  const distance = flightTravel(collisionCamera, pattern, direction, magnitude);
-  if (distance < 1e-12 * 3 ** (collisionLevel - viewLevel)) return camera;
-  let level = camera.level;
+  const navigationLevel = camera.navigationLevel ?? passageLevel(camera, pattern);
+  // Use units no finer than travel needs, retaining long lateral paths even
+  // when an adjoining wall requires much finer render precision.
+  const collisionLevel = Math.min(camera.level, Math.floor(navigationLevel));
+  const collisionCamera = { ...camera, level: collisionLevel, navigationLevel };
+  const scale = 3 ** (collisionLevel - navigationLevel);
+  const acceleration = FLIGHT_NAVIGATION_RATE * LOG_THREE;
+  const horizon = scale * (4 + (throttle * Math.expm1(acceleration * duration)) / acceleration);
+  const route = flightRoute(collisionCamera, pattern, direction, camera.level, horizon);
+  const travel = flightTravel(route, collisionLevel, navigationLevel, throttle, duration);
+  const margin =
+    (FLIGHT_WALL_MARGIN * 3 ** (collisionLevel - Math.max(navigationLevel, camera.level))) /
+    Math.max(1e-12, Math.abs(direction[route.normalAxis]));
+  const distance = Math.min(travel.distance, Math.max(0, route.wall - margin));
+  if (distance < 1e-12 * 3 ** (collisionLevel - Math.max(navigationLevel, camera.level)))
+    return camera;
+  const level = camera.level;
   const bits = Math.max(camera.bits, bitsForLevel(level), bitsForLevel(collisionLevel));
   const position = camera.position.map(
     (p, axis) =>
@@ -331,16 +467,42 @@ export function moveFlightCamera(
   ) as FlightCamera["position"];
   const limit = BigInt(64) << BigInt(bits);
   if (position.some((p) => p < -limit || p > limit)) return camera;
-  const next = { ...camera, position, bits, viewLevel };
-  const clearance = flightClearance(next, pattern);
-  if (clearance < 0.16 && level < MAX_FLIGHT_LEVEL) level++;
-  else if (clearance > 1.5 && level > 0) level--;
-  const nextBits = Math.max(bits, bitsForLevel(level));
+  return fitFlightPrecision(
+    {
+      ...camera,
+      position,
+      bits,
+      viewLevel,
+      navigationLevel:
+        distance < travel.distance
+          ? Math.min(
+              travel.navigationLevel,
+              collisionLevel -
+                Math.log(FLIGHT_APPROACH_FACTOR * (route.wall - distance)) / LOG_THREE,
+            )
+          : travel.navigationLevel,
+    },
+    pattern,
+  );
+}
+
+/** Keep nearby surfaces in a well-conditioned local coordinate range. The
+ * selected travel/fog scale stays unchanged when approach refines geometry. */
+function fitFlightPrecision(camera: FlightCamera, pattern: VoxelPattern): FlightCamera {
+  const clearance = flightClearance({ ...camera, level: 0 }, pattern);
+  if (clearance <= 0) return camera;
+  const level = Math.max(
+    0,
+    Math.min(MAX_FLIGHT_LEVEL, Math.floor(Math.log(0.5 / clearance) / Math.log(3))),
+  );
+  const bits = Math.max(camera.bits, bitsForLevel(level));
   return {
-    ...next,
-    position: position.map((p) => rescaleFixed(p, bits, nextBits)) as FlightCamera["position"],
-    bits: nextBits,
+    ...camera,
     level,
+    bits,
+    position: camera.position.map((p) =>
+      rescaleFixed(p, camera.bits, bits),
+    ) as FlightCamera["position"],
   };
 }
 
@@ -377,14 +539,19 @@ function moveFlightCameraByClearance(
     ) as FlightCamera["position"];
     const limit = BigInt(64) << BigInt(bits);
     if (position.some((p) => p < -limit || p > limit)) break;
-    next = { ...next, position, bits, level };
+    next = fitFlightPrecision({ ...next, position, bits, level }, pattern);
   }
   return next;
 }
 const worldPosition = (camera: FlightCamera) =>
   camera.position.map((p) => localFloat(p, camera.bits)) as Vec3;
+// Keep scroll-out/page handoff outside the whole fractal, independently of
+// the curated interior entry camera. The clipping sphere encloses the root.
 const zoomRadius = (pattern: VoxelPattern) =>
-  Math.hypot(...worldPosition(initialFlightCamera(pattern)));
+  Math.hypot(
+    3.2,
+    ...(pattern === "menger" ? [0, 0] : pattern === "vicsek" ? [0.7, 0.7] : [0.8, 0.8]),
+  );
 export function atFlightZoomLimit(camera: FlightCamera, pattern: VoxelPattern) {
   return Math.hypot(...worldPosition(camera)) >= zoomRadius(pattern) - 1e-7;
 }
@@ -393,18 +560,26 @@ function dollyScale(camera: FlightCamera, next: FlightCamera, pattern: VoxelPatt
   const before = flightClearance(camera, pattern);
   const after = flightClearance(next, pattern);
   const viewLevel = camera.viewLevel ?? camera.level;
+  const nextViewLevel =
+    before > 0 && after > 0
+      ? Math.max(
+          0,
+          Math.min(
+            MAX_FLIGHT_LEVEL,
+            viewLevel + next.level - camera.level + Math.log(before / after) / LOG_THREE,
+          ),
+        )
+      : viewLevel;
   return {
     ...next,
-    viewLevel:
-      before > 0 && after > 0
-        ? Math.max(
-            0,
-            Math.min(
-              MAX_FLIGHT_LEVEL,
-              viewLevel + next.level - camera.level + Math.log(before / after) / Math.log(3),
-            ),
-          )
-        : viewLevel,
+    viewLevel: nextViewLevel,
+    navigationLevel: Math.max(
+      0,
+      Math.min(
+        MAX_VOXEL_DEPTH,
+        (camera.navigationLevel ?? passageLevel(camera, pattern)) + nextViewLevel - viewLevel,
+      ),
+    ),
   };
 }
 
@@ -448,6 +623,7 @@ export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): Fli
     !finite(value.level, 0, MAX_FLIGHT_LEVEL) ||
     !Number.isInteger(value.level) ||
     (value.viewLevel !== undefined && !finite(value.viewLevel, 0, MAX_FLIGHT_LEVEL)) ||
+    (value.navigationLevel !== undefined && !finite(value.navigationLevel, 0, MAX_VOXEL_DEPTH)) ||
     !finite(value.bits, bitsForLevel(value.level), 2048) ||
     !Number.isInteger(value.bits) ||
     !finite(value.yaw, -1e6, 1e6) ||
@@ -463,7 +639,7 @@ export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): Fli
   const limit = BigInt(64) << BigInt(value.bits);
   if (position.some((p) => p < -limit || p > limit))
     throw new Error("Exploration camera is out of range.");
-  let viewLevel = value.viewLevel ?? value.level;
+  const viewLevel = value.viewLevel ?? value.level;
   if (pattern) {
     const one = BigInt(1) << BigInt(value.bits);
     if (position.every((p) => p >= -one && p <= one)) {
@@ -474,18 +650,21 @@ export function restoreFlightCamera(value: unknown, pattern?: VoxelPattern): Fli
         ) as Vec3;
         if (!keepVoxel(pattern, digit)) break;
       }
-      // Older links can start inside a hole hidden by the new aperture floor.
-      // Reveal that hole before navigating, instead of trapping the camera.
+      // Solid saved addresses have no navigable cavity.
       if (depth > MAX_FLIGHT_LEVEL + FLIGHT_COLLISION_DEPTH) return initialFlightCamera(pattern);
-      viewLevel = Math.max(viewLevel, depth - FLIGHT_COLLISION_DEPTH);
     }
   }
-  return {
+  const camera: FlightCamera = {
     position,
     bits: value.bits,
     level: value.level,
     viewLevel,
+    navigationLevel: value.navigationLevel as number | undefined,
     yaw: value.yaw,
     pitch: value.pitch,
   };
+  camera.navigationLevel ??= pattern
+    ? Math.max(viewLevel, passageLevel(camera, pattern))
+    : viewLevel;
+  return pattern ? fitFlightPrecision(camera, pattern) : camera;
 }

@@ -155,8 +155,13 @@ export function VoxelFlight({
       cameraRef.current = dollyFlightCamera(cameraRef.current, latest.current.pattern, amount);
       dirty.current = true;
     };
-    const move = (motion: Vec3) => {
-      const next = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
+    const move = (motion: Vec3, elapsedSeconds?: number) => {
+      const next = moveFlightCamera(
+        cameraRef.current,
+        latest.current.pattern,
+        motion,
+        elapsedSeconds,
+      );
       if (next !== cameraRef.current) {
         cameraRef.current = next;
         dirty.current = true;
@@ -185,7 +190,7 @@ export function VoxelFlight({
       if (magnitude > 0) {
         const speed =
           (dt * 0.75 * (keys.has("shift") || input.boost ? 4 : 1)) / Math.max(1, magnitude);
-        move(motion.map((component) => component * speed) as Vec3);
+        move(motion.map((component) => component * speed) as Vec3, dt);
       }
       try {
         if (dirty.current) draw();

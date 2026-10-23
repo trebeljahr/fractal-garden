@@ -17,7 +17,7 @@ const {
   PATTERNS,
 } = require("../utils/voxelZoom/camera.ts");
 const { flightAtmosphere } = require("../utils/voxelZoom/atmosphere.ts");
-const { flightResolution } = require("../utils/voxelZoom/resolution.ts");
+const { flightResolution, flightDetailDepth } = require("../utils/voxelZoom/resolution.ts");
 const {
   generateMengerSponge,
   generateVicsekFractal3D,
@@ -198,6 +198,38 @@ for (const [name, pattern, index, position, yaw, pitch] of [
     ],
   });
 }
+// Automatic approach can refine geometry while the explicit scroll scale is
+// unchanged. Verify real retained snowflake faces at deep camera addresses.
+for (const pattern of ["mosely-light", "mosely-heavy"]) {
+  for (const level of [12, 40, 150, 243]) {
+    const one = 1n << 600n;
+    const camera = {
+      position: [0n, (4n * one) / 5n, one + (2n * one) / (5n * 3n ** BigInt(level))],
+      bits: 600,
+      level,
+      viewLevel: 0,
+      yaw: 0,
+      pitch: 0,
+    };
+    const atmosphere = flightAtmosphere(level, level);
+    const frame = buildGridFrame(
+      camera,
+      pattern,
+      flightDetailDepth(0, level),
+      atmosphere.farDistance,
+    );
+    fixtures.push({
+      name: `${pattern} approached boundary at level ${level} without scroll zoom`,
+      level,
+      viewLevel: 0,
+      pattern: PATTERNS.indexOf(pattern),
+      frame: { ...frame, texture: Array.from(frame.texture) },
+      basis: flightBasis(camera),
+      atmosphere,
+      expected: [{ x: 32, y: 32, hit: true, distance: 0.2, brightness: null }],
+    });
+  }
+}
 // The same front-facing sponge, nested 150 times in the retained +++ corner.
 // Rays which hit the standalone copy must hit at the same local distance.
 {
@@ -240,7 +272,7 @@ for (const fixture of fixtures.slice(0, 4)) {
   });
 }
 // Independent slabs exercise the visible haze and horizon at each viewed scale.
-for (const distance of [0.05, 0.1, 1, 4, 8, 16, 24, 31.9, 32, 40]) {
+for (const distance of [0.05, 0.2, 1, 4, 8, 16, 32, 64, 95.9, 96, 100]) {
   const t = distance;
   fixtures.push({
     name: `atmosphere slab at viewed distance ${distance}`,
@@ -257,7 +289,7 @@ for (const distance of [0.05, 0.1, 1, 4, 8, 16, 24, 31.9, 32, 40]) {
       {
         x: 32,
         y: 32,
-        hit: distance < 32,
+        hit: distance < 96,
         distance: t,
         brightness: 0.38 + (0.62 * 0.6) / Math.hypot(-0.5, 0.8, 0.6) + 0.15,
       },
@@ -270,17 +302,17 @@ for (const fixture of fixtures) {
     65,
     65,
     fixture.level ?? 0,
-    fixture.distanceScale ? 0 : (fixture.level ?? 0),
+    fixture.viewLevel ?? (fixture.distanceScale ? 0 : (fixture.level ?? 0)),
   );
   fixture.atmosphere ??= flightAtmosphere(fixture.level ?? 0);
   fixture.expected = fixture.expected.map((ray) => {
     if (!ray.hit || ray.brightness == null) return ray;
-    // Independent exponential haze plus a smooth terminal fade. The original
+    // Independent normalized exponential haze. The original
     // box-intersection oracle still determines geometry and face lighting.
-    const distance = ray.distance / (fixture.distanceScale ?? 1) / 32;
-    const haze = 1 - Math.exp(-7 * Math.max(0, distance - 0.1 / 32));
-    const x = Math.max(0, Math.min(1, (distance - 0.75) / 0.25));
-    const fog = haze + (1 - haze) * x * x * (3 - 2 * x);
+    const distance = ray.distance * fixture.atmosphere.fogDistanceScale;
+    const { fogStart, fogDensity } = fixture.atmosphere;
+    const haze = 1 - Math.exp(-fogDensity * Math.max(0, distance - fogStart));
+    const fog = Math.min(1, haze / (1 - Math.exp(-fogDensity * (1 - fogStart))));
     return { ...ray, brightness: ray.brightness * (1 - fog) };
   });
 }

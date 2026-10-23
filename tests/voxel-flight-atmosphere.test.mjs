@@ -16,6 +16,7 @@ const {
   flightAtmosphere,
   FLIGHT_FAR_DISTANCE,
   FLIGHT_FOG_START,
+  FLIGHT_FOG_DENSITY,
 } = require("../utils/voxelZoom/atmosphere.ts");
 
 test("fog and horizon retain their physical density through render-level changes", () => {
@@ -28,25 +29,20 @@ test("fog and horizon retain their physical density through render-level changes
       assert.ok(
         Math.abs(atmosphere.fogDistanceScale * factor - reference.fogDistanceScale) < 1e-10,
       );
-      assert.equal(atmosphere.fogDensity, 7);
+      assert.equal(atmosphere.fogDensity, FLIGHT_FOG_DENSITY);
       assert.equal(atmosphere.fogStart, FLIGHT_FOG_START / FLIGHT_FAR_DISTANCE);
     }
   }
 });
 
-test("ordinary flight changes precision without morphing the atmosphere", () => {
-  const { initialFlightCamera, moveFlightCamera } = require("../utils/voxelZoom/camera.ts");
-  let camera = initialFlightCamera();
-  const start = flightAtmosphere(camera.level, camera.viewLevel);
-  for (let i = 0; i < 60; i++) {
-    camera = moveFlightCamera(camera, "vicsek", [0, 0, 0.05]);
-    const atmosphere = flightAtmosphere(camera.level, camera.viewLevel);
-    assert.equal(camera.viewLevel, 0);
-    assert.ok(
-      Math.abs(atmosphere.fogDistanceScale * 3 ** camera.level - start.fogDistanceScale) < 1e-10,
-    );
+test("automatic navigation scale changes the horizon continuously at all depths", () => {
+  for (const level of [0, 10, 150, 243]) {
+    const before = flightAtmosphere(level, level);
+    const after = flightAtmosphere(level, level + 0.01);
+    assert.ok(after.farDistance < before.farDistance);
+    assert.ok(Math.abs(after.farDistance / before.farDistance - 3 ** -0.01) < 1e-12);
+    assert.equal(after.fogDensity, before.fogDensity);
   }
-  assert.ok(camera.level > 0);
 });
 
 test("explicit zoom selects a continuous exploration scale", () => {

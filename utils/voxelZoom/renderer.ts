@@ -106,7 +106,8 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API
       gl.useProgram(shader.program);
       gl.viewport(0, 0, w, h);
-      const nextAtmosphere = flightAtmosphere(camera.level, camera.viewLevel ?? camera.level);
+      const navigationLevel = camera.navigationLevel ?? camera.viewLevel ?? camera.level;
+      const nextAtmosphere = flightAtmosphere(camera.level, navigationLevel);
       const basis = flightBasis(camera);
       const visible = flightScreenBounds(
         flightRootBounds(camera),
@@ -129,13 +130,14 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previous?.position !== camera.position ||
         previous?.level !== camera.level ||
         previous?.viewLevel !== camera.viewLevel ||
+        previous?.navigationLevel !== camera.navigationLevel ||
         previous?.bits !== camera.bits ||
         previousPattern !== pattern
       ) {
         frame = buildGridFrame(
           camera,
           pattern,
-          flightDetailDepth(camera.viewLevel ?? camera.level),
+          flightDetailDepth(navigationLevel, camera.level),
           nextAtmosphere.farDistance,
         );
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -154,13 +156,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previousPattern = pattern;
       }
       gl.uniform2f(u.resolution, w, h);
-      const detail = flightResolution(
-        frame.clearance,
-        w,
-        h,
-        camera.level,
-        camera.viewLevel ?? camera.level,
-      );
+      const detail = flightResolution(frame.clearance, w, h, camera.level, navigationLevel);
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);
       gl.uniform1f(u.farDistance, nextAtmosphere.farDistance);

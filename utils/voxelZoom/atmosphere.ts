@@ -1,13 +1,13 @@
 import { LOCAL_COORDINATE_LIMIT } from "./camera";
 
 // Artistic distances in the viewed fractal scale. Never adapt to GPU load.
-export const FLIGHT_FOG_START = 0.1;
-export const FLIGHT_FAR_DISTANCE = 32;
-export const FLIGHT_FOG_DENSITY = 7;
-/** Render units may change near geometry. Only explicit wheel/pinch zoom may
- * change the exploration scale and therefore the physical atmosphere. */
-export function flightAtmosphere(level: number, viewLevel = level) {
-  const fogDistanceScale = 3 ** (viewLevel - level) / FLIGHT_FAR_DISTANCE;
+export const FLIGHT_FOG_START = 0.2;
+export const FLIGHT_FAR_DISTANCE = 96;
+export const FLIGHT_FOG_DENSITY = 4;
+/** Fog follows the smoothly changing navigation scale. Render precision may
+ * change independently without shifting the atmosphere. */
+export function flightAtmosphere(level: number, navigationLevel = level) {
+  const fogDistanceScale = 3 ** (navigationLevel - level) / FLIGHT_FAR_DISTANCE;
   return {
     farDistance: Math.min(LOCAL_COORDINATE_LIMIT, 1 / fogDistanceScale),
     fogDistanceScale,

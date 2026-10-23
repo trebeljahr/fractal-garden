@@ -1,12 +1,12 @@
-import { LOCAL_COORDINATE_LIMIT, MAX_VOXEL_DEPTH } from "./camera";
+import { MAX_VOXEL_DEPTH } from "./camera";
 
-// Approaching a wall must not create finer detail than the selected zoom can
-// resolve. Explicit wheel/pinch zoom still moves this floor continuously.
+// Numerical floor in the local precision scale. Flying toward a surface
+// refines that scale independently of the selected travel and fog scale.
 export const MIN_FLIGHT_DETAIL_DISTANCE = 0.02;
-export function flightDetailDepth(viewLevel: number) {
+export function flightDetailDepth(navigationLevel: number, level = navigationLevel) {
   // At the maximum framebuffer budget, twelve extra subdivisions are already
   // below the minimum pixel cone. Do not build unreachable render levels.
-  return Math.min(MAX_VOXEL_DEPTH, Math.ceil(viewLevel) + 12);
+  return Math.min(MAX_VOXEL_DEPTH, Math.ceil(Math.max(navigationLevel, level)) + 12);
 }
 
 /** Width of a framebuffer pixel's cone for the flight camera's field of view.
@@ -16,12 +16,9 @@ export function flightResolution(
   width: number,
   height: number,
   level = 0,
-  viewLevel = level,
+  navigationLevel = level,
 ) {
   const pixelAngle = 1.16 / Math.max(1, Math.min(width, height));
-  const minimumDistance = Math.min(
-    LOCAL_COORDINATE_LIMIT,
-    MIN_FLIGHT_DETAIL_DISTANCE * 3 ** (level - viewLevel),
-  );
+  const minimumDistance = MIN_FLIGHT_DETAIL_DISTANCE * Math.min(1, 3 ** (level - navigationLevel));
   return { pixelAngle, nearFootprint: Math.max(minimumDistance, clearance) * pixelAngle };
 }
