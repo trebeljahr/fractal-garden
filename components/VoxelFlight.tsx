@@ -3,6 +3,8 @@ import styles from "../styles/VoxelFlight.module.css";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { createZoomWheelGuard } from "../utils/shouldZoomWheel";
 import {
+  atFlightZoomLimit,
+  dollyFlightCamera,
   type FlightCamera,
   initialFlightCamera,
   moveFlightCamera,
@@ -13,12 +15,40 @@ import {
 } from "../utils/voxelZoom/camera";
 import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/renderer";
 
+import {
+  FlightTouchControls,
+  type FlightTouchInput,
+  resetFlightTouch,
+} from "./FlightTouchControls";
+
+const flightKey = (event: KeyboardEvent) => {
+  const aliases: Record<string, string> = {
+    KeyW: "w",
+    KeyA: "a",
+    KeyS: "s",
+    KeyD: "d",
+    KeyC: "c",
+    KeyQ: "q",
+    KeyE: "e",
+    Space: " ",
+    ShiftLeft: "shift",
+    ShiftRight: "shift",
+    ArrowUp: "w",
+    ArrowDown: "s",
+    ArrowLeft: "a",
+    ArrowRight: "d",
+  };
+  return aliases[event.code] ?? event.key.toLowerCase();
+};
+
 export function FlightInstructions() {
   return (
     <p className={styles.instructions} id="flight-instructions">
-      Click the view to capture the mouse. Move the mouse to look, WASD to fly, Q/E to move down/up.
-      Hold Shift to fly faster. Esc releases the mouse. Scroll or pinch to move; drag to look on
-      touch screens or when capture is unavailable. Back outside ends Explore.
+      Click the view to capture the mouse. Move the mouse to look, WASD to fly, Space to go up, C to
+      go down. Hold Shift to fly faster. Esc releases the mouse. Scroll or pinch to move; drag to
+      look on touch screens or when capture is unavailable. On mobile, use the Move and Look sticks,
+      Up/Down, and hold Fast for a speed boost. Scroll out to the opening distance to scroll the
+      page. Back outside ends Explore.
     </p>
   );
 }
@@ -39,6 +69,13 @@ export function VoxelFlight({
   latest.current = { pattern, style, width, height };
   const dirty = useRef(true);
   const held = useRef(new Set<string>());
+  const touch = useRef<FlightTouchInput>({
+    move: [0, 0],
+    look: [0, 0],
+    up: false,
+    down: false,
+    boost: false,
+  });
   const [error, setError] = useState("");
   useExplorerPart(
     "voxelCamera",
@@ -69,6 +106,7 @@ export function VoxelFlight({
     let pointerType = "";
     const release = () => {
       held.current.clear();
+      resetFlightTouch(touch.current);
       pointers.clear();
       if (document.pointerLockElement === canvas) document.exitPointerLock();
     };
@@ -102,6 +140,7 @@ export function VoxelFlight({
     };
     const lockChanged = () => {
       held.current.clear();
+      resetFlightTouch(touch.current);
       pointers.clear();
     };
     const click = (event: MouseEvent) => {
@@ -111,6 +150,10 @@ export function VoxelFlight({
       if (document.pointerLockElement !== canvas) return;
       event.preventDefault();
       event.stopPropagation();
+    };
+    const dolly = (amount: number) => {
+      cameraRef.current = dollyFlightCamera(cameraRef.current, latest.current.pattern, amount);
+      dirty.current = true;
     };
     const move = (motion: Vec3) => {
       cameraRef.current = moveFlightCamera(cameraRef.current, latest.current.pattern, motion);
@@ -127,14 +170,18 @@ export function VoxelFlight({
       const dt = Math.min(0.1, (now - previous) / 1000);
       previous = now;
       const keys = held.current;
+      const input = touch.current;
+      if (input.look[0] || input.look[1]) look(input.look[0] * dt * 600, input.look[1] * dt * 600);
       const motion: Vec3 = [
-        Number(keys.has("d")) - Number(keys.has("a")),
-        Number(keys.has("e")) - Number(keys.has("q")),
-        Number(keys.has("w")) - Number(keys.has("s")),
+        Number(keys.has("d")) - Number(keys.has("a")) + input.move[0],
+        Number(keys.has(" ") || keys.has("e") || input.up) -
+          Number(keys.has("c") || keys.has("q") || input.down),
+        Number(keys.has("w")) - Number(keys.has("s")) - input.move[1],
       ];
       const magnitude = Math.hypot(...motion);
       if (magnitude > 0) {
-        const speed = (dt * 4 * (keys.has("shift") ? 4 : 1)) / magnitude;
+        const speed =
+          (dt * 4 * (keys.has("shift") || input.boost ? 4 : 1)) / Math.max(1, magnitude);
         move(motion.map((component) => component * speed) as Vec3);
       }
       try {
@@ -183,11 +230,8 @@ export function VoxelFlight({
       const short = Math.min(latest.current.width, latest.current.height);
       if (oldCenter) {
         const center = centroid();
-        move([
-          (-(center.x - oldCenter.x) / short) * 2,
-          ((center.y - oldCenter.y) / short) * 2,
-          Math.log(Math.max(1, center.span) / Math.max(1, oldCenter.span)) * 3,
-        ]);
+        move([(-(center.x - oldCenter.x) / short) * 2, ((center.y - oldCenter.y) / short) * 2, 0]);
+        dolly(Math.log(Math.max(1, center.span) / Math.max(1, oldCenter.span)) * 3);
       } else if (event.shiftKey)
         move([(-(event.clientX - last.x) / short) * 2, ((event.clientY - last.y) / short) * 2, 0]);
       else look(event.clientX - last.x, event.clientY - last.y);
@@ -195,31 +239,39 @@ export function VoxelFlight({
     const up = (event: PointerEvent) => pointers.delete(event.pointerId);
     const guard = createZoomWheelGuard(canvas);
     const wheel = (event: WheelEvent) => {
-      if (!guard.shouldZoom(event, false)) return;
+      if (!guard.shouldZoom(event, atFlightZoomLimit(cameraRef.current, latest.current.pattern)))
+        return;
       event.preventDefault();
       canvas.focus({ preventScroll: true });
       const units = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? latest.current.height : 1;
-      move([
-        0,
-        0,
-        Math.max(-3, Math.min(3, -event.deltaY * units * (event.ctrlKey ? 0.02 : 0.012))),
-      ]);
+      dolly(Math.max(-3, Math.min(3, -event.deltaY * units * (event.ctrlKey ? 0.02 : 0.012))));
     };
     const keydown = (event: KeyboardEvent) => {
-      if (event.target !== canvas || event.metaKey || event.ctrlKey || event.altKey) return;
-      const key = event.key.toLowerCase();
+      if (
+        (event.target !== canvas && document.pointerLockElement !== canvas) ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      )
+        return;
+      const key = flightKey(event);
+      // Shift may already be held when the view receives focus.
+      if (event.shiftKey) held.current.add("shift");
+      else held.current.delete("shift");
       if (key === "escape") {
         release();
       }
       if (key === "enter") capture();
-      if (["w", "a", "s", "d", "q", "e", "shift"].includes(key)) {
+      if (["w", "a", "s", "d", "q", "e", "c", " ", "shift"].includes(key)) {
         event.preventDefault();
+        event.stopPropagation();
         held.current.add(key);
       }
     };
-    const keyup = (event: KeyboardEvent) => held.current.delete(event.key.toLowerCase());
+    const keyup = (event: KeyboardEvent) => held.current.delete(flightKey(event));
     const blur = () => {
       held.current.clear();
+      resetFlightTouch(touch.current);
       pointers.clear();
     };
     const visibility = () => {
@@ -253,7 +305,7 @@ export function VoxelFlight({
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("lostpointercapture", up);
     canvas.addEventListener("wheel", wheel, { passive: false });
-    canvas.addEventListener("keydown", keydown);
+    window.addEventListener("keydown", keydown, true);
     canvas.addEventListener("blur", release);
     canvas.addEventListener("webglcontextlost", lost);
     canvas.addEventListener("webglcontextrestored", restored);
@@ -268,8 +320,10 @@ export function VoxelFlight({
     canvas.focus({ preventScroll: true });
     return () => {
       disposed = true;
+      guard.dispose();
       cancelAnimationFrame(frame);
       held.current.clear();
+      resetFlightTouch(touch.current);
       renderer?.destroy();
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("click", click);
@@ -279,7 +333,7 @@ export function VoxelFlight({
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
       canvas.removeEventListener("wheel", wheel);
-      canvas.removeEventListener("keydown", keydown);
+      window.removeEventListener("keydown", keydown, true);
       canvas.removeEventListener("blur", release);
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", restored);
@@ -314,43 +368,7 @@ export function VoxelFlight({
           {error}
         </output>
       )}
-      <fieldset
-        className={styles.movement}
-        aria-label="Move through the fractal"
-        data-fractal-chrome
-      >
-        {[
-          ["a", "Move left", "←"],
-          ["w", "Move forward", "↑"],
-          ["s", "Move backward", "↓"],
-          ["d", "Move right", "→"],
-        ].map(([key, label, icon]) => (
-          <button
-            key={key}
-            type="button"
-            aria-label={label}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              event.currentTarget.setPointerCapture(event.pointerId);
-              held.current.add(key);
-            }}
-            onPointerUp={() => held.current.delete(key)}
-            onPointerCancel={() => held.current.delete(key)}
-            onLostPointerCapture={() => held.current.delete(key)}
-            onBlur={() => held.current.delete(key)}
-            onClick={() => {
-              cameraRef.current = moveFlightCamera(cameraRef.current, pattern, [
-                key === "a" ? -0.2 : key === "d" ? 0.2 : 0,
-                0,
-                key === "w" ? 0.2 : key === "s" ? -0.2 : 0,
-              ]);
-              dirty.current = true;
-            }}
-          >
-            {icon}
-          </button>
-        ))}
-      </fieldset>
+      <FlightTouchControls input={touch.current} />
     </div>
   );
 }

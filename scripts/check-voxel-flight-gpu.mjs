@@ -135,6 +135,15 @@ for (const [name, pattern, index, position, yaw, pitch] of [
     expected: fixtures[0].expected.filter((ray) => ray.hit),
   });
 }
+// Distance culling must stop rays before a remote root box, for every rule.
+for (const fixture of fixtures.slice(0, 4)) {
+  fixtures.push({
+    ...fixture,
+    name: `${fixture.name} beyond fog range`,
+    viewDistance: 0.25,
+    expected: fixture.expected.map((ray) => ({ ...ray, hit: false, distance: null })),
+  });
+}
 async function check(payload) {
   const canvas = document.createElement("canvas");
   canvas.width = 65;
@@ -178,6 +187,7 @@ async function check(payload) {
   try {
     for (const fixture of payload.fixtures) {
       const { frame, basis } = fixture;
+      gl.uniform1f(u("viewDistance"), fixture.viewDistance ?? 512);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,

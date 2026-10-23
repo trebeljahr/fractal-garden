@@ -139,7 +139,7 @@ export const NavElement = () => {
   }, [router, prev, next]);
 
   return (
-    <nav aria-label="Fractal navigation" data-fractal-chrome>
+    <nav className={styles.navigation} aria-label="Fractal navigation" data-fractal-chrome>
       <Link
         className={`${styles.linkButton} ${styles.previous}`}
         href={prev}

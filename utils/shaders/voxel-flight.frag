@@ -1,5 +1,6 @@
 precision highp float;
 uniform vec2 u_resolution;
+uniform float u_viewDistance;
 uniform sampler2D u_grid;
 uniform int u_levels;
 uniform int u_pattern;
@@ -64,7 +65,7 @@ void main() {
     vec3 entry = min(a, b);
     vec3 exitAt = max(a, b);
     float near = max(max(entry.x, entry.y), entry.z);
-    float far = min(512.0, min(min(exitAt.x, exitAt.y), exitAt.z));
+    float far = min(u_viewDistance, min(min(exitAt.x, exitAt.y), exitAt.z));
     vec3 normal = entry.x >= entry.y && entry.x >= entry.z ? vec3(-sign(ray.x), 0.0, 0.0)
         : entry.y >= entry.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
     float t = max(0.0, near);
@@ -81,9 +82,9 @@ void main() {
       normal = rootNormal;
       shadeNormal = rootNormal;
       if (far > t) {
-        for (int stepIndex = 0; stepIndex < 384; stepIndex++) {
+        for (int stepIndex = 0; stepIndex < 512; stepIndex++) {
             if (t >= far) break;
-            footprint = max(1e-6, t * 1.16 / min(u_resolution.x, u_resolution.y)) * (attempt == 0 ? 1.0 : 4.0);
+            footprint = max(1e-6, t * 1.16 / min(u_resolution.x, u_resolution.y)) * (attempt == 0 ? 1.0 : 8.0);
             vec3 p = ray * (t + footprint * 0.025);
             bool empty = false;
             for (int level = 0; level < 256; level++) {
@@ -109,11 +110,11 @@ void main() {
                     empty = true;
                     break;
                 }
-                if (size > footprint * (u_faces ? 24.0 : 8.0)) {
+                if (size > footprint * 6.0) {
                     local = (p - low) / size;
                     cellSize = size;
                 }
-                if (size < footprint * 3.0) break;
+                if (size < footprint) break;
             }
             if (!empty) { hit = true; break; }
         }
@@ -122,7 +123,7 @@ void main() {
     }
     vec3 color = u_background;
     if (hit) {
-        float ambient = ambientVisibility(ray * t, normal, max(footprint * 12.0, cellSize * 0.2));
+        float ambient = ambientVisibility(ray * t, normal, footprint * 12.0);
         float diffuse = max(0.0, dot(shadeNormal, normalize(vec3(-0.65, 1.0, 0.45))));
         float facing = 0.12 * max(0.0, dot(shadeNormal, -ray));
         float light = (0.2 + 0.78 * diffuse + facing) * ambient;
@@ -134,8 +135,10 @@ void main() {
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
-        float fog = 1.0 - exp(-t / 18.0);
-        color = mix(color, u_background, fog * 0.65);
+        // Geometry is fully hidden before the traversal cutoff. Both distances
+        // follow clearance, so approaching detail shrinks the visible world.
+        float fog = smoothstep(u_viewDistance * 0.25, u_viewDistance, t);
+        color = mix(color, u_background, fog);
     }
     gl_FragColor = vec4(color, 1.0);
 }

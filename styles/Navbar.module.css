@@ -1,7 +1,15 @@
+.navigation {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100vh;
+  pointer-events: none;
+}
+
 .linkButton {
   composes: button from "./ExplorerButton.module.css";
   bottom: max(var(--explorer-nav-gap), env(safe-area-inset-bottom));
-  position: fixed;
+  position: absolute;
+  pointer-events: auto;
   z-index: 30;
   display: grid;
   grid-template-columns: minmax(0, auto) 40px;

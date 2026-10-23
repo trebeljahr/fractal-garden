@@ -40,7 +40,7 @@
   color: var(--explorer-accent);
 }
 .navigation:focus-visible,
-.movement button:focus-visible {
+.touchControls button:focus-visible {
   outline: 2px solid var(--explorer-accent);
   outline-offset: -2px;
 }
@@ -53,35 +53,79 @@
     sans-serif;
   border-top: 1px solid rgba(245, 241, 209, 0.12);
 }
-.movement {
-  border: 0;
-  margin: 0;
-  padding: 0;
+.touchControls {
   position: absolute;
   z-index: 22;
-  left: 50%;
-  bottom: calc(var(--explorer-nav-height) + var(--explorer-nav-gap) + 16px);
-  transform: translateX(-50%);
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(var(--explorer-nav-height) + var(--explorer-nav-gap) + 32px);
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.touchControls button {
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  color: var(--explorer-ink);
+  border: 1px solid rgba(245, 241, 209, 0.5);
+  background: rgba(13, 22, 32, 0.75);
+  font:
+    500 12px "Montserrat",
+    sans-serif;
+}
+.stick {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(92px, 23vw, 128px);
+  height: clamp(92px, 23vw, 128px);
+  padding: 0;
+  border-radius: 50%;
+}
+.stickKnob {
+  position: absolute;
+  left: 30%;
+  top: 30%;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: var(--explorer-ink);
+  border: 1px solid rgba(245, 241, 209, 0.8);
+  pointer-events: none;
+}
+.stickLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -24px;
+  text-align: center;
+  pointer-events: none;
+}
+.flightButtons {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
-.movement button {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid rgba(245, 241, 209, 0.24);
-  border-radius: 3px;
-  color: var(--explorer-ink);
-  background: var(--explorer-surface);
-  font:
-    20px "Montserrat",
-    sans-serif;
-  cursor: pointer;
-  touch-action: none;
+.flightButtons button {
+  min-width: 48px;
+  min-height: 44px;
+  padding: 6px;
+  border-radius: 4px;
 }
-.movement button:active {
+.touchControls button:active {
+  border-color: var(--explorer-accent);
   color: var(--explorer-accent);
-  background: var(--explorer-field);
+}
+.touchControls button:focus-visible {
+  outline: 2px solid var(--explorer-accent);
+  outline-offset: 3px;
 }
 .error {
   position: absolute;
@@ -97,10 +141,7 @@
   border-left: 2px solid var(--explorer-accent);
 }
 @media (hover: hover) and (pointer: fine) {
-  .movement {
-    border: 0;
-    margin: 0;
-    padding: 0;
+  .touchControls {
     display: none;
   }
 }

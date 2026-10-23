@@ -5,6 +5,7 @@ import {
   buildGridFrame,
   type FlightCamera,
   flightBasis,
+  flightViewDistance,
   MAX_VOXEL_DEPTH,
   PATTERNS,
   type VoxelPattern,
@@ -55,6 +56,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     gl.texParameteri(gl.TEXTURE_2D, name, gl.CLAMP_TO_EDGE);
   const names = [
     "resolution",
+    "viewDistance",
     "grid",
     "levels",
     "pattern",
@@ -88,7 +90,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       ratio: number,
     ) {
       // A fixed pixel budget bounds per-frame traversal on high-DPI displays.
-      const scale = Math.min(ratio, Math.sqrt(900_000 / Math.max(1, width * height)));
+      const scale = Math.min(ratio, 2, Math.sqrt(2_500_000 / Math.max(1, width * height)));
       const w = Math.max(1, Math.round(width * scale)),
         h = Math.max(1, Math.round(height * scale));
       if (gl.canvas.width !== w || gl.canvas.height !== h) {
@@ -122,6 +124,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       }
       const basis = flightBasis(camera);
       gl.uniform2f(u.resolution, w, h);
+      gl.uniform1f(u.viewDistance, flightViewDistance(frame.clearance));
       gl.uniform1i(u.grid, 0);
       gl.uniform1i(u.levels, frame.levels.length);
       gl.uniform1i(u.pattern, PATTERNS.indexOf(pattern));

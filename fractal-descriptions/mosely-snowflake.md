@@ -22,6 +22,8 @@ Eric Baird describes both the outer profile in [The Impossible Snowflake](https:
 
 ## Explore the interior
 
-Choose **Explore inside**, then click the view to capture the mouse. Move the mouse to look around without holding a button. Use WASD to fly, Q/E to move down or up, and Shift to fly faster. Press Esc to release the mouse and reach the page controls. Scroll to move forward or backward. On a touch screen, drag to look, pinch to move, or hold the movement buttons. Drag controls also work when mouse capture is unavailable.
+Choose **Explore inside**, then click the view to capture the mouse. Move the mouse to look around without holding a button. Use WASD to fly, Space to go up, C to go down, and hold Shift to fly faster. Press Esc to release the mouse and reach the page controls. Scroll to move forward or backward. At the opening distance, scroll out again to move down the page.
 
-Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Detail smaller than a few screen pixels is omitted, and difficult views can draw more coarsely. Choose **Back outside** to return to the whole shape.
+On a touch screen, use the left stick to move and the right stick to look. Hold Up or Down to change height, and Fast to fly faster. Dragging the view and pinching also work. Drag controls also work when mouse capture is unavailable.
+
+Smaller subdivisions appear near visible surfaces. Movement slows as you approach them. This view adds local detail instead of building the whole shape at every level. Fog hides distant geometry and draws closer as you approach smaller details. Nearby detail follows the screen resolution. Choose **Back outside** to return to the whole shape.

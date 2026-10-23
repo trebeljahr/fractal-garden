@@ -199,7 +199,7 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={[exploring ? "Click to capture mouse. WASD to fly. Esc releases." : hint]}
+        lines={[exploring ? "WASD or touch sticks to fly. Shift / Fast boosts." : hint]}
         places={
           pattern && (
             <button

@@ -181,3 +181,53 @@ test("boosted movement remains outside a solid surface", () => {
   assert.ok(camera.position[2] > 1n << BigInt(camera.bits));
   assert.ok(camera.level > 20);
 });
+
+test("fog follows physical clearance across local-scale changes", () => {
+  const { flightViewDistance } = require("../utils/voxelZoom/camera.ts");
+  for (const clearance of [0.06, 0.12, 0.4, 1.2]) {
+    assert.ok(
+      Math.abs(flightViewDistance(clearance * 3) / 3 - flightViewDistance(clearance)) < 1e-12,
+    );
+  }
+  assert.ok(flightViewDistance(0.1) < flightViewDistance(1));
+  assert.equal(flightViewDistance(1000), 512);
+});
+
+test("wheel travel stops at the opening distance from every direction", () => {
+  const { dollyFlightCamera, atFlightZoomLimit } = require("../utils/voxelZoom/camera.ts");
+  const radius = (camera) =>
+    Math.hypot(
+      ...camera.position.map((p) => {
+        const [m, e] = fixedToFloatExp(p, camera.bits);
+        return m * 2 ** e;
+      }),
+    );
+  for (const pattern of PATTERNS) {
+    const initial = initialFlightCamera(pattern);
+    assert.ok(atFlightZoomLimit(initial, pattern));
+    assert.deepEqual(dollyFlightCamera(initial, pattern, -3), initial);
+    let camera = dollyFlightCamera(initial, pattern, 0.3);
+    assert.ok(!atFlightZoomLimit(camera, pattern));
+    for (let i = 0; i < 20; i++) camera = dollyFlightCamera(camera, pattern, -3);
+    assert.ok(atFlightZoomLimit(camera, pattern));
+    assert.ok(radius(camera) <= radius(initial) + 1e-7);
+    assert.ok(!atFlightZoomLimit(dollyFlightCamera(camera, pattern, 0.1), pattern));
+    // Looking away reverses which wheel direction travels out. The same bound applies.
+    camera = { ...initial, yaw: Math.PI };
+    assert.deepEqual(dollyFlightCamera(camera, pattern, 3), camera);
+    const free = moveFlightCamera(initial, pattern, [0, 0, -1]);
+    assert.ok(radius(free) > radius(initial), "keyboard flight remains free");
+  }
+});
+
+test("height controls move vertically even when looking up or down", () => {
+  for (const pitch of [-1.4, 0.8, 1.4]) {
+    const camera = { ...initialFlightCamera(), pitch, yaw: 0.7 };
+    for (const vertical of [-1, 1]) {
+      const moved = moveFlightCamera(camera, "menger", [0, vertical * 0.1, 0]);
+      assert.equal(moved.position[0], camera.position[0]);
+      assert.equal(moved.position[2], camera.position[2]);
+      assert.equal(moved.position[1] > camera.position[1], vertical > 0);
+    }
+  }
+});

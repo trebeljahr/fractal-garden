@@ -193,10 +193,13 @@ export function moveFlightCamera(
 ): FlightCamera {
   const magnitude = Math.hypot(...motion);
   if (!Number.isFinite(magnitude) || magnitude === 0) return camera;
-  const { right, up, forward } = flightBasis(camera);
+  const { right, forward } = flightBasis(camera);
   const direction = right.map(
-    (v, axis) => (v * motion[0] + up[axis] * motion[1] + forward[axis] * motion[2]) / magnitude,
+    (v, axis) => v * motion[0] + (axis === 1 ? motion[1] : 0) + forward[axis] * motion[2],
   ) as Vec3;
+  const length = Math.hypot(...direction);
+  if (length < 1e-12) return camera;
+  for (let axis = 0; axis < 3; axis++) direction[axis] /= length;
   const steps = Math.min(24, Math.max(1, Math.ceil(magnitude / 0.1)));
   let next = camera;
   for (let step = 0; step < steps; step++) {
@@ -219,6 +222,45 @@ export function moveFlightCamera(
   }
   return next;
 }
+/** Fog and culling share a distance measured in the camera's current local units.
+ * Clearance rescales continuously across subdivision boundaries. */
+export function flightViewDistance(clearance: number) {
+  return Math.min(LOCAL_FAR, Math.max(1e-5, clearance * 24));
+}
+
+const worldPosition = (camera: FlightCamera) =>
+  camera.position.map((p) => localFloat(p, camera.bits)) as Vec3;
+const zoomRadius = (pattern: VoxelPattern) =>
+  Math.hypot(...worldPosition(initialFlightCamera(pattern)));
+export function atFlightZoomLimit(camera: FlightCamera, pattern: VoxelPattern) {
+  return Math.hypot(...worldPosition(camera)) >= zoomRadius(pattern) - 1e-7;
+}
+
+/** Wheel and pinch stop at the opening distance; free flight remains unrestricted. */
+export function dollyFlightCamera(camera: FlightCamera, pattern: VoxelPattern, amount: number) {
+  const next = moveFlightCamera(camera, pattern, [0, 0, amount]);
+  const start = worldPosition(camera),
+    end = worldPosition(next);
+  const radius = Math.max(zoomRadius(pattern), Math.hypot(...start));
+  if (Math.hypot(...end) <= radius) return next;
+  // The limiting sphere lies entirely outside the root cube. The segment
+  // from the safely integrated camera to its boundary cannot cross geometry.
+  const delta = end.map((v, axis) => v - start[axis]);
+  const a = delta.reduce((sum, v) => sum + v * v, 0);
+  if (!a) return camera;
+  const b = start.reduce((sum, v, axis) => sum + v * delta[axis], 0);
+  const c = start.reduce((sum, v) => sum + v * v, 0) - radius * radius;
+  const fraction = Math.max(0, Math.min(1, (-b + Math.sqrt(Math.max(0, b * b - a * c))) / a));
+  if (fraction < 1e-9) return camera;
+  return {
+    ...next,
+    position: next.position.map((p, axis) => {
+      const from = rescaleFixed(camera.position[axis], camera.bits, next.bits);
+      return from + ((p - from) * BigInt(Math.round(fraction * 1e9))) / BigInt(1e9);
+    }) as FlightCamera["position"],
+  };
+}
+
 export function serializeFlightCamera(camera: FlightCamera) {
   return { ...camera, kind: "voxel-flight", position: camera.position.map((p) => p.toString(16)) };
 }
