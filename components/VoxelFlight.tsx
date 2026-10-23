@@ -155,6 +155,7 @@ export function VoxelFlight({
     const wheel = (event: WheelEvent) => {
       if (!guard.shouldZoom(event, false)) return;
       event.preventDefault();
+      canvas.focus({ preventScroll: true });
       const units = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? latest.current.height : 1;
       move([
         0,
