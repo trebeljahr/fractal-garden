@@ -1,17 +1,16 @@
-import { useCallback, useState } from "react";
-import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
+import { useState } from "react";
+import { PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   color: string;
   holeColor: string;
   background: string;
@@ -27,14 +26,13 @@ const MAX_ITERATIONS = 5;
 const SierpinskiCarpetComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: MIN_ITERATIONS,
-    animateIterations: false,
     color: "#ffe100",
     background: "#252424",
     holeColor: "#000000",
   });
   const { width, height } = useFractalViewportSize();
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "sierpinskiCarpet",
     storageKey: "sierpinski-carpet",
     config,
@@ -47,10 +45,6 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
     stepDelay: 2000,
     holdDelay: 2000,
   });
-
-  const onZoomActive = useCallback(() => {
-    setConfig((old) => ({ ...old, animateIterations: false }));
-  }, []);
 
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({ ...prevState, ...newData }));
@@ -73,7 +67,6 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
             max={MAX_ITERATIONS}
             step={1}
           />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelColor path="color" />
           <PanelColor path="holeColor" />
         </ExplorerPanel>
@@ -83,12 +76,7 @@ const SierpinskiCarpetComponent = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom
-          pattern={{ kind: "carpet", config }}
-          width={width}
-          height={height}
-          onActive={onZoomActive}
-        />
+        <RecursivePatternZoom pattern={{ kind: "carpet", config }} width={width} height={height} />
         <SideDrawer description={description} />
 
         <NavElement />

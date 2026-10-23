@@ -4,8 +4,8 @@ import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../../utils/hooks/useOrbitZoomControls";
 import { getDescription } from "../../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../../utils/render/polylineScene";
@@ -16,7 +16,6 @@ type Props = {
 
 type Config = Polyline3DSceneConfig & {
   iterations: number;
-  animateIterations: boolean;
 };
 
 const MIN_ITERATIONS = 1;
@@ -24,7 +23,6 @@ const MAX_ITERATIONS = 5;
 
 const INITIAL_CONFIG: Config = {
   iterations: MIN_ITERATIONS,
-  animateIterations: false,
   animateTrail: false,
   trailSpeed: 20,
   autoRotate: false,
@@ -47,7 +45,7 @@ const HilbertCurve3D = ({ description }: Props) => {
     [config],
   );
 
-  const { containerRef, canvas, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas } = useFractalRenderer({
     kind: "polylineScene",
     storageKey: "hilbert-curve-3d",
     config,
@@ -86,9 +84,6 @@ const HilbertCurve3D = ({ description }: Props) => {
         onUpdate={handleUpdate}
       >
         <PanelNumber path="iterations" min={MIN_ITERATIONS} max={MAX_ITERATIONS} step={1} />
-        <PanelBoolean path="animateIterations" label={animateLabel} />
-        <PanelBoolean path="animateTrail" label="Animate trail" />
-        <PanelNumber path="trailSpeed" label="Trail speed" min={1} max={400} step={1} />
         <PanelBoolean path="autoRotate" />
         <PanelNumber path="rotationX" min={-85} max={85} step={1} />
         <PanelNumber path="rotationY" min={-180} max={180} step={1} />

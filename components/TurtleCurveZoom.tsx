@@ -1,10 +1,9 @@
-import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { fittedFrame, turtleSpec } from "../utils/lsystem/pageZoom";
 import { EndlessZoom } from "./EndlessZoom";
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   color: string;
   background: string;
   lineWidth: number;
@@ -21,7 +20,6 @@ type Props<C extends Config> = {
   // a tiny span, utils/turtleCurves.ts with 1.
   minSpan: number;
   config: C;
-  setConfig: Dispatch<SetStateAction<C>>;
   width: number | null;
   height: number | null;
 };
@@ -38,7 +36,6 @@ export function TurtleCurveZoom<C extends Config>({
   draw = "FG",
   minSpan,
   config,
-  setConfig,
   width,
   height,
 }: Props<C>) {
@@ -62,14 +59,6 @@ export function TurtleCurveZoom<C extends Config>({
     () => fittedFrame(spec, config.iterations, width ?? 0, height ?? 0, PADDING, minSpan),
     [spec, config.iterations, width, height, minSpan],
   );
-  // Growing further while zoomed in would pull the picture away.
-  const onActiveChange = useCallback(
-    (active: boolean) => {
-      if (active) setConfig((old) => ({ ...old, animateIterations: false }));
-    },
-    [setConfig],
-  );
-
   return (
     <EndlessZoom
       spec={spec}
@@ -77,7 +66,6 @@ export function TurtleCurveZoom<C extends Config>({
       frame={frame}
       width={width}
       height={height}
-      onActiveChange={onActiveChange}
     />
   );
 }

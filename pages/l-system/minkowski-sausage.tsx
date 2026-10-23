@@ -5,8 +5,8 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -16,7 +16,6 @@ type Props = {
 type Config = {
   iterations: number;
   island: boolean;
-  animateIterations: boolean;
   background: string;
   color: string;
   lineWidth: number;
@@ -29,13 +28,12 @@ const MinkowskiSausage = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 1,
     island: false,
-    animateIterations: false,
     background: "#252424",
     color: "#ff8fab",
     lineWidth: 1.5,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "minkowskiSausage",
     storageKey: `minkowski-sausage:${config.island ? "island" : "sausage"}`,
     config,
@@ -62,7 +60,6 @@ const MinkowskiSausage = ({ description }: Props) => {
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
           <PanelBoolean path="island" label="Minkowski island" />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div
           data-fractal-viewport
@@ -78,7 +75,6 @@ const MinkowskiSausage = ({ description }: Props) => {
           draw={"FG"}
           minSpan={1e-9}
           config={config}
-          setConfig={setConfig}
           width={width}
           height={height}
         />

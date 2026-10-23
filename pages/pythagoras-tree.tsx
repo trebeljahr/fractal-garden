@@ -6,15 +6,14 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import type { CanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 import { PYTHAGORAS_MAX_ITERATIONS as MAX_ITERATIONS } from "../utils/render/drawings/pythagorasTree";
 
 type Config = {
   viewport?: CanvasViewport;
   iterations: number;
-  animateIterations: boolean;
   angle: number;
   background: string;
   fillTriangles: boolean;
@@ -28,7 +27,6 @@ type Props = {
 const PythagorasTreeComponent = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: false,
     angle: 45,
     background: "#252424",
     fillTriangles: true,
@@ -37,7 +35,7 @@ const PythagorasTreeComponent = ({ description }: Props) => {
 
   const { width, height } = useFractalViewportSize();
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useFractalRenderer({
     kind: "pythagorasTree",
     storageKey: "pythagoras-tree",
     config,
@@ -66,7 +64,6 @@ const PythagorasTreeComponent = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelNumber path="angle" min={30} max={60} step={1} />
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelBoolean path="fillTriangles" />
           <PanelBoolean path="fillSquares" />
         </ExplorerPanel>

@@ -1,19 +1,18 @@
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { fittedFrame, type ZoomFrame } from "../utils/lsystem/pageZoom";
 import { DEFAULT_SPEC, dimensionOf, type LSystemSpec } from "../utils/lsystem/spec";
 import type { LSystem2DParams } from "../utils/render/lsystem2d";
 import { EndlessZoom } from "./EndlessZoom";
-import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
+import { PanelColor, PanelNumber } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { FractalPaletteContext } from "./FractalPalette";
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   background: string;
   ruleset: Ruleset;
 };
@@ -89,7 +88,6 @@ const LSystem = ({ ruleset, children }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
     iterations: minVisibleIteration,
-    animateIterations: false,
     background: "#252424",
     ruleset: ruleset,
   }));
@@ -141,7 +139,7 @@ const LSystem = ({ ruleset, children }: Props) => {
     };
   }, [config, width, height, fitted]);
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "lsystem2d",
     storageKey: `l-system:${ruleset.axiom}:${JSON.stringify(ruleset.replace)}`,
     config,
@@ -185,11 +183,6 @@ const LSystem = ({ ruleset, children }: Props) => {
     }),
     [params, generation],
   );
-  // Growing further while zoomed in would pull the picture away.
-  const onZoomActive = useCallback((active: boolean) => {
-    if (active) setConfig((old) => ({ ...old, animateIterations: false }));
-  }, []);
-
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({
       ...prevState,
@@ -214,7 +207,6 @@ const LSystem = ({ ruleset, children }: Props) => {
           max={config.ruleset.maxIterations}
           step={1}
         />
-        <PanelBoolean path="animateIterations" label={animateLabel} />
       </ExplorerPanel>
 
       <div
@@ -230,7 +222,6 @@ const LSystem = ({ ruleset, children }: Props) => {
           frame={zoomFrame}
           width={width}
           height={height}
-          onActiveChange={onZoomActive}
         />
       )}
       {children}

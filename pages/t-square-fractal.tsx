@@ -1,12 +1,12 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   ratio: number;
   background: string;
   color: string;
@@ -30,7 +29,6 @@ const TSquareFractal = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: false,
     ratio: 0.5,
     background: "#252424",
     color: "#ffffff",
@@ -39,7 +37,7 @@ const TSquareFractal = ({ description }: Props) => {
     lineWidth: 0.8,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "tSquare",
     storageKey: "t-square-fractal",
     config,
@@ -50,10 +48,6 @@ const TSquareFractal = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 850,
   });
-
-  const onZoomActive = useCallback(() => {
-    setConfig((old) => ({ ...old, animateIterations: false }));
-  }, []);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));
@@ -68,7 +62,6 @@ const TSquareFractal = ({ description }: Props) => {
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
           <PanelNumber path="ratio" min={0.25} max={0.75} step={0.01} />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelBoolean path="fillSquares" />
           <PanelBoolean path="strokeSquares" />
         </ExplorerPanel>
@@ -78,12 +71,7 @@ const TSquareFractal = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom
-          pattern={{ kind: "tSquare", config }}
-          width={width}
-          height={height}
-          onActive={onZoomActive}
-        />
+        <RecursivePatternZoom pattern={{ kind: "tSquare", config }} width={width} height={height} />
         <SideDrawer description={description} />
         <NavElement />
       </main>

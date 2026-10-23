@@ -29,6 +29,7 @@ import { scrollToDescription } from "../utils/scrollToDescription";
 import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
 import { ExplorerContextMenu } from "./ExplorerContextMenu";
+import { useConstructionRegistration } from "./FractalConstruction";
 import { Listbox, ToggleSwitch } from "./PanelPickers";
 
 export type Preset = { slug: string; spec: LSystemSpec };
@@ -108,7 +109,6 @@ const SYMBOL_GROUPS: { title: string; symbols: SymbolHelp[] }[] = [
 ];
 
 const PANEL_WIDTH = 392;
-const GROWTH_DELAY = 900;
 
 function useDebounced<T>(value: T, delay: number) {
   const [debounced, setDebounced] = useState(value);
@@ -155,7 +155,6 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
   const [spec, setSpec] = useState<LSystemSpec>(presets[0].spec);
   const [presetSlug, setPresetSlug] = useState(presets[0].slug);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [shownIterations, setShownIterations] = useState<number | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const editorToggleRef = useRef<HTMLButtonElement>(null);
@@ -221,7 +220,20 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
     return () => clearTimeout(id);
   }, [debouncedSpec, presetSlug]);
 
-  const iterations = shownIterations ?? debouncedSpec.iterations;
+  const iterations = debouncedSpec.iterations;
+  const construction = useMemo(
+    () => ({
+      identity: `l-system-explorer:${presetSlug}`,
+      kind: "lsystemConstruction" as const,
+      params: debouncedSpec,
+      width: width ?? 720,
+      height: height ?? 480,
+      min: 0,
+      max: debouncedSpec.iterations,
+    }),
+    [debouncedSpec, presetSlug, width, height],
+  );
+  useConstructionRegistration(construction);
 
   // Rewriting and the turtle run in a worker so typing never waits for them.
   // A worker cannot be interrupted mid-job, so a busy one is replaced, and
@@ -447,17 +459,6 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
     return () => cancelAnimationFrame(id);
   }, [autoRotate, debouncedSpec.dimension, draw]);
 
-  // "Play growth" steps through every generation up to the chosen one.
-  useEffect(() => {
-    if (shownIterations === null) return;
-    const id = setTimeout(() => {
-      setShownIterations((current) =>
-        current === null || current >= spec.iterations ? null : current + 1,
-      );
-    }, GROWTH_DELAY);
-    return () => clearTimeout(id);
-  }, [shownIterations, spec.iterations]);
-
   // The first edit to a preset turns it into the visitor's own system, so the
   // preset's name and credits do not travel along into share links or submissions.
   const detach = (old: LSystemSpec): LSystemSpec =>
@@ -477,7 +478,6 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
   const update = (patch: Partial<LSystemSpec>) => {
     setSpec((old) => withDimension({ ...detach(old), ...patch }));
     setPresetSlug("");
-    setShownIterations(null);
   };
 
   const updateRule = (index: number, patch: Partial<Rule>) => {
@@ -496,7 +496,6 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
     setSpec(preset.spec);
     setPresetSlug(slug);
     setLinkErrors([]);
-    setShownIterations(null);
     cameraRef.current = preset.spec.dimension === "3d" ? { ...DEFAULT_CAMERA } : { ...FLAT_CAMERA };
   };
 
@@ -948,13 +947,6 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
             onChange={(angle) => update({ angle })}
           />
           <div className={styles.row}>
-            <button
-              type="button"
-              className={styles.ghost}
-              onClick={() => setShownIterations(shownIterations === null ? 0 : null)}
-            >
-              {shownIterations === null ? "Play growth" : `Growing… ${shownIterations}`}
-            </button>
             {spec.dimension === "3d" && (
               <div className={styles.check}>
                 <ToggleSwitch

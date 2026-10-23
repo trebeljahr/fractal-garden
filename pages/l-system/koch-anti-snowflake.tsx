@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
+import { PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   background: string;
   color: string;
   lineWidth: number;
@@ -27,13 +26,12 @@ const KochAntiSnowflake = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: false,
     background: "#252424",
     color: "#c3b1e1",
     lineWidth: 1.5,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "kochAntiSnowflake",
     storageKey: "koch-anti-snowflake",
     config,
@@ -59,7 +57,6 @@ const KochAntiSnowflake = ({ description }: Props) => {
           <PanelColor path="color" />
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div
           data-fractal-viewport
@@ -75,7 +72,6 @@ const KochAntiSnowflake = ({ description }: Props) => {
           draw={"FG"}
           minSpan={1e-9}
           config={config}
-          setConfig={setConfig}
           width={width}
           height={height}
         />

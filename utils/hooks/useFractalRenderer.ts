@@ -1,11 +1,12 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef } from "react";
+import { useConstructionRegistration } from "../../components/FractalConstruction";
 import { useZoomActivity } from "../../components/ZoomActivity";
 import type { RendererKind } from "../render/registry";
 import type { HostEvent } from "../render/types";
 import { useAdaptiveGrowth } from "./useAdaptiveGrowth";
 import { useRenderSurface } from "./useRenderSurface";
 
-type GrowthConfig = { iterations: number; animateIterations: boolean };
+type GrowthConfig = { iterations: number };
 
 type Params<C extends GrowthConfig, P> = {
   kind: RendererKind;
@@ -24,11 +25,11 @@ type Params<C extends GrowthConfig, P> = {
 };
 
 /**
- * Worker-rendered fractal with an adaptive "animate growth" loop: the usual
- * pairing of useRenderSurface and useAdaptiveGrowth for one page. Attach
+ * Opens a complete fractal at a depth this machine handles. Construction
+ * playback uses a separate renderer in the explanation. Attach
  * `containerRef` to the element that should hold the canvas.
  */
-export function useGrowingFractal<C extends GrowthConfig, P>({
+export function useFractalRenderer<C extends GrowthConfig, P>({
   kind,
   storageKey,
   config,
@@ -51,7 +52,7 @@ export function useGrowingFractal<C extends GrowthConfig, P>({
     min,
     max,
     iterations: config.iterations,
-    animate: config.animateIterations,
+    animate: false,
     setIterations,
     stepDelay,
     holdDelay,
@@ -61,8 +62,8 @@ export function useGrowingFractal<C extends GrowthConfig, P>({
   const wasZoomActive = useRef(false);
   useEffect(() => {
     if (wasZoomActive.current && !zoomActive) {
-      // Return to the deepest level the animation can draw on this machine.
-      setConfig((old) => ({ ...old, iterations: growth.cap, animateIterations: false }));
+      // Return to the deepest level this machine can draw on this machine.
+      setConfig((old) => ({ ...old, iterations: growth.cap }));
     }
     wasZoomActive.current = zoomActive;
   }, [zoomActive, growth.cap, setConfig]);
@@ -104,11 +105,18 @@ export function useGrowingFractal<C extends GrowthConfig, P>({
     [calibrating, postParams],
   );
 
+  const construction = useMemo(
+    () =>
+      params && width && height && !calibrating
+        ? { kind, params, width, height, min, max: growth.cap, stepDelay, identity: storageKey }
+        : null,
+    [kind, params, width, height, calibrating, min, growth.cap, stepDelay, storageKey],
+  );
+  useConstructionRegistration(construction);
+
   return {
     ...surface,
     setParams,
     cap: growth.cap,
-    /** Label for the animate toggle that names the cap when it is below the maximum. */
-    animateLabel: growth.cap < max ? `Animate growth (to ${growth.cap})` : undefined,
   };
 }

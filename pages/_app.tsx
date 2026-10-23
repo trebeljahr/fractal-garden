@@ -8,6 +8,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import Script from "next/script";
 import { useEffect } from "react";
+import { FractalConstructionProvider } from "../components/FractalConstruction";
 import { PageSeo } from "../components/PageSeo";
 import { ZoomActivityProvider } from "../components/ZoomActivity";
 import { consumeSupportedParam } from "../utils/donation";
@@ -46,7 +47,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         </>
       ) : null}
       <ZoomActivityProvider key={router.pathname}>
-        <Component {...pageProps} />
+        <FractalConstructionProvider>
+          <Component {...pageProps} />
+        </FractalConstructionProvider>
       </ZoomActivityProvider>
       <PageSeo />
     </>

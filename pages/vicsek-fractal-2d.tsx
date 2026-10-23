@@ -1,12 +1,12 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 import { VICSEK_OFFSETS, type VicsekVariant } from "../utils/render/drawings/vicsekFractal2D";
 
@@ -16,7 +16,6 @@ type Props = {
 
 type Config = {
   iterations: number;
-  animateIterations: boolean;
   variant: VicsekVariant;
   background: string;
   color: string;
@@ -37,7 +36,6 @@ const VicsekFractal2D = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: false,
     variant: "saltire",
     background: "#252424",
     color: "#f2efde",
@@ -46,7 +44,7 @@ const VicsekFractal2D = ({ description }: Props) => {
     lineWidth: 0.8,
   });
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "vicsekFractal2D",
     storageKey: `vicsek-fractal-2d:${config.variant}`,
     config,
@@ -56,10 +54,6 @@ const VicsekFractal2D = ({ description }: Props) => {
     height,
     max: MAX_ITERATIONS,
   });
-
-  const onZoomActive = useCallback(() => {
-    setConfig((old) => ({ ...old, animateIterations: false }));
-  }, []);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -81,7 +75,6 @@ const VicsekFractal2D = ({ description }: Props) => {
             options={variantOptions}
           />
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelNumber path="lineWidth" min={0.2} max={3} step={0.1} />
           <PanelBoolean path="fillSquares" />
           <PanelBoolean path="strokeSquares" />
@@ -92,12 +85,7 @@ const VicsekFractal2D = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom
-          pattern={{ kind: "vicsek", config }}
-          width={width}
-          height={height}
-          onActive={onZoomActive}
-        />
+        <RecursivePatternZoom pattern={{ kind: "vicsek", config }} width={width} height={height} />
         <SideDrawer description={description} />
         <NavElement />
       </main>

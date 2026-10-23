@@ -28,6 +28,8 @@ type Params<P> = {
   /** Changing this asks the renderer to time the current level again. */
   measureKey?: number;
   calibration?: Calibration<P> | null;
+  /** Explanation demos must not capture or restore the main explorer view. */
+  shareView?: boolean;
 };
 
 function openWorkerChannel(
@@ -103,6 +105,7 @@ export function useRenderSurface<P>({
   onEvent,
   measureKey,
   calibration,
+  shareView = true,
 }: Params<P>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -182,14 +185,15 @@ export function useRenderSurface<P>({
     "renderer",
     () => channelRef.current?.snapshotView(),
     (saved) => channelRef.current?.restoreView(saved),
-    connected,
+    connected && shareView,
   );
 
   useEffect(() => {
+    if (!shareView) return;
     const reset = () => channelRef.current?.restoreView(0);
     window.addEventListener("garden:reset-pose", reset);
     return () => window.removeEventListener("garden:reset-pose", reset);
-  }, []);
+  }, [shareView]);
 
   useEffect(() => {
     if (!canvas || !width || !height) return;

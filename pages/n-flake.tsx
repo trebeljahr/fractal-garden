@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 import { getMaxIterations, usesCenterPolygon } from "../utils/render/drawings/nFlake";
 
@@ -17,7 +17,6 @@ type Props = {
 type Config = {
   sides: number;
   iterations: number;
-  animateIterations: boolean;
   includeCenter: boolean;
   rotation: number;
   background: string;
@@ -35,7 +34,6 @@ const NFlake = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>({
     sides: 5,
     iterations: 0,
-    animateIterations: false,
     includeCenter: true,
     rotation: 0,
     background: "#252424",
@@ -57,7 +55,7 @@ const NFlake = ({ description }: Props) => {
     }));
   }, [config.iterations, maxIterations]);
 
-  const { containerRef, animateLabel } = useGrowingFractal({
+  const { containerRef } = useFractalRenderer({
     kind: "nFlake",
     storageKey: `n-flake:${config.sides}${centeredVariant ? "-center" : ""}`,
     config,
@@ -67,10 +65,6 @@ const NFlake = ({ description }: Props) => {
     height,
     max: maxIterations,
   });
-
-  const onZoomActive = useCallback(() => {
-    setConfig((old) => ({ ...old, animateIterations: false }));
-  }, []);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -87,7 +81,6 @@ const NFlake = ({ description }: Props) => {
           <PanelColor path="color" />
           <PanelNumber path="sides" min={MIN_SIDES} max={MAX_SIDES} step={1} />
           <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelBoolean path="includeCenter" />
           <PanelNumber path="rotation" min={-180} max={180} step={1} />
           <PanelNumber path="lineWidth" min={0.2} max={3} step={0.1} />
@@ -100,12 +93,7 @@ const NFlake = ({ description }: Props) => {
           style={{ background: config.background }}
           ref={containerRef}
         />
-        <RecursivePatternZoom
-          pattern={{ kind: "flake", config }}
-          width={width}
-          height={height}
-          onActive={onZoomActive}
-        />
+        <RecursivePatternZoom pattern={{ kind: "flake", config }} width={width} height={height} />
         <SideDrawer description={description} />
         <NavElement />
       </main>

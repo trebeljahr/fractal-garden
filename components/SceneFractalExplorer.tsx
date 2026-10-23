@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { useOrbitZoomControls } from "../utils/hooks/useOrbitZoomControls";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
@@ -26,7 +26,6 @@ type Config<V extends string> = {
   variant: V;
   navigation: "orbit" | "explore";
   iterations: number;
-  animateIterations: boolean;
   autoRotate: boolean;
   rotationX: number;
   rotationY: number;
@@ -64,8 +63,8 @@ const INITIAL_CAMERA_DISTANCE = 6;
 
 /**
  * Orbitable, auto-rotating 3D fractal page. Geometry is built and drawn on a
- * worker, and the growth animation stops at the deepest level this machine
- * draws smoothly.
+ * worker. The opening depth adapts to this machine; construction playback
+ * lives in the explanation below.
  */
 export function SceneFractalExplorer<V extends string>({
   description,
@@ -88,7 +87,6 @@ export function SceneFractalExplorer<V extends string>({
     variant: initialVariant,
     navigation: "orbit",
     iterations: 0,
-    animateIterations: false,
     autoRotate: false,
     rotationX,
     rotationY,
@@ -156,7 +154,7 @@ export function SceneFractalExplorer<V extends string>({
     ],
   );
 
-  const { containerRef, canvas, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas } = useFractalRenderer({
     kind: "scene3d",
     storageKey: `${storageKey}:${config.variant}`,
     config,
@@ -189,7 +187,6 @@ export function SceneFractalExplorer<V extends string>({
       rotationY,
       grab: undefined,
       autoRotate: false,
-      animateIterations: false,
     }));
   const handleUpdate = (newData: Config<V>) => {
     setConfig((old) => ({
@@ -217,7 +214,6 @@ export function SceneFractalExplorer<V extends string>({
                       ...old,
                       navigation: "explore",
                       autoRotate: false,
-                      animateIterations: false,
                     }))
               }
             >
@@ -273,7 +269,6 @@ export function SceneFractalExplorer<V extends string>({
           />
         )}
         {!exploring && <PanelNumber path="iterations" min={0} max={maxIterations} step={1} />}
-        {!exploring && <PanelBoolean path="animateIterations" label={animateLabel} />}
         {!exploring && <PanelBoolean path="autoRotate" />}
         {!exploring && <PanelNumber path="rotationX" min={-180} max={180} step={1} />}
         {!exploring && <PanelNumber path="rotationY" min={-180} max={180} step={1} />}

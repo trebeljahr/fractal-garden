@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
+import { PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import type { CanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 import { H_TREE_MAX_ITERATIONS as MAX_ITERATIONS } from "../utils/render/drawings/hTree";
 
@@ -18,7 +18,6 @@ type Props = {
 type Config = {
   viewport?: CanvasViewport;
   iterations: number;
-  animateIterations: boolean;
   ratio: number;
   rootWidth: number;
   widthFactor: number;
@@ -31,7 +30,6 @@ const HTree = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: false,
     ratio: Math.SQRT1_2,
     rootWidth: 10,
     widthFactor: 0.78,
@@ -40,7 +38,7 @@ const HTree = ({ description }: Props) => {
     tipColor: "#7fd8e8",
   });
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useFractalRenderer({
     kind: "hTree",
     storageKey: "h-tree",
     config,
@@ -69,7 +67,6 @@ const HTree = ({ description }: Props) => {
           <PanelColor path="rootColor" label="Root color" />
           <PanelColor path="tipColor" label="Tip color" />
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelNumber path="ratio" min={0.5} max={0.8} step={0.001} />
           <PanelNumber path="rootWidth" min={0.5} max={30} step={0.5} />
           <PanelNumber path="widthFactor" min={0.5} max={1} step={0.01} />

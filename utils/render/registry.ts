@@ -1,5 +1,6 @@
 import { BuddhabrotRenderer } from "./buddhabrot";
 import { drawFractalCanopy } from "./drawings/fractalCanopy";
+import { drawLSystemConstruction } from "./drawings/lsystemConstruction";
 import { RECURSIVE_2D_RENDERERS } from "./drawings/recursive2d";
 import { drawTSquare } from "./drawings/tSquare";
 import { TURTLE_RENDERERS } from "./drawings/turtle";
@@ -15,6 +16,7 @@ export const RENDERERS = {
   recursiveZoom: () => new RecursiveZoomRenderer(),
   scene3d: () => new Scene3DRenderer(),
   lsystem2d: () => new LSystem2DRenderer(),
+  lsystemConstruction: () => new StaticRenderer(drawLSystemConstruction),
   polylineScene: () => new PolylineSceneRenderer(),
   buddhabrot: () => new BuddhabrotRenderer(),
   penrose: () => new PenroseRenderer(),

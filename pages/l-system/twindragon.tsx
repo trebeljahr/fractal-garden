@@ -6,8 +6,8 @@ import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
 import type { CanvasViewport } from "../../utils/canvasViewport";
 import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
+import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
 type Config = {
   viewport?: CanvasViewport;
   iterations: number;
-  animateIterations: boolean;
   showTiling: boolean;
   background: string;
   firstDragon: string;
@@ -31,7 +30,6 @@ const Twindragon = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: false,
     showTiling: false,
     background: "#252424",
     firstDragon: "#ffb86b",
@@ -39,7 +37,7 @@ const Twindragon = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useFractalRenderer({
     kind: "twindragon",
     storageKey: `twindragon:${config.showTiling ? "tiling" : "single"}`,
     config,
@@ -72,7 +70,6 @@ const Twindragon = ({ description }: Props) => {
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
           <PanelBoolean path="showTiling" />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div
           data-fractal-viewport

@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
+import { PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
 import type { CanvasViewport } from "../../utils/canvasViewport";
 import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
+import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../../utils/hooks/useGrowingFractal";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
 type Config = {
   viewport?: CanvasViewport;
   iterations: number;
-  animateIterations: boolean;
   angle: number;
   background: string;
   color: string;
@@ -30,14 +29,13 @@ const FibonacciWordFractal = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 1,
-    animateIterations: false,
     angle: 90,
     background: "#252424",
     color: "#f3d26d",
     lineWidth: 1.2,
   });
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useFractalRenderer({
     kind: "fibonacciWordFractal",
     storageKey: "fibonacci-word-fractal",
     config,
@@ -69,7 +67,6 @@ const FibonacciWordFractal = ({ description }: Props) => {
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
           <PanelNumber path="angle" min={30} max={120} step={1} />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
         </ExplorerPanel>
         <div
           data-fractal-viewport

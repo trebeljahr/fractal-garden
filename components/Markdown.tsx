@@ -8,6 +8,7 @@ import remarkMath from "remark-math";
 import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
 import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
+import { FractalConstruction } from "./FractalConstruction";
 import Investigation, { isInvestigationKind } from "./lessons/Investigation";
 import OrbitLesson, { isOrbitKind } from "./OrbitLesson";
 import ProjectionLesson, { isProjectionKind } from "./ProjectionLesson";
@@ -47,6 +48,7 @@ type HastElement = {
     alt?: string;
     src?: string;
     dataConstruction?: unknown;
+    dataConstructionPlayer?: unknown;
     dataOrbit?: unknown;
     dataArticleImages?: unknown;
     dataLesson?: unknown;
@@ -115,6 +117,7 @@ const MarkdownRenderers: object = {
   p: ParagraphRenderer,
   a: LinkRenderer,
   figure: ({ node, children }: { node?: HastElement; children?: React.ReactNode }) => {
+    if (node?.properties?.dataConstructionPlayer !== undefined) return <FractalConstruction />;
     const investigation = node?.properties?.dataInvestigation;
     if (isInvestigationKind(investigation))
       return <Investigation key={investigation} kind={investigation} />;

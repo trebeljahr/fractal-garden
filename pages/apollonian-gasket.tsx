@@ -6,8 +6,8 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import type { CanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useGrowingFractal } from "../utils/hooks/useGrowingFractal";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
 type Config = {
   viewport?: CanvasViewport;
   iterations: number;
-  animateIterations: boolean;
   background: string;
   color: string;
   fillCircles: boolean;
@@ -32,7 +31,6 @@ const ApollonianGasket = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config>({
     iterations: 0,
-    animateIterations: false,
     background: "#252424",
     color: "#efdfb6",
     fillCircles: false,
@@ -41,7 +39,7 @@ const ApollonianGasket = ({ description }: Props) => {
     showOuterCircle: true,
   });
 
-  const { containerRef, canvas, setParams, animateLabel } = useGrowingFractal({
+  const { containerRef, canvas, setParams } = useFractalRenderer({
     kind: "apollonianGasket",
     storageKey: "apollonian-gasket",
     config,
@@ -72,7 +70,6 @@ const ApollonianGasket = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelColor path="color" />
           <PanelNumber path="iterations" min={0} max={MAX_ITERATIONS} step={1} />
-          <PanelBoolean path="animateIterations" label={animateLabel} />
           <PanelNumber path="lineWidth" min={0.4} max={3} step={0.1} />
           <PanelBoolean path="fillCircles" />
           <PanelBoolean path="strokeCircles" />

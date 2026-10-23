@@ -16,18 +16,17 @@ type Props = {
   pattern: RecursivePattern;
   width: number | null;
   height: number | null;
-  onActive: () => void;
 };
 
-// Keep the calibrated, animated page underneath until the first gesture.
+// Keep the calibrated page underneath until the first gesture.
 // The shared render host coalesces gestures and draws local detail on a worker.
-export function RecursivePatternZoom({ pattern, width, height, onActive }: Props) {
+export function RecursivePatternZoom({ pattern, width, height }: Props) {
   const [camera, setCamera] = useState<PatternCamera | null>(null);
   const stage = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const latest = useRef({ camera, pattern, width, height, onActive });
+  const latest = useRef({ camera, pattern, width, height });
   const restoring = useRef<string | null>(null);
-  latest.current = { camera, pattern, width, height, onActive };
+  latest.current = { camera, pattern, width, height };
   const { containerRef } = useRenderSurface({
     kind: "recursiveZoom",
     params: camera ? { pattern, camera } : null,
@@ -36,7 +35,7 @@ export function RecursivePatternZoom({ pattern, width, height, onActive }: Props
   });
 
   // Geometry changes and an explicit depth edit return to the page's new
-  // construction. Styling edits keep the precise camera in place.
+  // full view. Styling edits keep the precise camera in place.
   const shapeKey = JSON.stringify([
     pattern.kind,
     "variant" in pattern.config && pattern.config.variant,
@@ -83,7 +82,6 @@ export function RecursivePatternZoom({ pattern, width, height, onActive }: Props
       dx,
       dy,
     );
-    if (!current.camera) current.onActive();
     latest.current.camera = next;
     setCamera(next);
   };
@@ -121,7 +119,6 @@ export function RecursivePatternZoom({ pattern, width, height, onActive }: Props
           ? saved.shape
           : null;
       latest.current.camera = view;
-      latest.current.onActive();
       setCamera(view);
     },
     Boolean(width && height),
