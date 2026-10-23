@@ -1,0 +1,238 @@
+import type { LSystem2DParams } from "../render/lsystem2d";
+import { expand, interpret } from "./engine";
+import { DEFAULT_SPEC, type LSystemSpec } from "./spec";
+
+export const TURTLE_PLAYBACK_KINDS = [
+  "dragonCurve",
+  "terdragon",
+  "gosperCurve",
+  "kochAntiSnowflake",
+  "quadraticKochIsland",
+  "minkowskiSausage",
+  "cesaroFractal",
+  "fibonacciWordFractal",
+  "twindragon",
+] as const;
+
+export function hasLSystemPlayback(kind: string) {
+  return (
+    kind === "lsystemConstruction" ||
+    kind === "lsystem2d" ||
+    (TURTLE_PLAYBACK_KINDS as readonly string[]).includes(kind)
+  );
+}
+
+export function playbackSource(kind: string, params: unknown) {
+  if (kind === "lsystemConstruction") return { spec: params as LSystemSpec, legacy: false };
+  if ((TURTLE_PLAYBACK_KINDS as readonly string[]).includes(kind)) {
+    const settings = params as {
+      iterations: number;
+      angle: number;
+      island: boolean;
+      color: string;
+      background: string;
+      lineWidth: number;
+      firstDragon?: string;
+      secondDragon?: string;
+    };
+    const recipes: Record<
+      string,
+      {
+        axiom: string;
+        rules: Record<string, string>;
+        angle: number;
+        startAngle?: number;
+        turns?: Record<string, number>;
+      }
+    > = {
+      fibonacciWordFractal: { axiom: "0", rules: { "0": "01", "1": "0" }, angle: -settings.angle },
+      twindragon: {
+        axiom: "F",
+        rules: { F: "F+G", G: "F-G" },
+        angle: -90,
+        startAngle: 90 + settings.iterations * 45,
+      },
+      dragonCurve: { axiom: "F", rules: { F: "F+G", G: "F-G" }, angle: -90, startAngle: 45 },
+      terdragon: {
+        axiom: "F",
+        rules: { F: "F+F-F" },
+        angle: -120,
+        startAngle: 90 + settings.iterations * 30,
+      },
+      gosperCurve: {
+        axiom: "XF",
+        rules: { X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" },
+        angle: -60,
+      },
+      kochAntiSnowflake: { axiom: "F++F++F", rules: { F: "F+F--F+F" }, angle: -60 },
+      quadraticKochIsland: {
+        axiom: "F-F-F-F",
+        rules: { F: "F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F" },
+        angle: -90,
+      },
+      minkowskiSausage: {
+        axiom: settings.island ? "F+F+F+F" : "F",
+        rules: { F: "F+F-F-FF+F+F-F" },
+        angle: -90,
+      },
+      cesaroFractal: {
+        axiom: "FLFLFLF",
+        rules: { F: "F+F--F+F" },
+        angle: -settings.angle,
+        turns: { L: 90 },
+      },
+    };
+    const recipe = recipes[kind];
+    return {
+      legacy: false,
+      turns: recipe.turns,
+      repeat: kind === "twindragon" ? 2 : 1,
+      fibonacci: kind === "fibonacciWordFractal" ? settings.angle : undefined,
+      spec: {
+        ...DEFAULT_SPEC,
+        ...settings,
+        ...recipe,
+        startAngle: recipe.startAngle ?? 90,
+        drawSymbols: kind === "fibonacciWordFractal" ? "01" : "FG",
+        color: settings.firstDragon ?? settings.color,
+        rules: Object.entries(recipe.rules).map(([symbol, replacement]) => ({
+          symbol,
+          replacement,
+        })),
+      },
+    };
+  }
+  if (kind !== "lsystem2d") return null;
+  const source = params as LSystem2DParams;
+  return {
+    legacy: true,
+    spec: {
+      ...DEFAULT_SPEC,
+      axiom: source.axiom,
+      rules: Object.entries(source.replace).map(([symbol, replacement]) => ({
+        symbol,
+        replacement,
+      })),
+      angle: source.angle,
+      startAngle: source.startAngle,
+      color: source.color,
+      background: source.background,
+      lineWidth: source.lineWidth,
+    },
+  };
+}
+
+export function buildPlayback(
+  spec: LSystemSpec,
+  generation: number,
+  legacy = false,
+  turns?: Record<string, number>,
+  repeat = 1,
+  fibonacci?: number,
+) {
+  const history = [spec.axiom.slice(0, 160)];
+  let offsets = new Uint32Array(0);
+  let nextOffsets = new Uint32Array(spec.axiom.length + 1);
+  let previous = spec.axiom;
+  // The same seeded pass chooses replacements for both the picture and the text.
+  const expansion = expand(spec, generation, {
+    onRewrite: (_level, index, replacement, offset) => {
+      nextOffsets[index] = offset;
+      nextOffsets[index + 1] = offset + replacement.length;
+    },
+    onGeneration: (_level, input, output) => {
+      previous = input;
+      offsets = nextOffsets;
+      nextOffsets = new Uint32Array(output.length + 1);
+      history.push(output.slice(0, 160));
+    },
+  });
+  const word = expansion.sentence;
+  // Six floats for position + heading and one segment count per symbol, rather
+  // than millions of JS objects for a large generation.
+  const poses = new Float32Array((word.length * repeat + 1) * 6);
+  const drawn = new Uint32Array(word.length * repeat + 1);
+  let geometry = interpret(word, spec, {
+    legacy2d: legacy,
+    turns,
+    fibonacciTurn: fibonacci,
+    onInstruction: (index, x, y, z, hx, hy, hz, count) => {
+      poses.set([x, y, z, hx, hy, hz], index * 6);
+      drawn[index] = count;
+    },
+  });
+  if (repeat === 2 && word.length) {
+    const end = poses.slice(word.length * 6, word.length * 6 + 3);
+    const positions = new Float32Array(geometry.positions.length * 2);
+    positions.set(geometry.positions);
+    for (let i = 0; i < geometry.positions.length; i++)
+      positions[geometry.positions.length + i] = end[i % 3] - geometry.positions[i];
+    const widths = new Float32Array(geometry.widths.length * 2);
+    widths.set(geometry.widths);
+    widths.set(geometry.widths, geometry.widths.length);
+    for (let i = 1; i <= word.length; i++) {
+      const offset = (word.length + i) * 6;
+      for (let axis = 0; axis < 3; axis++) {
+        poses[offset + axis] = end[axis] - poses[i * 6 + axis];
+        poses[offset + 3 + axis] = -poses[i * 6 + 3 + axis];
+      }
+      drawn[word.length + i] = geometry.count + drawn[i];
+    }
+    const depths = new Uint16Array(geometry.depths.length * 2);
+    depths.set(geometry.depths);
+    depths.set(geometry.depths, geometry.depths.length);
+    const min: [number, number, number] = [Infinity, Infinity, Infinity];
+    const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < positions.length; i++) {
+      const axis = i % 3;
+      min[axis] = Math.min(min[axis], positions[i]);
+      max[axis] = Math.max(max[axis], positions[i]);
+    }
+    geometry = { ...geometry, positions, widths, depths, min, max, count: geometry.count * 2 };
+  }
+  const actual = expansion.iterations;
+  if (actual === 0) offsets = new Uint32Array(0);
+  return {
+    word,
+    repeat,
+    instructionLength: word.length * repeat,
+    previous,
+    offsets,
+    poses,
+    drawn,
+    geometry,
+    history: history.slice(0, actual + 1),
+    generation: actual,
+    limited: expansion.limited || geometry.limited,
+    rewriteLength: actual > 0 ? offsets.length - 1 : 0,
+  };
+}
+export type Playback = ReturnType<typeof buildPlayback>;
+
+export function symbolWindow(word: string, index: number, width = 80) {
+  const start = Math.max(0, Math.min(word.length - width, index - Math.floor(width / 2)));
+  return {
+    start,
+    text: word.slice(start, start + width),
+    before: start > 0,
+    after: start + width < word.length,
+  };
+}
+
+export function turtleAction(symbol: string, spec: LSystemSpec, legacy = false) {
+  if (!symbol) return "Start at the outlined dot. The arrow is the turtle's head.";
+  if (spec.drawSymbols.includes(symbol)) return `${symbol}: draw a line and move forward.`;
+  if (spec.moveSymbols.includes(symbol)) return `${symbol}: move forward without drawing.`;
+  if (symbol === "[") return "[: remember this position and direction.";
+  if (symbol === "]") return "]: jump back to the last [ without drawing.";
+  if (symbol === "+" || symbol === "-")
+    return `${symbol}: turn ${Math.abs(spec.angle)}°. Stay in place.`;
+  if (symbol === "|") return "|: turn around. Stay in place.";
+  if (legacy && symbol === "&") return "&: reverse the direction of later turns.";
+  if ("&^".includes(symbol)) return `${symbol}: tilt the turtle's head ${Math.abs(spec.angle)}°.`;
+  if ("\\/".includes(symbol)) return `${symbol}: roll the turtle ${Math.abs(spec.angle)}°.`;
+  if (symbol === "$") return "$: roll the turtle back to level.";
+  if (symbol === ">" || symbol === "<") return `${symbol}: change the length of later steps.`;
+  if (symbol === "!" || symbol === "#") return `${symbol}: change the width of later lines.`;
+  return `${symbol}: skip this symbol while drawing. Its rule can change it in the next iteration.`;
+}

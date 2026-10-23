@@ -1,0 +1,243 @@
+.process {
+  --process-accent: #f5c56d;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: var(--explorer-ink, #eee8ce);
+  font-size: 13px;
+}
+.strings {
+  flex-shrink: 0;
+  padding: 12px 18px 8px;
+  border-bottom: 1px solid #eee8ce25;
+}
+.row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 14px;
+}
+.row > span {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.word {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  min-height: 25px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.word code {
+  display: inline-block;
+  padding: 1px 2px;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 14px;
+  transition:
+    color 160ms,
+    background 160ms,
+    opacity 160ms;
+}
+.active {
+  background: var(--process-accent);
+  color: #10151a;
+  border-radius: 2px;
+}
+.pending {
+  opacity: 0.18;
+}
+.empty {
+  opacity: 0.6;
+}
+.process .rule {
+  margin: 6px 0 6px 174px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.rule code {
+  color: var(--process-accent);
+}
+.replacement {
+  display: inline;
+  animation: appear 300ms ease-out;
+}
+.canvas {
+  flex: 1;
+  min-height: 170px;
+  position: relative;
+  overflow: hidden;
+}
+.canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+.canvas canvas:focus-visible {
+  outline: 2px solid var(--process-accent);
+  outline-offset: -3px;
+}
+.phase {
+  position: absolute;
+  top: 10px;
+  left: 18px;
+  pointer-events: none;
+  font-size: 11px;
+  color: var(--process-accent);
+}
+.footer {
+  flex-shrink: 0;
+  padding: 8px 18px 12px;
+  border-top: 1px solid #eee8ce25;
+}
+.process .footer p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.controls button,
+.controls select {
+  min-height: 36px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce50;
+  padding: 5px 9px;
+  font: inherit;
+  cursor: pointer;
+}
+.controls button:hover:not(:disabled) {
+  border-color: var(--process-accent);
+  background: #f5c56d15;
+}
+.controls button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.controls button:focus-visible,
+.controls select:focus-visible,
+.controls input:focus-visible,
+.history summary:focus-visible {
+  outline: 2px solid var(--process-accent);
+  outline-offset: 2px;
+}
+.controls label {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+}
+.controls input {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--process-accent);
+}
+.controls .speed {
+  flex: 0 0 auto;
+}
+.speed select {
+  background: #252424;
+  font-size: 12px;
+}
+.history {
+  margin-top: 10px;
+  font-size: 11px;
+}
+.history summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.history ol {
+  max-height: 140px;
+  overflow: auto;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.history li {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 0;
+}
+.history code {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.process .note {
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 6px;
+}
+@keyframes appear {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 700px) {
+  .strings,
+  .footer {
+    padding-inline: 10px;
+  }
+  .row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .process .rule {
+    margin: 4px 0;
+  }
+  .word code {
+    font-size: 12px;
+    padding-inline: 1px;
+  }
+  .controls {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    padding: 5px;
+    font-size: 11px;
+    min-height: 44px;
+  }
+  .controls .speed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .canvas {
+    min-height: 180px;
+  }
+  .history li {
+    grid-template-columns: 65px minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .replacement {
+    animation: none;
+  }
+  .word code {
+    transition: none;
+  }
+}

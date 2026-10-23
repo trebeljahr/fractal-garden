@@ -28,10 +28,12 @@ import { explorerControlNodes } from "../utils/explorerControlNodes";
 import { useConstructionNavigation } from "../utils/hooks/useConstructionNavigation";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
+import { hasLSystemPlayback } from "../utils/lsystem/playback";
 import type { RendererKind } from "../utils/render/registry";
 import { ConstructionIcon } from "./ConstructionIcon";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { FractalStudioControls } from "./ExplorerPanel";
+import LSystemProcess from "./LSystemProcess";
 
 export type ConstructionSpec = {
   identity: string;
@@ -175,10 +177,15 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const controls = useContext(ControlsContext);
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [seen, setSeen] = useState(false);
   const [inView, setInView] = useState(false);
   const [ready, setReady] = useState(false);
   const [renderedLevel, setRenderedLevel] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [completedLevel, setCompletedLevel] = useState<number | null>(null);
+  const [processReset, setProcessReset] = useState(0);
+  const [processSpeed, setProcessSpeed] = useState(1);
+  const lsystem = hasLSystemPlayback(spec.kind);
   const [pageVisible, setPageVisible] = useState(true);
   const [view, setView] = useState<ConstructionView>(() => ({
     ...spec.config,
@@ -191,6 +198,11 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const max = Math.max(0, limit - spec.min);
   const selected = Math.min(step, max),
     level = spec.min + selected;
+  const processComplete = completedLevel === level;
+  const onProcessComplete = useCallback(
+    (done: boolean) => setCompletedLevel(done ? level : null),
+    [level],
+  );
   const scene = constructionIs3D(spec.kind, spec.params);
   const pause = useCallback(() => {
     autoplayed.current = true;
@@ -220,9 +232,10 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         setVisible(entry.isIntersecting);
+        if (entry.isIntersecting) setSeen(true);
         setInView(entry.intersectionRatio >= 0.35);
         if (!entry.isIntersecting) {
-          setReady(false);
+          if (!lsystem) setReady(false);
           setPlaying(false);
         }
       },
@@ -230,7 +243,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     );
     observer.observe(frame.current);
     return () => observer.disconnect();
-  }, []);
+  }, [lsystem]);
   useEffect(() => {
     const update = () => {
       setPageVisible(!document.hidden);
@@ -251,18 +264,35 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   }, [inView, reduced]);
   useEffect(() => {
     if (!playing || !ready || renderedLevel !== level || !inView || !pageVisible) return;
+    if (lsystem && !processComplete) return;
     if (selected >= max) {
       setPlaying(false);
       return;
     }
     const timer = setTimeout(() => setStep(selected + 1), Math.max(1500, spec.stepDelay ?? 0));
     return () => clearTimeout(timer);
-  }, [playing, ready, renderedLevel, level, inView, pageVisible, selected, max, spec.stepDelay]);
+  }, [
+    playing,
+    ready,
+    renderedLevel,
+    level,
+    inView,
+    pageVisible,
+    selected,
+    max,
+    spec.stepDelay,
+    lsystem,
+    processComplete,
+  ]);
   const toggle = () => {
     autoplayed.current = true;
-    if (selected >= max) {
+    if (selected >= max && (!lsystem || processComplete)) {
       setPlaying(false);
       setStep(0);
+      if (lsystem) {
+        setCompletedLevel(null);
+        setProcessReset((value) => value + 1);
+      }
       return;
     }
     setPlaying(!playing);
@@ -286,13 +316,14 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
         ? cloneElement(child, { respectExplorerZoom: false })
         : child,
     );
-  const playbackAction = selected >= max ? "Reset" : playing ? "Pause" : "Play";
+  const playbackAction =
+    selected >= max && (!lsystem || processComplete) ? "Reset" : playing ? "Pause" : "Play";
   const inputProgress = max ? (selected / max) * 100 : 0;
   return (
     <figure className={styles.demo} data-teaching-lesson="full-construction">
       <div
         ref={frame}
-        className={styles.workspace}
+        className={`${styles.workspace} ${lsystem ? styles.lsystemWorkspace : ""}`}
         data-construction-level={level}
         data-construction-rendered={renderedLevel}
         data-construction-grab={JSON.stringify(view.grab ?? null)}
@@ -320,7 +351,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
             <button
               type="button"
               onClick={toggle}
-              disabled={max === 0}
+              disabled={max === 0 && !lsystem}
               aria-pressed={playbackAction === "Reset" ? undefined : playing}
               aria-label={`${playbackAction} construction`}
               title={`${playbackAction} construction`}
@@ -417,17 +448,36 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
           </div>
         </div>
         <div className={styles.viewport} style={{ background: view.background }}>
-          {visible && (
-            <ConstructionSurface
-              spec={spec}
-              level={level}
-              view={view}
-              setView={setView}
-              onReady={onReady}
-              onInteract={pause}
-              onReset={reset}
-            />
-          )}
+          {(lsystem ? seen : visible) &&
+            (lsystem ? (
+              <LSystemProcess
+                key={`${spec.identity}:${level}:${processReset}`}
+                kind={spec.kind}
+                params={
+                  spec.makeParams ? spec.makeParams({ ...view, iterations: level }) : spec.params
+                }
+                level={level}
+                playing={playing}
+                speed={processSpeed}
+                onSpeedChange={setProcessSpeed}
+                view={view}
+                setView={setView}
+                onReady={onReady}
+                onComplete={onProcessComplete}
+                onInteract={pause}
+                onReset={reset}
+              />
+            ) : (
+              <ConstructionSurface
+                spec={spec}
+                level={level}
+                view={view}
+                setView={setView}
+                onReady={onReady}
+                onInteract={pause}
+                onReset={reset}
+              />
+            ))}
         </div>
       </div>
     </figure>

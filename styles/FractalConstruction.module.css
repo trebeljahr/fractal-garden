@@ -112,3 +112,15 @@
     font-size: 11px;
   }
 }
+.lsystemWorkspace {
+  height: clamp(580px, 86svh, 940px);
+}
+@media (max-width: 700px) {
+  .lsystemWorkspace {
+    height: auto;
+    min-height: 680px;
+  }
+  .lsystemWorkspace .viewport {
+    min-height: 590px;
+  }
+}
