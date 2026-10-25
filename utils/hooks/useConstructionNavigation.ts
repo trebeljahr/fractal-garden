@@ -19,16 +19,14 @@ export function useConstructionNavigation(
   scene: boolean,
   view: ConstructionView,
   setView: Dispatch<SetStateAction<ConstructionView>>,
-  onInteract: () => void,
   onReset: () => void,
 ) {
-  const latest = useRef({ view, onInteract, onReset });
-  latest.current = { view, onInteract, onReset };
+  const latest = useRef({ view, onReset });
+  latest.current = { view, onReset };
   useEffect(() => {
     if (!canvas) return;
     const pointers = new Map<number, { x: number; y: number }>();
     const change = (factor: number, x: number, y: number, dx = 0, dy = 0) => {
-      latest.current.onInteract();
       const rect = canvas.getBoundingClientRect();
       setView((old) =>
         scene
@@ -65,7 +63,6 @@ export function useConstructionNavigation(
       canvas.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       canvas.style.cursor = "grabbing";
-      latest.current.onInteract();
     };
     const move = (e: PointerEvent) => {
       const before = pointers.get(e.pointerId);
@@ -102,14 +99,12 @@ export function useConstructionNavigation(
       change(Math.exp(-zoomWheelDelta(e, canvas)), e.clientX, e.clientY);
     };
     const reset = () => {
-      latest.current.onInteract();
       latest.current.onReset();
     };
     const key = (e: KeyboardEvent) => {
       if (["+", "=", "-"].includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
-        latest.current.onInteract();
         setView((old) => zoomConstruction(old, scene, e.key === "-" ? 0.8 : 1.25));
       } else if (e.key.toLowerCase() === "r") {
         e.preventDefault();

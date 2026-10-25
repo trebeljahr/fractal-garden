@@ -134,14 +134,7 @@ export default function LSystemProcess({
     onInteract();
     setCursor(Math.max(0, Math.min(max, value)));
   };
-  useConstructionNavigation(
-    canvas,
-    source.spec.dimension === "3d",
-    view,
-    setView,
-    onInteract,
-    onReset,
-  );
+  useConstructionNavigation(canvas, source.spec.dimension === "3d", view, setView, onReset);
   // biome-ignore lint/correctness/useExhaustiveDependencies: A new model starts a new rewrite.
   useEffect(() => {
     setCursor(0);

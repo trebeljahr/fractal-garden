@@ -98,7 +98,6 @@ function ConstructionSurface({
   view,
   setView,
   onReady,
-  onInteract,
   onReset,
 }: {
   spec: ConstructionSpec;
@@ -106,7 +105,6 @@ function ConstructionSurface({
   view: ConstructionView;
   setView: Dispatch<SetStateAction<ConstructionView>>;
   onReady: (level: number) => void;
-  onInteract: () => void;
   onReset: () => void;
 }) {
   const reducedMotion = useReducedMotion();
@@ -149,7 +147,7 @@ function ConstructionSurface({
       if (event.type === "rendered") onReady(event.level);
     },
   });
-  useConstructionNavigation(canvas, scene, view, setView, onInteract, onReset);
+  useConstructionNavigation(canvas, scene, view, setView, onReset);
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -306,9 +304,8 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     setStep(Math.max(0, Math.min(max, next)));
   };
   const updateStudio = (data: ConstructionView & { iterations: number }) => {
-    pause();
     const { iterations, ...next } = data;
-    if (iterations !== level) setStep(Math.max(0, Math.min(max, iterations - spec.min)));
+    if (iterations !== level) change(iterations - spec.min);
     setView(next as ConstructionView);
   };
   const parameters =
@@ -482,7 +479,6 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
                 view={view}
                 setView={setView}
                 onReady={onReady}
-                onInteract={pause}
                 onReset={reset}
               />
             ))}
