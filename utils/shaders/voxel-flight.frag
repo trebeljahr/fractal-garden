@@ -45,7 +45,7 @@ float cornerDarkness(float a, float b, float diagonal) {
     return a * b > 0.5 ? 1.0 : (a + b + diagonal) / 3.0;
 }
 
-// The surface's actual cavity scale, not its pixel-detail or outline level.
+// Query the visible voxel's neighbours, rather than its enclosing cavity's cubes.
 // All neighbours share an ancestor scan; no secondary rays are traced.
 float surfaceOcclusion(vec3 p, vec3 normal, vec4 surfaceGrid, int surfaceLevel) {
     if (surfaceLevel < 0) return 0.0; // An outer root face has no enclosing neighbours.
@@ -118,6 +118,8 @@ void main() {
     vec3 rootNormal = normal;
     vec4 surfaceGrid = vec4(0.0);
     int surfaceLevel = -1;
+    vec4 occlusionGrid = vec4(0.0);
+    int occlusionLevel = -1;
     float surfaceDepth = 0.0;
     float surfaceT = t;
     vec3 shadingNormal = normal;
@@ -130,6 +132,7 @@ void main() {
       t = max(0.0, near);
       normal = rootNormal;
       surfaceLevel = -1;
+      occlusionLevel = -1;
       surfaceDepth = 0.0;
       surfaceT = t;
       shadingNormal = rootNormal;
@@ -211,6 +214,9 @@ void main() {
                     empty = true;
                     break;
                 }
+                // AO follows the visible voxel, including holes in larger parents.
+                occlusionGrid = grid;
+                occlusionLevel = level;
                 retainedLevels = level + 1;
                 retainedLow = max(retainedLow, low);
                 retainedHigh = min(retainedHigh, grid.xyz + (cell + vec3(1.0)) * size);
@@ -239,10 +245,10 @@ void main() {
         color = u_fill * light;
         float occlusion = 0.0;
         if (u_aoMode > 0 && u_faces && surfaceLevel >= 0) {
-            float resolved = detailVisibility * smoothstep(2.0, 8.0, surfaceGrid.w / max(u_nearFootprint, t * u_pixelAngle));
+            float resolved = detailVisibility * smoothstep(2.0, 8.0, occlusionGrid.w / max(u_nearFootprint, t * u_pixelAngle));
             // CPU-pruned ancestors are valid in the local horizon, including these neighbours.
-            resolved *= 1.0 - smoothstep(0.125, 0.25, surfaceGrid.w / u_farDistance);
-            if (resolved > 0.0) occlusion = resolved * surfaceOcclusion(ray * surfaceT, normal, surfaceGrid, surfaceLevel);
+            resolved *= 1.0 - smoothstep(0.125, 0.25, occlusionGrid.w / u_farDistance);
+            if (resolved > 0.0) occlusion = resolved * surfaceOcclusion(ray * surfaceT, normal, occlusionGrid, occlusionLevel);
         }
         float ambientVisibility = 1.0 - (u_aoMode == 2 ? 0.7 : 0.55) * occlusion;
         if (u_lighting == 1 && u_faces) {

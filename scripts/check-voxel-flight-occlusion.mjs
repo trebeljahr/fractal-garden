@@ -69,7 +69,7 @@ const mainFragment = source
     else {
         float code = surfaceDepth + float(surfaceLevel + 1) * 256.0;
         if (u_checkMainMode == 2) code = floor(surfaceT * 1000000.0 + 0.5);
-        if (u_checkMainMode == 3) code = floor(surfaceOcclusion(ray * surfaceT, normal, surfaceGrid, surfaceLevel) * 65535.0 + 0.5);
+        if (u_checkMainMode == 3) code = surfaceLevel < 0 ? 0.0 : floor(surfaceOcclusion(ray * surfaceT, normal, occlusionGrid, occlusionLevel) * 65535.0 + 0.5);
         if (u_checkMainMode == 4) code = floor(surfaceGrid.w * 1000000.0 + 0.5);
         gl_FragColor = vec4(mod(code, 256.0) / 255.0, mod(floor(code / 256.0), 256.0) / 255.0,
             floor(code / 65536.0) / 255.0, hit ? 1.0 : 0.0);
@@ -212,13 +212,17 @@ for (let pattern = 0; pattern < PATTERNS.length; pattern++) {
     const point = ray.map((v) => v * hit.distance);
     const before = ray.map((v) => v * (hit.distance - 1e-6));
     const depth = meshes.findIndex((mesh) => !mesh.some((box) => insideBox(before, box)));
-    if (depth < 0 || selected.has(depth)) continue;
+    if (depth < 0) continue;
     const sign = -Math.sign(ray[hit.axis]);
     const normal = normalFor(hit.axis, sign);
     let expected = [0, 0];
+    let parentExpected = expected;
     if (depth > 0) {
       const within = point.map((v, axis) => v - normal[axis] * 1e-6);
-      const faceBox = meshes[depth].find((box) => insideBox(within, box));
+      // The finite mesh includes the smaller holes in a retained parent.
+      // AO must use that visible geometry, even when the hit plane was first
+      // exposed by a larger cavity several subdivisions earlier.
+      const faceBox = meshes[2].find((box) => insideBox(within, box));
       if (!faceBox) continue;
       const [u, v] = tangents(hit.axis);
       const mask = offsets.map(([du, dv]) => {
@@ -226,19 +230,34 @@ for (let pattern = 0; pattern < PATTERNS.length; pattern++) {
           (value, axis) =>
             value + faceBox.size * (normal[axis] + (axis === u ? du : axis === v ? dv : 0)),
         );
-        return Number(meshes[depth].some((box) => insideBox(p, box)));
+        return Number(meshes[2].some((box) => insideBox(p, box)));
       });
       const uv = [u, v].map((axis) => (point[axis] - faceBox.low[axis]) / faceBox.size);
       expected = expectedOcclusion(mask, uv);
+      const parent = meshes[depth].find((box) => insideBox(within, box));
+      const parentMask = offsets.map(([du, dv]) => {
+        const p = parent.center.map(
+          (value, axis) =>
+            value + parent.size * (normal[axis] + (axis === u ? du : axis === v ? dv : 0)),
+        );
+        return Number(meshes[depth].some((box) => insideBox(p, box)));
+      });
+      parentExpected = expectedOcclusion(
+        parentMask,
+        [u, v].map((axis) => (point[axis] - parent.low[axis]) / parent.size),
+      );
     }
-    selected.set(depth, {
-      name: `surface depth ${depth}`,
+    const refined = expected.some((value, i) => Math.abs(value - parentExpected[i]) > 0.01);
+    const selection = `${depth}/${refined}`;
+    if (selected.has(selection)) continue;
+    selected.set(selection, {
+      name: `surface depth ${depth}${refined ? "; perforated parent" : ""}`,
       ray,
       distance: hit.distance,
       depth,
+      normal,
       expected,
     });
-    if (selected.size === 3) break;
   }
   if (selected.size < 2)
     throw Error(`Insufficient real-hit capture fixtures for ${PATTERNS[pattern]}`);
@@ -249,6 +268,12 @@ for (let pattern = 0; pattern < PATTERNS.length; pattern++) {
     rays: [...selected.values()],
   });
 }
+if (
+  !mainFixtures.some((fixture) =>
+    fixture.rays.some((ray) => ray.name.includes("perforated parent")),
+  )
+)
+  throw Error("Missing mixed-scale AO regression fixtures");
 
 for (let pattern = 0; pattern < PATTERNS.length; pattern++) {
   const cubes = generators[pattern](2);
@@ -635,6 +660,7 @@ async function checkMain(payload) {
       gl.uniform1f(u("nearFootprint"), 1e-6);
       gl.uniform1i(u("faces"), 1);
       gl.uniform1i(u("wire"), 0);
+      gl.uniform1f(u("fogDistanceScale"), 0);
       for (const ray of fixture.rays) {
         gl.uniform3fv(u("forward"), ray.ray);
         const metadata = diagnostic(1);
@@ -662,8 +688,40 @@ async function checkMain(payload) {
             ray.expected[mode - 1],
             0.0002,
           );
+          gl.uniform1i(u("checkMainMode"), 0);
+          const diffuse = Math.max(
+            0,
+            ray.normal.reduce((sum, n, axis) => sum + n * [-0.5, 0.8, 0.6][axis], 0) /
+              Math.hypot(-0.5, 0.8, 0.6),
+          );
+          const facing =
+            0.15 * Math.max(0, -ray.normal.reduce((sum, n, axis) => sum + n * ray.ray[axis], 0));
+          const visibility = 1 - (mode === 2 ? 0.7 : 0.55) * ray.expected[mode - 1];
+          for (const lighting of [0, 1]) {
+            gl.uniform1i(u("lighting"), lighting);
+            const pixels = draw();
+            for (let channel = 0; channel < 3; channel++) {
+              const ambient =
+                [0.29, 0.34, 0.43][channel] +
+                ([0.43, 0.43, 0.4][channel] - [0.29, 0.34, 0.43][channel]) *
+                  (0.5 + 0.5 * ray.normal[1]);
+              const illumination =
+                lighting === 0
+                  ? 0.38 * visibility + 0.62 * diffuse + facing
+                  : ambient * visibility +
+                    0.62 * diffuse * [1.08, 1, 0.88][channel] +
+                    facing * 0.75;
+              compare(
+                `${ray.name}: rendered AO mode ${mode}, lighting ${lighting}, channel ${channel}`,
+                pixels[channel] / 255,
+                [0.8, 0.6, 0.4][channel] * illumination,
+                1.5 / 255,
+              );
+            }
+          }
         }
       }
+      gl.uniform1f(u("fogDistanceScale"), 1 / 32);
       // Metadata records the global subdivision address, not a material.
       // Changing only that address must not recolour otherwise identical walls.
       gl.uniform1i(u("checkMainMode"), 0);
