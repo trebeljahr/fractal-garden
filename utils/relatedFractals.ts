@@ -183,27 +183,13 @@ const families: Family[] = [
   },
 ];
 
-const specific: Record<string, Record<string, string>> = {
-  "/mandelbrot": {
-    "/julia-set":
-      "Keep the same equation, fix c, and explore a different Julia set for each value.",
-    "/burning-ship": "Fold the real and imaginary parts before squaring to make the ship's ridges.",
-    "/buddhabrot":
-      "Draw the paths of escaping Mandelbrot points instead of their starting positions.",
-  },
-  "/julia-set": {
-    "/mandelbrot": "Explore the parameter plane that connects this family of Julia sets.",
-  },
-  "/burning-ship": { "/mandelbrot": "Compare the same iteration without the absolute-value fold." },
-};
-
 export function getRelatedFractals(path: string) {
-  const found = new Map<FractalTilePath, string | undefined>();
+  const found = new Set<FractalTilePath>();
   for (const family of families) {
     if (!family.paths.some((member) => member === path)) continue;
     for (const target of family.paths) {
-      if (target !== path && !found.has(target)) found.set(target, specific[path]?.[target]);
+      if (target !== path) found.add(target);
     }
   }
-  return Array.from(found, ([href, reason]) => ({ href, reason })).slice(0, 4);
+  return Array.from(found, (href) => ({ href })).slice(0, 4);
 }

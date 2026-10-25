@@ -7,21 +7,12 @@ type FractalLinkProps = {
   imageSrc: StaticImageData;
   title: string;
   prio?: boolean;
-  variant?: "gallery" | "related";
-  reason?: string;
 };
 
-export const FractalLink = ({
-  href,
-  imageSrc,
-  title,
-  prio = false,
-  variant = "gallery",
-  reason,
-}: FractalLinkProps) => {
+export const FractalLink = ({ href, imageSrc, title, prio = false }: FractalLinkProps) => {
   return (
     <div className={styles.gridItem}>
-      <article className={`${styles.card} ${variant === "related" ? styles.relatedCard : ""}`}>
+      <article className={styles.card}>
         <Link href={href} prefetch={false} className={styles.cardLink}>
           <span className="screen-reader-only">Link to the {title} fractal page.</span>
         </Link>
@@ -34,18 +25,13 @@ export const FractalLink = ({
             layout="fill"
             objectFit="cover"
             objectPosition="center"
-            sizes={
-              variant === "related"
-                ? "(max-width: 980px) 44vw, 434px"
-                : "(min-width: 1350px) 30vw, (min-width: 900px) 45vw, 90vw"
-            }
+            sizes="(min-width: 1350px) 30vw, (min-width: 900px) 45vw, 90vw"
             priority={prio}
           />
         </div>
 
         <div className={styles.cardContent}>
           <h3 className={styles.cardHeading}>{title}</h3>
-          {reason && <p className={styles.reason}>{reason}</p>}
         </div>
       </article>
     </div>
