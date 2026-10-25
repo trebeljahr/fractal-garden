@@ -10,9 +10,9 @@ In either version, the number of cubes increases while their combined volume dec
 
 Look toward one corner of a cube. Its outline is a hexagon. From this direction, the heavier snowflake's smaller cubes overlap in the view. Their combined shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake) as you repeat the construction.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup>
 
-<figure data-article-images="mosely-koch"></figure>
-
 The lighter version has holes in its shadow. With the center cube removed too, you can see all the way through some parts.
+
+<figure data-article-images="mosely-koch"></figure>
 
 Jeannine Mosely and Margaret Wertheim documented a physical model assembled from roughly 49,000 business cards in 2011–2012.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> The folded modules represent a finite stage of this cube replacement.
 

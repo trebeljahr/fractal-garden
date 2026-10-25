@@ -6,12 +6,12 @@ const IMAGES = {
   "mosely-koch": [
     {
       name: "mosely-koch-opening",
-      alt: "A dark Koch snowflake opening surrounded by blue recursive cube walls inside the Mosely snowflake",
+      alt: "A dark snowflake-shaped opening seen from the center of the lighter Mosely snowflake, surrounded by blue cube walls",
       caption:
-        "Looking toward a corner from inside the snowflake reveals this Koch-shaped opening.",
+        "From the center of the lighter version, look toward a missing corner cube. The opening has a snowflake outline.",
       href: MOSELY_KOCH_LINK,
-      width: 1200,
-      height: 750,
+      width: 1160,
+      height: 648,
     },
   ],
   carpet: [
