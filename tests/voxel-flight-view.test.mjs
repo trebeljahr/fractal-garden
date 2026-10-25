@@ -18,6 +18,7 @@ const {
   flightRootBounds,
 } = require("../utils/voxelZoom/camera.ts");
 const { flightScreenBounds } = require("../utils/voxelZoom/view.ts");
+const { flightLens } = require("../utils/voxelZoom/lens.ts");
 const basis = flightBasis({ yaw: 0, pitch: 0 });
 
 test("opening view shades only the projected root; unseen roots need no draw", () => {
@@ -70,55 +71,56 @@ test("camera-plane crossings keep the whole viewport", () => {
 test("screen bounds include every root-intersecting pixel across flight views", () => {
   let intersections = 0;
   let clippedViews = 0;
-  for (const [width, height] of [
-    [96, 64],
-    [64, 96],
-    [128, 32],
-  ]) {
-    for (let index = 0; index < 48; index++) {
-      const frame = index < 24 ? undefined : { width, height, top: 3, bottom: 12 };
-      const fitHeight = height - (frame?.top ?? 0) - (frame?.bottom ?? 0);
-      const centerY = height - (frame?.top ?? 0) - fitHeight / 2;
-      const basis = flightBasis({ yaw: index * 0.73, pitch: Math.sin(index * 1.13) * 1.5 });
-      const center = [Math.sin(index * 2.2) * 3, Math.cos(index * 0.83) * 3, -2];
-      const halfSize = 0.2 + (index % 5) * 0.4;
-      const bounds = {
-        low: center.map((v) => v - halfSize),
-        high: center.map((v) => v + halfSize),
-      };
-      const farDistance = 1 + (index % 7);
-      const visible = flightScreenBounds(bounds, basis, width, height, farDistance, frame);
-      if (!visible || visible.width * visible.height < width * height) clippedViews++;
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const u = (2 * (x + 0.5) - width) / Math.min(width, fitHeight);
-          const v = (2 * (y + 0.5 - centerY)) / Math.min(width, fitHeight);
-          const direction = basis.forward.map(
-            (value, axis) => value + 0.58 * (u * basis.right[axis] + v * basis.up[axis]),
-          );
-          const length = Math.hypot(...direction);
-          const ray = direction.map((value) => value / length);
-          let near = 0;
-          let far = farDistance;
-          for (let axis = 0; axis < 3; axis++) {
-            if (Math.abs(ray[axis]) < 1e-15) {
-              if (bounds.low[axis] > 0 || bounds.high[axis] < 0) far = -1;
-              continue;
+  for (const lens of [0.24, 0.58])
+    for (const [width, height] of [
+      [96, 64],
+      [64, 96],
+      [128, 32],
+    ]) {
+      for (let index = 0; index < 48; index++) {
+        const frame = index < 24 ? undefined : { width, height, top: 3, bottom: 12 };
+        const fitHeight = height - (frame?.top ?? 0) - (frame?.bottom ?? 0);
+        const centerY = height - (frame?.top ?? 0) - fitHeight / 2;
+        const basis = flightBasis({ yaw: index * 0.73, pitch: Math.sin(index * 1.13) * 1.5 });
+        const center = [Math.sin(index * 2.2) * 3, Math.cos(index * 0.83) * 3, -2];
+        const halfSize = 0.2 + (index % 5) * 0.4;
+        const bounds = {
+          low: center.map((v) => v - halfSize),
+          high: center.map((v) => v + halfSize),
+        };
+        const farDistance = 1 + (index % 7);
+        const visible = flightScreenBounds(bounds, basis, width, height, farDistance, frame, lens);
+        if (!visible || visible.width * visible.height < width * height) clippedViews++;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const u = (2 * (x + 0.5) - width) / Math.min(width, fitHeight);
+            const v = (2 * (y + 0.5 - centerY)) / Math.min(width, fitHeight);
+            const direction = basis.forward.map(
+              (value, axis) => value + lens * (u * basis.right[axis] + v * basis.up[axis]),
+            );
+            const length = Math.hypot(...direction);
+            const ray = direction.map((value) => value / length);
+            let near = 0;
+            let far = farDistance;
+            for (let axis = 0; axis < 3; axis++) {
+              if (Math.abs(ray[axis]) < 1e-15) {
+                if (bounds.low[axis] > 0 || bounds.high[axis] < 0) far = -1;
+                continue;
+              }
+              const a = bounds.low[axis] / ray[axis];
+              const b = bounds.high[axis] / ray[axis];
+              near = Math.max(near, Math.min(a, b));
+              far = Math.min(far, Math.max(a, b));
             }
-            const a = bounds.low[axis] / ray[axis];
-            const b = bounds.high[axis] / ray[axis];
-            near = Math.max(near, Math.min(a, b));
-            far = Math.min(far, Math.max(a, b));
+            if (far <= near) continue;
+            intersections++;
+            assert.ok(visible, `view ${index} lost visible root`);
+            assert.ok(x >= visible.x && x < visible.x + visible.width);
+            assert.ok(y >= visible.y && y < visible.y + visible.height);
           }
-          if (far <= near) continue;
-          intersections++;
-          assert.ok(visible, `view ${index} lost visible root`);
-          assert.ok(x >= visible.x && x < visible.x + visible.width);
-          assert.ok(y >= visible.y && y < visible.y + visible.height);
         }
       }
     }
-  }
   assert.ok(intersections > 1000);
   assert.ok(clippedViews > 20);
 });
@@ -142,7 +144,7 @@ test("Mosely defaults center the complete snowflake from outside on every screen
       [390, 844],
       [844, 390],
     ]) {
-      const scale = Math.min(width, height) / 1.16;
+      const scale = Math.min(width, height) / (2 * flightLens(pattern, bounds));
       for (let insetAxis = 0; insetAxis < 3; insetAxis++) {
         for (let index = 0; index < 8; index++) {
           const corner = center.map(
@@ -154,6 +156,28 @@ test("Mosely defaults center the complete snowflake from outside on every screen
           assert.ok(Math.abs((scale * dot(corner, basis.up)) / depth) <= height * 0.42 + 1e-9);
         }
       }
+    }
+  }
+});
+
+test("Mosely exterior lens opens continuously near the root at every coordinate scale", () => {
+  for (const scale of [1e-20, 1, 1e20]) {
+    let previous = 0.58,
+      previousDistanceScale = 0;
+    for (let step = 0; step <= 100; step++) {
+      const distance = (step * 3) / 100;
+      const bounds = {
+        low: [-0.5, -0.5, -0.5 - distance].map((v) => v * scale),
+        high: [0.5, 0.5, 0.5 - distance].map((v) => v * scale),
+      };
+      const lens = flightLens("mosely-light", bounds);
+      assert.ok(lens >= 0.24 - 1e-15 && lens <= previous);
+      assert.ok(Math.abs(lens - previous) < 0.02);
+      assert.ok(distance * lens >= previousDistanceScale, "approaching must not zoom backward");
+      assert.ok(Math.abs(lens - flightLens("mosely-heavy", bounds)) < 1e-15);
+      assert.equal(flightLens("menger", bounds), 0.58);
+      previous = lens;
+      previousDistanceScale = distance * lens;
     }
   }
 });

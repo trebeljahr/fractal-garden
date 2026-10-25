@@ -1,5 +1,6 @@
 import type { FractalFrame } from "../fractalFrame";
 import type { flightBasis, Vec3 } from "./camera";
+import { FLIGHT_PROJECTION } from "./lens";
 
 /** Optical center uses bottom-up coordinates, matching fragment coordinates. */
 export function flightProjection(width: number, height: number, frame?: FractalFrame | null) {
@@ -25,6 +26,7 @@ export function flightScreenBounds(
   height: number,
   farDistance: number,
   frame?: FractalFrame | null,
+  lens = FLIGHT_PROJECTION,
 ): FlightScreenBounds | null {
   const low = bounds.low.map((v) => Math.max(v, -farDistance));
   const high = bounds.high.map((v) => Math.min(v, farDistance));
@@ -39,7 +41,7 @@ export function flightScreenBounds(
   if (corners.every((point) => point.z <= 0)) return null;
   if (corners.some((point) => point.z <= 0)) return full;
   const projection = flightProjection(width, height, frame);
-  const scale = projection.side / 1.16;
+  const scale = projection.side / (2 * lens);
   const x = corners.map((point) => projection.centerX + (scale * point.x) / point.z);
   const y = corners.map((point) => projection.centerY + (scale * point.y) / point.z);
   // Keep a pixel on either side for CPU/GPU rounding at the silhouette.

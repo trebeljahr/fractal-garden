@@ -30,10 +30,16 @@ async function check(page, baseURL, captures) {
       const draw = gl.drawArrays.bind(gl);
       gl.drawArrays = (...args) => {
         const result = draw(...args);
-        window.__settleFrames.push({ width: this.width, height: this.height });
+        const program = gl.getParameter(gl.CURRENT_PROGRAM);
+        const sample = gl.getUniformLocation(program, "u_sampleOffset");
+        window.__settleFrames.push({
+          width: this.width,
+          height: this.height,
+          sample: sample ? Array.from(gl.getUniform(program, sample)) : null,
+        });
         const until = performance.now() + window.__settleDelay;
         while (performance.now() < until) {
-          /* Bounded slow frames force the actual moving framebuffer to shrink. */
+          /* Bounded slow frames must not reduce the actual moving framebuffer. */
         }
         return result;
       };
@@ -125,7 +131,14 @@ async function check(page, baseURL, captures) {
         frames.every((frame) => frame.width === initial.width && frame.height === initial.height),
         `${name}: framebuffer resolution changed during movement`,
       );
-      await view.waitForTimeout(400);
+      await view.waitForTimeout(180);
+      await view.waitForFunction(() => {
+        const frame = window.__settleFrames.at(-1);
+        return (
+          frame &&
+          (!frame.sample || (Math.abs(frame.sample[0] - 1 / 3) < 1e-6 && frame.sample[1] === 0))
+        );
+      });
       const settled = await state();
       assert(
         settled.width === initial.width && settled.height === initial.height,
@@ -135,7 +148,8 @@ async function check(page, baseURL, captures) {
         JSON.stringify(settled.camera) === JSON.stringify(released.camera),
         `${name}: camera moved while settling`,
       );
-      assert(settled.draws - released.draws <= 2, `${name}: repeated stationary draws`);
+      // At most one queued input frame and nine bounded subpixel samples.
+      assert(settled.draws - released.draws <= 10, `${name}: unbounded stationary draws`);
       if (captures) await canvas.screenshot({ path: `${captures}/${name}-settled.png` });
       await view.waitForTimeout(250);
       const idle = await state();

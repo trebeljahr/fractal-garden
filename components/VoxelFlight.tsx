@@ -15,6 +15,7 @@ import {
   type VoxelPattern,
 } from "../utils/voxelZoom/camera";
 import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/renderer";
+import { FLIGHT_SAMPLE_OFFSETS } from "../utils/voxelZoom/sampling";
 
 import {
   FlightTouchControls,
@@ -103,6 +104,8 @@ export function VoxelFlight({
     let frame = 0,
       previous = performance.now(),
       disposed = false;
+    let samples = 0,
+      lastChanged = 0;
     const pointers = new Map<number, { x: number; y: number }>();
     let pointerType = "";
     const release = () => {
@@ -169,7 +172,7 @@ export function VoxelFlight({
         dirty.current = true;
       }
     };
-    const draw = () => {
+    const draw = (sample = -1) => {
       if (!renderer || gl.isContextLost()) return;
       const { style, width, height, framing } = latest.current;
       if (!framing) return;
@@ -181,6 +184,7 @@ export function VoxelFlight({
         window.devicePixelRatio || 1,
         undefined,
         framing,
+        sample,
       );
       dirty.current = false;
     };
@@ -204,7 +208,17 @@ export function VoxelFlight({
         move(motion.map((component) => component * speed) as Vec3, dt);
       }
       try {
-        if (dirty.current) draw();
+        if (dirty.current) {
+          draw();
+          samples = 0;
+          lastChanged = now;
+        } else if (
+          samples < FLIGHT_SAMPLE_OFFSETS.length &&
+          now - lastChanged > 120 &&
+          !document.hidden
+        ) {
+          draw(samples++);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
         release();
@@ -319,7 +333,8 @@ export function VoxelFlight({
     };
     const exported = () => {
       try {
-        draw();
+        for (let sample = 0; sample < FLIGHT_SAMPLE_OFFSETS.length; sample++) draw(sample);
+        samples = FLIGHT_SAMPLE_OFFSETS.length;
       } catch {
         /* The normal render loop exposes failures. */
       }

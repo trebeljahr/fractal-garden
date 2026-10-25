@@ -15,6 +15,26 @@ require.extensions[".ts"] = (module, filename) =>
 const { spatialReliefFront } = require("../utils/spatial/lighting.ts");
 const { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } = require("../utils/spatial/camera.ts");
 const { IDENTITY, viewRotation } = require("../utils/orientation.ts");
+const { flightReliefFront } = require("../utils/voxelZoom/lighting.ts");
+
+test("voxel relief uses nearest-root distance independent of looking direction", () => {
+  for (const scale of [1e-20, 1, 1e20]) {
+    const bounds = {
+      low: [-0.5, -0.5, -2.5].map((v) => v * scale),
+      high: [0.5, 0.5, -1.5].map((v) => v * scale),
+    };
+    assert.ok(Math.abs(flightReliefFront(bounds) / scale - 1.5) < 1e-14);
+    assert.equal(
+      flightReliefFront({ low: [-scale, -scale, -scale], high: [scale, scale, scale] }),
+      0,
+    );
+  }
+  assert.equal(flightReliefFront({ low: [0.001, -1e29, -1e29], high: [1e29, 1e29, 1e29] }), 0.001);
+  assert.equal(
+    flightReliefFront({ low: [-1e29, -1e29, -1e29], high: [-0.001, 1e29, 1e29] }),
+    0.001,
+  );
+});
 
 test("mesh relief reference follows the camera without depending on visible detail", () => {
   assert.ok(Math.abs(spatialReliefFront(INITIAL_SPATIAL_CAMERA, IDENTITY) - 4.4) < 1e-12);

@@ -69,6 +69,14 @@ test("pixel cones grow with distance and shrink with framebuffer resolution", ()
   assert.equal(finer.nearFootprint, detail.nearFootprint / 2);
 });
 
+test("the long lens refines geometry and edge footprints by the same optical scale", () => {
+  const wide = flightResolution(0.1, 1200, 800);
+  const narrow = flightResolution(0.1, 1200, 800, 0, 0, 1200, 800, 0.24);
+  assert.ok(Math.abs(narrow.pixelAngle / wide.pixelAngle - 0.24 / 0.58) < 1e-15);
+  assert.ok(Math.abs(narrow.nearFootprint / wide.nearFootprint - 0.24 / 0.58) < 1e-15);
+  assert.equal(narrow.detailScale, wide.detailScale);
+});
+
 test("projected detail stays continuous when camera units change at every zoom level", () => {
   for (const level of [0, 10, 150, 243]) {
     const one = 1n << 600n;

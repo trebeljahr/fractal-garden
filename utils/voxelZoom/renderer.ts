@@ -12,7 +12,10 @@ import {
   type VoxelPattern,
 } from "./camera";
 import { MAX_FLIGHT_PIXELS } from "./frameBudget";
+import { flightLens } from "./lens";
+import { flightReliefFront } from "./lighting";
 import { flightDetailDepth, flightRenderSize, flightResolution } from "./resolution";
+import { FLIGHT_SAMPLE_OFFSETS } from "./sampling";
 import { specializeVoxelShader } from "./shader";
 import { flightProjection, flightScreenBounds } from "./view";
 
@@ -87,6 +90,9 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
     "lineWidth",
     "lighting",
     "aoMode",
+    "projection",
+    "sampleOffset",
+    "reliefFront",
   ];
   const u = Object.fromEntries(
     names.map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
@@ -102,8 +108,9 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
       ratio: number,
       pixelBudget = MAX_FLIGHT_PIXELS,
       framing?: FractalFrame | null,
+      sample = -1,
     ) {
-      // The same framebuffer size is used during movement, at rest and for export.
+      // Movement, stationary samples and exports all use the same framebuffer.
       const { width: w, height: h } = flightRenderSize(width, height, ratio, pixelBudget);
       if (gl.canvas.width !== w || gl.canvas.height !== h) {
         gl.canvas.width = w;
@@ -118,6 +125,8 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
         camera.atmosphereLevel ?? navigationLevel,
       );
       const basis = flightBasis(camera);
+      const bounds = flightRootBounds(camera);
+      const lens = flightLens(pattern, bounds);
       const pixelFrame = framing
         ? {
             width: w,
@@ -129,18 +138,19 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
       const projection = flightProjection(w, h, pixelFrame);
       const displayProjection = flightProjection(width, height, framing);
       const visible = flightScreenBounds(
-        flightRootBounds(camera),
+        bounds,
         basis,
         w,
         h,
         nextAtmosphere.farDistance,
         pixelFrame,
+        lens,
       );
       const background = rgb(style.background);
       // Clear the full canvas before clipping the expensive ray traversal.
       // Looking away from the root needs neither a render grid nor a draw.
       gl.disable(gl.SCISSOR_TEST);
-      if (!visible || visible.width !== w || visible.height !== h) {
+      if (sample <= 0 && (!visible || visible.width !== w || visible.height !== h)) {
         gl.clearColor(...background, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
       }
@@ -184,7 +194,12 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
         navigationLevel,
         displayProjection.side,
         displayProjection.side,
+        lens,
       );
+      const offset = FLIGHT_SAMPLE_OFFSETS[Math.max(0, sample)] ?? FLIGHT_SAMPLE_OFFSETS[0];
+      gl.uniform1f(u.projection, lens);
+      gl.uniform1f(u.reliefFront, flightReliefFront(bounds));
+      gl.uniform2f(u.sampleOffset, offset[0], offset[1]);
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);
       gl.uniform1f(u.detailScale, detail.detailScale);
@@ -212,7 +227,13 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
       );
       gl.enable(gl.SCISSOR_TEST);
       gl.scissor(visible.x, visible.y, visible.width, visible.height);
+      if (sample > 0) {
+        gl.enable(gl.BLEND);
+        gl.blendColor(0, 0, 0, 1 / (sample + 1));
+        gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
+      } else gl.disable(gl.BLEND);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disable(gl.BLEND);
       gl.disable(gl.SCISSOR_TEST);
     },
     destroy() {

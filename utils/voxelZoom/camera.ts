@@ -1,5 +1,6 @@
 import { fixedFromNumber, fixedToFloatExp, rescaleFixed } from "../deepZoom/math";
 import { finite, isRecord } from "../explorerShare";
+import { FLIGHT_PROJECTION, MOSELY_EXTERIOR_PROJECTION } from "./lens";
 import { easeFlightAtmosphere } from "./smoothing";
 
 export type VoxelPattern = "menger" | "vicsek" | "mosely-light" | "mosely-heavy";
@@ -93,13 +94,14 @@ export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCam
 /** Fit the exterior into the shorter screen dimension.
  * Mosely removes the root's corners: its first-stage cubes fit within the
  * 24 vertices (±1/2, ±1/2, ±1/6), including permutations. Later stages fit too.
- * The flight projection uses 0.58 in both axes, scaled by min(width, height). */
+ * Both screen axes use the same lens, scaled by min(width, height). */
 export function exteriorFlightCamera(
   pattern: VoxelPattern,
   yaw = (-32 * Math.PI) / 180,
   pitch = (-28 * Math.PI) / 180,
 ): FlightCamera {
   const basis = flightBasis({ yaw, pitch });
+  const projection = pattern.startsWith("mosely") ? MOSELY_EXTERIOR_PROJECTION : FLIGHT_PROJECTION;
   let distance = 0;
   for (let insetAxis = 0; insetAxis < 3; insetAxis++) {
     for (let index = 0; index < 8; index++) {
@@ -112,7 +114,8 @@ export function exteriorFlightCamera(
       distance = Math.max(
         distance,
         -dot(basis.forward) +
-          Math.max(Math.abs(dot(basis.right)), Math.abs(dot(basis.up))) / (0.58 * 0.84),
+          Math.max(Math.abs(dot(basis.right)), Math.abs(dot(basis.up))) /
+            (projection * (pattern.startsWith("mosely") ? 0.78 : 0.84)),
       );
     }
   }

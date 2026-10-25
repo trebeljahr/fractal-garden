@@ -55,3 +55,21 @@ Fixed-quality regression: `node scripts/check-voxel-flight-quality.mjs /private/
 The renderer compiles the selected pattern as a shader constant once per variant canvas. This removes the pattern branch from repeated occupancy tests without changing the ray, geometry or lighting. The GPU oracle accepts `--specialize=menger`, `vicsek`, `mosely-light` or `mosely-heavy` to test the production source path. The lighting benchmark accepts `--specialize=PATTERN --baseline-mode=depth` for matched Depth/Soft measurements at fixed resolutions up to the production pixel cap.
 
 Render-grid construction rejects provably constant distant retained ancestors before converting their exact relative planes to GPU floats. A wider early-test margin and finite-range guard preserve the original grid; uncertain estimates use the original conversion/pruning path. Near planes, movement bounds and visible detail retain their original precision.
+
+## Exterior lens, stable lighting and filtered detail
+
+`lens.ts` uses a 27° field of view for Mosely's exterior. The camera is moved back to keep the complete six-arm outline in view. The lens opens gradually toward the navigation field of view near the root's center; the change depends on distance, never on looking direction. The optical center and available side length still come from `flightProjection` in `view.ts`, including the space reserved for controls. CPU clipping, pixel cones and the shader use the same lens.
+
+Depth lighting uses a fixed scene-space key light and sky direction. `lighting.ts` supplies the radial distance to the nearest point of the root box; relief uses radial hit distance beyond that reference. Turning the camera cannot move either the light or the relief reference. Mosely casts a bounded visibility ray toward the key light. Shadow traversal stops at visible detail, uses the same filtered holes as view traversal, and checks at most 64 empty-cell crossings over the smaller of 96 visible-cell widths and one quarter of the navigation horizon. Exhausting that budget leaves light visible; it is not evidence of an occluder.
+
+`holeBounds` grows a newly resolved void from zero size to its exact cell bounds as the cell grows from one to three detail footprints across. The void stays anchored to the same parent corner or center as the construction. This is a smooth approximation for unresolved details, not a claim that an infinite fractal has solid microscopic faces. Cells above the transition band use the original exact bounds and traversal arithmetic. Existing larger features remain present while finer cuts emerge. Both viewing and shadow rays use this rule.
+
+`sampling.ts` defines nine symmetric subpixel rays. New input replaces the previous image immediately. After 120 ms without changes, nine stationary draws average those rays with constant-alpha blending; the pattern also samples a small scene-space area light. Sample zero replaces the frame, and later samples blend with weight `1 / (sample + 1)`. Camera, style, framing and size changes restart accumulation. Export draws all nine samples synchronously. This uses the existing opaque canvas and adds no GPU resources. The geometry cutoff stays the same for moving and stationary views.
+
+Additional GPU regressions:
+
+- `node scripts/check-voxel-flight-shadows.mjs /private/tmp/check-voxel-flight-shadows.js`: independent finite-box shadow intersections for both variants, several coordinate scales, parallel rays and enormous retained ancestors.
+- `node scripts/check-voxel-flight-detail-transition.mjs /private/tmp/check-voxel-flight-detail-transition.js`: anchored, nested and continuous hole bounds, plus scene-space lighting across different camera orientations.
+- `check-voxel-flight-gpu.mjs` also holds a physical ray fixed while rotating the camera basis through 24 orientations on each supported pattern. The depth-lit color must remain identical. Its finite-box geometry oracle uses a cone below the transition band so every tested finite cell is fully resolved; the separate transition regression covers the filtered band.
+
+Run each generated payload with Playwright CLI `run-code --filename` and require `passed: true`.

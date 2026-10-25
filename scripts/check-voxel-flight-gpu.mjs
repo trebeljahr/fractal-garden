@@ -37,7 +37,11 @@ const fragment = readFileSync(
 )
   .replace(
     "precision highp float;",
-    "precision highp float; uniform bool u_checkLighting; uniform bool u_checkSurface; uniform float u_checkDistanceScale;",
+    "precision highp float; uniform bool u_checkLighting; uniform bool u_checkSurface; uniform float u_checkDistanceScale; uniform bool u_checkFixedRay; uniform vec3 u_checkRay;",
+  )
+  .replace(
+    "vec3 safeRay = sign(ray)",
+    "if (u_checkFixedRay) ray = normalize(u_checkRay);\n    vec3 safeRay = sign(ray)",
   )
   .replace(
     "gl_FragColor = vec4(color, 1.0);",
@@ -352,8 +356,10 @@ for (const distance of [0.05, 0.2, 1, 4, 8, 16, 32, 64, 95.9, 96, 100]) {
 for (const fixture of fixtures) {
   fixture.detail = flightResolution(
     fixture.frame.clearance,
-    65,
-    65,
+    // The finite-box oracle describes fully resolved cells. Keep its cone
+    // below the hole-transition band; transitions have a separate GPU check.
+    260,
+    260,
     fixture.level ?? 0,
     fixture.viewLevel ?? (fixture.distanceScale ? 0 : (fixture.level ?? 0)),
   );
@@ -408,6 +414,7 @@ async function check(payload) {
   gl.uniform2f(u("resolution"), 65, 65);
   gl.uniform2f(u("viewCenter"), 32.5, 32.5);
   gl.uniform1f(u("viewSide"), 65);
+  gl.uniform1f(u("projection"), 0.58);
   gl.uniform1i(u("grid"), 0);
   gl.uniform3f(u("fill"), 1, 1, 1);
   gl.uniform3f(u("background"), 0, 0, 0);
@@ -490,6 +497,55 @@ async function check(payload) {
             actual: pixels[at] / 255,
           });
       }
+      const viewLightingMismatches = [];
+      let viewLightingCases = 0;
+      if (
+        detailScale === 0 &&
+        ["menger", "vicsek", "mosely-light", "mosely-heavy"].includes(fixture.name)
+      ) {
+        const point = fixture.expected.find((p) => p.hit);
+        if (!point) throw Error("Lighting fixture has no visible surface");
+        const uv = [(2 * (point.x + 0.5) - 65) / 65, (2 * (point.y + 0.5) - 65) / 65];
+        const direction = basis.forward.map(
+          (v, axis) => v + 0.58 * (uv[0] * basis.right[axis] + uv[1] * basis.up[axis]),
+        );
+        gl.uniform3f(u("checkRay"), ...direction);
+        gl.uniform1i(u("checkFixedRay"), 1);
+        gl.uniform1i(u("lighting"), 1);
+        gl.uniform1i(u("aoMode"), 1);
+        gl.uniform1f(
+          u("reliefFront"),
+          Math.hypot(...frame.low.map((v, axis) => Math.max(v, -frame.high[axis], 0))),
+        );
+        let reference;
+        for (let turn = 0; turn < 24; turn++) {
+          const yaw = turn * 0.37,
+            pitch = Math.sin(turn * 0.53);
+          gl.uniform3f(
+            u("forward"),
+            Math.sin(yaw) * Math.cos(pitch),
+            Math.sin(pitch),
+            -Math.cos(yaw) * Math.cos(pitch),
+          );
+          gl.uniform3f(u("right"), Math.cos(yaw), 0, Math.sin(yaw));
+          gl.uniform3f(
+            u("up"),
+            -Math.sin(yaw) * Math.sin(pitch),
+            Math.cos(pitch),
+            Math.cos(yaw) * Math.sin(pitch),
+          );
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          const pixel = new Uint8Array(4);
+          gl.readPixels(32, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+          if (reference && pixel.some((v, i) => v !== reference[i]))
+            viewLightingMismatches.push({ turn, reference, got: Array.from(pixel) });
+          reference = Array.from(pixel);
+          viewLightingCases++;
+        }
+        gl.uniform1i(u("checkFixedRay"), 0);
+        gl.uniform1i(u("lighting"), 0);
+        gl.uniform1i(u("aoMode"), 0);
+      }
       results.push({
         detailScale,
         lightingMismatches,
@@ -499,6 +555,8 @@ async function check(payload) {
         rays: fixture.expected.length,
         levels: frame.levels.length,
         mismatches,
+        viewLightingCases,
+        viewLightingMismatches,
       });
     }
     return {
@@ -506,6 +564,7 @@ async function check(payload) {
         (r) =>
           r.mismatches.length === 0 &&
           r.lightingMismatches.length === 0 &&
+          r.viewLightingMismatches.length === 0 &&
           r.exhausted === 0 &&
           r.asymmetric === 0,
       ),

@@ -1,4 +1,5 @@
 import { MAX_VOXEL_DEPTH } from "./camera";
+import { FLIGHT_PROJECTION } from "./lens";
 
 // Numerical floor in the local precision scale. Flying toward a surface
 // refines that scale independently of the selected travel and fog scale.
@@ -34,8 +35,9 @@ export function flightResolution(
   navigationLevel = level,
   displayWidth = width,
   displayHeight = height,
+  projection = FLIGHT_PROJECTION,
 ) {
-  const pixelAngle = 1.16 / Math.max(1, Math.min(width, height));
+  const pixelAngle = (2 * projection) / Math.max(1, Math.min(width, height));
   const minimumDistance = MIN_FLIGHT_DETAIL_DISTANCE * Math.min(1, 3 ** (level - navigationLevel));
   const displayScale =
     Math.max(1, Math.min(width, height)) / Math.max(1, Math.min(displayWidth, displayHeight));

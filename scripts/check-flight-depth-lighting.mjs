@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-// Exercise the production relief function with independent box-corner references.
+// Exercise radial relief with independent nearest-box references.
 const source = readFileSync(new URL("../utils/shaders/voxel-flight.frag", import.meta.url), "utf8");
 const fragment =
   source.slice(0, source.indexOf("\nvoid main() {")) +
@@ -41,7 +41,6 @@ async function check(page, fragment) {
     gl.enableVertexAttribArray(p);
     gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
     const uniform = (name) => gl.getUniformLocation(program, name);
-    const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
     const errors = [];
     let cases = 0;
     try {
@@ -58,21 +57,12 @@ async function check(page, fragment) {
             const center = outside ? forward.map((x) => x * 3 * unit) : [0, 0, 0];
             const low = center.map((x) => x - unit),
               high = center.map((x) => x + unit);
-            // Minimum dot product over eight actual corners, independent of shader center/extent math.
-            const front = Math.max(
-              0,
-              Math.min(
-                ...Array.from({ length: 8 }, (_, mask) =>
-                  dot(
-                    low.map((v, i) => (mask & (1 << i) ? high[i] : v)),
-                    forward,
-                  ),
-                ),
-              ),
-            );
+            const nearest = low.map((v, axis) => (v > 0 ? v : high[axis] < 0 ? high[axis] : 0));
+            const front = Math.hypot(...nearest);
             gl.uniform3fv(uniform("u_low"), low);
             gl.uniform3fv(uniform("u_high"), high);
             gl.uniform3fv(uniform("u_forward"), forward);
+            gl.uniform1f(uniform("u_reliefFront"), front);
             gl.uniform1f(uniform("u_fogDistanceScale"), 1 / (96 * unit));
             let previous = 1;
             for (const depth of [0, 0.25, 1, 2, 8, 100]) {
@@ -101,6 +91,7 @@ async function check(page, fragment) {
           gl.uniform3fv(uniform("u_low"), low);
           gl.uniform3fv(uniform("u_high"), high);
           gl.uniform3fv(uniform("u_forward"), forward);
+          gl.uniform1f(uniform("u_reliefFront"), 0.001);
           gl.uniform1f(uniform("u_fogDistanceScale"), 1 / 96e-6);
           for (const depth of [0, 0.25, 1, 2]) {
             gl.uniform1f(uniform("u_checkDepth"), 0.001 + depth * 1e-6);

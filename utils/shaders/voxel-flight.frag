@@ -25,6 +25,9 @@ uniform bool u_wire;
 uniform float u_lineWidth;
 uniform int u_lighting;
 uniform int u_aoMode;
+uniform float u_projection;
+uniform vec2 u_sampleOffset;
+uniform float u_reliefFront;
 
 bool kept(vec3 digit) {
     float centers = (digit.x == 1.0 ? 1.0 : 0.0) + (digit.y == 1.0 ? 1.0 : 0.0) + (digit.z == 1.0 ? 1.0 : 0.0);
@@ -98,20 +101,80 @@ float surfaceOcclusion(vec3 p, vec3 normal, vec4 surfaceGrid, int surfaceLevel) 
     return mix(mix(dark.x, dark.y, face.x), mix(dark.z, dark.w, face.x), face.y);
 }
 
-// Near-field relief uses axial distance, so a flat face stays evenly lit.
-// The whole root supplies the outside reference; inside it, the eye is the reference.
-float depthRelief(float axialDepth) {
-    // Select the support corner directly. Subtracting an enormous center and
-    // half-width would lose the nearby plane at deep ancestor boundaries.
-    vec3 corner = mix(u_high, u_low, step(vec3(0.0), u_forward));
-    float front = max(0.0, dot(corner, u_forward));
-    float depth = max(0.0, axialDepth - front) * (96.0 * u_fogDistanceScale);
+// Radial distance and the nearest root point stay fixed when the eye turns.
+float depthRelief(float radialDistance) {
+    float depth = max(0.0, radialDistance - u_reliefFront) * (96.0 * u_fogDistanceScale);
     return 0.55 + 0.45 * exp(-0.9 * depth);
 }
 
+vec3 keyLightDirection() {
+    return normalize(vec3(-0.35, 0.85, 0.39));
+}
+
+vec3 depthIllumination(vec3 normal, float visibility, float ambientVisibility, float distance) {
+    float sideLight = max(0.0, dot(normal, keyLightDirection()));
+    vec3 ambient = mix(vec3(0.27, 0.30, 0.36), vec3(0.36, 0.36, 0.33), 0.5 + 0.5 * normal.y);
+    return min(vec3(1.0), ambient * ambientVisibility + 0.82 * sideLight * visibility * vec3(1.04, 1.0, 0.94)) * depthRelief(distance);
+}
+
+// A barely resolved void starts at zero size and grows over one subdivision.
+// Anchor it to the same parent corner (or center) as the exact construction.
+// Fully resolved cells keep their exact original bounds.
+void holeBounds(vec3 low, vec3 digit, float size, float footprint, out vec3 cutLow, out vec3 cutHigh) {
+    float reveal = smoothstep(1.0, 3.0, size / footprint);
+    float cutSize = size * reveal;
+    cutLow = low + 0.5 * digit * (size - cutSize);
+    cutHigh = cutLow + vec3(cutSize);
+}
+
+// Trace toward the key light through the same retained cells as the view ray.
+// Stop at the displayed detail scale; subpixel cavities must not cast solid,
+// flickering shadows. Bounded travel keeps deep interior views affordable.
+float lightVisibility(vec3 origin, vec3 direction, float pixelSize, float cellSize) {
+    float bias = max(pixelSize * 0.6, cellSize * 0.001);
+    float travel = bias;
+    float horizon = min(u_farDistance * 0.25, cellSize * 96.0);
+    // A parallel-axis quotient must remain finite beside enormous ancestors.
+    vec3 safeDirection = sign(direction) * max(abs(direction), vec3(1e-8));
+    safeDirection += (vec3(1.0) - abs(sign(direction))) * 1e-8;
+    for (int stepIndex = 0; stepIndex < 64; stepIndex++) {
+        if (travel >= horizon) return 1.0;
+        float footprint = max(pixelSize, travel * 0.003);
+        vec3 p = origin + direction * travel;
+        if (any(lessThanEqual(p, u_low)) || any(greaterThanEqual(p, u_high))) return 1.0;
+        bool empty = false;
+        for (int level = 0; level < 256; level++) {
+            if (level >= u_levels) break;
+            float x = (float(level) + 0.5) / 256.0;
+            vec4 grid = texture2D(u_grid, vec2(x, 0.25));
+            if (grid.w < footprint) break;
+            vec3 base = texture2D(u_grid, vec2(x, 0.75)).xyz;
+            vec3 cell = floor((p - grid.xyz) / grid.w);
+            vec3 digit = mod(base + cell, 3.0);
+            if (kept(digit)) continue;
+            vec3 edge = grid.xyz + (cell + step(vec3(0.0), direction)) * grid.w;
+            if (grid.w < footprint * 3.0) {
+                vec3 cutLow, cutHigh;
+                holeBounds(grid.xyz + cell * grid.w, digit, grid.w, footprint, cutLow, cutHigh);
+                if (any(lessThan(p, cutLow)) || any(greaterThan(p, cutHigh))) return 0.0;
+                edge = mix(cutLow, cutHigh, step(vec3(0.0), direction));
+            }
+            vec3 distances = (edge - p) / safeDirection;
+            distances = mix(vec3(1e30), distances, step(vec3(1e-8), abs(direction)));
+            travel += max(min(min(distances.x, distances.y), distances.z), 0.0) + footprint * 0.03;
+            empty = true;
+            break;
+        }
+        if (!empty) return 0.0;
+    }
+    // Exhausting the shadow budget is not evidence of an occluder.
+    return 1.0;
+}
+
 void main() {
-    vec2 uv = 2.0 * (gl_FragCoord.xy - u_viewCenter) / u_viewSide;
-    vec3 ray = normalize(u_forward + 0.58 * (uv.x * u_right + uv.y * u_up));
+    vec2 uv = 2.0 * (gl_FragCoord.xy + u_sampleOffset - u_viewCenter) / u_viewSide;
+    float projection = u_projection > 0.0 ? u_projection : 0.58;
+    vec3 ray = normalize(u_forward + projection * (uv.x * u_right + uv.y * u_up));
     vec3 safeRay = sign(ray) * max(abs(ray), vec3(1e-20));
     safeRay += (vec3(1.0) - abs(sign(ray))) * 1e-20;
     vec3 a = u_low / safeRay;
@@ -203,6 +266,12 @@ void main() {
                     // low first loses a nearby plane when cell == -1 and the
                     // ancestor width is much larger than the local offset.
                     vec3 edge = grid.xyz + (cell + step(vec3(0.0), ray)) * size;
+                    if (size < footprint * 3.0) {
+                        vec3 cutLow, cutHigh;
+                        holeBounds(low, digit, size, footprint, cutLow, cutHigh);
+                        if (any(lessThan(p, cutLow)) || any(greaterThan(p, cutHigh))) break;
+                        edge = mix(cutLow, cutHigh, step(vec3(0.0), ray));
+                    }
                     vec3 distances = (edge - p) / safeRay;
                     // A parallel-axis quotient can overflow for huge ancestors.
                     // Select explicitly: arithmetic mix can multiply infinity
@@ -271,11 +340,20 @@ void main() {
         float ambientVisibility = 1.0 - (u_aoMode == 2 ? 0.7 : 0.55) * occlusion;
         vec3 edgeColor = u_stroke * light;
         if (u_lighting == 1 && u_faces) {
-            vec3 key = normalize(-0.65 * u_right + 0.85 * u_up - 0.65 * u_forward);
+            vec3 key = keyLightDirection();
             float sideLight = max(0.0, dot(litNormal, key));
-            vec3 ambient = mix(vec3(0.27, 0.30, 0.36), vec3(0.36, 0.36, 0.33), 0.5 + 0.5 * dot(litNormal, u_up));
-            vec3 illumination = min(vec3(1.0), ambient * ambientVisibility + 0.82 * sideLight * vec3(1.04, 1.0, 0.94));
-            illumination *= depthRelief(surfaceT * dot(ray, u_forward));
+            float visibility = 1.0;
+            if (u_pattern >= 2 && sideLight > 0.0) {
+                // Subpixel accumulation also samples a small area light.
+                vec3 direction = normalize(key + 0.12 * vec3(u_sampleOffset.x, 0.0, u_sampleOffset.y));
+                float pixelSize = max(u_nearFootprint, surfaceT * u_pixelAngle) * detailScale;
+                vec3 origin = ray * surfaceT + normal * max(pixelSize * 0.6, cellSize * 0.001);
+                visibility = lightVisibility(origin, direction, pixelSize, cellSize);
+            }
+            vec3 illumination = depthIllumination(litNormal, visibility, ambientVisibility, surfaceT);
+            // The material picker supplies display-encoded colour. Apply the
+            // light in linear space before returning to display values.
+            if (u_pattern >= 2) illumination = pow(illumination, vec3(1.0 / 2.2));
             color = material * illumination;
             edgeColor = u_stroke * illumination;
         } else if (u_aoMode > 0) {
