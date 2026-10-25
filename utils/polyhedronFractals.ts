@@ -1,5 +1,6 @@
 import { radians } from "./ctxHelpers";
 import { type Orientation, viewRotation } from "./orientation";
+import { SURFACE_SHADE_STEPS as SHADE_STEPS, surfaceBrightness } from "./render/surfaceLighting";
 import { seamWidth, shadeColor } from "./voxelFractals";
 
 type Vec3 = [number, number, number];
@@ -43,10 +44,8 @@ export const MAX_SCENE_FACES = 60000;
 
 const PROJECTION_FOCAL_LENGTH = 6;
 const CIRCUMRADIUS = 1.3;
-const SHADE_STEPS = 48;
 const EPSILON = 1e-6;
 const PHI = (1 + Math.sqrt(5)) / 2;
-const LIGHT = normalize([-0.5, 0.75, 1]);
 
 function sub(a: Vec3, b: Vec3): Vec3 {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -429,6 +428,8 @@ export function drawPolyhedronScene(
   ctx.fillStyle = options.background;
   ctx.fillRect(0, 0, width, height);
 
+  let back = Infinity;
+  let front = -Infinity;
   for (let i = 0; i < scene.vertexCount; i++) {
     const x = positions[i * 3];
     const y = positions[i * 3 + 1];
@@ -439,6 +440,8 @@ export function drawPolyhedronScene(
     rotated[i * 3] = rx;
     rotated[i * 3 + 1] = ry;
     rotated[i * 3 + 2] = rz;
+    back = Math.min(back, rz);
+    front = Math.max(front, rz);
 
     const perspective =
       (PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - rz, 0.2)) * viewScale;
@@ -477,8 +480,8 @@ export function drawPolyhedronScene(
       depth += rotated[faceIndices[corner] * 3 + 2];
     }
 
-    const shade = Math.max(0.2, nx2 * LIGHT[0] + ny2 * LIGHT[1] + nz2 * LIGHT[2]);
     depths[face] = depth / (end - start);
+    const shade = surfaceBrightness(nx2, ny2, nz2, depths[face], back, front);
     shades[face] = Math.round(shade * SHADE_STEPS);
     order[visible++] = face;
   }
@@ -490,7 +493,11 @@ export function drawPolyhedronScene(
   const styleFor = (cache: Map<number, string>, color: string, step: number) => {
     let style = cache.get(step);
     if (!style) {
-      style = shadeColor(color, step / SHADE_STEPS, 1);
+      style = shadeColor(
+        color,
+        step / SHADE_STEPS,
+        cache === strokeStyles && options.showFaces ? 0.45 : 1,
+      );
       cache.set(step, style);
     }
     return style;

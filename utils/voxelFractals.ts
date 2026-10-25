@@ -1,5 +1,6 @@
 import { keepMengerCube } from "./menger";
 import { type Orientation, viewRotation } from "./orientation";
+import { SURFACE_SHADE_STEPS, surfaceBrightness } from "./render/surfaceLighting";
 
 export type Cube = {
   x: number;
@@ -73,17 +74,6 @@ const FACE_DEFS = [
   },
 ] as const;
 
-const LIGHT = normalize({ x: -0.5, y: 0.75, z: 1 });
-
-function normalize(vec: Vec3) {
-  const len = Math.hypot(vec.x, vec.y, vec.z) || 1;
-  return {
-    x: vec.x / len,
-    y: vec.y / len,
-    z: vec.z / len,
-  };
-}
-
 function hexToRgb(hex: string) {
   const cleaned = hex.replace("#", "");
   const normalized =
@@ -104,7 +94,7 @@ function hexToRgb(hex: string) {
 
 export function shadeColor(hex: string, shade: number, alpha: number) {
   const { r, g, b } = hexToRgb(hex);
-  const factor = 0.35 + shade * 0.75;
+  const factor = shade;
 
   return `rgba(${Math.min(255, Math.round(r * factor))}, ${Math.min(
     255,
@@ -428,16 +418,28 @@ export function drawBoxScene(
   const sealSeams = options.showFaces && !showOutline;
   ctx.lineWidth = sealSeams ? seamWidth(ctx) : options.lineWidth;
 
-  // Faces only point along the axes, so six shades cover the whole scene.
-  const fillStyles: string[] = [];
-  const strokeStyles: string[] = [];
-  for (let face = 0; face < 6; face++) {
+  // The root box bounds every descendant, including during construction motion.
+  const rootDepth = m[6] * boxes[0] + m[7] * boxes[1] + m[8] * boxes[2];
+  const halfDepth = (boxes[3] / 2) * (Math.abs(m[6]) + Math.abs(m[7]) + Math.abs(m[8]));
+  const faceNormals = Array.from({ length: 6 }, (_, face) => {
     const axis = face >> 1;
-    const facing = m[axis] * LIGHT.x + m[3 + axis] * LIGHT.y + m[6 + axis] * LIGHT.z;
-    const shade = Math.max(0.2, face & 1 ? facing : -facing);
-    fillStyles.push(shadeColor(options.fillColor, shade, 1));
-    strokeStyles.push(shadeColor(options.strokeColor, shade, 1));
-  }
+    const sign = face & 1 ? 1 : -1;
+    return [sign * m[axis], sign * m[3 + axis], sign * m[6 + axis]];
+  });
+  const fillStyles = new Map<number, string>();
+  const strokeStyles = new Map<number, string>();
+  const styleFor = (cache: Map<number, string>, color: string, step: number) => {
+    let style = cache.get(step);
+    if (!style) {
+      style = shadeColor(
+        color,
+        step / SURFACE_SHADE_STEPS,
+        cache === strokeStyles && options.showFaces ? 0.45 : 1,
+      );
+      cache.set(step, style);
+    }
+    return style;
+  };
 
   // Centre of the face being drawn and its two half edges, in view space.
   let ox = 0;
@@ -506,18 +508,29 @@ export function drawBoxScene(
       }
       ctx.closePath();
 
+      const normal = faceNormals[face];
+      const step = Math.round(
+        surfaceBrightness(
+          normal[0],
+          normal[1],
+          normal[2],
+          oz,
+          rootDepth - halfDepth,
+          rootDepth + halfDepth,
+        ) * SURFACE_SHADE_STEPS,
+      );
       if (options.showFaces) {
-        ctx.fillStyle = fillStyles[face];
+        ctx.fillStyle = styleFor(fillStyles, options.fillColor, step);
         ctx.fill();
         if (sealSeams) {
-          ctx.strokeStyle = fillStyles[face];
+          ctx.strokeStyle = ctx.fillStyle;
           ctx.stroke();
         }
       }
 
       // Canvas ignores a lineWidth of 0, so a zero width must skip the stroke.
       if (showOutline) {
-        ctx.strokeStyle = strokeStyles[face];
+        ctx.strokeStyle = styleFor(strokeStyles, options.strokeColor, step);
         ctx.stroke();
       }
     }
