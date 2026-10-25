@@ -13,6 +13,7 @@ import { PlacesMenu } from "./FractalPlaces";
 import { GpuSpatialExplorer } from "./GpuSpatialExplorer";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
+import { SpatialExplorer } from "./SpatialExplorer";
 import { VoxelFlight } from "./VoxelFlight";
 
 export type SceneVariant = {
@@ -364,6 +365,16 @@ export function SceneFractalExplorer<V extends string>({
         className={styles.viewport}
         style={{ background: config.background }}
       >
+        {variant.spec.kind === "romanesco" && width && height && (
+          <SpatialExplorer
+            key={config.variant}
+            spec={variant.spec}
+            style={config}
+            setStyle={setConfig}
+            width={width}
+            height={height}
+          />
+        )}
         {spatialSpec && width && height && (
           <GpuSpatialExplorer
             key={config.variant}

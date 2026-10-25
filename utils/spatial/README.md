@@ -4,7 +4,7 @@ The solid explorers now use [`GpuSpatialExplorer`](../spatialGpu/README.md): the
 
 The mesh construction and collision-shell details below describe the retained geometry reference and the Hilbert renderer, rather than the active solid flythroughs. The solid geometry helpers remain covered by the finite-generator tests.
 
-Romanesco uses this same explorer and flight camera. Each cone retains its core and adds 55 smaller cones in a golden-angle spiral. The shared finite generator shows levels zero through two; the spatial worker refines that same arrangement to screen tolerance. A sphere enclosing both the seed mesh and every transformed descendant bounds culling. Unresolved copies pad the collision shell until closer views refine them. This is a geometric model inspired by the plant, not a biological growth simulation.
+Romanesco uses `SpatialExplorer` and the shared flight camera. Each cone retains its core and adds 55 smaller cones in a golden-angle spiral. The shared finite generator shows levels zero through two; the spatial worker refines that same arrangement to screen tolerance. A sphere enclosing both the seed mesh and every transformed descendant bounds culling. Unresolved copies pad the collision shell until closer views refine them. This is a geometric model inspired by the plant, not a biological growth simulation.
 
 The camera stores a target in BigInt fixed point and a base-two zoom exponent. Precision grows with zoom, retaining 160 guard bits. Mesh vertices reach WebGL only after subtraction of the target. The limit is 240 zoom doublings; this is a practical depth bound. Input coefficients for irrational constructions retain the precision of the existing JavaScript generators.
 
