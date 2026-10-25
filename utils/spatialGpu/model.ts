@@ -10,6 +10,8 @@ import {
 import type { SceneSpec } from "../render/scene3d";
 import {
   ROMANESCO_BOUND,
+  ROMANESCO_BOUND_BASE,
+  ROMANESCO_BOUND_CYLINDER_RADIUS,
   ROMANESCO_CHILDREN,
   ROMANESCO_PLACEMENT_RADIUS,
   ROMANESCO_RADIUS,
@@ -46,6 +48,8 @@ export type GpuTransform = {
   center: Vec3;
   axes: [Vec3, Vec3, Vec3];
   rank: number;
+  continuation?: boolean;
+  baseCover?: boolean;
   /** An ancestor's retained core, rebased analytically before float conversion. */
   cone?: AncestorCone;
 };
@@ -54,6 +58,8 @@ export type GpuShape = {
   kind: 0 | 1 | 2 | 3;
   coneSlope?: number;
   boundConeSlope?: number;
+  boundConeBase?: number;
+  boundCylinderRadius?: number;
   children: GpuTransform[];
   roots: GpuTransform[];
   hull: Plane[];
@@ -80,6 +86,8 @@ export const MAX_GPU_ROOTS = 512;
 export const GPU_STACK_DEPTH = 40;
 export type GpuStackOptions = {
   minimumFootprint?: number;
+  /** Pixel angle times the draw's detail scale. */
+  pixelFootprint?: number;
   maxRank?: number;
   clearance?: boolean;
 };
@@ -88,23 +96,45 @@ const childScaleCache = new WeakMap<GpuShape, number>();
 export function selectGpuStackDepth(
   frame: Pick<GpuFrame, "shape" | "roots">,
   options: GpuStackOptions = {},
-): 16 | 24 | 40 {
+): 8 | 12 | 16 | 24 | 40 {
   if (frame.shape.kind !== 3) return 40;
   let ratio = childScaleCache.get(frame.shape);
   if (ratio === undefined) {
     ratio = Math.max(...frame.shape.children.map(transformSize));
     childScaleCache.set(frame.shape, ratio);
   }
-  const floor = options.clearance ? 0.00002 : (options.minimumFootprint ?? 0);
+  const minimum = options.clearance ? 0.00002 : (options.minimumFootprint ?? 0);
   const feature = options.clearance ? frame.shape.radius : frame.shape.featureSize;
   const rankLimit = Number.isFinite(options.maxRank) ? options.maxRank! : Infinity;
+  const hasContinuation = frame.shape.children.some((child) => child.rank === 0);
   let required = 1;
   for (const root of frame.roots) {
     if (root.cone) continue;
-    const rankDepth = Math.max(0, Math.ceil(rankLimit - root.rank));
+    const size = transformSize(root);
+    let floor = minimum;
+    if (
+      !options.clearance &&
+      Number.isFinite(options.pixelFootprint) &&
+      options.pixelFootprint! > 0
+    ) {
+      const eye = inversePoint(root, [0, 0, 0]);
+      const planeDistance = Math.max(
+        0,
+        ...frame.shape.hull.map(
+          (plane) =>
+            (dot(plane.slice(0, 3) as Vec3, eye) - plane[3]) / Math.hypot(...plane.slice(0, 3)),
+        ),
+      );
+      // Every descendant lies inside this hull. Its ray entry cannot precede
+      // this point-to-hull lower bound, after a generous float conversion margin.
+      const lower = size * Math.max(0, planeDistance - 1e-5 * (1 + Math.hypot(...eye)));
+      floor = Math.max(floor, lower * options.pixelFootprint!);
+    }
+    const rankDepth =
+      root.rank >= rankLimit ? 0 : hasContinuation ? Infinity : Math.ceil(rankLimit - root.rank);
     let detailDepth = Infinity;
     if (Number.isFinite(floor) && floor > 0 && ratio > 0 && ratio < 1) {
-      let bound = transformSize(root) * feature;
+      let bound = size * feature;
       for (let depth = 0; depth < 40; depth++, bound *= ratio) {
         if (bound <= floor) {
           // One complete extra level covers floating-point rounding near a cutoff.
@@ -116,7 +146,7 @@ export function selectGpuStackDepth(
     required = Math.max(required, Math.min(rankDepth, detailDepth) + 1);
     if (required > 24) return 40;
   }
-  return required <= 16 ? 16 : 24;
+  return required <= 8 ? 8 : required <= 12 ? 12 : required <= 16 ? 16 : 24;
 }
 export const add = (a: Vec3, b: Vec3): Vec3 => a.map((v, i) => v + b[i]) as Vec3;
 export const sub = (a: Vec3, b: Vec3): Vec3 => a.map((v, i) => v - b[i]) as Vec3;
@@ -141,12 +171,15 @@ const transform = (center: Vec3 = [0, 0, 0], axes = identity(), rank = 0): GpuTr
 export const applyVector = (a: GpuTransform, p: Vec3): Vec3 =>
   [0, 1, 2].map((i) => a.axes[0][i] * p[0] + a.axes[1][i] * p[1] + a.axes[2][i] * p[2]) as Vec3;
 export const applyPoint = (a: GpuTransform, p: Vec3): Vec3 => add(a.center, applyVector(a, p));
-export const composeTransforms = (a: GpuTransform, b: GpuTransform): GpuTransform =>
-  transform(
+export const composeTransforms = (a: GpuTransform, b: GpuTransform): GpuTransform => ({
+  ...transform(
     applyPoint(a, b.center),
     b.axes.map((v) => applyVector(a, v)) as [Vec3, Vec3, Vec3],
     a.rank + b.rank,
-  );
+  ),
+  continuation: b.continuation,
+  baseCover: b.baseCover,
+});
 export const transformSize = (a: GpuTransform) => Math.hypot(...a.axes[0]);
 export const inverseVector = (a: GpuTransform, p: Vec3): Vec3 =>
   a.axes.map((v) => dot(v, p) / dot(v, v)) as Vec3;
@@ -222,14 +255,14 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
     const sides = 12,
       slope = ROMANESCO_PLACEMENT_RADIUS / 2,
       length = Math.hypot(1, slope),
-      radius = ROMANESCO_PLACEMENT_RADIUS / Math.cos(Math.PI / sides);
+      radius = (slope * (1 - ROMANESCO_BOUND_BASE)) / Math.cos(Math.PI / sides);
     vertices = Array.from({ length: sides }, (_, i) => {
       const angle = ((i + 0.5) * 2 * Math.PI) / sides;
-      return [radius * Math.cos(angle), -1, radius * Math.sin(angle)] as Vec3;
+      return [radius * Math.cos(angle), ROMANESCO_BOUND_BASE, radius * Math.sin(angle)] as Vec3;
     });
     vertices.push([0, 1, 0]);
     hull = [
-      [0, -1, 0, 1],
+      [0, -1, 0, -ROMANESCO_BOUND_BASE],
       ...Array.from({ length: sides }, (_, i) => {
         const angle = (i * 2 * Math.PI) / sides;
         return [
@@ -241,7 +274,11 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
       }),
     ];
     roots = [transform(ROMANESCO_ROOT.center, identity(ROMANESCO_ROOT.scale))];
-    children = ROMANESCO_CHILDREN.map((child) => transform(child.center, child.axes, 1));
+    children = ROMANESCO_CHILDREN.map((child) => ({
+      ...transform(child.center, child.axes, child.rank ?? 1),
+      continuation: child.continuation,
+      baseCover: child.baseCover,
+    }));
   } else if (spec.kind === "flake" || spec.kind === "jerusalem") {
     const meshes = {
       tetrahedron: tetrahedronMesh,
@@ -363,8 +400,18 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
         roots.push(transform(n, [u, v, n]));
       }
   }
-  const low = [0, 1, 2].map((i) => Math.min(...vertices.map((p) => p[i]))) as Vec3;
-  const high = [0, 1, 2].map((i) => Math.max(...vertices.map((p) => p[i]))) as Vec3;
+  const low =
+    kind === 3
+      ? ([
+          -ROMANESCO_BOUND_CYLINDER_RADIUS,
+          ROMANESCO_BOUND_BASE,
+          -ROMANESCO_BOUND_CYLINDER_RADIUS,
+        ] as Vec3)
+      : ([0, 1, 2].map((i) => Math.min(...vertices.map((p) => p[i]))) as Vec3);
+  const high =
+    kind === 3
+      ? ([ROMANESCO_BOUND_CYLINDER_RADIUS, 1, ROMANESCO_BOUND_CYLINDER_RADIUS] as Vec3)
+      : ([0, 1, 2].map((i) => Math.max(...vertices.map((p) => p[i]))) as Vec3);
   const minimumScale = Math.min(...children.map(transformSize));
   let featureSize =
     kind === 1
@@ -393,6 +440,8 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
     radius: kind === 3 ? ROMANESCO_BOUND : Math.max(...vertices.map((p) => Math.hypot(...p))),
     coneSlope: kind === 3 ? ROMANESCO_RADIUS / 2 : undefined,
     boundConeSlope: kind === 3 ? ROMANESCO_PLACEMENT_RADIUS / 2 : undefined,
+    boundConeBase: kind === 3 ? ROMANESCO_BOUND_BASE : undefined,
+    boundCylinderRadius: kind === 3 ? ROMANESCO_BOUND_CYLINDER_RADIUS : undefined,
     featureSize,
     seedVertices: kind === 0 ? vertices : undefined,
     rootTriangles,
@@ -405,6 +454,8 @@ type FixedTransform = {
   center: BigVec3;
   axes: [BigVec3, BigVec3, BigVec3];
   rank: number;
+  continuation?: boolean;
+  baseCover?: boolean;
   points?: BigVec3[];
   size?: bigint;
   coreOnly?: boolean;
@@ -497,6 +548,8 @@ function localRoot(node: FixedTransform, eye: BigVec3, bits: number, zoom: numbe
     center: node.center.map((v, i) => relativeNumber(v - eye[i], bits, zoom)) as Vec3,
     axes: node.axes.map((v) => v.map((x) => relativeNumber(x, bits, zoom))) as GpuTransform["axes"],
     rank: node.rank,
+    continuation: node.continuation,
+    baseCover: node.baseCover,
   };
 }
 
@@ -520,7 +573,16 @@ export function packTransforms(transforms: GpuTransform[], capacity = transforms
             0,
             1,
           ]
-        : [...t.center, t.rank, ...t.axes[0], 0, ...t.axes[1], 0, ...t.axes[2], 0],
+        : [
+            ...t.center,
+            t.rank,
+            ...t.axes[0],
+            (t.continuation ? 1 : 0) | (t.baseCover ? 2 : 0),
+            ...t.axes[1],
+            transformSize(t),
+            ...t.axes[2],
+            0,
+          ],
       i * 16,
     );
   });
@@ -537,9 +599,15 @@ const childrenInOctant = (shape: GpuShape, octant: number) => {
 };
 /** Coherent near-first orders reduce traversal without changing intersections. */
 export function packOrderedChildren(shape: GpuShape) {
-  return packTransforms(
-    Array.from({ length: 8 }, (_, octant) => childrenInOctant(shape, octant)).flat(),
-  );
+  const ordered = Array.from({ length: 8 }, (_, octant) => childrenInOctant(shape, octant)).flat();
+  const packed = packTransforms(ordered);
+  const canonical = new Map(childrenInOctant(shape, 0).map((child, index) => [child, index]));
+  // The tile frontier uses invariant child identifiers rather than a ray's
+  // octant order. Matrix columns and root-only ancestor markers stay unchanged.
+  ordered.forEach((child, index) => {
+    packed[index * 16 + 15] = canonical.get(child)!;
+  });
+  return packed;
 }
 
 /**
@@ -557,21 +625,68 @@ export function packChildBounds(shape: GpuShape) {
       const x = child.axes[0][axis],
         y = child.axes[1][axis],
         z = child.axes[2][axis];
-      const radial = ROMANESCO_PLACEMENT_RADIUS * Math.hypot(x, z);
-      low[axis] = child.center[axis] - Math.max(-y, y + radial);
-      high[axis] = child.center[axis] + Math.max(y, -y + radial);
+      const base = shape.boundConeBase ?? -1;
+      const slope = shape.boundConeSlope ?? ROMANESCO_PLACEMENT_RADIUS / 2,
+        radius = shape.boundCylinderRadius ?? slope * (1 - base),
+        join = 1 - radius / slope,
+        radial = radius * Math.hypot(x, z);
+      low[axis] = child.center[axis] + Math.min(y, join * y - radial, base * y - radial);
+      high[axis] = child.center[axis] + Math.max(y, join * y + radial, base * y + radial);
     }
     return { low, high, child };
   });
+  const leafOrder = new Map(leaves.map((leaf, index) => [leaf, index]));
+  const area = (low: Vec3, high: Vec3) => {
+    const [x, y, z] = high.map((value, axis) => value - low[axis]);
+    return 2 * (x * y + y * z + z * x);
+  };
   const build = (nodes: Node[]): Node => {
     if (nodes.length === 1) return nodes[0];
     const low = [0, 1, 2].map((i) => Math.min(...nodes.map((n) => n.low[i]))) as Vec3;
     const high = [0, 1, 2].map((i) => Math.max(...nodes.map((n) => n.high[i]))) as Vec3;
-    let axis = 0;
-    for (let i = 1; i < 3; i++) if (high[i] - low[i] > high[axis] - low[axis]) axis = i;
-    nodes.sort((a, b) => a.low[axis] + a.high[axis] - b.low[axis] - b.high[axis]);
-    const middle = Math.floor(nodes.length / 2);
-    return { low, high, branches: [build(nodes.slice(0, middle)), build(nodes.slice(middle))] };
+    let bestCost = Infinity,
+      bestBalance = Infinity,
+      split = 1,
+      ordered = nodes;
+    for (let axis = 0; axis < 3; axis++) {
+      const sorted = nodes
+        .slice()
+        .sort(
+          (a, b) =>
+            a.low[axis] + a.high[axis] - b.low[axis] - b.high[axis] ||
+            leafOrder.get(a)! - leafOrder.get(b)!,
+        );
+      const prefix = new Float64Array(nodes.length),
+        suffix = new Float64Array(nodes.length);
+      const beforeLow: Vec3 = [Infinity, Infinity, Infinity],
+        beforeHigh: Vec3 = [-Infinity, -Infinity, -Infinity],
+        afterLow: Vec3 = [Infinity, Infinity, Infinity],
+        afterHigh: Vec3 = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < sorted.length; i++) {
+        const j = sorted.length - i - 1;
+        for (let dimension = 0; dimension < 3; dimension++) {
+          beforeLow[dimension] = Math.min(beforeLow[dimension], sorted[i].low[dimension]);
+          beforeHigh[dimension] = Math.max(beforeHigh[dimension], sorted[i].high[dimension]);
+          afterLow[dimension] = Math.min(afterLow[dimension], sorted[j].low[dimension]);
+          afterHigh[dimension] = Math.max(afterHigh[dimension], sorted[j].high[dimension]);
+        }
+        prefix[i] = area(beforeLow, beforeHigh);
+        suffix[j] = area(afterLow, afterHigh);
+      }
+      for (let cut = 1; cut < sorted.length; cut++) {
+        const cost = prefix[cut - 1] * cut + suffix[cut] * (sorted.length - cut),
+          balance = Math.abs(sorted.length - 2 * cut);
+        // Equal costs prefer balance, then the first axis and cut. Centroid
+        // ties use the catalogue order, keeping every build deterministic.
+        if (cost < bestCost || (cost === bestCost && balance < bestBalance)) {
+          bestCost = cost;
+          bestBalance = balance;
+          split = cut;
+          ordered = sorted;
+        }
+      }
+    }
+    return { low, high, branches: [build(ordered.slice(0, split)), build(ordered.slice(split))] };
   };
   const tree = build(leaves),
     nodeCount = shape.children.length * 2 - 1;
@@ -658,6 +773,8 @@ export function buildGpuFrame(
     center: t.center.map((v) => fixedFromNumber(v, bits)) as BigVec3,
     axes: t.axes.map((p) => p.map((v) => fixedFromNumber(v, bits))) as FixedTransform["axes"],
     rank: t.rank,
+    continuation: t.continuation,
+    baseCover: t.baseCover,
   });
   const big = (p: Vec3) => p.map((v) => fixedFromNumber(v, bits)) as BigVec3;
   const plus = (a: BigVec3, b: BigVec3) => a.map((v, i) => v + b[i]) as BigVec3;
@@ -700,11 +817,15 @@ export function buildGpuFrame(
             (node.axes[0][i] * point[0] + node.axes[1][i] * point[1] + node.axes[2][i] * point[2]) /
             one,
         ) as BigVec3;
-      return fixedChildren.map((child) => ({
-        center: plus(node.center, world(child.center)),
-        axes: child.axes.map(world) as FixedTransform["axes"],
-        rank: node.rank + child.rank,
-      }));
+      return fixedChildren
+        .filter((child) => !node.continuation || !child.baseCover)
+        .map((child) => ({
+          center: plus(node.center, world(child.center)),
+          axes: child.axes.map(world) as FixedTransform["axes"],
+          rank: node.rank + child.rank,
+          continuation: child.continuation,
+          baseCover: child.baseCover,
+        }));
     }
     if (shape.spec.kind === "flake" || shape.spec.kind === "jerusalem") {
       const size = node.axes[0][0];
@@ -808,7 +929,7 @@ export function buildGpuFrame(
       } else {
         if (visited > 250000)
           throw new Error("The local GPU root frontier exceeds its traversal budget.");
-        if (shape.kind === 3) {
+        if (shape.kind === 3 && !node.continuation) {
           const core = { ...node, coreOnly: true };
           const converted = localRoot(core, eye, bits, camera.zoom);
           // The whole retained core is present, but distant ancestor surfaces

@@ -11,7 +11,9 @@ import { style as fixtureStyle, require } from "../tests/helpers/spatial-gpu-fix
 // With it, baseline uses the original production specialization: quadratic fixed
 // kind/counts, Romanesco fixed kind and safe stack, other shapes generic/40.
 // SPATIAL_BASELINE_RAW=1 leaves baseline bytes unchanged in either mode.
-// QK_STACK=16|24|40 overrides only generated candidates for stack experiments.
+// QK_STACK=8|12|16|24|40 overrides only generated candidates for stack experiments.
+// Romanesco comparisons use the texture traversal path; the production beam and
+// uniform-buffer paths have their own paired renderer checks.
 // QK_GROWTH (0..1), QK_MAX_RANK and QK_VISIT_LIMIT exercise finite growth and
 // exhausted traversal. A visit override changes the nearest-hit 4096 budget in
 // both sources, including child pretests; other budgets stay unchanged.
@@ -89,6 +91,7 @@ const {
   packChildBounds,
   selectGpuStackDepth,
 } = require("../../utils/spatialGpu/model.ts");
+const { packGpuChildBounds } = require("../../utils/spatialGpu/childBounds.ts");
 const { INITIAL_SPATIAL_CAMERA, inverseRotate } = require("../../utils/spatial/camera.ts");
 const { viewRotation } = require("../../utils/orientation.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
@@ -114,8 +117,8 @@ const candidateSource = diagnosticSource(readFileSync(candidatePath ?? shaderPat
 const expanded = Boolean(process.env.SPATIAL_SPECS);
 const baselineRaw = !expanded || process.env.SPATIAL_BASELINE_RAW === "1";
 const forcedStack = process.env.QK_STACK ? Number(process.env.QK_STACK) : null;
-if (forcedStack !== null && ![16, 24, 40].includes(forcedStack))
-  throw Error("QK_STACK must be 16, 24 or 40");
+if (forcedStack !== null && ![8, 12, 16, 24, 40].includes(forcedStack))
+  throw Error("QK_STACK must be 8, 12, 16, 24 or 40");
 const phi = (1 + Math.sqrt(5)) / 2;
 const specCatalogue = {
   jerusalem: { kind: "jerusalem" },
@@ -164,7 +167,7 @@ const registerVariant = (name, source, stackDepth) => {
 };
 const sourcesFor = (frame, options) => {
   const depth = selectGpuStackDepth(frame, options);
-  const candidateDepth = forcedStack ?? spatialShaderStackDepth(frame);
+  const candidateDepth = forcedStack ?? spatialShaderStackDepth(frame, options);
   const baselineDepth = !baselineRaw && frame.shape.kind === 3 ? depth : 40;
   return [
     registerVariant(
@@ -199,8 +202,11 @@ for (const specName of [...new Set(selected)]) {
     childCount: shape.children.length,
     coneSlope: shape.coneSlope ?? 0,
     boundConeSlope: shape.boundConeSlope ?? 0,
+    boundConeBase: shape.boundConeBase ?? -1,
+    boundCylinderRadius: shape.boundCylinderRadius ?? 0,
     children: Array.from(packOrderedChildren(shape)),
     childBounds: Array.from(bounds.data),
+    packedChildBounds: Array.from(packGpuChildBounds(bounds).data),
     childBoundsCount: bounds.nodeCount,
   };
   const baseStyle =
@@ -350,7 +356,11 @@ for (const specName of [...new Set(selected)]) {
       specName,
       camera,
       style,
-      variants: sourcesFor(frame, { minimumFootprint, maxRank }),
+      variants: sourcesFor(frame, {
+        minimumFootprint,
+        pixelFootprint: 2 / projection.focal,
+        maxRank,
+      }),
       clearanceVariants: sourcesFor(frame, { clearance: true, maxRank }),
       roots: Array.from(packTransforms(frame.roots)),
       visited: frame.visited,
@@ -425,7 +435,12 @@ async function check(page, payload, captures) {
         gl.bindAttribLocation(p, 0, "aPosition");
         gl.linkProgram(p);
         if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw Error(gl.getProgramInfoLog(p));
-        return { program: p, uniform: (name) => gl.getUniformLocation(p, "u_" + name) };
+        return {
+          program: p,
+          uniform: (name) => gl.getUniformLocation(p, "u_" + name),
+          integerBounds:
+            /\buniform\s+(?:(?:lowp|mediump|highp)\s+)?usampler2D\s+u_childBounds\b/.test(source),
+        };
       };
       const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
       const images = [];
@@ -445,7 +460,7 @@ async function check(page, payload, captures) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        const textures = Array.from({ length: 5 }, () =>
+        const textures = Array.from({ length: 6 }, () =>
           own(gl.createTexture(), (v) => gl.deleteTexture(v)),
         );
         const bind = (unit) => {
@@ -511,7 +526,7 @@ async function check(page, payload, captures) {
           for (const [name, value] of Object.entries({
             roots: 0,
             children: 1,
-            childBounds: 4,
+            childBounds: p.integerBounds ? 5 : 4,
             childBoundsCount: shape.childBoundsCount,
             orderedChildren: 1,
             rootCount: f.roots.length / 16,
@@ -531,6 +546,8 @@ async function check(page, payload, captures) {
             featureSize: shape.featureSize,
             coneSlope: shape.coneSlope,
             boundConeSlope: shape.boundConeSlope,
+            boundConeBase: shape.boundConeBase,
+            boundCylinderRadius: shape.boundCylinderRadius,
             growth: settings.growth,
             focal: 3.6,
             far: 128,
@@ -624,6 +641,20 @@ async function check(page, payload, captures) {
               new Float32Array(values),
             );
           }
+          // Keep both formats bound while alternating programs. Generic shaders
+          // still need a valid integer sampler even when their BVH count is zero.
+          bind(5);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA32UI,
+            1,
+            shape.packedChildBounds.length / 4,
+            0,
+            gl.RGBA_INTEGER,
+            gl.UNSIGNED_INT,
+            new Uint32Array(shape.packedChildBounds),
+          );
           bind(0);
           gl.texImage2D(
             gl.TEXTURE_2D,
@@ -789,6 +820,11 @@ async function check(page, payload, captures) {
           gl.viewport(0, 0, width, height);
           results.push({
             name: f.name,
+            ...(shape.kind === 3
+              ? {
+                  path: "texture traversal; excludes production beam and uniform-buffer geometry",
+                }
+              : {}),
             stackDepths: programs.map((p) => p.stackDepth),
             clearanceStackDepths: clearancePrograms.map((p) => p.stackDepth),
             queries: {

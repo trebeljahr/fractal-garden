@@ -4,22 +4,26 @@ const dot = (a, b) => a.reduce((sum, v, i) => sum + v * b[i], 0);
 const apply = (axes, p) =>
   [0, 1, 2].map((i) => axes.reduce((sum, axis, j) => sum + axis[i] * p[j], 0));
 
-export function finiteConeTree(children, level, root, growth = 1) {
+export function finiteConeTree(children, level, root, growth = 1, minimumScale = 0.001) {
+  if (!(minimumScale > 0))
+    throw new Error("The spiral continuation needs a positive spatial cutoff");
   const nodes = [{ ...root, level: 0 }];
   for (let i = 0; i < nodes.length; i++) {
     const parent = nodes[i];
-    if (parent.level >= level) continue;
+    if (parent.level >= level || Math.hypot(...parent.axes[0]) <= minimumScale) continue;
     for (const child of children) {
+      if (parent.continuation && child.baseCover) continue;
       const offset = apply(parent.axes, child.center);
       nodes.push({
         center: parent.center.map((v, j) => v + offset[j]),
         axes: child.axes.map((axis) => apply(parent.axes, axis)),
-        level: parent.level + 1,
+        level: parent.level + (child.rank ?? 1),
+        continuation: child.continuation,
       });
     }
   }
   return nodes
-    .filter((n) => level === 0 || n.level !== level || growth > 0)
+    .filter((n) => !n.continuation && (level === 0 || n.level !== level || growth > 0))
     .map((node) =>
       node.level !== level || level === 0 || growth === 1
         ? node

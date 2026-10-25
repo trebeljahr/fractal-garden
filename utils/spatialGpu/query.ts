@@ -67,7 +67,7 @@ export function intersectGpuBound(
     k2 = k * k;
   const error = 0.0000005 * Math.max(1, ...origin.map(Math.abs));
   const tip = 1 + error / k,
-    base = -1 - error;
+    base = (shape.boundConeBase ?? -1) - error;
   const shift = -dot(origin, direction) / dot(direction, direction);
   const o = origin.map((v, i) => v + shift * direction[i]) as Vec3,
     d = direction;
@@ -99,12 +99,32 @@ export function intersectGpuBound(
       else enter = Math.max(enter, roots.at(-1)!);
     } else if (a > 0) return null;
   }
+  if ((shape.boundCylinderRadius ?? 0) > 0) {
+    const radius = shape.boundCylinderRadius! + error;
+    const radialSpeed = d[0] ** 2 + d[2] ** 2;
+    if (radialSpeed < 1e-30) {
+      if (o[0] ** 2 + o[2] ** 2 > radius * radius) return null;
+    } else {
+      const middle = -(o[0] * d[0] + o[2] * d[2]) / radialSpeed;
+      const x = o[0] + middle * d[0],
+        z = o[2] + middle * d[2];
+      const gap = radius * radius - x * x - z * z;
+      if (gap < 0) return null;
+      const span = Math.sqrt(Math.max(0, gap) / radialSpeed);
+      enter = Math.max(enter, middle - span);
+      leave = Math.min(leave, middle + span);
+    }
+  }
   const near = enter + shift,
     far = leave + shift;
   if (far < Math.max(0, near)) return null;
   const surfaceNormal = (at: number): Vec3 => {
     const p = o.map((v, i) => v + at * d[i]);
-    return p[1] <= base + error ? [0, -1, 0] : normalize([p[0], k2 * (tip - p[1]), p[2]]);
+    return p[1] <= base + error
+      ? [0, -1, 0]
+      : (shape.boundCylinderRadius ?? 0) > 0 && Math.hypot(p[0], p[2]) >= shape.boundCylinderRadius!
+        ? normalize([p[0], 0, p[2]])
+        : normalize([p[0], k2 * (tip - p[1]), p[2]]);
   };
   return { near, far, normal: surfaceNormal(enter), exitNormal: surfaceNormal(leave) };
 }
@@ -225,6 +245,7 @@ type GpuTraceOptions = {
 };
 function childrenOf(node: GpuTransform, frame: GpuFrame, maxRank: number, growth: number) {
   return frame.shape.children.flatMap((child) => {
+    if (node.continuation && child.baseCover) return [];
     const combined = composeTransforms(node, child);
     if (frame.shape.kind !== 3 || combined.rank !== maxRank) return [combined];
     if (growth === 0) return [];
@@ -284,6 +305,7 @@ function traceUnionExit(frame: GpuFrame, direction: Vec3, options: GpuTraceOptio
       pending.push(
         ...childrenOf(node, frame, maxRank, Math.max(0, Math.min(1, options.growth ?? 1))),
       );
+    if (node.continuation) continue;
     const near = intersectGpuCone(origin, localDirection, shape.coneSlope!, Infinity, -Infinity);
     const far = intersectGpuCone(
       origin,
@@ -363,6 +385,7 @@ export function traceGpuFrame(
       normal: Vec3,
       edge = Infinity;
     if (shape.kind === 3) {
+      if (node.continuation) continue;
       inside ||=
         origin[1] >= -1 &&
         origin[1] <= 1 &&

@@ -43,19 +43,21 @@ function naturalDepth(frame, root, options, growth = 1) {
   const feature = options.clearance ? frame.shape.radius : frame.shape.featureSize;
   const floor = options.clearance ? 0.00002 : options.minimumFootprint;
   const maxRank = options.maxRank ?? Infinity;
+  const rankStep = Math.min(...frame.shape.children.map((child) => child.rank));
   let size = transformSize(root);
   for (let depth = 0; depth <= 40; depth++) {
-    if (root.rank + depth >= maxRank || size * feature <= floor) return depth;
-    if (root.rank + depth + 1 === maxRank && growth === 0) return depth;
+    if (root.rank + depth * rankStep >= maxRank || size * feature <= floor) return depth;
+    if (rankStep && root.rank + depth * rankStep + rankStep === maxRank && growth === 0)
+      return depth;
     size *= ratio;
-    if (root.rank + depth + 1 === maxRank) size *= growth;
+    if (rankStep && root.rank + depth * rankStep + rankStep === maxRank) size *= growth;
   }
   return Infinity;
 }
 
 function assertSafe(frame, options, growth = 1) {
   const stack = selectGpuStackDepth(frame, options);
-  assert.ok([16, 24, 40].includes(stack));
+  assert.ok([8, 12, 16, 24, 40].includes(stack));
   for (const root of frame.roots) {
     if (root.cone) continue;
     const depth = naturalDepth(frame, root, options, growth);
@@ -68,7 +70,7 @@ function assertSafe(frame, options, growth = 1) {
 }
 
 test("Romanesco stack selection preserves the opening and worst retained-root detail", () => {
-  assert.equal(assertSafe(opening, { minimumFootprint: 1e-5 }), 16);
+  assert.equal(assertSafe(opening, { minimumFootprint: 1e-5 }), 12);
   // buildGpuFrame allows 12 root-size attempts, beginning at 64. Each axis
   // component fits that threshold, so its vector norm is at most sqrt(3) times it.
   const maximumRootNorm = Math.sqrt(3) * 64 * 2 ** 11;
@@ -91,6 +93,14 @@ test("16 and 24 slot boundaries leave room for the natural stopping depth", () =
   assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -23.5 }), 40);
 });
 
+test("8 and 12 slot specializations preserve the stopping and rounding levels", () => {
+  const frame = frameWith([node(1)], halfShape);
+  assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -6 }), 8);
+  assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -7 }), 12);
+  assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -10 }), 12);
+  assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -11 }), 16);
+});
+
 test("selection accounts for every root and for the largest child contraction", () => {
   for (const ratio of [0.12, 0.298, 0.5, 0.82]) {
     const nextShape = {
@@ -110,8 +120,8 @@ test("selection accounts for every root and for the largest child contraction", 
 test("finite ranks bound traversal even when no positive footprint is available", () => {
   for (const rank of [0, 12, 200]) {
     const frame = frameWith([node(1e12, rank)], halfShape);
-    assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank }), 16);
-    assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank + 2 }), 16);
+    assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank }), 8);
+    assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank + 2 }), 8);
     // Rank is exact, so its stop can use the final stack slot.
     assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank + 15 }), 16);
     assert.equal(assertSafe(frame, { minimumFootprint: 0, maxRank: rank + 16 }), 24);
@@ -137,14 +147,48 @@ test("retained ancestor quadratics do not consume descendant stack capacity", ()
     },
   };
   const options = { minimumFootprint: 1e-5 };
-  assert.equal(selectGpuStackDepth(frameWith([ancestor]), options), 16);
-  // Production uses the small program only when every root bypasses descent.
-  assert.equal(spatialShaderStackDepth(frameWith([ancestor])), 16);
-  assert.equal(spatialShaderStackDepth(frameWith([ancestor, ...opening.roots])), 40);
-  assert.equal(spatialShaderStackDepth(opening), 40);
+  assert.equal(selectGpuStackDepth(frameWith([ancestor]), options), 8);
+  assert.equal(spatialShaderStackDepth(frameWith([ancestor]), options), 8);
+  assert.equal(spatialShaderStackDepth(opening, options), selectGpuStackDepth(opening, options));
   assert.equal(
     assertSafe(frameWith([ancestor, ...opening.roots]), options),
     assertSafe(opening, options),
+  );
+});
+
+test("rank-zero spiral continuations require a spatial stop even at finite construction ranks", () => {
+  const frame = frameWith([node(1)], {
+    ...halfShape,
+    children: [node(0.5, 1), node(0.4, 0)],
+  });
+  assert.equal(selectGpuStackDepth(frame, { minimumFootprint: 0, maxRank: 1 }), 40);
+  assert.equal(assertSafe(frame, { minimumFootprint: 2 ** -10, maxRank: 1 }), 12);
+  assert.equal(selectGpuStackDepth(frame, { minimumFootprint: 0, maxRank: 0 }), 8);
+});
+
+test("distance to the enclosing hull can prove a smaller stack without changing detail", () => {
+  const cube = {
+    ...halfShape,
+    hull: [
+      [1, 0, 0, 1],
+      [-1, 0, 0, 1],
+      [0, 1, 0, 1],
+      [0, -1, 0, 1],
+      [0, 0, 1, 1],
+      [0, 0, -1, 1],
+    ],
+  };
+  const far = frameWith([{ ...node(1), center: [0, 0, -11] }], cube);
+  assert.equal(selectGpuStackDepth(far, { minimumFootprint: 1e-8 }), 40);
+  assert.equal(selectGpuStackDepth(far, { minimumFootprint: 1e-8, pixelFootprint: 0.01 }), 8);
+  // The closest point is ten units away. The float safety margin lowers that
+  // bound slightly, but it must not cross the six-descent 8-slot cutoff.
+  assert.ok(2 ** -6 < (10 - 1e-5 * 12) * 0.01);
+  const near = frameWith([{ ...node(1), center: [0, 0, -1.0000001] }], cube);
+  assert.equal(selectGpuStackDepth(near, { minimumFootprint: 1e-8, pixelFootprint: 1 }), 40);
+  assert.equal(
+    selectGpuStackDepth(far, { clearance: true, pixelFootprint: 1 }),
+    selectGpuStackDepth(far, { clearance: true }),
   );
 });
 

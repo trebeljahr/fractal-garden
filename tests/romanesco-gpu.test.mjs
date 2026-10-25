@@ -24,6 +24,8 @@ const {
   ROMANESCO_PLACEMENT_RADIUS,
   ROMANESCO_ROOT,
   ROMANESCO_BOUND,
+  ROMANESCO_BOUND_BASE,
+  ROMANESCO_BOUND_CYLINDER_RADIUS,
 } = require("../../utils/romanesco.ts");
 const { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } = require("../../utils/spatial/camera.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
@@ -34,44 +36,40 @@ const subtract = (a, b) => a.map((x, i) => x - b[i]);
 const apply = (axes, p) =>
   [0, 1, 2].map((i) => axes[0][i] * p[0] + axes[1][i] * p[1] + axes[2][i] * p[2]);
 const normalize = (p) => p.map((x) => x / Math.hypot(...p));
+const minimumScale = 0.001;
+const finiteOptions = (shape) => ({
+  pixelAngle: 0,
+  nearFootprint: shape.featureSize * minimumScale,
+  detailScale: 1,
+});
+const envelopeHit = (shape, origin, ray) => {
+  const yScale = 2 / (1 - shape.boundConeBase),
+    o = [origin[0], 1 - (1 - origin[1]) * yScale, origin[2]],
+    d = [ray[0], ray[1] * yScale, ray[2]],
+    k = shape.boundConeSlope / yScale;
+  const first = intersectGpuCone(o, d, k, Infinity, -Infinity),
+    last = intersectGpuCone(o, d, k, Infinity, -Infinity, true);
+  if (!first || !last) return null;
+  let near = first.distance,
+    far = last.distance;
+  const a = ray[0] ** 2 + ray[2] ** 2,
+    b = 2 * (origin[0] * ray[0] + origin[2] * ray[2]),
+    c = origin[0] ** 2 + origin[2] ** 2 - shape.boundCylinderRadius ** 2;
+  if (a < 1e-20) {
+    if (c > 0) return null;
+  } else {
+    const discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return null;
+    near = Math.max(near, (-b - Math.sqrt(discriminant)) / (2 * a));
+    far = Math.min(far, (-b + Math.sqrt(discriminant)) / (2 * a));
+  }
+  return far >= Math.max(0, near) ? { distance: near >= 0 ? near : far } : null;
+};
 
 // Independent finite union, built directly from the construction catalogue.
 // Deliberately uses direct quadratic roots rather than the production solver.
 function finiteCones(level, growth = 1) {
-  const s = ROMANESCO_ROOT.scale;
-  const nodes = [
-    {
-      center: ROMANESCO_ROOT.center,
-      axes: [
-        [s, 0, 0],
-        [0, s, 0],
-        [0, 0, s],
-      ],
-      level: 0,
-    },
-  ];
-  for (let i = 0; i < nodes.length; i++) {
-    const parent = nodes[i];
-    if (parent.level >= level) continue;
-    for (const child of ROMANESCO_CHILDREN) {
-      const offset = apply(parent.axes, child.center);
-      nodes.push({
-        center: parent.center.map((x, i) => x + offset[i]),
-        axes: child.axes.map((axis) => apply(parent.axes, axis)),
-        level: parent.level + 1,
-      });
-    }
-  }
-  return nodes
-    .filter((node) => node.level !== level || level === 0 || growth > 0)
-    .map((node) => {
-      if (node.level !== level || level === 0 || growth === 1) return node;
-      return {
-        ...node,
-        center: node.center.map((v, i) => v + node.axes[1][i] * (growth - 1)),
-        axes: node.axes.map((axis) => axis.map((v) => v * growth)),
-      };
-    });
+  return finiteConeTree(ROMANESCO_CHILDREN, level, ROMANESCO_ROOT, growth, minimumScale);
 }
 function finiteHit(nodes, eye, ray) {
   let nearest = Infinity;
@@ -126,6 +124,9 @@ test("Romanesco GPU transforms preserve the complete spiral and its descendant b
       expected = ROMANESCO_CHILDREN[i];
     assert.deepEqual(child.center, expected.center);
     assert.deepEqual(child.axes, expected.axes);
+    assert.equal(child.rank, expected.rank ?? 1);
+    assert.equal(child.continuation, expected.continuation);
+    assert.equal(child.baseCover, expected.baseCover);
     assert.ok(Math.hypot(...child.center) + expected.scale * shape.radius <= shape.radius + 1e-9);
   }
   assert.ok(
@@ -144,19 +145,21 @@ test("Romanesco tapered GPU bounds contain each complete child envelope", () => 
       // Exact support of a round cone: either apex, or the extreme base point.
       const support = Math.max(
         localNormal[1],
-        -localNormal[1] + ROMANESCO_PLACEMENT_RADIUS * Math.hypot(localNormal[0], localNormal[2]),
+        ROMANESCO_BOUND_BASE * localNormal[1] +
+          ((ROMANESCO_PLACEMENT_RADIUS * (1 - ROMANESCO_BOUND_BASE)) / 2) *
+            Math.hypot(localNormal[0], localNormal[2]),
       );
       assert.ok(dot(n, child.center) + support <= plane[3] + 1e-12);
     }
     for (let i = 0; i < 96; i++) {
       const angle = (i * Math.PI) / 48;
       const p = apply(child.axes, [
-        ROMANESCO_PLACEMENT_RADIUS * Math.cos(angle),
-        -1,
-        ROMANESCO_PLACEMENT_RADIUS * Math.sin(angle),
+        ((ROMANESCO_PLACEMENT_RADIUS * (1 - ROMANESCO_BOUND_BASE)) / 2) * Math.cos(angle),
+        ROMANESCO_BOUND_BASE,
+        ((ROMANESCO_PLACEMENT_RADIUS * (1 - ROMANESCO_BOUND_BASE)) / 2) * Math.sin(angle),
       ]).map((v, axis) => v + child.center[axis]);
       assert.ok(Math.hypot(p[0], p[2]) <= (ROMANESCO_PLACEMENT_RADIUS * (1 - p[1])) / 2 + 1e-12);
-      assert.ok(p[1] >= -1 - 1e-12);
+      assert.ok(p[1] >= ROMANESCO_BOUND_BASE - 1e-12);
     }
   }
 });
@@ -164,6 +167,8 @@ test("Romanesco tapered GPU bounds contain each complete child envelope", () => 
 test("Romanesco analytic envelope keeps side, base, apex and distant ray intersections", () => {
   const shape = buildGpuShape({ kind: "romanesco" });
   assert.equal(shape.boundConeSlope, ROMANESCO_PLACEMENT_RADIUS / 2);
+  assert.equal(shape.boundConeBase, ROMANESCO_BOUND_BASE);
+  assert.equal(shape.boundCylinderRadius, ROMANESCO_BOUND_CYLINDER_RADIUS);
   for (const origin of [
     [0, 0, 4],
     [4, 0, 0],
@@ -176,10 +181,11 @@ test("Romanesco analytic envelope keeps side, base, apex and distant ray interse
       [0, 0, 0],
       [0, 1, 0],
       [0, -1, 0],
+      [0, ROMANESCO_BOUND_BASE, 0],
       [0.1, -0.8, 0.1],
     ]) {
       const ray = normalize(subtract(target, origin));
-      const surface = intersectGpuCone(origin, ray, shape.boundConeSlope);
+      const surface = envelopeHit(shape, origin, ray);
       if (!surface) continue;
       const bound = intersectGpuBound(shape, origin, ray);
       assert.ok(bound, "the analytic envelope cannot reject a real cone intersection");
@@ -217,9 +223,16 @@ test("Romanesco child BVH keeps every rotated cone in all eight complete threade
         const x = axes[0][axis],
           y = axes[1][axis],
           z = axes[2][axis],
-          radial = ROMANESCO_PLACEMENT_RADIUS * Math.hypot(x, z);
-        assert.ok(low[axis] <= center[axis] - Math.max(-y, y + radial));
-        assert.ok(high[axis] >= center[axis] + Math.max(y, -y + radial));
+          radial = ROMANESCO_BOUND_CYLINDER_RADIUS * Math.hypot(x, z),
+          join = 1 - (2 * ROMANESCO_BOUND_CYLINDER_RADIUS) / ROMANESCO_PLACEMENT_RADIUS;
+        assert.ok(
+          low[axis] <=
+            center[axis] + Math.min(y, join * y - radial, ROMANESCO_BOUND_BASE * y - radial),
+        );
+        assert.ok(
+          high[axis] >=
+            center[axis] + Math.max(y, join * y + radial, ROMANESCO_BOUND_BASE * y + radial),
+        );
       }
     }
     assert.deepEqual(
@@ -256,11 +269,7 @@ test("Romanesco child BVH keeps every rotated cone in all eight complete threade
     }
     for (let i = 0; i < ordered.length; i++) {
       const child = ordered[i];
-      const hit = intersectGpuCone(
-        inversePoint(child, origin),
-        inverseVector(child, ray),
-        ROMANESCO_PLACEMENT_RADIUS / 2,
-      );
+      const hit = envelopeHit(shape, inversePoint(child, origin), inverseVector(child, ray));
       if (hit) assert.ok(candidates.has(i), "BVH cannot omit an intersected full child envelope");
     }
   }
@@ -273,7 +282,7 @@ for (const level of [0, 1, 2])
       cones = finiteCones(level);
     for (const { origin, ray } of oracleRays().filter((_, i) => level < 2 || i % 3 === 0)) {
       const expected = finiteHit(cones, origin, ray);
-      const actual = traceGpuFrame(frame, ray, { maxRank: level, pixelAngle: 0, nearFootprint: 0 });
+      const actual = traceGpuFrame(frame, ray, { maxRank: level, ...finiteOptions(shape) });
       assert.equal(Boolean(actual), expected !== null);
       if (expected !== null)
         assert.ok(
@@ -294,8 +303,7 @@ for (const level of [1, 2])
         const actual = traceGpuFrame(frame, ray, {
           maxRank: level,
           growth,
-          pixelAngle: 0,
-          nearFootprint: 0,
+          ...finiteOptions(shape),
         });
         assert.equal(Boolean(actual), expected !== null);
         if (actual) assert.ok(Math.abs(actual.distance - expected) < 2e-9);
@@ -362,8 +370,7 @@ for (const level of [0, 1, 2])
         const actual = traceGpuFrame(frame, ray, {
           maxRank: level,
           growth,
-          pixelAngle: 0,
-          nearFootprint: 0,
+          ...finiteOptions(shape),
         });
         assert.ok(actual && expected !== null);
         assert.ok(

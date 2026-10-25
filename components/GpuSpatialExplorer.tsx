@@ -103,10 +103,21 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
       if (disposed || gl.isContextLost() || !renderer.current) return false;
       const { camera, spec, style, width, height, framing } = latest.current;
       try {
-        renderer.current.draw(camera, spec, style, width, height, ratio, pixels, framing);
+        const statistics = renderer.current.draw(
+          camera,
+          spec,
+          style,
+          width,
+          height,
+          ratio,
+          pixels,
+          framing,
+        );
         drawn.current = { camera, style };
         canvas.dataset.renderZoom = String(camera.zoom);
         canvas.dataset.pixelBudget = String(pixels);
+        canvas.dataset.stackDepth = String(statistics.stackDepth);
+        canvas.dataset.beam = String(statistics.beam);
         setError("");
         return true;
       } catch (cause) {

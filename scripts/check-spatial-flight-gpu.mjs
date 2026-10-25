@@ -15,7 +15,9 @@ const {
   packTransforms,
   packOrderedChildren,
   packChildBounds,
+  selectGpuStackDepth,
 } = require("../../utils/spatialGpu/model.ts");
+const { packGpuChildBounds } = require("../../utils/spatialGpu/childBounds.ts");
 const { INITIAL_SPATIAL_CAMERA, inverseRotate } = require("../../utils/spatial/camera.ts");
 const { viewRotation } = require("../../utils/orientation.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
@@ -38,7 +40,7 @@ const specialized = process.argv.includes("--specialized");
 const stackDepth = Number(
   process.argv.find((arg) => arg.startsWith("--stack="))?.split("=")[1] ?? 40,
 );
-if (![16, 24, 40].includes(stackDepth)) throw Error("GPU stack must be 16, 24 or 40");
+if (![8, 12, 16, 24, 40].includes(stackDepth)) throw Error("GPU stack must be 8, 12, 16, 24 or 40");
 if (stackDepth !== 40 && !specialized) throw Error("Smaller GPU stacks require --specialized");
 const fragment = (
   diagnostics
@@ -235,13 +237,17 @@ for (const spec of selectedSpecs) {
     ROMANESCO_RADIUS,
   } = require("../../utils/romanesco.ts");
   const shape = buildGpuShape({ kind: "romanesco" });
+  // Rank-zero continuation represents the infinite spiral toward each apex.
+  // Finite oracles and the shader stop at the same positive world-space size.
+  const minimumScale = 0.001;
+  const finiteFootprint = shape.featureSize * minimumScale;
   const addRomanesco = (
     name,
     camera,
     view,
     rank,
     pixelAngle = 0,
-    nearFootprint = 0,
+    nearFootprint = finiteFootprint,
     growth = 1,
   ) => {
     const frame = buildGpuFrame(shape, camera, view),
@@ -294,7 +300,7 @@ for (const spec of selectedSpecs) {
         style,
         rank,
         0,
-        0,
+        finiteFootprint,
         growth,
       );
   const identity = [
@@ -312,6 +318,7 @@ for (const spec of selectedSpecs) {
       radius: shape.radius,
       featureSize: shape.featureSize,
       coneSlope: shape.coneSlope,
+      nearFootprint: finiteFootprint,
       hull: shape.hull,
       edges: shape.edges,
       roots: Array.from(packTransforms(roots)),
@@ -477,13 +484,38 @@ for (const zoom of selectedSpecs.length ? [80, 240] : []) {
 }
 
 const romanescoShape = buildGpuShape({ kind: "romanesco" });
-const romanescoBounds = packChildBounds(romanescoShape);
+const romanescoBounds = packGpuChildBounds(packChildBounds(romanescoShape));
+const skippedStackFixtures = [];
 for (const fixture of fixtures)
   if (fixture.kind === 3) {
     fixture.childBounds = Array.from(romanescoBounds.data);
     fixture.childBoundsCount = romanescoBounds.nodeCount;
     fixture.boundConeSlope = romanescoShape.boundConeSlope;
+    fixture.boundConeBase = romanescoShape.boundConeBase;
+    fixture.boundCylinderRadius = romanescoShape.boundCylinderRadius;
+    const roots = Array.from({ length: fixture.roots.length / 16 }, (_, index) => {
+      const data = fixture.roots.slice(index * 16, index * 16 + 16);
+      return data[15] > 0.5
+        ? { cone: true }
+        : {
+            center: data.slice(0, 3),
+            rank: data[3],
+            axes: [data.slice(4, 7), data.slice(8, 11), data.slice(12, 15)],
+          };
+    });
+    const required = selectGpuStackDepth(
+      { shape: romanescoShape, roots },
+      {
+        minimumFootprint: fixture.nearFootprint ?? 0,
+        pixelFootprint: fixture.pixelAngle ?? 0,
+        maxRank: fixture.rank,
+      },
+    );
+    if (stackDepth < required) skippedStackFixtures.push({ name: fixture.name, required });
   }
+const selectedFixtures = fixtures.filter(
+  (fixture) => !skippedStackFixtures.some((skipped) => skipped.name === fixture.name),
+);
 
 async function check(page, payload) {
   return page.evaluate(
@@ -498,6 +530,7 @@ async function check(page, payload) {
       diagnostics,
       stackDepth,
       specialized,
+      skippedStackFixtures,
     }) => {
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = 65;
@@ -540,13 +573,13 @@ async function check(page, payload) {
         gl.texImage2D(
           gl.TEXTURE_2D,
           0,
-          gl.RGBA32F,
+          unit === 2 ? gl.RGBA32UI : gl.RGBA32F,
           width,
           values.length / (width * 4),
           0,
-          gl.RGBA,
-          gl.FLOAT,
-          new Float32Array(values),
+          unit === 2 ? gl.RGBA_INTEGER : gl.RGBA,
+          unit === 2 ? gl.UNSIGNED_INT : gl.FLOAT,
+          unit === 2 ? new Uint32Array(values) : new Float32Array(values),
         );
       }
       gl.disable(gl.DITHER);
@@ -597,7 +630,7 @@ async function check(page, payload) {
           gl.uniform3fv(uniform("forward"), direction.forward);
           upload(0, fixture.roots);
           upload(1, fixture.children);
-          upload(2, fixture.childBounds ?? Array(8).fill(0), 2);
+          upload(2, fixture.childBounds ?? Array(4).fill(0), 1);
           gl.uniform1i(uniform("childBoundsCount"), fixture.childBoundsCount ?? 0);
           gl.uniform1i(uniform("rootCount"), fixture.roots.length / 16);
           gl.uniform1i(uniform("childCount"), fixture.childCount);
@@ -614,6 +647,8 @@ async function check(page, payload) {
           gl.uniform1f(uniform("featureSize"), fixture.featureSize);
           gl.uniform1f(uniform("coneSlope"), fixture.coneSlope ?? 0);
           gl.uniform1f(uniform("boundConeSlope"), fixture.boundConeSlope ?? 0);
+          gl.uniform1f(uniform("boundConeBase"), fixture.boundConeBase ?? -1);
+          gl.uniform1f(uniform("boundCylinderRadius"), fixture.boundCylinderRadius ?? 0);
           gl.uniform1f(uniform("pixelAngle"), fixture.pixelAngle ?? 0);
           gl.uniform1f(uniform("nearFootprint"), fixture.nearFootprint ?? 0);
           gl.uniform1f(uniform("maxRank"), fixture.rank);
@@ -695,6 +730,7 @@ async function check(page, payload) {
           renderer,
           stackDepth,
           cases: results.reduce((n, r) => n + r.samples, 0),
+          skippedStackFixtures,
           results,
           errors,
         };
@@ -716,5 +752,5 @@ async function check(page, payload) {
 }
 writeFileSync(
   process.argv[2] ?? "/private/tmp/check-spatial-flight-gpu.js",
-  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, flakeFragment, romanescoFragment, fixtures, basis, diagnostics, stackDepth, specialized })})`,
+  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, flakeFragment, romanescoFragment, fixtures: selectedFixtures, basis, diagnostics, stackDepth, specialized, skippedStackFixtures })})`,
 );

@@ -1,15 +1,23 @@
-import type { GpuFrame, GpuSpatialSpec } from "./model";
+import {
+  type GpuFrame,
+  type GpuSpatialSpec,
+  type GpuStackOptions,
+  selectGpuStackDepth,
+} from "./model";
 
-/** Ancestor-only Romanesco frames never enter a descendant stack. */
-export function spatialShaderStackDepth(frame: Pick<GpuFrame, "shape" | "roots">): 16 | 40 {
-  return frame.shape.kind === 3 && frame.roots.every((root) => root.cone) ? 16 : 40;
+/** Select a smaller stack only when rank or the pixel footprint proves it safe. */
+export function spatialShaderStackDepth(
+  frame: Pick<GpuFrame, "shape" | "roots">,
+  options: GpuStackOptions = {},
+) {
+  return selectGpuStackDepth(frame, options);
 }
 
 /** Compile only constructions whose fixed-kind arithmetic retains exact pixels. */
 export function specializeSpatialShader(
   source: string,
   spec?: Pick<GpuSpatialSpec, "kind">,
-  stackDepth: 16 | 24 | 40 = 40,
+  stackDepth: 8 | 12 | 16 | 24 | 40 = 40,
 ) {
   // Keep the generic sources unchanged; fixed-kind compilation alters their
   // Float32 rounding. Explicit stack overrides are for diagnostic experiments.
