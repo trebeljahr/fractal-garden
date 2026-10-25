@@ -697,24 +697,30 @@ async function checkMain(payload) {
           const facing =
             0.15 * Math.max(0, -ray.normal.reduce((sum, n, axis) => sum + n * ray.ray[axis], 0));
           const visibility = 1 - (mode === 2 ? 0.7 : 0.55) * ray.expected[mode - 1];
+          // This one-pixel fixture keeps right/up fixed while assigning forward to the ray.
+          // Compute the view-relative key independently from that declared basis.
+          const key = ray.ray.map((forward, axis) => [-0.65, 0.85, 0][axis] - 0.65 * forward);
+          const sideLight = Math.max(
+            0,
+            ray.normal.reduce((sum, n, axis) => sum + n * key[axis], 0) / Math.hypot(...key),
+          );
+          const faceTint = fixture.pattern >= 2 ? 1 - 0.22 * Math.abs(ray.normal[0]) : 1;
           for (const lighting of [0, 1]) {
             gl.uniform1i(u("lighting"), lighting);
             const pixels = draw();
             for (let channel = 0; channel < 3; channel++) {
               const ambient =
-                [0.29, 0.34, 0.43][channel] +
-                ([0.43, 0.43, 0.4][channel] - [0.29, 0.34, 0.43][channel]) *
+                [0.27, 0.3, 0.36][channel] +
+                ([0.36, 0.36, 0.33][channel] - [0.27, 0.3, 0.36][channel]) *
                   (0.5 + 0.5 * ray.normal[1]);
               const illumination =
                 lighting === 0
                   ? 0.38 * visibility + 0.62 * diffuse + facing
-                  : ambient * visibility +
-                    0.62 * diffuse * [1.08, 1, 0.88][channel] +
-                    facing * 0.75;
+                  : Math.min(1, ambient * visibility + 0.82 * sideLight * [1.04, 1, 0.94][channel]);
               compare(
                 `${ray.name}: rendered AO mode ${mode}, lighting ${lighting}, channel ${channel}`,
                 pixels[channel] / 255,
-                [0.8, 0.6, 0.4][channel] * illumination,
+                [0.8, 0.6, 0.4][channel] * faceTint * illumination,
                 1.5 / 255,
               );
             }

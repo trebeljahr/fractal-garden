@@ -16,6 +16,7 @@ import {
   type SpatialRequest,
   type SpatialStyle,
 } from "../utils/spatial/geometry";
+import { spatialReliefFront } from "../utils/spatial/lighting";
 import { pickSpatialPoint } from "../utils/spatial/picking";
 import { createSpatialRenderer } from "../utils/spatial/renderer";
 
@@ -133,6 +134,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
           width,
           height,
           2 ** ((live.camera.atmosphereZoom ?? live.camera.zoom) - live.camera.zoom) / 96,
+          spatialReliefFront(live.camera, rotationOf(live.style)),
         );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");

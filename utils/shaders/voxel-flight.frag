@@ -97,6 +97,17 @@ float surfaceOcclusion(vec3 p, vec3 normal, vec4 surfaceGrid, int surfaceLevel) 
     return mix(mix(dark.x, dark.y, face.x), mix(dark.z, dark.w, face.x), face.y);
 }
 
+// Near-field relief uses axial distance, so a flat face stays evenly lit.
+// The whole root supplies the outside reference; inside it, the eye is the reference.
+float depthRelief(float axialDepth) {
+    // Select the support corner directly. Subtracting an enormous center and
+    // half-width would lose the nearby plane at deep ancestor boundaries.
+    vec3 corner = mix(u_high, u_low, step(vec3(0.0), u_forward));
+    float front = max(0.0, dot(corner, u_forward));
+    float depth = max(0.0, axialDepth - front) * (96.0 * u_fogDistanceScale);
+    return 0.55 + 0.45 * exp(-0.9 * depth);
+}
+
 void main() {
     vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
     vec3 ray = normalize(u_forward + 0.58 * (uv.x * u_right + uv.y * u_up));
@@ -257,10 +268,15 @@ void main() {
             if (resolved > 0.0) occlusion = resolved * surfaceOcclusion(ray * surfaceT, normal, occlusionGrid, occlusionLevel);
         }
         float ambientVisibility = 1.0 - (u_aoMode == 2 ? 0.7 : 0.55) * occlusion;
+        vec3 edgeColor = u_stroke * light;
         if (u_lighting == 1 && u_faces) {
-            vec3 ambient = mix(vec3(0.29, 0.34, 0.43), vec3(0.43, 0.43, 0.40), 0.5 + 0.5 * litNormal.y);
-            vec3 illumination = ambient * ambientVisibility + 0.62 * diffuse * vec3(1.08, 1.0, 0.88) + facing * 0.75;
+            vec3 key = normalize(-0.65 * u_right + 0.85 * u_up - 0.65 * u_forward);
+            float sideLight = max(0.0, dot(litNormal, key));
+            vec3 ambient = mix(vec3(0.27, 0.30, 0.36), vec3(0.36, 0.36, 0.33), 0.5 + 0.5 * dot(litNormal, u_up));
+            vec3 illumination = min(vec3(1.0), ambient * ambientVisibility + 0.82 * sideLight * vec3(1.04, 1.0, 0.94));
+            illumination *= depthRelief(surfaceT * dot(ray, u_forward));
             color = material * illumination;
+            edgeColor = u_stroke * illumination;
         } else if (u_aoMode > 0) {
             color = material * (0.38 * ambientVisibility + 0.62 * diffuse + facing);
         }
@@ -270,7 +286,7 @@ void main() {
         float edge = min(min(faceEdges.x, faceEdges.y), faceEdges.z) * cellSize;
         footprint = max(u_nearFootprint, t * u_pixelAngle);
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
-        if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
+        if (u_wire) color = mix(color, edgeColor, outline * (u_faces ? (u_lighting == 1 ? 0.18 : 0.25) : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
         // Normalize one gentle haze curve to the background at the horizon.
         // No separate terminal fade that suddenly hides the next chamber.

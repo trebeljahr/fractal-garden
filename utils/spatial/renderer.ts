@@ -47,16 +47,21 @@ void main() {
   float diffuse = max(0., dot(normal, normalize(vec3(-.5, .8, .6))));
   float facing = .15 * max(0., dot(normal, normalize(vec3(-p.xy, ${CAMERA_DISTANCE.toFixed(1)}-p.z))));
   float light = .38 + .62 * diffuse + facing;
-  vec3 color = fill * light;
+  vec3 illumination = vec3(light);
+  vec3 color = fill * illumination;
   if (lighting > .5 && faces > .5) {
-    vec3 ambient = mix(vec3(.29,.34,.43), vec3(.43,.43,.40), .5 + .5 * normal.y);
-    color = fill * (ambient + .62 * diffuse * vec3(1.08,1.,.88) + facing * .75);
+    float sideLight = max(0., dot(normal, normalize(vec3(-.65,.85,.65))));
+    vec3 ambient = mix(vec3(.27,.30,.36), vec3(.36,.36,.33), .5 + .5 * normal.y);
+    illumination = min(vec3(1.), ambient + .82 * sideLight * vec3(1.04,1.,.94));
+    color = fill * illumination;
   }
   if (curve > .5) {
     float far = clamp((${CAMERA_DISTANCE.toFixed(1)} - p.z - 2.) / 10., 0., 1.);
     color = mix(background, mix(fill, farColor, far), mix(1., farAlpha, far));
   }
-  gl_FragColor = vec4(mix(stroke * light, color, wire > .5 ? (faces > .5 ? 1. - .25 * (1. - edge) * edgeVisibility : edge) : 1.), 1.);
+  vec3 edgeColor = lighting > .5 && faces > .5 && curve < .5 ? stroke * illumination : stroke * light;
+  float outlineStrength = lighting > .5 && curve < .5 ? .18 : .25;
+  gl_FragColor = vec4(mix(edgeColor, color, wire > .5 ? (faces > .5 ? 1. - outlineStrength * (1. - edge) * edgeVisibility : edge) : 1.), 1.);
 }`;
 const screenVertex = `attribute vec2 position; varying vec2 uv;
 void main(){ uv = position * .5 + .5; gl_Position = vec4(position,0.,1.); }`;
@@ -65,7 +70,7 @@ varying vec2 uv;
 uniform sampler2D colorMap, surfaceMap;
 uniform vec2 resolution, projection;
 uniform vec3 background;
-uniform float aoMode, faces, lighting, fogDistanceScale;
+uniform float aoMode, faces, lighting, fogDistanceScale, reliefFront, reliefEnabled, reliefScale;
 float depth(vec4 s) { return exp2((s.b + s.a / 255.) * log2(${(FAR_PLANE + 1).toFixed(1)})) - 1.; }
 vec3 point(vec2 at, float d) { return vec3((at * 2. - 1.) * d / projection, -d); }
 vec3 normal(vec4 s) {
@@ -96,6 +101,10 @@ void main() {
     occlusion = clamp(occlusion/8.,0.,.8);
   }
   vec3 color = texture2D(colorMap,uv).rgb * (1.-occlusion*(aoMode>1.5 ? 1. : .65));
+  if (lighting > .5 && faces > .5 && reliefEnabled > .5) {
+    float depth = max(0., d - reliefFront) * reliefScale;
+    color *= .55 + .45 * exp(-.9 * depth);
+  }
   // Haze is in local travel units and does not depend on the integer recursion depth.
   float fog = clamp((1.-exp(-4.*max(0.,d*fogDistanceScale-.2/96.)))/(1.-exp(-4.*(1.-.2/96.))),0.,1.);
   vec3 atmosphere = lighting > .5 && faces > .5 ? mix(background,vec3(.13,.18,.23),.3*(1.-fog)) : background;
@@ -147,6 +156,7 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
       width: number,
       height: number,
       fogDistanceScale = 1 / 96,
+      reliefFront = 0,
     ) {
       const canvas = gl.canvas as HTMLCanvasElement,
         ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -246,6 +256,9 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
       gl.uniform3fv(screenLocation("background"), rgb(style.background));
       gl.uniform1f(screenLocation("faces"), Number(style.showFaces));
       gl.uniform1f(screenLocation("fogDistanceScale"), Math.max(1 / FAR_PLANE, fogDistanceScale));
+      gl.uniform1f(screenLocation("reliefFront"), reliefFront);
+      gl.uniform1f(screenLocation("reliefScale"), 96 * fogDistanceScale);
+      gl.uniform1f(screenLocation("reliefEnabled"), Number(!style.nearColor));
       gl.uniform1f(screenLocation("lighting"), Number(style.lighting !== "classic"));
       gl.uniform1f(
         screenLocation("aoMode"),
