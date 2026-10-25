@@ -30,14 +30,17 @@ import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { hasLSystemPlayback } from "../utils/lsystem/playback";
 import type { RendererKind } from "../utils/render/registry";
+import type { GpuSpatialSpec } from "../utils/spatialGpu/model";
 import { ConstructionIcon } from "./ConstructionIcon";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { FractalStudioControls } from "./ExplorerPanel";
+import { GpuConstructionSurface } from "./GpuConstructionSurface";
 import LSystemProcess from "./LSystemProcess";
 
 export type ConstructionSpec = {
   identity: string;
   kind: RendererKind;
+  gpuSpec?: GpuSpatialSpec;
   params: unknown;
   config?: Record<string, unknown>;
   makeParams?: (config: Record<string, unknown>) => unknown;
@@ -470,6 +473,15 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
                 onReady={onReady}
                 onComplete={onProcessComplete}
                 onInteract={pause}
+                onReset={reset}
+              />
+            ) : spec.gpuSpec ? (
+              <GpuConstructionSurface
+                spec={spec.gpuSpec}
+                level={level}
+                view={view}
+                setView={setView}
+                onReady={onReady}
                 onReset={reset}
               />
             ) : (

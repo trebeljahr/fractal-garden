@@ -1,10 +1,10 @@
 # Adaptive spatial exploration
 
-The solid explorers now use [`GpuSpatialExplorer`](../spatialGpu/README.md): the Sierpinski tetrahedron and pyramid, polyhedron flakes, Jerusalem cube and both Koch surfaces. Their visible detail, picking and collision queries run on the GPU. `SpatialExplorer` retains the worker-based path for the 3D Hilbert curve. Finite construction players continue using the existing scene and polyline renderers. The L-system Explorer is independent.
+The solid explorers now use [`GpuSpatialExplorer`](../spatialGpu/README.md): the Sierpinski tetrahedron and pyramid, polyhedron flakes, Jerusalem cube and both Koch surfaces. Their visible detail, picking and collision queries run on the GPU. `SpatialExplorer` retains the worker-based path for the 3D Hilbert curve. Other finite construction players continue using the existing scene and polyline renderers. The L-system Explorer is independent.
 
 The mesh construction and collision-shell details below describe the retained geometry reference and the Hilbert renderer, rather than the active solid flythroughs. The solid geometry helpers remain covered by the finite-generator tests.
 
-Romanesco uses `SpatialExplorer` and the shared flight camera. Each cone retains its core and adds 55 smaller cones in a golden-angle spiral. The shared finite generator shows levels zero through two; the spatial worker refines that same arrangement to screen tolerance. A sphere enclosing both the seed mesh and every transformed descendant bounds culling. Unresolved copies pad the collision shell until closer views refine them. This is a geometric model inspired by the plant, not a biological growth simulation.
+Romanesco uses `GpuSpatialExplorer` with analytic round-cone intersections and a retained-parent union. Its eight/thirteen spiral lattice repeats around each floret. The finite construction player uses the same GPU renderer at fixed ranks, growing only the newest generation from its base. Neither Romanesco view generates a triangle mesh. See the [GPU renderer contract](../spatialGpu/README.md).
 
 The camera stores a target in BigInt fixed point and a base-two zoom exponent. Precision grows with zoom, retaining 160 guard bits. Mesh vertices reach WebGL only after subtraction of the target. The limit is 240 zoom doublings; this is a practical depth bound. Input coefficients for irrational constructions retain the precision of the existing JavaScript generators.
 

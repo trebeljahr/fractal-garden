@@ -9,6 +9,13 @@ import {
 } from "../polyhedronFractals";
 import type { SceneSpec } from "../render/scene3d";
 import {
+  ROMANESCO_BOUND,
+  ROMANESCO_CHILDREN,
+  ROMANESCO_PLACEMENT_RADIUS,
+  ROMANESCO_RADIUS,
+  ROMANESCO_ROOT,
+} from "../romanesco";
+import {
   type BigVec3,
   CAMERA_DISTANCE,
   cameraTarget,
@@ -22,14 +29,31 @@ import type { SpatialStyle } from "../spatial/geometry";
 
 export type GpuSpatialSpec = Extract<
   SceneSpec,
-  { kind: "jerusalem" | "flake" | "kochSurface" | "quadraticKoch3d" }
+  { kind: "jerusalem" | "flake" | "kochSurface" | "quadraticKoch3d" | "romanesco" }
 >;
 export type Plane = [number, number, number, number];
 /** Columns include uniform scale. All constructions are similarities. */
-export type GpuTransform = { center: Vec3; axes: [Vec3, Vec3, Vec3]; rank: number };
+export type AncestorCone = {
+  linear: Vec3;
+  constant: number;
+  axis: Vec3;
+  quadraticScale: number;
+  baseDistance: number;
+  tipDistance: number;
+  clearance: number;
+};
+export type GpuTransform = {
+  center: Vec3;
+  axes: [Vec3, Vec3, Vec3];
+  rank: number;
+  /** An ancestor's retained core, rebased analytically before float conversion. */
+  cone?: AncestorCone;
+};
 export type GpuShape = {
   spec: GpuSpatialSpec;
-  kind: 0 | 1 | 2;
+  kind: 0 | 1 | 2 | 3;
+  coneSlope?: number;
+  boundConeSlope?: number;
   children: GpuTransform[];
   roots: GpuTransform[];
   hull: Plane[];
@@ -54,6 +78,46 @@ export type GpuFrame = {
 };
 export const MAX_GPU_ROOTS = 512;
 export const GPU_STACK_DEPTH = 40;
+export type GpuStackOptions = {
+  minimumFootprint?: number;
+  maxRank?: number;
+  clearance?: boolean;
+};
+const childScaleCache = new WeakMap<GpuShape, number>();
+/** Choose a smaller compiled stack only when the normal stopping rule proves it sufficient. */
+export function selectGpuStackDepth(
+  frame: Pick<GpuFrame, "shape" | "roots">,
+  options: GpuStackOptions = {},
+): 16 | 24 | 40 {
+  if (frame.shape.kind !== 3) return 40;
+  let ratio = childScaleCache.get(frame.shape);
+  if (ratio === undefined) {
+    ratio = Math.max(...frame.shape.children.map(transformSize));
+    childScaleCache.set(frame.shape, ratio);
+  }
+  const floor = options.clearance ? 0.00002 : (options.minimumFootprint ?? 0);
+  const feature = options.clearance ? frame.shape.radius : frame.shape.featureSize;
+  const rankLimit = Number.isFinite(options.maxRank) ? options.maxRank! : Infinity;
+  let required = 1;
+  for (const root of frame.roots) {
+    if (root.cone) continue;
+    const rankDepth = Math.max(0, Math.ceil(rankLimit - root.rank));
+    let detailDepth = Infinity;
+    if (Number.isFinite(floor) && floor > 0 && ratio > 0 && ratio < 1) {
+      let bound = transformSize(root) * feature;
+      for (let depth = 0; depth < 40; depth++, bound *= ratio) {
+        if (bound <= floor) {
+          // One complete extra level covers floating-point rounding near a cutoff.
+          detailDepth = depth + 1;
+          break;
+        }
+      }
+    }
+    required = Math.max(required, Math.min(rankDepth, detailDepth) + 1);
+    if (required > 24) return 40;
+  }
+  return required <= 16 ? 16 : 24;
+}
 export const add = (a: Vec3, b: Vec3): Vec3 => a.map((v, i) => v + b[i]) as Vec3;
 export const sub = (a: Vec3, b: Vec3): Vec3 => a.map((v, i) => v - b[i]) as Vec3;
 export const scale = (a: Vec3, s: number): Vec3 => a.map((v) => v * s) as Vec3;
@@ -150,7 +214,35 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
     roots: GpuTransform[] = [transform()],
     children: GpuTransform[] = [],
     rootTriangles: Vec3[][] | undefined;
-  if (spec.kind === "flake" || spec.kind === "jerusalem") {
+  if (spec.kind === "romanesco") {
+    kind = 3;
+    // Tangent planes enclose the circular construction envelope. Because each
+    // child tip lies on that envelope and its whole cone fits below it, the
+    // same 13 planes conservatively bound every descendant, not just the core.
+    const sides = 12,
+      slope = ROMANESCO_PLACEMENT_RADIUS / 2,
+      length = Math.hypot(1, slope),
+      radius = ROMANESCO_PLACEMENT_RADIUS / Math.cos(Math.PI / sides);
+    vertices = Array.from({ length: sides }, (_, i) => {
+      const angle = ((i + 0.5) * 2 * Math.PI) / sides;
+      return [radius * Math.cos(angle), -1, radius * Math.sin(angle)] as Vec3;
+    });
+    vertices.push([0, 1, 0]);
+    hull = [
+      [0, -1, 0, 1],
+      ...Array.from({ length: sides }, (_, i) => {
+        const angle = (i * 2 * Math.PI) / sides;
+        return [
+          Math.cos(angle) / length,
+          slope / length,
+          Math.sin(angle) / length,
+          slope / length,
+        ] as Plane;
+      }),
+    ];
+    roots = [transform(ROMANESCO_ROOT.center, identity(ROMANESCO_ROOT.scale))];
+    children = ROMANESCO_CHILDREN.map((child) => transform(child.center, child.axes, 1));
+  } else if (spec.kind === "flake" || spec.kind === "jerusalem") {
     const meshes = {
       tetrahedron: tetrahedronMesh,
       squarePyramid: squarePyramidMesh,
@@ -274,7 +366,14 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
   const low = [0, 1, 2].map((i) => Math.min(...vertices.map((p) => p[i]))) as Vec3;
   const high = [0, 1, 2].map((i) => Math.max(...vertices.map((p) => p[i]))) as Vec3;
   const minimumScale = Math.min(...children.map(transformSize));
-  let featureSize = kind === 1 ? 0.5 : kind === 2 ? 2 / 3 : 2 * minimumScale;
+  let featureSize =
+    kind === 1
+      ? 0.5
+      : kind === 2
+        ? 2 / 3
+        : kind === 3
+          ? 2 * ROMANESCO_RADIUS * Math.max(...children.map(transformSize))
+          : 2 * minimumScale;
   if (spec.kind === "flake") {
     let edge = Infinity;
     for (let i = 0; i < vertices.length; i++)
@@ -291,7 +390,9 @@ export function buildGpuShape(spec: GpuSpatialSpec): GpuShape {
     edges,
     low,
     high,
-    radius: Math.max(...vertices.map((p) => Math.hypot(...p))),
+    radius: kind === 3 ? ROMANESCO_BOUND : Math.max(...vertices.map((p) => Math.hypot(...p))),
+    coneSlope: kind === 3 ? ROMANESCO_RADIUS / 2 : undefined,
+    boundConeSlope: kind === 3 ? ROMANESCO_PLACEMENT_RADIUS / 2 : undefined,
     featureSize,
     seedVertices: kind === 0 ? vertices : undefined,
     rootTriangles,
@@ -306,24 +407,208 @@ type FixedTransform = {
   rank: number;
   points?: BigVec3[];
   size?: bigint;
+  coreOnly?: boolean;
 };
+const integerSqrt = (n: bigint) => {
+  if (n <= BigInt(0)) return BigInt(0);
+  let x = BigInt(1) << BigInt(Math.ceil(n.toString(2).length / 2));
+  for (;;) {
+    const next = (x + n / x) / BigInt(2);
+    if (next >= x) return x;
+    x = next;
+  }
+};
+
+/**
+ * A huge retained core cannot use a rounded centre and scale: their difference
+ * loses the nearby surface. Evaluate its quadratic at the exact fixed-point eye
+ * first. Dividing by the distance to the apex keeps local coefficients well
+ * scaled both beside a huge flank and at its tip, even hundreds of doublings in.
+ */
+function ancestorCone(
+  node: FixedTransform,
+  eye: BigVec3,
+  bits: number,
+  zoom: number,
+): AncestorCone {
+  const one = BigInt(1) << BigInt(bits),
+    square = (v: bigint) => v * v,
+    sum = (v: bigint[]) => v.reduce((a, b) => a + b, BigInt(0)),
+    size = integerSqrt(sum(node.axes[0].map(square))),
+    delta = eye.map((v, i) => v - node.center[i]),
+    crossFixed = (a: BigVec3, b: BigVec3) =>
+      [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] as BigVec3,
+    cofactors = [
+      crossFixed(node.axes[1], node.axes[2]),
+      crossFixed(node.axes[2], node.axes[0]),
+      crossFixed(node.axes[0], node.axes[1]),
+    ],
+    determinant = sum(node.axes[0].map((v, i) => v * cofactors[0][i])),
+    // Use the actual inverse before subtracting a huge surface. Assuming exact
+    // orthogonality here amplifies tiny rotation roundoff at deep scales.
+    inverseBasis = cofactors.map((row) => row.map((v) => (v * size * one) / determinant)),
+    local = inverseBasis.map((axis) => sum(axis.map((v, i) => v * delta[i])) / one),
+    slope = fixedFromNumber(ROMANESCO_RADIUS / 2, bits),
+    slopeSquared = (slope * slope) / one,
+    tip = size - local[1],
+    distanceToTip = integerSqrt(square(local[0]) + square(local[2]) + square(tip)),
+    normalizer = distanceToTip > BigInt(0) ? distanceToTip : BigInt(1),
+    constant =
+      ((square(local[0]) + square(local[2])) * one - slopeSquared * square(tip)) /
+      (one * normalizer),
+    linear = [0, 1, 2].map((i) =>
+      relativeNumber(
+        (BigInt(2) *
+          (local[0] * inverseBasis[0][i] +
+            local[2] * inverseBasis[2][i] +
+            (slopeSquared * tip * inverseBasis[1][i]) / one)) /
+          normalizer,
+        bits,
+        0,
+      ),
+    ) as Vec3,
+    axis = inverseBasis[1].map((v) => relativeNumber(v, bits, 0)) as Vec3;
+  const radial = integerSqrt(square(local[0]) + square(local[2])),
+    side =
+      ((radial - (slope * tip) / one) *
+        fixedFromNumber(1 / Math.sqrt(1 + (ROMANESCO_RADIUS / 2) ** 2), bits)) /
+      one,
+    lower = [BigInt(0), side, -size - local[1], local[1] - size].reduce((a, b) => (a > b ? a : b)),
+    bounded = (v: bigint) => Math.max(-1e30, Math.min(1e30, relativeNumber(v, bits, zoom)));
+  return {
+    linear,
+    constant: bounded(constant),
+    axis,
+    quadraticScale: 1 / relativeNumber(normalizer, bits, zoom),
+    baseDistance: bounded(size + local[1]),
+    tipDistance: bounded(tip),
+    clearance: Math.max(0, bounded(lower) * (1 - 1e-7) - 1e-8),
+  };
+}
+function localRoot(node: FixedTransform, eye: BigVec3, bits: number, zoom: number): GpuTransform {
+  if (node.coreOnly)
+    return {
+      center: [0, 0, 0],
+      axes: identity(),
+      rank: node.rank,
+      cone: ancestorCone(node, eye, bits, zoom),
+    };
+  return {
+    center: node.center.map((v, i) => relativeNumber(v - eye[i], bits, zoom)) as Vec3,
+    axes: node.axes.map((v) => v.map((x) => relativeNumber(x, bits, zoom))) as GpuTransform["axes"],
+    rank: node.rank,
+  };
+}
+
 export function packTransforms(transforms: GpuTransform[], capacity = transforms.length) {
   const data = new Float32Array(capacity * 16);
   transforms.forEach((t, i) => {
-    data.set([...t.center, t.rank, ...t.axes[0], 0, ...t.axes[1], 0, ...t.axes[2], 0], i * 16);
+    const c = t.cone;
+    data.set(
+      c
+        ? [
+            ...c.linear,
+            c.constant,
+            ...c.axis,
+            c.quadraticScale,
+            c.baseDistance,
+            c.tipDistance,
+            t.rank,
+            0,
+            c.clearance,
+            0,
+            0,
+            1,
+          ]
+        : [...t.center, t.rank, ...t.axes[0], 0, ...t.axes[1], 0, ...t.axes[2], 0],
+      i * 16,
+    );
   });
   return data;
 }
+const octantDirection = (octant: number): Vec3 => [
+  octant & 1 ? 1 : -1,
+  octant & 2 ? 1 : -1,
+  octant & 4 ? 1 : -1,
+];
+const childrenInOctant = (shape: GpuShape, octant: number) => {
+  const direction = octantDirection(octant);
+  return shape.children.slice().sort((a, b) => dot(a.center, direction) - dot(b.center, direction));
+};
 /** Coherent near-first orders reduce traversal without changing intersections. */
 export function packOrderedChildren(shape: GpuShape) {
-  const ordered: GpuTransform[] = [];
+  return packTransforms(
+    Array.from({ length: 8 }, (_, octant) => childrenInOctant(shape, octant)).flat(),
+  );
+}
+
+/**
+ * Threaded child BVH. Two texels store low/leaf and high/escape for each node.
+ * A leaf bounds the complete circular descendant envelope, not just its seed.
+ * Eight preorder layouts change visit order only; every layout has every child.
+ */
+export function packChildBounds(shape: GpuShape) {
+  if (shape.kind !== 3) return { data: new Float32Array(8), nodeCount: 0 };
+  type Node = { low: Vec3; high: Vec3; child?: GpuTransform; branches?: [Node, Node] };
+  const leaves: Node[] = shape.children.map((child) => {
+    const low: Vec3 = [0, 0, 0],
+      high: Vec3 = [0, 0, 0];
+    for (let axis = 0; axis < 3; axis++) {
+      const x = child.axes[0][axis],
+        y = child.axes[1][axis],
+        z = child.axes[2][axis];
+      const radial = ROMANESCO_PLACEMENT_RADIUS * Math.hypot(x, z);
+      low[axis] = child.center[axis] - Math.max(-y, y + radial);
+      high[axis] = child.center[axis] + Math.max(y, -y + radial);
+    }
+    return { low, high, child };
+  });
+  const build = (nodes: Node[]): Node => {
+    if (nodes.length === 1) return nodes[0];
+    const low = [0, 1, 2].map((i) => Math.min(...nodes.map((n) => n.low[i]))) as Vec3;
+    const high = [0, 1, 2].map((i) => Math.max(...nodes.map((n) => n.high[i]))) as Vec3;
+    let axis = 0;
+    for (let i = 1; i < 3; i++) if (high[i] - low[i] > high[axis] - low[axis]) axis = i;
+    nodes.sort((a, b) => a.low[axis] + a.high[axis] - b.low[axis] - b.high[axis]);
+    const middle = Math.floor(nodes.length / 2);
+    return { low, high, branches: [build(nodes.slice(0, middle)), build(nodes.slice(middle))] };
+  };
+  const tree = build(leaves),
+    nodeCount = shape.children.length * 2 - 1;
+  if (nodeCount >= 65536) throw new Error("The child BVH exceeds its packed cursor range.");
+  const data = new Float32Array(nodeCount * 8 * 8);
   for (let octant = 0; octant < 8; octant++) {
-    const direction: Vec3 = [octant & 1 ? 1 : -1, octant & 2 ? 1 : -1, octant & 4 ? 1 : -1];
-    ordered.push(
-      ...shape.children.slice().sort((a, b) => dot(a.center, direction) - dot(b.center, direction)),
-    );
+    const direction = octantDirection(octant);
+    const indices = new Map(childrenInOctant(shape, octant).map((child, index) => [child, index]));
+    let cursor = 0;
+    const flatten = (node: Node) => {
+      const at = cursor++,
+        offset = (octant * nodeCount + at) * 8;
+      if (node.branches) {
+        const [a, b] = node.branches;
+        const distance = (n: Node) => dot(add(n.low, n.high), direction);
+        if (distance(a) <= distance(b)) {
+          flatten(a);
+          flatten(b);
+        } else {
+          flatten(b);
+          flatten(a);
+        }
+      }
+      // Outward padding keeps Float32 storage conservative at tangencies.
+      data.set(
+        [
+          ...node.low.map((v) => v - 1e-6 * Math.max(1, Math.abs(v))),
+          node.child ? indices.get(node.child)! : -1,
+          ...node.high.map((v) => v + 1e-6 * Math.max(1, Math.abs(v))),
+          cursor,
+        ],
+        offset,
+      );
+    };
+    flatten(tree);
   }
-  return packTransforms(ordered);
+  return { data, nodeCount };
 }
 
 /** Only select local roots here. Their arbitrarily large descendant trees stay on the GPU. */
@@ -356,15 +641,7 @@ export function buildGpuFrame(
         return (delta < BigInt(0) ? -delta : delta) + required <= old.reach;
       })
     ) {
-      const roots = old.roots.map((node) => ({
-        center: node.center.map((v, i) =>
-          relativeNumber(v - currentEye[i], old.bits, camera.zoom),
-        ) as Vec3,
-        axes: node.axes.map((v) =>
-          v.map((x) => relativeNumber(x, old.bits, camera.zoom)),
-        ) as GpuTransform["axes"],
-        rank: node.rank,
-      }));
+      const roots = old.roots.map((node) => localRoot(node, currentEye, old.bits, camera.zoom));
       return {
         shape,
         roots,
@@ -414,7 +691,21 @@ export function buildGpuFrame(
     bits,
   );
   const seedVertices = shape.seedVertices?.map(big);
+  const fixedChildren = shape.kind === 3 ? shape.children.map(toFixed) : [];
   const subdivide = (node: FixedTransform): FixedTransform[] => {
+    if (shape.kind === 3) {
+      const world = (point: BigVec3) =>
+        [0, 1, 2].map(
+          (i) =>
+            (node.axes[0][i] * point[0] + node.axes[1][i] * point[1] + node.axes[2][i] * point[2]) /
+            one,
+        ) as BigVec3;
+      return fixedChildren.map((child) => ({
+        center: plus(node.center, world(child.center)),
+        axes: child.axes.map(world) as FixedTransform["axes"],
+        rank: node.rank + child.rank,
+      }));
+    }
     if (shape.spec.kind === "flake" || shape.spec.kind === "jerusalem") {
       const size = node.axes[0][0];
       return shape.children.map((child, i) => {
@@ -495,7 +786,6 @@ export function buildGpuFrame(
     }
     return true;
   };
-  const number = (v: bigint) => relativeNumber(v, bits, camera.zoom);
   let visited = 0,
     rootSize = options.maxRootSize ?? 64;
   for (let attempt = 0; attempt < 12; attempt++, rootSize *= 2) {
@@ -509,9 +799,7 @@ export function buildGpuFrame(
       visited++;
       if (!visible(node)) continue;
       if (node.axes.every((v) => v.every((x) => (x < BigInt(0) ? -x : x) <= threshold))) {
-        const center = node.center.map((v, i) => number(v - eye[i])) as Vec3;
-        const axes = node.axes.map((v) => v.map(number)) as [Vec3, Vec3, Vec3];
-        result.push({ center, axes, rank: node.rank });
+        result.push(localRoot(node, eye, bits, camera.zoom));
         retained.push(node);
         if (result.length > MAX_GPU_ROOTS) {
           overflow = true;
@@ -520,6 +808,20 @@ export function buildGpuFrame(
       } else {
         if (visited > 250000)
           throw new Error("The local GPU root frontier exceeds its traversal budget.");
+        if (shape.kind === 3) {
+          const core = { ...node, coreOnly: true };
+          const converted = localRoot(core, eye, bits, camera.zoom);
+          // The whole retained core is present, but distant ancestor surfaces
+          // need not occupy a local root slot.
+          if (converted.cone!.clearance <= horizon * 2) {
+            result.push(converted);
+            retained.push(core);
+            if (result.length > MAX_GPU_ROOTS) {
+              overflow = true;
+              break;
+            }
+          }
+        }
         pending.push(...subdivide(node));
       }
     }

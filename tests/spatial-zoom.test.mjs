@@ -59,7 +59,6 @@ function finiteTriangles(scene, rotation) {
   return Float32Array.from(out);
 }
 for (const spec of [
-  { kind: "romanesco" },
   { kind: "flake", mesh: "tetrahedron", ratio: 0.5 },
   { kind: "flake", mesh: "squarePyramid", ratio: 0.5 },
   { kind: "flake", mesh: "octahedron", ratio: 0.5 },
@@ -153,30 +152,6 @@ test("work caps produce complete coarser frames and empty views stay empty", () 
     camera: moveSpatialCamera(INITIAL_SPATIAL_CAMERA, [100, 100, 0], 12),
   });
   assert.equal(empty.vertices.length, 0);
-});
-test("Romanesco flight keeps a bounded collision shell and refines near its tip", () => {
-  const request = {
-    spec: { kind: "romanesco" },
-    camera: INITIAL_SPATIAL_CAMERA,
-    style: { ...style, rotationX: 0, rotationY: 0 },
-    width: 240,
-    height: 200,
-    maxVertices: 36000,
-    flight: true,
-  };
-  const opening = buildSpatialFrame(request);
-  const closer = buildSpatialFrame({
-    ...request,
-    camera: moveSpatialCamera(INITIAL_SPATIAL_CAMERA, [0, 0.96, 0], 6),
-  });
-  for (const frame of [opening, closer]) {
-    assert.equal(frame.limited, false);
-    assert.ok(frame.vertices.length > 0 && frame.vertices.length / 12 <= 36000);
-    assert.ok(frame.collision.length > 0 && frame.collision.length / 12 <= 36000);
-    assert.ok(frame.vertices.every(Number.isFinite));
-    assert.ok(frame.collision.every(Number.isFinite));
-  }
-  assert.ok(closer.depth > opening.depth);
 });
 test("solid detail omits tiny distant copies and still refines on approach", () => {
   const request = {

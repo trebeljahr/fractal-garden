@@ -77,7 +77,11 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
       preserveDrawingBuffer: true,
     });
     if (!gl) {
-      setError("Exploration needs WebGL 2. The construction below is still available.");
+      setError(
+        latest.current.spec.kind === "romanesco"
+          ? "This view needs WebGL 2."
+          : "Exploration needs WebGL 2. The construction below is still available.",
+      );
       return;
     }
     let disposed = false;

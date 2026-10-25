@@ -19,7 +19,6 @@ import {
   squarePyramidMesh,
   tetrahedronMesh,
 } from "../polyhedronFractals";
-import { buildRomanescoScene } from "../romanesco";
 import {
   type BoxScene,
   drawBoxScene,
@@ -93,7 +92,7 @@ function getMesh(name: keyof typeof MESHES) {
 export function buildScene(spec: SceneSpec, iterations: number): BuiltScene {
   switch (spec.kind) {
     case "romanesco":
-      return { type: "faces", scene: buildRomanescoScene(iterations) };
+      throw new Error("Romanesco construction uses the GPU solid renderer.");
     case "menger":
       return {
         type: "faces",

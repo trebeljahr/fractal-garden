@@ -95,7 +95,7 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
     title: "Romanesco Fractal Explorer",
     name: "Romanesco",
     description:
-      "Fly between nested green cones in a Romanesco-inspired fractal. Explore its spiral arrangement and build the shape one step at a time.",
+      "Explore nested Fibonacci spirals in a Romanesco-inspired fractal. Fly between florets and build the shape one step at a time.",
     imagePath: "/assets/fractal-images/romanesco.jpg",
   },
   "/menger-sponge": {

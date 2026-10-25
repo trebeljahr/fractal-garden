@@ -15,12 +15,12 @@ export default function Romanesco({ description }: { description: string }) {
       description={description}
       storageKey="romanesco"
       title="Romanesco"
-      hint="Fly between the cones."
+      hint="Follow the spirals into smaller florets."
       variants={VARIANTS}
       initialVariant="romanesco"
       fillColor="#c4e87c"
       strokeColor="#d8e99c"
-      rotationX={38}
+      rotationX={65}
       rotationY={28}
       showWireframe={false}
       lighting="classic"
