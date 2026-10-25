@@ -15,10 +15,6 @@
 .stage canvas:active {
   cursor: grabbing;
 }
-.stage canvas:focus-visible {
-  outline: 1px solid var(--explorer-accent);
-  outline-offset: -2px;
-}
 .touchControls {
   position: absolute;
   z-index: 22;
