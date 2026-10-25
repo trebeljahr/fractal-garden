@@ -114,6 +114,10 @@ vec3 keyLightDirection() {
 vec3 depthIllumination(vec3 normal, float visibility, float ambientVisibility, float distance) {
     float sideLight = max(0.0, dot(normal, keyLightDirection()));
     vec3 ambient = mix(vec3(0.27, 0.30, 0.36), vec3(0.36, 0.36, 0.33), 0.5 + 0.5 * normal.y);
+    // The three faces turned away from the key still need distinct tones.
+    // A weak environment fill stays in scene space and respects local AO.
+    float fillLight = max(0.0, dot(normal, normalize(vec3(0.7, -0.45, -0.2))));
+    ambient += vec3(0.3 * fillLight);
     return min(vec3(1.0), ambient * ambientVisibility + 0.82 * sideLight * visibility * vec3(1.04, 1.0, 0.94)) * depthRelief(distance);
 }
 
@@ -353,7 +357,7 @@ void main() {
             vec3 illumination = depthIllumination(litNormal, visibility, ambientVisibility, surfaceT);
             // The material picker supplies display-encoded colour. Apply the
             // light in linear space before returning to display values.
-            if (u_pattern >= 2) illumination = pow(illumination, vec3(1.0 / 2.2));
+            illumination = pow(illumination, vec3(1.0 / 2.2));
             color = material * illumination;
             edgeColor = u_stroke * illumination;
         } else if (u_aoMode > 0) {

@@ -73,3 +73,7 @@ Additional GPU regressions:
 - `check-voxel-flight-gpu.mjs` also holds a physical ray fixed while rotating the camera basis through 24 orientations on each supported pattern. The depth-lit color must remain identical. Its finite-box geometry oracle uses a cone below the transition band so every tested finite cell is fully resolved; the separate transition regression covers the filtered band.
 
 Run each generated payload with Playwright CLI `run-code --filename` and require `passed: true`.
+
+Depth lighting uses the same display conversion for every voxel pattern. A weak, scene-fixed environment fill distinguishes the three face directions that receive no key light. Local occlusion attenuates this fill with the ambient term. It adds no shadow rays and does not change geometry, detail, resolution or movement policy.
+
+Color regression: `node scripts/check-voxel-flight-color.mjs /private/tmp/check-voxel-flight-color.js` generates a Playwright CLI payload that checks the complete production shader against analytic linear-light material calculations. It covers all six root-face orientations, all four specialized patterns, two relief distances, off-center camera rotations, face colors and outline colors. Execute with `run-code --filename` and require `passed: true`.

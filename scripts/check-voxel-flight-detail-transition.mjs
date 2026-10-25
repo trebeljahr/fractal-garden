@@ -116,11 +116,14 @@ async function check(page, fragment) {
           gl.uniform3fv(at("u_testNormal"), normal);
           const mix = 0.5 + 0.5 * normal[1],
             ambient = [0.27, 0.3, 0.36].map((v, i) => v * (1 - mix) + [0.36, 0.36, 0.33][i] * mix);
+          const fill = [0.7, -0.45, -0.2];
+          const fillLight = 0.3 * Math.max(0, (sign * fill[axis]) / Math.hypot(...fill));
           const expected = ambient.map(
             (v, i) =>
               Math.min(
                 1,
-                v * 0.8 + 0.82 * Math.max(0, sign * light[axis]) * 0.7 * [1.04, 1, 0.94][i],
+                (v + fillLight) * 0.8 +
+                  0.82 * Math.max(0, sign * light[axis]) * 0.7 * [1.04, 1, 0.94][i],
               ) * relief,
           );
           let reference;
