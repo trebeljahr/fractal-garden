@@ -13,6 +13,7 @@ import {
   type Vec3,
   type VoxelPattern,
 } from "../utils/voxelZoom/camera";
+import { createFlightFrameBudget } from "../utils/voxelZoom/frameBudget";
 import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/renderer";
 
 import {
@@ -101,9 +102,14 @@ export function VoxelFlight({
     let frame = 0,
       previous = performance.now(),
       disposed = false;
+    const budget = createFlightFrameBudget();
+    let renderedLastFrame = false;
     const pointers = new Map<number, { x: number; y: number }>();
     let pointerType = "";
     const release = () => {
+      previous = performance.now();
+      renderedLastFrame = false;
+      budget.pause();
       held.current.clear();
       resetFlightTouch(touch.current);
       pointers.clear();
@@ -166,15 +172,23 @@ export function VoxelFlight({
         dirty.current = true;
       }
     };
-    const draw = () => {
+    const draw = (pixelBudget?: number) => {
       if (!renderer || gl.isContextLost()) return;
       const { pattern, style, width, height } = latest.current;
-      renderer.draw(cameraRef.current, pattern, style, width, height, window.devicePixelRatio || 1);
+      renderer.draw(
+        cameraRef.current,
+        pattern,
+        style,
+        width,
+        height,
+        window.devicePixelRatio || 1,
+        pixelBudget,
+      );
       dirty.current = false;
     };
     const render = (now: number) => {
       if (disposed) return;
-      const dt = Math.max(0, Math.min(0.5, (now - previous) / 1000));
+      const dt = Math.max(0, (now - previous) / 1000);
       previous = now;
       const keys = held.current;
       const input = touch.current;
@@ -191,8 +205,15 @@ export function VoxelFlight({
           (dt * 0.75 * (keys.has("shift") || input.boost ? 4 : 1)) / Math.max(1, magnitude);
         move(motion.map((component) => component * speed) as Vec3, dt);
       }
+      if (renderedLastFrame && dirty.current)
+        budget.sample(dt * 1000, canvas.width * canvas.height);
+      else budget.pause();
+      renderedLastFrame = false;
       try {
-        if (dirty.current) draw();
+        if (dirty.current) {
+          draw(budget.pixels);
+          renderedLastFrame = true;
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
         release();
@@ -272,6 +293,7 @@ export function VoxelFlight({
       if (["w", "a", "s", "d", "q", "e", "c", " ", "shift"].includes(key)) {
         event.preventDefault();
         event.stopPropagation();
+        if (held.current.size === 0) previous = performance.now();
         held.current.add(key);
       }
     };

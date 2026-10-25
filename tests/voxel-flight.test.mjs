@@ -722,3 +722,55 @@ test("sustained boosted refinement keeps fog inside the numerical horizon", () =
   assert.ok(camera.level > 100, "boost still refines deeply");
   assert.deepEqual(restoreFlightCamera(serializeFlightCamera(camera), "menger"), camera);
 });
+
+test("long stalls preserve elapsed travel time without crossing walls", () => {
+  const one = 1n << 600n;
+  const start = {
+    position: [0n, 0n, one + one / 1000000n],
+    bits: 600,
+    level: 0,
+    navigationLevel: 0,
+    viewLevel: 0,
+    yaw: 0,
+    pitch: 0,
+  };
+  for (const pattern of PATTERNS) {
+    const duration = 1.2;
+    const stalled = moveFlightCamera(start, pattern, [0.75 * duration, 0, 0], duration);
+    const distance = Number(stalled.position[0] - start.position[0]) / 2 ** 600 / 2;
+    assert.ok(Math.abs(distance / duration - 0.75) < 1e-10, `${pattern}: discarded travel time`);
+    const face = {
+      ...start,
+      position: [
+        pattern === "menger" ? one / 2n : 0n,
+        pattern === "vicsek" ? 0n : one / 2n,
+        start.position[2],
+      ],
+    };
+    const approach = moveFlightCamera(face, pattern, [0, 0, 0.75 * duration], duration);
+    assert.ok(approach.position[2] >= one, `${pattern}: crossed the surface`);
+  }
+});
+
+test("a stalled frame preserves speed recovery over the full elapsed interval", () => {
+  const one = 1n << 600n;
+  const start = {
+    position: [0n, 0n, one + one / 1000000n],
+    bits: 600,
+    level: 0,
+    navigationLevel: 2,
+    viewLevel: 2,
+    yaw: 0,
+    pitch: 0,
+  };
+  const duration = 1.2;
+  for (const pattern of PATTERNS) {
+    const stalled = moveFlightCamera(start, pattern, [0.75 * duration, 0, 0], duration);
+    let smooth = start;
+    for (let frame = 0; frame < 60; frame++)
+      smooth = moveFlightCamera(smooth, pattern, [0.75 * 0.02, 0, 0], 0.02);
+    assert.ok(Math.abs(stalled.navigationLevel - smooth.navigationLevel) < 1e-10, pattern);
+    const displacement = (camera) => Number(camera.position[0]) / 2 ** camera.bits;
+    assert.ok(Math.abs(displacement(stalled) - displacement(smooth)) < 1e-10, pattern);
+  }
+});

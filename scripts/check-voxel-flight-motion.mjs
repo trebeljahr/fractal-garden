@@ -3,6 +3,16 @@ import { writeFileSync } from "node:fs";
 // Generate a focused Playwright CLI payload for real input, elapsed-time motion,
 // gradual scale adaptation, automatic approach detail, fog and saved views.
 async function check(page, baseURL) {
+  page.setDefaultTimeout(10_000);
+  const visit = async (url) => {
+    await page.goto("about:blank");
+    await page.goto(url);
+  };
+  const enter = async () => {
+    const button = page.getByRole("button", { name: "Explore inside", exact: true });
+    if (await button.count()) await button.click();
+    await page.getByLabel("Explore the fractal interior", { exact: true }).waitFor();
+  };
   await page.setViewportSize({ width: 1000, height: 700 });
   await page.addInitScript(() => {
     window.__flightMotion = [];
@@ -50,6 +60,7 @@ async function check(page, baseURL) {
           ...values,
           camera: parts.voxelCamera,
           time: window.__flightTime,
+          pixels: gl.canvas.width * gl.canvas.height,
           moving: window.__flightKeys.has("KeyD"),
           boosted: window.__flightKeys.has("ShiftLeft"),
         });
@@ -128,9 +139,10 @@ async function check(page, baseURL) {
     ["menger-sponge", true, false, false],
     ["mosely-snowflake", false, false, false, 1],
     ["mosely-snowflake", false, true, false, 2],
+    ["mosely-snowflake", false, 650, false],
   ]) {
-    await page.goto(`${baseURL}/${route}`);
-    await page.getByRole("button", { name: "Explore inside", exact: true }).click();
+    await visit(`${baseURL}/${route}`);
+    await enter();
     await page.waitForFunction(() => window.__flightMotion.length > 0);
     const parts = await capture();
     const one = 1n << 600n,
@@ -163,7 +175,7 @@ async function check(page, baseURL) {
           .replaceAll("=", ""),
       { route, parts },
     );
-    await page.goto(`${baseURL}/${route}${hash}`);
+    await visit(`${baseURL}/${route}${hash}`);
     await page.waitForFunction(() => window.__flightMotion.length > 0);
     const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
     const name = passage
@@ -171,7 +183,7 @@ async function check(page, baseURL) {
       : deep
         ? "deep"
         : slow
-          ? "slow-frames"
+          ? `slow-frames-${slow}`
           : boost
             ? "boost"
             : route;
@@ -182,11 +194,11 @@ async function check(page, baseURL) {
         window.__flightMotion = [];
         window.__flightDelay = delay;
       },
-      slow ? 140 : 0,
+      typeof slow === "number" ? slow : slow ? 140 : 0,
     );
     if (boost) await page.keyboard.down("Shift");
     await page.keyboard.down("d");
-    await page.waitForTimeout(passage ? 450 : slow ? 1100 : 900);
+    await page.waitForTimeout(typeof slow === "number" ? 2800 : passage ? 450 : slow ? 1100 : 900);
     await page.keyboard.up("d");
     if (boost) await page.keyboard.up("Shift");
     await page.evaluate(() => {
@@ -199,7 +211,7 @@ async function check(page, baseURL) {
     for (let i = 1; i < frames.length; i++) {
       const before = frames[i - 1],
         after = frames[i];
-      const dt = Math.min(0.5, (after.time - before.time) / 1000);
+      const dt = (after.time - before.time) / 1000;
       const beforeLevel = navigationLevel(before.camera),
         afterLevel = navigationLevel(after.camera),
         throttle = boost ? 3 : 0.75;
@@ -225,6 +237,11 @@ async function check(page, baseURL) {
       );
       assertFog(after, name);
     }
+    if (slow)
+      assert(
+        frames.at(-1).pixels < frames[0].pixels * 0.6,
+        `${name}: render workload did not adapt to slow frames`,
+      );
     assert(
       maxSpeedError < 1e-5,
       `${name}: speed changed within a uniform passage, error ${maxSpeedError}`,
@@ -291,7 +308,7 @@ async function check(page, baseURL) {
           .replaceAll("=", ""),
       parts,
     );
-    await page.goto(`${baseURL}/mosely-snowflake${hash}`);
+    await visit(`${baseURL}/mosely-snowflake${hash}`);
     await page.waitForFunction(() => window.__flightMotion.length > 0);
     const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
     await canvas.focus();
@@ -344,8 +361,8 @@ async function check(page, baseURL) {
     });
   }
   // Turning into a close wall changes safety speed, not the whole fog volume.
-  await page.goto(`${baseURL}/menger-sponge`);
-  await page.getByRole("button", { name: "Explore inside", exact: true }).click();
+  await visit(`${baseURL}/menger-sponge`);
+  await enter();
   const turnParts = await capture();
   turnParts.voxelCamera = {
     kind: "voxel-flight",
@@ -360,7 +377,7 @@ async function check(page, baseURL) {
   const turnHash = Buffer.from(
     JSON.stringify({ version: 1, path: "/menger-sponge", parts: turnParts }),
   ).toString("base64url");
-  await page.goto(`${baseURL}/menger-sponge#view=${turnHash}`);
+  await visit(`${baseURL}/menger-sponge#view=${turnHash}`);
   await page.getByLabel("Explore the fractal interior", { exact: true }).focus();
   await page.evaluate(() => {
     window.__flightMotion = [];
@@ -388,8 +405,8 @@ async function check(page, baseURL) {
     stayedOutside: true,
   });
   // Wheel remains an optional dolly; copied views retain the current scale.
-  await page.goto(`${baseURL}/menger-sponge`);
-  await page.getByRole("button", { name: "Explore inside", exact: true }).click();
+  await visit(`${baseURL}/menger-sponge`);
+  await enter();
   const canvas = page.getByLabel("Explore the fractal interior", { exact: true });
   await canvas.hover();
   await page.mouse.wheel(0, -20);
@@ -407,7 +424,7 @@ async function check(page, baseURL) {
         .replaceAll("=", ""),
     zoomed,
   );
-  await page.goto(`${baseURL}/menger-sponge${hash}`);
+  await visit(`${baseURL}/menger-sponge${hash}`);
   await page.waitForFunction(() => window.__flightMotion.length > 0);
   const restored = await capture();
   assert(

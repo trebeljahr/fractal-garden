@@ -11,6 +11,7 @@ import {
   PATTERNS,
   type VoxelPattern,
 } from "./camera";
+import { MAX_FLIGHT_PIXELS } from "./frameBudget";
 import { flightDetailDepth, flightResolution } from "./resolution";
 import { flightScreenBounds } from "./view";
 
@@ -99,9 +100,10 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       width: number,
       height: number,
       ratio: number,
+      pixelBudget = MAX_FLIGHT_PIXELS,
     ) {
-      // A fixed pixel budget bounds per-frame traversal on high-DPI displays.
-      const scale = Math.min(ratio, 2, Math.sqrt(2_500_000 / Math.max(1, width * height)));
+      // Frame cadence adjusts the pixel budget without changing camera units.
+      const scale = Math.min(ratio, 2, Math.sqrt(pixelBudget / Math.max(1, width * height)));
       const w = Math.max(1, Math.round(width * scale)),
         h = Math.max(1, Math.round(height * scale));
       if (gl.canvas.width !== w || gl.canvas.height !== h) {

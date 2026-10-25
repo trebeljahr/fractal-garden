@@ -473,6 +473,16 @@ export function moveFlightCamera(
   if (!Number.isFinite(magnitude) || magnitude === 0) return camera;
   if (elapsedSeconds !== undefined && (!Number.isFinite(elapsedSeconds) || elapsedSeconds <= 0))
     return camera;
+  // Integrate long rendered frames in bounded sweeps, preserving the complete
+  // input duration and throttle. Clipping time here makes heavy views fly slower.
+  if (elapsedSeconds !== undefined && elapsedSeconds > 0.5) {
+    const steps = Math.ceil(elapsedSeconds / 0.5);
+    const step = motion.map((value) => value / steps) as Vec3;
+    let next = camera;
+    for (let index = 0; index < steps; index++)
+      next = moveFlightCamera(next, pattern, step, elapsedSeconds / steps);
+    return next;
+  }
   const duration = Math.min(0.5, elapsedSeconds ?? magnitude / 0.75);
   const throttle = magnitude / duration;
   const { right, forward } = flightBasis(camera);
