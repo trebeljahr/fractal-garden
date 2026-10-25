@@ -34,8 +34,8 @@ const MoselySnowflake = ({ description }: Props) => (
     initialVariant="lighter"
     fillColor="#8fb0ff"
     strokeColor="#dce9ff"
-    rotationX={28}
-    rotationY={32}
+    rotationX={(Math.asin(1 / Math.sqrt(3)) * 180) / Math.PI}
+    rotationY={45}
     rotationSpeed={0.45}
     places={MOSELY_PLACES}
   />

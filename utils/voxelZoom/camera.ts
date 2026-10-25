@@ -63,7 +63,9 @@ const retained = Object.fromEntries(
   }),
 ) as Record<VoxelPattern, Vec3[]>;
 export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCamera {
-  if (pattern.startsWith("mosely")) return exteriorFlightCamera(pattern);
+  // Look along a cube diagonal so the six snowflake arms are equally visible.
+  if (pattern.startsWith("mosely"))
+    return exteriorFlightCamera(pattern, -Math.PI / 4, -Math.asin(1 / Math.sqrt(3)));
   const bits = bitsForLevel(0);
   const position: Vec3 = pattern === "menger" ? [0, 0, 3.2] : [0.7, 0.7, 3.2];
   return fitFlightPrecision(
