@@ -12,12 +12,12 @@ const MAX_ITERATIONS = 3;
 
 const VARIANTS: Record<Variant, SceneVariant> = {
   lighter: {
-    label: "Airy lattice",
+    label: "Center removed",
     maxIterations: MAX_ITERATIONS,
     spec: { kind: "mosely", variant: "lighter" },
   },
   heavier: {
-    label: "Dense lattice",
+    label: "Center kept",
     maxIterations: MAX_ITERATIONS,
     spec: { kind: "mosely", variant: "heavier" },
   },

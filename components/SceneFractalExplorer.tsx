@@ -232,59 +232,71 @@ export function SceneFractalExplorer<V extends string>({
             </button>
           ))
         }
+        constructionControls={(view) => (
+          <>
+            <PanelColor path="background" />
+            {(view.showFaces || view.showWireframe) && <PanelColor path="fillColor" />}
+            {variantOptions.length > 1 && (
+              <PanelSelect
+                path="variant"
+                label={variantLabel}
+                optionLabels={variantOptions.map((option) => variants[option].label)}
+                options={variantOptions}
+              />
+            )}
+            <PanelBoolean path="autoRotate" />
+            <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+            <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+            <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
+            <PanelBoolean path="showFaces" />
+            <PanelBoolean path="showWireframe" />
+            {view.showWireframe && (
+              <>
+                <PanelColor path="strokeColor" />
+                <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
+              </>
+            )}
+          </>
+        )}
         explorationControls={
-          exploring ? (
-            <>
-              <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
-              <PanelSelect
-                path="occlusion"
-                label="Corner shading"
-                options={["off", "soft", "minecraft"]}
-                optionLabels={["Off", "Soft", "Minecraft AO"]}
-              />
-              <PanelColor path="background" />
-              <PanelColor path="fillColor" />
-              <PanelColor path="strokeColor" />
-              {variantOptions.length > 1 && (
+          <>
+            {config.showFaces && (
+              <>
+                <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
                 <PanelSelect
-                  path="variant"
-                  label={variantLabel}
-                  optionLabels={variantOptions.map((option) => variants[option].label)}
-                  options={variantOptions}
+                  path="occlusion"
+                  label="Corner shading"
+                  options={["off", "soft", "minecraft"]}
+                  optionLabels={["Off", "Soft", exploring ? "Minecraft AO" : "Strong"]}
                 />
-              )}
-              <PanelBoolean path="showFaces" />
-              <PanelBoolean path="showWireframe" />
-              <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
-            </>
-          ) : (
-            <>
-              <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
+              </>
+            )}
+            <PanelColor path="background" />
+            {(config.showFaces || config.showWireframe) && <PanelColor path="fillColor" />}
+            {variantOptions.length > 1 && (
               <PanelSelect
-                path="occlusion"
-                label="Corner shading"
-                options={["off", "soft", "minecraft"]}
-                optionLabels={["Off", "Soft", "Strong"]}
+                path="variant"
+                label={variantLabel}
+                optionLabels={variantOptions.map((option) => variants[option].label)}
+                options={variantOptions}
               />
-              <PanelColor path="background" />
-              <PanelColor path="fillColor" />
-              <PanelColor path="strokeColor" />
-              {variantOptions.length > 1 && (
-                <PanelSelect
-                  path="variant"
-                  label={variantLabel}
-                  optionLabels={variantOptions.map((option) => variants[option].label)}
-                  options={variantOptions}
-                />
-              )}
-              <PanelBoolean path="autoRotate" />
-              <PanelNumber path="rotationX" min={-180} max={180} step={1} />
-              <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-              <PanelBoolean path="showFaces" />
-              <PanelBoolean path="showWireframe" />
-              <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
-            </>
-          )
+            )}
+            {!exploring && (
+              <>
+                <PanelBoolean path="autoRotate" />
+                <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+                <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+              </>
+            )}
+            <PanelBoolean path="showFaces" />
+            <PanelBoolean path="showWireframe" />
+            {config.showWireframe && (
+              <>
+                <PanelColor path="strokeColor" />
+                <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
+              </>
+            )}
+          </>
         }
         mode="scene"
         onUpdate={handleUpdate}

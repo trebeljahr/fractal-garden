@@ -54,12 +54,16 @@ const RegistrationContext = createContext<Dispatch<SetStateAction<ConstructionSp
   () => {},
 );
 
-const ControlsContext = createContext<ReactNode>(null);
-const ControlsRegistrationContext = createContext<Dispatch<SetStateAction<ReactNode>>>(() => {});
+export type ConstructionControls = ReactNode | ((view: ConstructionView) => ReactNode);
+
+const ControlsContext = createContext<ConstructionControls>(null);
+const ControlsRegistrationContext = createContext<Dispatch<SetStateAction<ConstructionControls>>>(
+  () => {},
+);
 
 export function FractalConstructionProvider({ children }: { children: ReactNode }) {
   const [construction, setConstruction] = useState<ConstructionSpec | null>(null);
-  const [controls, setControls] = useState<ReactNode>(null);
+  const [controls, setControls] = useState<ConstructionControls>(null);
   return (
     <RegistrationContext.Provider value={setConstruction}>
       <ControlsRegistrationContext.Provider value={setControls}>
@@ -78,11 +82,11 @@ export function useConstructionRegistration(construction: ConstructionSpec | nul
   }, [register, construction]);
 }
 
-export function useConstructionControls(children: ReactNode) {
+export function useConstructionControls(children: ConstructionControls) {
   const spec = useContext(ConstructionContext);
   const register = useContext(ControlsRegistrationContext);
   useEffect(() => {
-    register(children);
+    register(() => children);
     return () => register(null);
   }, [register, children]);
   return spec !== null;
@@ -309,7 +313,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   };
   const parameters =
     spec.params && typeof spec.params === "object" ? (spec.params as Record<string, unknown>) : {};
-  const fields = explorerControlNodes(controls)
+  const fields = explorerControlNodes(typeof controls === "function" ? controls(view) : controls)
     .filter((child) => !isValidElement(child) || child.props.path !== "iterations")
     .map((child) =>
       isValidElement(child) && child.type === PanelBoolean
@@ -389,7 +393,11 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
             </label>
           </fieldset>
           <div className={`${panelStyles.panel} ${styles.studioPanel}`}>
-            <FractalStudioControls data={{ ...view, iterations: level }} onUpdate={updateStudio}>
+            <FractalStudioControls
+              data={{ ...view, iterations: level }}
+              onUpdate={updateStudio}
+              title="Construction controls"
+            >
               <PanelNumber
                 path="iterations"
                 label="Construction level"

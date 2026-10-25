@@ -53,7 +53,9 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
   explanations. Use reference works to find primary sources. Open the cited
   material and confirm it supports the adjacent claim.
 - Use numbered inline footnotes and a final **Sources and notes** section with
-  authors, linked titles and verified publication details. Label calculations
+  linked article titles and return links. Normally include no author list,
+  publication details or commentary after the link. Add a note only when the
+  reader needs a qualification or a calculation explained. Label calculations
   derived directly from this implementation; do not attribute them to a paper
   that only supplies a general method.
 - A paper's footnote describes only what that paper supports. Never append claims

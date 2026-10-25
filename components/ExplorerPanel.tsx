@@ -5,7 +5,7 @@ import { explorerControlNodes } from "../utils/explorerControlNodes";
 import { type ControlRule, isRecord } from "../utils/explorerShare";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerTools } from "./ExplorerTools";
-import { useConstructionControls } from "./FractalConstruction";
+import { type ConstructionControls, useConstructionControls } from "./FractalConstruction";
 import { FractalHeader } from "./FractalHeader";
 
 type Action = {
@@ -19,6 +19,8 @@ type Props<T> = {
   actions?: Action[];
   children: ReactNode;
   explorationControls?: ReactNode;
+  /** Resolve conditional fields against the construction view’s own settings. */
+  constructionControls?: ConstructionControls;
   data: T;
   defaultOpen?: boolean;
   introTitle?: string;
@@ -82,6 +84,7 @@ export function ExplorerPanel<T>({
   actions = [],
   children,
   explorationControls,
+  constructionControls,
   data,
   defaultOpen = false,
   introTitle,
@@ -92,7 +95,8 @@ export function ExplorerPanel<T>({
   places,
   shareRules = [],
 }: Props<T>) {
-  const hasConstruction = useConstructionControls(children);
+  const registeredConstruction = useConstructionControls(constructionControls ?? children);
+  const hasConstruction = constructionControls !== undefined || registeredConstruction;
   const mainControls = hasConstruction ? explorationControls : children;
   const rules = [
     ...controlRules(children, data).filter(
@@ -118,7 +122,7 @@ export function ExplorerPanel<T>({
                   data={data}
                   defaultOpen={defaultOpen}
                   onUpdate={onUpdate}
-                  title={hasConstruction ? "View controls" : CONTROLS_TITLE}
+                  title={hasConstruction ? "Exploration controls" : CONTROLS_TITLE}
                 >
                   {mainControls}
                 </FractalStudioControls>
