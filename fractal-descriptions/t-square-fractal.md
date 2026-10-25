@@ -16,6 +16,11 @@ An edge covered by another square is inside the shape, so it doesn't count towar
 
 Use outlines to see the individual squares, including the parts hidden in a filled drawing.
 
+## Further reading
+
+- [T-square fractal — Wikipedia](https://en.wikipedia.org/wiki/T-square_(fractal))
+- [IFS fractal gallery — Andreas Rejbrand](https://english.rejbrand.se/rejbrand/mathart_ifs.asp)
+
 ## Sources and notes
 
 1. <span id="t-square-fractal-source-1"></span> Kival Ngaokrajang and OEIS contributors, [A227621 — T-square perimeters](https://oeis.org/A227621), 2013 onward. Rounded perimeter sequence and explicit first-stage exposed-edge calculation. [Back](#t-square-fractal-ref-1)

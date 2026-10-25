@@ -21,6 +21,11 @@ Old F instructions stay unchanged. New length is added through the X and Y repla
 
 The first replacement draws one forward step. The second draws eleven because every X and Y in the old string gets replaced at once.
 
+## Further reading
+
+- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="fern-2-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains the bracketed turtle method. [Back](#fern-2-ref-1)

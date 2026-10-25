@@ -10,6 +10,11 @@ Viewed from above, this model has eight spiral rows in one direction and thirtee
 
 This is a geometric model inspired by Romanesco. A real cauliflower has a smallest bump.
 
+## Further reading
+
+- [Romanesco broccoli — Wikipedia](https://en.wikipedia.org/wiki/Romanesco_broccoli)
+- [Where does the shape of the Romanesco cauliflower come from? — IRIG](https://irig.cea.fr/drf/irig/english/Pages/News/Press-releases/2021_Francois-Parcy.aspx)
+
 ## Sources and notes
 
 1. <span id="romanesco-source-1"></span> [Cauliflower fractal forms arise from perturbations of floral gene networks](https://authors.library.caltech.edu/records/c4rmy-fg834). [Back](#romanesco-ref-1)

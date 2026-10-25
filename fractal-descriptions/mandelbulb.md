@@ -12,6 +12,11 @@ The [Mandelbrot set](/mandelbrot) uses a related calculation in two dimensions. 
 
 Daniel White published the construction in 2007. Paul Nylander's later higher-power experiments led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
+## Further reading
+
+- [Mandelbulb — Wikipedia](https://en.wikipedia.org/wiki/Mandelbulb)
+- [Mandelbulb — Daniel White](https://www.skytopia.com/project/fractal/mandelbulb.html)
+
 ## Sources and notes
 
 1. <span id="mandelbulb-source-1"></span> Daniel White, [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), 8 November 2009, and his linked [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). Creator's history credits Nylander's higher-power experiments. [Back](#mandelbulb-ref-1)

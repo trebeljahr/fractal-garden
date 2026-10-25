@@ -14,6 +14,11 @@ This makes the boundary longer without changing that signed area. The [quadratic
 
 The rule is `F → F+F-F-FF+F+F-F`, with 90-degree turns. Every F draws one forward step.
 
+## Further reading
+
+- [Minkowski sausage — Wikipedia](https://en.wikipedia.org/wiki/Minkowski_sausage)
+- [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
+
 ## Sources and notes
 
 1. <span id="minkowski-sausage-source-1"></span> Fawwaz J. Jibrael, Faez F. Shareef and Wafaa S. Mummo, [Small Size and Dual Band of a Quadratic Koch Dipole Fractal Antenna Design](https://thescipub.com/pdf/ajassp.2008.1804.1807.pdf), American Journal of Applied Sciences 5(12), 1804–1807, 2008. Figure 1 and the accompanying text specify eight quarter-scale pieces and similarity dimension 1.5. [Back](#minkowski-sausage-ref-1)

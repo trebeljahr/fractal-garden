@@ -12,6 +12,11 @@ Look toward a corner with **Center kept** selected. A cube has a hexagonal outli
 
 You can build a model with business cards. Fold six cards into a cube, then tuck their flaps into neighboring cubes. The USC project called for about 49,000 cards.<sup><a id="mosely-snowflake-ref-3" href="#mosely-snowflake-source-3">3</a></sup>
 
+## Further reading
+
+- [Mosely snowflake — Wikipedia](https://en.wikipedia.org/wiki/Mosely_snowflake)
+- [The Mosely Snowflake Fractal — USC Libraries](https://libraries.usc.edu/about/events-and-exhibitions/exhibitions/mosely-snowflake-fractal)
+
 ## Sources and notes
 
 1. <span id="mosely-snowflake-source-1"></span> Calculation: for a starting cube one unit wide, the exposed surface area after $n$ steps is $\frac{30\cdot18^n+48\cdot5^n}{13\cdot9^n}$ with the center removed, and $\frac{12\cdot19^n+30\cdot5^n}{7\cdot9^n}$ with it kept. These formulas count exposed faces in this construction, including cavity walls, and exclude shared faces. Step zero is the original cube. Both expressions grow without bound. [Back](#mosely-snowflake-ref-1)

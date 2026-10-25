@@ -14,6 +14,11 @@ Repeating either replacement reduces the total volume toward zero. The number of
 
 The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses the same corner-copy construction with four half-size tetrahedra.
 
+## Further reading
+
+- [Three-dimensional flakes — Wikipedia](https://en.wikipedia.org/wiki/N-flake#In_three_dimensions)
+- [Printing half-octahedron flakes — cttdev](https://cttdev.github.io/sierpinski/)
+
 ## Sources and notes
 
 1. <span id="polyhedron-flake-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), 713–747, §3.1. Background on sets formed by repeatedly taking smaller copies. [Back](#polyhedron-flake-ref-1)

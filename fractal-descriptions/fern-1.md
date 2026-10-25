@@ -19,6 +19,11 @@ The brackets inside brackets repeat that process within a branch. Every X adds f
 
 Change the angle to spread the branches apart or bring them closer together. The letter rules stay the same.
 
+## Further reading
+
+- [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. [Back](#fern-1-ref-1)

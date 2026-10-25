@@ -14,6 +14,11 @@ A letter can also have a replacement without drawing anything. X is often used t
 
 Try changing the angle to spread the branches apart. Then move a bracket to change where a branch starts.
 
+## Further reading
+
+- [L-system — Wikipedia](https://en.wikipedia.org/wiki/L-system)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="l-system-explorer-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Sections 1.1–1.3 explain parallel rewriting and turtle interpretation; sections 1.5–1.6 extend them to spatial and branching structures. [Back](#l-system-explorer-ref-1)

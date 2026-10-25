@@ -16,6 +16,11 @@ The starting shape is visible in the early stages. Each replacement makes it sma
 
 The pattern also appears in Pascal's triangle. Color the odd numbers and leave the even numbers blank. The odd numbers form three smaller triangular patterns, with a blank triangle between them. The same arrangement repeats at larger sizes.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
 
+## Further reading
+
+- [Sierpiński triangle — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle)
+- [The Sierpinski Triangle — Mathigon](https://mathigon.org/course/fractals/sierpinski)
+
 ## Sources and notes
 
 1. <span id="sierpinski-triangle-source-1"></span> Michael Barnsley, John E. Hutchinson and Örjan Stenflo, [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314), 2003 preprint, Figure 1 and introductory contraction discussion. Repeated smaller copies approach the same set regardless of the starting shape; Figure 1 uses a fish. [Back](#sierpinski-triangle-ref-1)

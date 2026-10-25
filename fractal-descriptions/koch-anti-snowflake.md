@@ -14,6 +14,11 @@ Adding all these decreasing amounts gives three fifths of the original area. Two
 
 The ordinary snowflake adds those triangles and ends with 60% more area than it started with.
 
+## Further reading
+
+- [Koch snowflake and antisnowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
+- [Koch antisnowflake — MathWorld](https://mathworld.wolfram.com/KochAntisnowflake.html)
+
 ## Sources and notes
 
 1. <span id="koch-anti-snowflake-source-1"></span> Brian J. McCartin, [Mysteries of the Equilateral Triangle](https://www.m-hikari.com/mccartin-2.pdf), Hikari, 2010, page 58. Describes the inward anti-snowflake and its area 2/5, alongside the ordinary snowflake’s 8/5. [Back](#koch-anti-snowflake-ref-1)

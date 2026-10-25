@@ -12,6 +12,11 @@ The infinite paths cover a region, including its interior. Copies of that region
 
 Finite paths leave gaps inside each repeated region. Increasing the level makes the segments smaller and the gaps harder to see. The completely filled tile describes the infinite limit.
 
+## Further reading
+
+- [Twindragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Twindragon)
+- [Dragon curve background — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
+
 ## Sources and notes
 
 1. <span id="twindragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 1 gives the Twindragon’s two-map complex representation. Donald Knuth’s [Recreational Computer Science](https://cs.stanford.edu/~knuth/recreational-cs.pdf), Joint Mathematics Meetings lecture slides, 2024, describes the binary complex-base digit tile. [Back](#twindragon-ref-1)

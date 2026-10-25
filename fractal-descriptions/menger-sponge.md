@@ -18,6 +18,11 @@ Now take a thin, flat slice through the middle of the sponge. Tilt the slice so 
 
 The two buttons show different things. **Shadow** includes cubes behind one another. A hole disappears if another cube blocks the view through it. **Cross-section** shows only the thin slice, so cubes in front of or behind it don't fill its holes.
 
+## Further reading
+
+- [Menger sponge — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge)
+- [The Surprising Menger Sponge Slice — Simons Foundation](https://www.simonsfoundation.org/news/mathematical-impressions-the-surprising-menger-sponge-slice/)
+
 ## Sources and notes
 
 1. <span id="menger-sponge-source-1"></span> George Hart, [Mathematical Impressions: The Surprising Menger Sponge Slice](https://www.simonsfoundation.org/news/mathematical-impressions-the-surprising-menger-sponge-slice/), Simons Foundation, 10 December 2012. Original video demonstration of the diagonal section. [Back](#menger-sponge-ref-1)

@@ -12,6 +12,11 @@ Some lines are drawn twice. After the square loop, the next forward step goes ov
 
 The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
+## Further reading
+
+- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on replacing letters and reading them as drawing instructions, sections 1.2–1.3. [Back](#board-ref-1)

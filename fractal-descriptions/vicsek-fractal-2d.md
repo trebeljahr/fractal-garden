@@ -14,6 +14,11 @@ In the infinite limit, the two versions are rotated and scaled copies of one ano
 
 The [3D version](/vicsek-fractal-3d) produces the plus-shaped pattern as a straight-on shadow. Its front, middle and back cubes overlap in the center of that shadow, while four other cubes form the arms.
 
+## Further reading
+
+- [Vicsek fractal — Wikipedia](https://en.wikipedia.org/wiki/Vicsek_fractal)
+- [Greek Cross Fractal — Robert Dickau](https://www.robertdickau.com/greekcross.html)
+
 ## Sources and notes
 
 1. <span id="vicsek-fractal-2d-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), 713–747, §3.1. Background on sets formed by repeatedly taking smaller copies. [Back](#vicsek-fractal-2d-ref-1)

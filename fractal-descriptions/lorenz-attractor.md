@@ -10,6 +10,11 @@ The comparison starts a second calculation just 0.001 away in one coordinate. Bo
 
 This is sensitivity to the starting conditions. If the starting values are only approximately known, their later values can become difficult to predict. The separation doesn't increase at every moment: the two points can move closer together before separating again.
 
+## Further reading
+
+- [Lorenz system — Wikipedia](https://en.wikipedia.org/wiki/Lorenz_system)
+- [Lorenz attractor — MathWorld](https://mathworld.wolfram.com/LorenzAttractor.html)
+
 ## Sources and notes
 
 1. <span id="lorenz-attractor-source-1"></span> Edward N. Lorenz, [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf), *Journal of the Atmospheric Sciences* 20 (1963), 130–141, especially section 5. Derives the three-variable convection model and identifies its variables. [Back](#lorenz-attractor-ref-1)

@@ -16,6 +16,11 @@ Its drawing rule is `F → F-F++F-F`. F draws forward and each turn is 60 degree
 
 The [anti-snowflake](/l-system/koch-anti-snowflake) places those bumps inward. The edge grows at the same rate while the enclosed area shrinks.
 
+## Further reading
+
+- [Koch snowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
+- [Koch Snowflake — Math Fun Facts](https://math.hmc.edu/funfacts/koch-snowflake/)
+
 ## Sources and notes
 
 1. <span id="koch-snowflake-source-1"></span> Francis Su and collaborators, [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/), Harvey Mudd College, Math Fun Facts. Perimeter and geometric-series area argument; the length and area values here follow that calculation. [Back](#koch-snowflake-ref-1)

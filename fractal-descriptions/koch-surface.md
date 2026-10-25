@@ -10,6 +10,11 @@ Each new triangle has half the old edge length, so it has one quarter of the are
 
 The bumps shrink at each step, so the construction stays within a bounded space even while the sum of triangle areas increases without limit.
 
+## Further reading
+
+- [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
+- [Koch Surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
+
 ## Sources and notes
 
 1. <span id="koch-surface-source-1"></span> Neel Shrestha, [Creating Square Koch Surfaces Using Origami](https://archive.bridgesmathart.org/2024/bridges2024-567.pdf), Bridges 2024, pp. 567–572. Triangle and square surface generators. [Back](#koch-surface-ref-1)

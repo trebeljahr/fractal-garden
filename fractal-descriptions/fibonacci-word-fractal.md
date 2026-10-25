@@ -14,6 +14,11 @@ Each new Fibonacci string also equals the previous two strings joined in order. 
 
 Changing the angle keeps the digit sequence and turn choices fixed, but changes the shape of the path.
 
+## Further reading
+
+- [Fibonacci word fractal — Wikipedia](https://en.wikipedia.org/wiki/Fibonacci_word_fractal)
+- [Properties and Generalizations of the Fibonacci Word Fractal — The Mathematica Journal](https://www.mathematica-journal.com/2014/02/19/properties-and-generalizations-of-the-fibonacci-word-fractal/)
+
 ## Sources and notes
 
 1. <span id="fibonacci-word-fractal-source-1"></span> Alexis Monnerot-Dumaine, [The Fibonacci Word Fractal](https://mathcurve.com/fractals/fibonacci/The_Fibonacci_word_fractal.pdf), HAL manuscript hal-00367972, 2009, sections 1–4 and 6.1. Supplies the odd-even drawing rule, forbidden words and concatenation/reflection relationship. [Back](#fibonacci-word-fractal-ref-1)

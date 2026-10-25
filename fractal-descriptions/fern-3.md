@@ -18,6 +18,11 @@ There are nine F steps in the replacement. On the next round, every one of those
 
 The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. The plant stays the same height as more branches appear.
 
+## Further reading
+
+- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="fern-3-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 supplies the branching interpretation. [Back](#fern-3-ref-1)

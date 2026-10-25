@@ -10,6 +10,11 @@ The point circles outward while it stays low. Then it rises, turns inward and re
 
 Two lines can cross in the top view while passing above and below one another. Switch to the side view to check their heights.
 
+## Further reading
+
+- [Rössler attractor — Wikipedia](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor)
+- [Rössler Attractor — Robert Dickau](https://www.robertdickau.com/rossler.html)
+
 ## Sources and notes
 
 1. <span id="rossler-attractor-source-1"></span> Otto E. Rössler, [An Equation for Continuous Chaos](https://www.chaotic-circuits.com/wp-content/uploads/2015/01/AN-EQUATION-FOR-CONTINUOUS-CHAOS_ROSSLER.pdf), *Physics Letters A* 57(5), 12 July 1976, 397–398. Gives the spiral/fold construction. [Back](#rossler-attractor-ref-1)

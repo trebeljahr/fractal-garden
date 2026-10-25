@@ -20,6 +20,11 @@ F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
 
 F draws forward. Plus and minus turn in opposite directions.
 
+## Further reading
+
+- [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
+- [L-system background — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
+
 ## Sources and notes
 
 1. <span id="quadratic-koch-island-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on line replacement and drawing instructions, sections 1.1–1.3. [Back](#quadratic-koch-island-ref-1)

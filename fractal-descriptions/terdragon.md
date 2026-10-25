@@ -14,6 +14,11 @@ The replacement also changes the overall direction between the endpoints by 30 d
 
 Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-system/dragon-curve) instead uses two new lines and 90-degree turns.
 
+## Further reading
+
+- [Terdragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Terdragon)
+- [Terdragon — MathWorld](https://mathworld.wolfram.com/Terdragon.html)
+
 ## Sources and notes
 
 1. <span id="terdragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 3 gives the terdragon’s three contraction maps, each of modulus 1/√3, and its ternary revolving sequences. [Back](#terdragon-ref-1)

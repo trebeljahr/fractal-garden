@@ -12,6 +12,11 @@ In this diagram the particle sticks on its first contact. In the full explorer, 
 
 A point seed lets the cluster extend in all directions. A line seed gives it an extended base. Coloring by arrival time shows which parts formed first and where particles are attaching now.
 
+## Further reading
+
+- [Diffusion-limited aggregation — Wikipedia](https://en.wikipedia.org/wiki/Diffusion-limited_aggregation)
+- [Diffusion-Limited Aggregation — The Coding Train](https://thecodingtrain.com/challenges/34-diffusion-limited-aggregation)
+
 ## Sources and notes
 
 1. <span id="diffusion-limited-aggregation-source-1"></span> T. A. Witten Jr. and L. M. Sander, [Diffusion-Limited Aggregation, a Kinetic Critical Phenomenon](https://doi.org/10.1103/PhysRevLett.47.1400), *Physical Review Letters* 47 (1981), 1400–1403. Original random-walk construction and shielding explanation. [Back](#diffusion-limited-aggregation-ref-1)

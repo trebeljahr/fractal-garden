@@ -12,6 +12,11 @@ The corner cubes are about 41.4% as wide as the original. The edge cubes are abo
 
 Repeat the arrangement inside the smaller cubes. The little edge cubes are already as small as a corner cube will be after two steps. The level control counts them as two steps for that reason.
 
+## Further reading
+
+- [Jerusalem cube — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge#Jerusalem_cube)
+- [Jerusalem Cube — Eric Baird](https://www.coroflot.com/erkdemon/Jerusalem-Cube)
+
 ## Sources and notes
 
 1. <span id="jerusalem-cube-source-1"></span> Eric Baird, [Jerusalem Cube](https://www.coroflot.com/erkdemon/Jerusalem-Cube), creator’s portfolio. Baird states that he devised it in 2010, before his 2011 blog description. [Back](#jerusalem-cube-ref-1)

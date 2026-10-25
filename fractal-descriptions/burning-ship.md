@@ -16,6 +16,11 @@ Zoom along a mast to find smaller ship-shaped regions. At their centers, the cal
 
 A black pixel means the calculation hasn't escaped within the chosen limit. The computer cannot wait forever, so slowly escaping points can still look black.
 
+## Further reading
+
+- [Burning Ship fractal — Wikipedia](https://en.wikipedia.org/wiki/Burning_Ship_fractal)
+- [At the Helm of the Burning Ship — Claude Heiland-Allen](https://mathr.co.uk/web/helm.html)
+
 ## Sources and notes
 
 1. <span id="burning-ship-source-1"></span> Michael Michelitsch and Otto E. Rössler, [The “burning ship” and its quasi-Julia sets](https://www.sciencedirect.com/science/article/pii/009784939290032Q), *Computers & Graphics* 16(4) (1992), 435–438. Original paper's public abstract confirms the nonanalytic construction and quasi-Julia family. [Back](#burning-ship-ref-1)

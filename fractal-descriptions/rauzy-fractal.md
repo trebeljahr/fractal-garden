@@ -20,6 +20,11 @@ Longer strings add more dots and fill out the Rauzy tile. Each dot's color comes
 
 Copies of the finished tile fit together without gaps. You can slide them into place without turning them.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
 
+## Further reading
+
+- [Rauzy fractal — Wikipedia](https://en.wikipedia.org/wiki/Rauzy_fractal)
+- [Rauzy fractal — MathWorld](https://mathworld.wolfram.com/RauzyFractal.html)
+
 ## Sources and notes
 
 1. <span id="rauzy-fractal-source-1"></span> Valérie Berthé, [Discrete Geometry and Symbolic Dynamics](https://www.irif.fr/~berthe/Articles/KF_Revised.pdf), researcher survey, section 6.1. Defines the projected staircase, next-letter pieces, compact tile and positive area. [Back](#rauzy-fractal-ref-1)

@@ -24,6 +24,11 @@ The round bulb to the left of the main body contains choices that settle toward 
 
 The [Julia explorer](/julia-set) changes the test: every pixel uses the same number to add, but starts from a different position. That is why choosing a new $c$ there changes the whole picture.
 
+## Further reading
+
+- [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)
+- [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
+
 ## Sources and notes
 
 1. <span id="mandelbrot-source-1"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), especially section 5 on the main cardioid and limbs. The two-cycle at $-1$ follows by substitution. [Back](#mandelbrot-ref-1)

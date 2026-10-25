@@ -18,6 +18,11 @@ These doublings accumulate near $r=3.57$. Many settings beyond that produce chao
 
 The branches in the picture show these lasting cycles. A limited calculation can also include values that have not settled yet, especially near a split.
 
+## Further reading
+
+- [Logistic map — Wikipedia](https://en.wikipedia.org/wiki/Logistic_map)
+- [Logistic map — MathWorld](https://mathworld.wolfram.com/LogisticMap.html)
+
 ## Sources and notes
 
 1. <span id="logistic-map-source-1"></span> Robert M. May, [Simple Mathematical Models with Very Complicated Dynamics](https://ned.ipac.caltech.edu/level5/Sept01/May/May_contents.html), *Nature* 261 (1976), 459–467. Original review, reproduced by Caltech's NASA/IPAC Extragalactic Database. [Back](#logistic-map-ref-1)

@@ -14,6 +14,11 @@ The rule is `F → F+F-F-F+F`. F draws forward and each turn is 90 degrees. The 
 
 The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a surface. It puts small cubes onto square faces instead of changing a flat line.
 
+## Further reading
+
+- [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
+- [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
+
 ## Sources and notes
 
 1. <span id="quadratic-snowflake-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on line replacement and drawing instructions, sections 1.1–1.3. [Back](#quadratic-snowflake-ref-1)

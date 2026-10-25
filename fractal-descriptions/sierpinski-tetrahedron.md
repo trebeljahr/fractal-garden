@@ -10,6 +10,11 @@ The holes don't always appear in a shadow. From one direction, the shadow is a f
 
 <figure data-projection="tetrahedron"></figure>
 
+## Further reading
+
+- [Sierpiński tetrahedron — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle#Analogues_in_higher_dimensions)
+- [Tetrix — MathWorld](https://mathworld.wolfram.com/Tetrix.html)
+
 ## Sources and notes
 
 1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007, pp. 1–2. Proves the square parallel projection at every finite stage and in the limit. [Back](#sierpinski-tetrahedron-ref-1)

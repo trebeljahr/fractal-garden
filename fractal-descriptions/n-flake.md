@@ -12,6 +12,11 @@ The **center** option adds another polygon between the corner copies. For square
 
 For hexagons, the center copy fits between the six corner copies without overlapping their interiors. Adding it fills a gap that would otherwise remain.
 
+## Further reading
+
+- [N-flake — Wikipedia](https://en.wikipedia.org/wiki/N-flake)
+- [Pentaflake — MathWorld](https://mathworld.wolfram.com/Pentaflake.html)
+
 ## Sources and notes
 
 1. <span id="n-flake-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), 713–747, §3.1. Background on sets formed by repeatedly taking smaller copies. [Back](#n-flake-ref-1)

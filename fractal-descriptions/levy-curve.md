@@ -14,6 +14,11 @@ The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It chan
 
 This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus signs make the right angle between the new lines.
 
+## Further reading
+
+- [Lévy C curve — Wikipedia](https://en.wikipedia.org/wiki/L%C3%A9vy_C_curve)
+- [Lévy fractal — MathWorld](https://mathworld.wolfram.com/LevyFractal.html)
+
 ## Sources and notes
 
 1. <span id="levy-curve-source-1"></span> Paul Duvall and James Keesling, [The Hausdorff dimension of the boundary of the Lévy dragon](https://arxiv.org/pdf/math/9907145), arXiv:math/9907145, 1999. Sections 4–5 prove nonempty interior, the open set condition and zero-area overlap between pieces, then compute the boundary dimension using a 752-state matrix. [Back](#levy-curve-ref-1)

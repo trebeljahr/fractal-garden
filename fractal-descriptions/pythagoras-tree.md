@@ -16,6 +16,11 @@ For the equal-branch tree, everything fits inside a rectangle six starting squar
 
 The [T-square fractal](/t-square-fractal) has the same overlap problem, but places four new squares at corners instead of two above a triangle.
 
+## Further reading
+
+- [Pythagoras tree — Wikipedia](https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal))
+- [Pythagoras tree — MathWorld](https://mathworld.wolfram.com/PythagorasTree.html)
+
 ## Sources and notes
 
 1. <span id="pythagoras-tree-source-1"></span> Gerard and contributors, [What is known about the area of the symmetric Pythagorean tree?](https://mathoverflow.net/questions/129580/what-is-known-about-the-area-of-the-symmetric-pythagorean-tree), MathOverflow, 2013 onward. Bounding rectangle, overlap problem and subsequent exact calculation. [Back](#pythagoras-tree-ref-1)

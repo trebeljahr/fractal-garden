@@ -12,6 +12,11 @@ Repeating the rule on every line produces smaller notches along the larger ones.
 
 The square's original corners remain at 90 degrees. The adjustable angle belongs to the replacements, not those corners. The [Koch anti-snowflake](/l-system/koch-anti-snowflake) uses fixed 60-degree notches around a triangle instead.
 
+## Further reading
+
+- [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
+- [Cesàro fractal — MathWorld](https://mathworld.wolfram.com/CesaroFractal.html)
+
 ## Sources and notes
 
 1. <span id="cesaro-fractal-source-1"></span> Mark McCartney, [Four variations on a fractal theme](https://pure.ulster.ac.uk/ws/portalfiles/portal/108739143/Four_variations_on_a_fractal_theme.pdf), International Journal of Mathematical Education in Science and Technology, published online 2022, section 2, equations (1), (3) and (8). Supports the torn square construction, child scale, similarity dimension and bounded area. [Back](#cesaro-fractal-ref-1)

@@ -16,6 +16,11 @@ Two different circles can touch the same three circles. If you know one, you can
 
 This also explains a number pattern. Start with curvatures $-1,2,2,3$, and the rule always produces whole numbers: doubling, adding and subtracting whole numbers can't create a fraction.<sup><a id="apollonian-gasket-ref-2" href="#apollonian-gasket-source-2">2</a></sup> The equal-circle start shown here uses different curvatures.
 
+## Further reading
+
+- [Apollonian gasket — Wikipedia](https://en.wikipedia.org/wiki/Apollonian_gasket)
+- [Apollonian gasket — MathWorld](https://mathworld.wolfram.com/ApollonianGasket.html)
+
 ## Sources and notes
 
 1. <span id="apollonian-gasket-source-1"></span> Ronald L. Graham, Jeffrey C. Lagarias, Colin L. Mallows, Allan R. Wilks and Catherine H. Yan, [Apollonian Circle Packings: Geometry and Group Theory I](https://arxiv.org/pdf/math/0010298), 2005 version, §2. Descartes configurations and linear replacements. [Back](#apollonian-gasket-ref-1)

@@ -14,6 +14,11 @@ All three colored regions share a boundary. However closely you zoom at a bounda
 
 The computer stops after 48 steps. A guess that still hasn't reached a root gets the color of the nearest one. Some pixels near the borders can have the wrong color for this reason.
 
+## Further reading
+
+- [Newton fractal — Wikipedia](https://en.wikipedia.org/wiki/Newton_fractal)
+- [Newton’s Fractal — 3Blue1Brown](https://www.3blue1brown.com/lessons/newtons-fractal/)
+
 ## Sources and notes
 
 1. <span id="newton-fractal-source-1"></span> Marco Abate, [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf), lecture of 23 March 2013, sections 1–2. Explains tangent iteration, local quadratic convergence, and basins. [Back](#newton-fractal-ref-1)

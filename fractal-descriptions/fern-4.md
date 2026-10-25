@@ -19,6 +19,11 @@ The final `+X` has no brackets around it. Its turn changes the direction used by
 
 Each X adds three new X positions and two F steps. Each old F doubles. Try moving the final plus inside the previous bracket. The turn is now undone when the bracket closes. The main stem continues straight.
 
+## Further reading
+
+- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
+- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+
 ## Sources and notes
 
 1. <span id="fern-4-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains saved turtle states. [Back](#fern-4-ref-1)

@@ -12,6 +12,11 @@ Look straight along one arm. The front cube hides the center and back cubes, so 
 
 <figure data-projection="vicsek"></figure>
 
+## Further reading
+
+- [Three-dimensional Vicsek fractal — Wikipedia](https://en.wikipedia.org/wiki/Vicsek_fractal#Analogues_in_higher_dimensions)
+- [Greek Cross Fractal in 2D and 3D — Robert Dickau](https://www.robertdickau.com/greekcross.html)
+
 ## Sources and notes
 
 1. <span id="vicsek-fractal-3d-source-1"></span> John E. Hutchinson, [Fractals and Self-Similarity](https://maths-people.anu.edu.au/~john/Assets/Research%20Papers/fractals_self-similarity.pdf), Indiana University Mathematics Journal 30 (1981), 713–747, §3.1. Background on sets formed by repeatedly taking smaller copies. [Back](#vicsek-fractal-3d-ref-1)

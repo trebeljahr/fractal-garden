@@ -14,6 +14,11 @@ Each recorded visit increases a pixel's counter. A pixel with more visits is dis
 
 Melinda Green developed the method in 1993. Lori Gardi later supplied the name.
 
+## Further reading
+
+- [Buddhabrot — Wikipedia](https://en.wikipedia.org/wiki/Buddhabrot)
+- [The Buddhabrot Technique — Melinda Green](https://superliminal.com/fractals/bbrot/)
+
 ## Sources and notes
 
 1. <span id="buddhabrot-source-1"></span> Melinda Green, [The Buddhabrot Technique](https://superliminal.com/fractals/bbrot/), creator's account of the method developed in 1993. Describes escaping-orbit accumulation, Gardi's naming, and separate color-channel thresholds. [Back](#buddhabrot-ref-1)

@@ -16,6 +16,11 @@ Those four X symbols in each replacement are expanded on the following round. Ex
 
 The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the name but follows different replacement rules. Its turns are 60 degrees and its gaps are triangular.
 
+## Further reading
+
+- [Sierpiński curves — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve)
+- [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
+
 ## Sources and notes
 
 1. <span id="sierpinski-curve-source-1"></span> Carlos A. Grande, [Compact reactor architectures designed with fractals — supporting information](https://www.rsc.org/suppdata/d1/re/d1re00107h/d1re00107h1.pdf), Reaction Chemistry & Engineering, 2021, table S1. Table S1 lists this replacement under “Square curve”, starting from `X+F+X`. [Back](#sierpinski-curve-ref-1)

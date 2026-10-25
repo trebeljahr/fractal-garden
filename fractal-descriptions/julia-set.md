@@ -18,6 +18,11 @@ The [Mandelbrot set](/mandelbrot) tells you whether a choice of $c$ gives a conn
 
 Dark pixels have not escaped before the computer's step limit. Some may escape later. Raising the limit can resolve those slow cases.
 
+## Further reading
+
+- [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
+- [Introduction to Complex Dynamics — Cornell Math Explorers’ Club](https://pi.math.cornell.edu/~lipa/mec/lesson5.html)
+
 ## Sources and notes
 
 1. <span id="julia-set-source-1"></span> Chris Lipa, [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html), Cornell Math Explorers' Club, undated teaching notes. Defines filled Julia sets and explains the unit-circle example. [Back](#julia-set-ref-1)

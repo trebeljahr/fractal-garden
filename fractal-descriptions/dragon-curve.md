@@ -25,6 +25,11 @@ Four copies meet at their starting point, rotated by 0, 90, 180 and 270 degrees.
 
 <figure data-lesson="dragon-tiling"></figure>
 
+## Further reading
+
+- [Dragon curve — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve)
+- [Dragon curve — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
+
 ## Sources and notes
 
 1. <span id="dragon-curve-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021, section 1. Describes the Heighway dragon’s paper-folding origin. [Back](#dragon-curve-ref-1)

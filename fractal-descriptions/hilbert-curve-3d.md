@@ -10,6 +10,11 @@ A flat view can hide the separation between lines. Two segments that appear to c
 
 Each finite path consists of line segments with space between them. In the infinite limit, the route reaches every point of the cube. The [2D Hilbert curve](/l-system/hilbert-curve) reaches every point of a square by the same nested subdivision.
 
+## Further reading
+
+- [Hilbert curves — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
+- [3-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys3d.html)
+
 ## Sources and notes
 
 1. <span id="hilbert-curve-3d-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and sections 2–3 establish the cube-subdivision framework and the classification’s scope. [Back](#hilbert-curve-3d-ref-1)

@@ -16,6 +16,11 @@ Follow just one route from the trunk to a tip. Its branches keep getting shorter
 
 Researchers at Johns Hopkins build physical trees with five generations and three branches at each fork. They put them in water to study how a canopy changes the flow.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
+## Further reading
+
+- [Fractal canopy — Wikipedia](https://en.wikipedia.org/wiki/Fractal_canopy)
+- [Fractal Canopy — Johns Hopkins University](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/)
+
 ## Sources and notes
 
 1. <span id="fractal-canopy-source-1"></span> Kunlun Bai, Charles Meneveau, Joseph Katz and the Laboratory for Experimental Fluid Dynamics, [Fractal Canopy](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/), Johns Hopkins University. Physical tree model, five generations and refractive-index-matched flow measurements. [Back](#fractal-canopy-ref-1)

@@ -12,6 +12,11 @@ The computer uses F for drawing and two other letters, X and Y, for choosing the
 
 The [Hilbert curve](/l-system/hilbert-curve) also fills a region, but divides a square into four smaller square regions. The Gosper construction uses a different arrangement based on 60-degree directions.
 
+## Further reading
+
+- [Gosper curve — Wikipedia](https://en.wikipedia.org/wiki/Gosper_curve)
+- [Peano-Gosper curve — MathWorld](https://mathworld.wolfram.com/Peano-GosperCurve.html)
+
 ## Sources and notes
 
 1. <span id="gosper-curve-source-1"></span> Bielefeld University, [Gosper Curve Substitution Tiling](https://tilings.math.uni-bielefeld.de/substitution/gosper_curve/), Tilings Encyclopedia. Confirms Gosper’s attribution, the substitution and inflation factor √7. [Back](#gosper-curve-ref-1)

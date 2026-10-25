@@ -12,6 +12,11 @@ Choose a spot anywhere in the square. As the grid gets finer, the path passes cl
 
 The [3D version](/l-system/hilbert-curve-3d) uses eight smaller cubes instead of four squares. Their routes need to connect across shared faces as well as turn within a plane.
 
+## Further reading
+
+- [Hilbert curve — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
+- [Hilbert’s Curve — 3Blue1Brown](https://www.3blue1brown.com/lessons/hilbert-curve/)
+
 ## Sources and notes
 
 1. <span id="hilbert-curve-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and section 2 describe nested subdivisions and continuous, surjective mappings. [Back](#hilbert-curve-ref-1)

@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
+import styles from "../styles/Markdown.module.css";
 import ArticleImages, { isArticleImageKind } from "./ArticleImages";
 import ConstructionDemo, { isConstructionKind } from "./ConstructionDemo";
 import ConstructionDetails, { isDetailKind } from "./ConstructionDetails";
@@ -96,15 +97,52 @@ const ParagraphRenderer = (paragraph: { children?: JSX.Element[]; node?: HastEle
   return <p className={className}>{paragraph.children}</p>;
 };
 
-const LinkRenderer = (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
-  const href = props.href;
-  const isInternalLink = href && (href.startsWith("/") || href.startsWith("#"));
+const LinkRenderer = ({
+  node: _node,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement> & { node?: unknown }) => {
+  const { href, children, ...attributes } = props;
+  const reference = href?.match(/^#[a-z0-9-]+-ref-(\d+)$/);
+  const source = href?.match(/^#[a-z0-9-]+-source-(\d+)$/);
 
-  if (isInternalLink) {
+  if (reference) {
+    const label = `Return to reference ${reference[1]}`;
+    return (
+      <a
+        {...attributes}
+        href={href}
+        className={styles.footnoteReturn}
+        role="doc-backlink"
+        aria-label={label}
+        title={label}
+      >
+        <span aria-hidden="true">↩</span>
+      </a>
+    );
+  }
+
+  if (source) {
+    return (
+      <a
+        {...attributes}
+        href={href}
+        className={styles.footnoteReference}
+        role="doc-noteref"
+        aria-label={`Read note ${source[1]}`}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  // Native fragment links keep the browser's focus and history behavior.
+  if (href?.startsWith("#")) return <a {...props} />;
+
+  if (href?.startsWith("/")) {
     return <Link className="internalLink" {...props} href={href} />;
   }
 
-  return <a href={href} {...props} />;
+  return <a {...props} />;
 };
 
 const MarkdownRenderers: object = {

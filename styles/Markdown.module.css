@@ -1,0 +1,35 @@
+.footnoteReturn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  margin-left: 0.2em;
+  border-radius: 4px;
+  font: 18px / 1 sans-serif;
+  vertical-align: baseline;
+  text-decoration: none;
+}
+
+.footnoteReturn:hover,
+.footnoteReturn:focus-visible {
+  color: var(--yellow-white);
+  background: rgba(245, 241, 209, 0.09);
+}
+
+.footnoteReturn:focus-visible,
+.footnoteReference:focus-visible {
+  outline: 2px solid var(--yellow-white);
+  outline-offset: 2px;
+}
+
+.footnoteReference {
+  padding: 0.15em;
+  border-radius: 2px;
+  scroll-margin-top: 80px;
+}
+
+.footnoteReference:target {
+  color: var(--yellow-white);
+  background: rgba(245, 241, 209, 0.16);
+}

@@ -72,6 +72,14 @@
   color: var(--bright-grey);
 }
 
+.drawerContent a:hover {
+  color: var(--yellow-white);
+}
+
+.drawerContent [id*="-source-"] {
+  scroll-margin-top: 80px;
+}
+
 .descriptionSection {
   position: relative;
 }
