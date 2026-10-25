@@ -18,6 +18,7 @@ const { INITIAL_SPATIAL_CAMERA, inverseRotate } = require("../../utils/spatial/c
 const { viewRotation } = require("../../utils/orientation.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
 const { traceGpuFrame } = require("../../utils/spatialGpu/query.ts");
+const { spatialProjection } = require("../../utils/spatial/projection.ts");
 const meshes = require("../../utils/polyhedronFractals.ts");
 const vertex = readFileSync(
   new URL("../utils/shaders/spatial-flight.vert", import.meta.url),
@@ -60,6 +61,30 @@ for (const spec of specs) {
         expected: intersectTriangles(triangles, origin, ray)?.distance ?? -1,
       })),
     });
+    if (rank === 2) {
+      const view = spatialProjection(65, 65, { top: 7, bottom: 12 });
+      const projection = [(2 * view.focal) / 65, (2 * view.focal) / 65];
+      const origin = [0, 1 - (2 * view.centerY) / 65];
+      fixtures.push({
+        ...fixtures[fixtures.length - 1],
+        name: `${spec.kind}/${spec.mesh ?? spec.start ?? "default"}/framed`,
+        projection,
+        origin,
+        expected: rays.map(({ x, y, origin: eye }) => {
+          const v = [
+            ((2 * x + 1) / 65 - 1 - origin[0]) / projection[0],
+            ((2 * y + 1) / 65 - 1 - origin[1]) / projection[1],
+            -1,
+          ];
+          const length = Math.hypot(...v);
+          const ray = inverseRotate(
+            v.map((value) => value / length),
+            rotation,
+          );
+          return { x, y, expected: intersectTriangles(triangles, eye, ray)?.distance ?? -1 };
+        }),
+      });
+    }
   }
 }
 
@@ -225,6 +250,8 @@ async function check(page, payload) {
       results = [];
     try {
       for (const fixture of fixtures) {
+        gl.uniform2fv(uniform("projection"), fixture.projection ?? [0, 0]);
+        gl.uniform2fv(uniform("origin"), fixture.origin ?? [0, 0]);
         const direction = fixture.basis ?? basis;
         gl.uniform3fv(uniform("right"), direction.right);
         gl.uniform3fv(uniform("up"), direction.up);

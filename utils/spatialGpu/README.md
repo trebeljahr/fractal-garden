@@ -10,6 +10,8 @@ The CPU retains the existing BigInt camera and selects a small set of local root
 
 The shader follows every intersected branch that could beat the nearest hit. Octant orders visit nearby children first, including when a child rotates the ray. Detail stops before a child's smallest feature becomes smaller than two display pixels, adjusted for the actual framebuffer resolution. This avoids sampling tiny holes as speckles. The shared flight frame budget reduces framebuffer work under sustained load.
 
+The drawable canvas fills the viewport. The shared framing projection fits the opening shape between controls without clipping the drawing area; rendering, picking and contact shading use the same projection. Once movement stops, one full-resolution frame replaces the adaptive flight frame. PNG export also uses the still-frame budget.
+
 Traversal has a forty-level local stack and a bounded visit count. An unfinished ray retries at coarser detail; a final conservative hull pass avoids reporting unfinished branches as empty space. This fallback is an approximation and is reported by diagnostic queries. CPU root selection has its own explicit budget and reports failure rather than dropping roots.
 
 One GPU pass writes colour plus packed view-space normal/depth. The second pass applies the existing screen-space Soft or Strong corner shading. Koch facet lighting fades from its enclosing patch normal over one to three detail footprints. Contact shading fades below eight projected leaf pixels and disappears below two. These fades change shading only; hit positions and surface normals remain exact. Classic and Depth lighting, outlines, independently eased atmosphere, PNG export and shared camera links remain available.

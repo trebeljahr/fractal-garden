@@ -1,3 +1,4 @@
+import type { FractalFrame } from "../fractalFrame";
 import { createShaderProgram } from "../shaders/compileShader";
 import fragment from "../shaders/spatial-flight.frag";
 import vertex from "../shaders/spatial-flight.vert";
@@ -11,6 +12,7 @@ import {
 } from "../spatial/camera";
 import type { SpatialStyle } from "../spatial/geometry";
 import { spatialReliefFront } from "../spatial/lighting";
+import { spatialProjection } from "../spatial/projection";
 import { MAX_FLIGHT_PIXELS } from "../voxelZoom/frameBudget";
 import {
   applyPoint,
@@ -26,11 +28,11 @@ import {
 const screenFragment = `#version 300 es
 precision highp float;
 uniform sampler2D u_color, u_surface;
-uniform vec2 u_resolution, u_projection;
+uniform vec2 u_resolution, u_projection, u_origin;
 uniform float u_far, u_ao;
 out vec4 outColor;
 float depth(vec4 s) { return exp2((s.b + s.a / 255.0) * log2(u_far + 1.0)) - 1.0; }
-vec3 point(vec2 uv, float d) { return vec3((uv * 2.0 - 1.0) * d / u_projection, -d); }
+vec3 point(vec2 uv, float d) { return vec3((uv * 2.0 - 1.0 - u_origin) * d / u_projection, -d); }
 vec3 normal(vec4 s) {
   vec2 f = s.rg * 2.0 - 1.0;
   vec3 n = vec3(f, 1.0 - abs(f.x) - abs(f.y));
@@ -136,6 +138,8 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
       "up",
       "forward",
       "focal",
+      "projection",
+      "origin",
       "pixelAngle",
       "detailScale",
       "nearFootprint",
@@ -157,7 +161,7 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
     const u = Object.fromEntries(
       names.map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
     );
-    const screenNames = ["color", "surface", "resolution", "projection", "far", "ao"];
+    const screenNames = ["color", "surface", "resolution", "projection", "origin", "far", "ao"];
     const su = Object.fromEntries(
       screenNames.map((name) => [name, gl.getUniformLocation(screen.program, `u_${name}`)]),
     );
@@ -177,6 +181,7 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
             pixelAngle: number;
             nearFootprint: number;
             detailScale: number;
+            projection: ReturnType<typeof spatialProjection>;
           }
         | undefined;
     let clearanceKey = "",
@@ -253,6 +258,8 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
       gl.uniform3fv(u.up, inverseRotate([0, 1, 0], rotation));
       gl.uniform3fv(u.forward, inverseRotate([0, 0, -1], rotation));
       gl.uniform1f(u.focal, 2 * FOCAL_SCALE);
+      gl.uniform2f(u.projection, 0, 0);
+      gl.uniform2f(u.origin, 0, 0);
       gl.uniform1f(u.far, frame.horizon);
       gl.uniform1f(u.maxRank, 1000);
       gl.uniform1f(u.pixelAngle, 1 / (FOCAL_SCALE * 720));
@@ -296,6 +303,7 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
         height: number,
         ratio = 1,
         pixelBudget = MAX_FLIGHT_PIXELS,
+        viewFrame?: FractalFrame | null,
       ) {
         const data = prepare(camera, spec, style),
           scale = Math.min(ratio, 2, Math.sqrt(pixelBudget / Math.max(1, width * height)));
@@ -329,11 +337,16 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
         gl.viewport(0, 0, w, h);
         gl.clearBufferfv(gl.COLOR, 0, new Float32Array([...rgb(style.background), 1]));
         gl.clearBufferfv(gl.COLOR, 1, new Float32Array([0.5, 0.5, 1, 1]));
-        const pixelAngle = 1 / (FOCAL_SCALE * Math.min(w, h)),
+        const projection = spatialProjection(width, height, viewFrame);
+        const renderScale = Math.min(w / width, h / height);
+        const pixelAngle = 1 / (projection.focal * renderScale),
           nearFootprint = pixelAngle * 0.02;
-        const detailScale = 2 * Math.max(1, Math.min(w, h) / Math.min(width, height));
+        const detailScale = 2 * Math.max(1, renderScale);
+        const origin = [0, 1 - (2 * projection.centerY) / height];
         gl.uniform1i(u.query, 0);
         gl.uniform2f(u.resolution, w, h);
+        gl.uniform2f(u.projection, (2 * projection.focal) / width, (2 * projection.focal) / height);
+        gl.uniform2fv(u.origin, origin);
         gl.uniform1f(u.pixelAngle, pixelAngle);
         gl.uniform1f(u.nearFootprint, nearFootprint);
         gl.uniform1f(u.detailScale, detailScale);
@@ -375,8 +388,8 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
             else {
               front = true;
               projected.push([
-                w / 2 - (v[0] / v[2]) * FOCAL_SCALE * Math.min(w, h),
-                h / 2 - (v[1] / v[2]) * FOCAL_SCALE * Math.min(w, h),
+                ((projection.centerX - (v[0] / v[2]) * projection.focal) * w) / width,
+                ((height - projection.centerY - (v[1] / v[2]) * projection.focal) * h) / height,
               ]);
             }
           }
@@ -417,9 +430,10 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
         gl.uniform2f(su.resolution, w, h);
         gl.uniform2f(
           su.projection,
-          (2 * FOCAL_SCALE * Math.min(w, h)) / w,
-          (2 * FOCAL_SCALE * Math.min(w, h)) / h,
+          (2 * projection.focal) / width,
+          (2 * projection.focal) / height,
         );
+        gl.uniform2fv(su.origin, origin);
         gl.uniform1f(su.far, data.horizon);
         gl.uniform1f(
           su.ao,
@@ -430,15 +444,33 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
               : 1,
         );
         gl.drawArrays(gl.TRIANGLES, 0, 3);
-        lastDraw = { camera, spec, style, width, height, pixelAngle, nearFootprint, detailScale };
+        lastDraw = {
+          camera,
+          spec,
+          style,
+          width,
+          height,
+          pixelAngle,
+          nearFootprint,
+          detailScale,
+          projection,
+        };
         return { roots: data.roots.length, visited: data.visited, pixels: w * h };
       },
       pick(x: number, y: number): Vec3 | null {
         if (!lastDraw) return null;
-        const { camera, spec, style, width, height, ...detail } = lastDraw;
+        const {
+          camera,
+          spec,
+          style,
+          projection,
+          width: _width,
+          height: _height,
+          ...detail
+        } = lastDraw;
         const viewRay = normalize([
-          (2 * x - width) / (2 * FOCAL_SCALE * Math.min(width, height)),
-          (height - 2 * y) / (2 * FOCAL_SCALE * Math.min(width, height)),
+          (x - projection.centerX) / projection.focal,
+          (projection.centerY - y) / projection.focal,
           -1,
         ]);
         const ray = inverseRotate(viewRay, rotationOf(style)),

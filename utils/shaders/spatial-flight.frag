@@ -18,6 +18,8 @@ uniform vec3 u_right;
 uniform vec3 u_up;
 uniform vec3 u_forward;
 uniform float u_focal;
+uniform vec2 u_projection;
+uniform vec2 u_origin;
 uniform float u_pixelAngle;
 uniform float u_detailScale;
 uniform float u_nearFootprint;
@@ -200,8 +202,12 @@ vec4 encodeDistance(float distance, bool hit) {
 void main() {
   outSurface = vec4(0.5, 0.5, 1.0, 1.0);
   if (u_query == 2) { outColor = encodeDistance(clearance(), true); return; }
-  vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
-  vec3 ray = u_query == 1 || u_query == 3 ? normalize(u_queryRay) : normalize(u_forward + (uv.x * u_right + uv.y * u_up) / u_focal);
+  vec2 ndc = 2.0 * gl_FragCoord.xy / u_resolution - 1.0 - u_origin;
+  // A projection supplied by the framed canvas preserves its full drawable area.
+  // Standalone ray probes retain the original centered focal-length contract.
+  vec2 slope = u_projection.x > 0.0 ? ndc / u_projection
+      : (2.0 * gl_FragCoord.xy - u_resolution - u_origin * u_resolution) / (min(u_resolution.x, u_resolution.y) * u_focal);
+  vec3 ray = u_query == 1 || u_query == 3 ? normalize(u_queryRay) : normalize(u_forward + slope.x * u_right + slope.y * u_up);
   float hit, edge, cell; vec3 normal, shadingNormal; bool complete; bool found = false;
   float detail = u_detailScale;
   for (int attempt = 0; attempt < 5; attempt++) {

@@ -97,6 +97,17 @@ async function check(page, baseURL, captures) {
       errors.push({ path, stopped: true });
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => document.pointerLockElement === null);
+    await page.waitForTimeout(300);
+    const settled = await canvas.evaluate((c) => {
+      const rect = c.getBoundingClientRect(),
+        ratio = Math.min(devicePixelRatio, 2);
+      return {
+        actual: [c.width, c.height],
+        expected: [Math.round(rect.width * ratio), Math.round(rect.height * ratio)],
+      };
+    });
+    if (JSON.stringify(settled.actual) !== JSON.stringify(settled.expected))
+      errors.push({ path, settled });
     if (captures) await page.screenshot({ path: `${captures}/${path}-flight.png` });
     // The saved view restores the same fixed-point eye after remount.
     const hash =
@@ -131,7 +142,7 @@ async function check(page, baseURL, captures) {
       .locator("[data-gpu-spatial-explorer]")
       .evaluate((c) => c.getContext("webgl2").getError());
     if (error) errors.push({ path, contextError: error });
-    motion.push({ path, before: before.spatialZoom, after: after.spatialZoom, state });
+    motion.push({ path, before: before.spatialZoom, after: after.spatialZoom, state, settled });
   }
   const phoneContext = await page
     .context()
