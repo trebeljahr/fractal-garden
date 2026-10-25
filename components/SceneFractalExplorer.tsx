@@ -9,9 +9,9 @@ import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerCo
 import { ExplorerPanel } from "./ExplorerPanel";
 import { useConstructionRegistration } from "./FractalConstruction";
 import { PlacesMenu } from "./FractalPlaces";
+import { GpuSpatialExplorer } from "./GpuSpatialExplorer";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
-import { SpatialExplorer } from "./SpatialExplorer";
 import { VoxelFlight } from "./VoxelFlight";
 
 export type SceneVariant = {
@@ -118,6 +118,13 @@ export function SceneFractalExplorer<V extends string>({
             : "mosely-heavy"
           : null;
   const exploring = pattern !== null;
+  const spatialSpec =
+    variant.spec.kind === "jerusalem" ||
+    variant.spec.kind === "flake" ||
+    variant.spec.kind === "kochSurface" ||
+    variant.spec.kind === "quadraticKoch3d"
+      ? variant.spec
+      : null;
   const maxIterations = variant.maxIterations;
   const variantOptions = Object.keys(variants) as V[];
 
@@ -347,10 +354,10 @@ export function SceneFractalExplorer<V extends string>({
         className={styles.viewport}
         style={{ background: config.background }}
       >
-        {!exploring && width && height && (
-          <SpatialExplorer
+        {spatialSpec && width && height && (
+          <GpuSpatialExplorer
             key={config.variant}
-            spec={variant.spec}
+            spec={spatialSpec}
             style={config}
             setStyle={setConfig}
             width={width}

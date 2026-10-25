@@ -1,6 +1,8 @@
 # Adaptive spatial exploration
 
-`SpatialExplorer` renders the Sierpinski tetrahedron and pyramid, polyhedron flakes, Jerusalem cube, both Koch surfaces, and 3D Hilbert curve. Their finite construction players continue using the existing scene and polyline renderers. The L-system Explorer is independent.
+The solid explorers now use [`GpuSpatialExplorer`](../spatialGpu/README.md): the Sierpinski tetrahedron and pyramid, polyhedron flakes, Jerusalem cube and both Koch surfaces. Their visible detail, picking and collision queries run on the GPU. `SpatialExplorer` retains the worker-based path for the 3D Hilbert curve. Finite construction players continue using the existing scene and polyline renderers. The L-system Explorer is independent.
+
+The mesh construction and collision-shell details below describe the retained geometry reference and the Hilbert renderer, rather than the active solid flythroughs. The solid geometry helpers remain covered by the finite-generator tests.
 
 The camera stores a target in BigInt fixed point and a base-two zoom exponent. Precision grows with zoom, retaining 160 guard bits. Mesh vertices reach WebGL only after subtraction of the target. The limit is 240 zoom doublings; this is a practical depth bound. Input coefficients for irrational constructions retain the precision of the existing JavaScript generators.
 

@@ -110,7 +110,8 @@ export function advanceSpatialFlight({
   const dt = Math.max(0, Math.min(0.5, elapsed));
   const safe = Math.max(0, clearance);
   const desired = Math.min(3, safe * 0.75);
-  const nextSpeed = desired < speed ? desired : Math.min(desired, speed * 2 ** (dt * 1.2));
+  const nextSpeed =
+    desired < speed ? desired : Math.min(desired, Math.max(speed, 0.01) * 2 ** (dt * 1.2));
   const length = Math.hypot(...motion);
   const step = Math.min(nextSpeed * dt * (boost ? 4 : 1), safe * 0.2);
   if (!length) return { camera, speed: nextSpeed };
@@ -137,4 +138,26 @@ export function advanceSpatialFlight({
   next.atmosphereZoom = Math.min(maxZoom, atmosphere.level);
   next.atmosphereVelocity = atmosphere.velocity;
   return { camera: next, speed: nextSpeed };
+}
+
+/** Consume the whole rendered interval, checking nearby surfaces between safe steps. */
+export function advanceSpatialFlightElapsed({
+  clearance,
+  ...options
+}: Omit<Parameters<typeof advanceSpatialFlight>[0], "clearance"> & {
+  clearance: (camera: SpatialCamera) => number | null;
+}) {
+  let camera = options.camera;
+  let speed = options.speed;
+  let remaining = Math.max(0, Number.isFinite(options.elapsed) ? options.elapsed : 0);
+  while (remaining > 1e-9) {
+    const distance = clearance(camera);
+    if (distance === null) break;
+    const elapsed = Math.min(0.05, remaining);
+    const next = advanceSpatialFlight({ ...options, camera, speed, elapsed, clearance: distance });
+    camera = next.camera;
+    speed = next.speed;
+    remaining -= elapsed;
+  }
+  return { camera, speed };
 }

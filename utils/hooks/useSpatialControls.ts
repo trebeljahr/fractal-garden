@@ -23,7 +23,11 @@ import {
   type SpatialCamera,
   type Vec3,
 } from "../spatial/camera";
-import { advanceSpatialFlight, lookSpatialRotation, reframeSpatialEye } from "../spatial/flight";
+import {
+  advanceSpatialFlightElapsed,
+  lookSpatialRotation,
+  reframeSpatialEye,
+} from "../spatial/flight";
 import { spatialProjection } from "../spatial/projection";
 import { useExplorerPart } from "./useExplorerPart";
 
@@ -175,7 +179,7 @@ export function useSpatialControls<T extends View>({
     };
     const travel = (motion: Vec3, dt: number, boost = false) => {
       const frame = current.current;
-      let distance = frame.clearance?.(frame.camera, frame.view);
+      let distance: number | null | undefined = frame.clearance ? null : undefined;
       if (distance === undefined) {
         const rect = canvas.getBoundingClientRect();
         const projection = spatialProjection(
@@ -195,11 +199,11 @@ export function useSpatialControls<T extends View>({
           );
         }
       }
-      if (distance === null) return;
-      const next = advanceSpatialFlight({
+      const next = advanceSpatialFlightElapsed({
         camera: frame.camera,
         rotation: rotationOf(frame.view),
-        clearance: distance ?? 2,
+        clearance: (camera) =>
+          frame.clearance ? frame.clearance(camera, frame.view) : (distance ?? 2),
         motion,
         elapsed: dt,
         speed,
@@ -213,6 +217,7 @@ export function useSpatialControls<T extends View>({
       stop();
     };
     const release = () => {
+      previousTime = 0;
       held.clear();
       resetFlightTouch(touch.current);
       pointers.clear();
@@ -270,6 +275,7 @@ export function useSpatialControls<T extends View>({
     };
     let lastPointer = "";
     const visibility = () => {
+      previousTime = 0;
       if (document.hidden) release();
     };
     const lockChanged = () => {
@@ -278,7 +284,7 @@ export function useSpatialControls<T extends View>({
       pointers.clear();
     };
     const tick = (time: number) => {
-      const dt = Math.min(0.05, Math.max(0, (time - (previousTime || time)) / 1000));
+      const dt = Math.max(0, (time - (previousTime || time)) / 1000);
       previousTime = time;
       if (current.current.flying) {
         const frame = current.current;
