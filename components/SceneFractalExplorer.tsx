@@ -5,10 +5,11 @@ import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
 import type { SceneSpec } from "../utils/render/scene3d";
-import type { VoxelPattern } from "../utils/voxelZoom/camera";
+import type { FlightCamera, VoxelPattern } from "../utils/voxelZoom/camera";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { useConstructionRegistration } from "./FractalConstruction";
+import { PlacesMenu } from "./FractalPlaces";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 import { SpatialExplorer } from "./SpatialExplorer";
@@ -20,6 +21,13 @@ export type SceneVariant = {
   spec: SceneSpec;
   /** Draw back faces too, for open surfaces. */
   doubleSided?: boolean;
+};
+
+export type ScenePlace<V extends string> = {
+  label: string;
+  detail: string;
+  variant?: V;
+  camera: (pattern: VoxelPattern) => FlightCamera;
 };
 
 type Config<V extends string> = {
@@ -56,6 +64,7 @@ type Props<V extends string> = {
   lineWidth?: number;
   /** Degrees of yaw added per frame while auto-rotating. */
   rotationSpeed?: number;
+  places?: ScenePlace<V>[];
 };
 
 const INITIAL_CAMERA_DISTANCE = 6;
@@ -78,6 +87,7 @@ export function SceneFractalExplorer<V extends string>({
   rotationY = 28,
   lineWidth = 0.7,
   rotationSpeed = 0.4,
+  places = [],
 }: Props<V>) {
   const { width, height } = useFractalViewportSize();
   const { width: flightWidth, height: flightHeight } = useWindowSize();
@@ -97,6 +107,7 @@ export function SceneFractalExplorer<V extends string>({
     lighting: "depth",
     occlusion: "soft",
   });
+  const [destination, setDestination] = useState<{ variant: V; camera: FlightCamera }>();
   const variant = variants[config.variant];
   const pattern: VoxelPattern | null =
     variant.spec.kind === "menger"
@@ -180,6 +191,7 @@ export function SceneFractalExplorer<V extends string>({
   }, [config.iterations, maxIterations]);
 
   const handleUpdate = (newData: Config<V>) => {
+    if (newData.variant !== config.variant) setDestination(undefined);
     setConfig((old) => ({
       ...old,
       ...newData,
@@ -193,7 +205,24 @@ export function SceneFractalExplorer<V extends string>({
         introTitle={title}
         lines={exploring ? [] : ["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
         places={
-          exploring && (
+          exploring &&
+          (places.length > 0 ? (
+            <PlacesMenu
+              views={places}
+              onSelect={(place) => {
+                const nextVariant = place.variant ?? config.variant;
+                const spec = variants[nextVariant].spec;
+                const nextPattern =
+                  spec.kind === "mosely"
+                    ? spec.variant === "lighter"
+                      ? "mosely-light"
+                      : "mosely-heavy"
+                    : pattern;
+                setConfig((old) => ({ ...old, variant: nextVariant }));
+                setDestination({ variant: nextVariant, camera: place.camera(nextPattern) });
+              }}
+            />
+          ) : (
             <button
               className={flightStyles.navigation}
               type="button"
@@ -201,7 +230,7 @@ export function SceneFractalExplorer<V extends string>({
             >
               Reset view
             </button>
-          )
+          ))
         }
         explorationControls={
           exploring ? (
@@ -274,12 +303,13 @@ export function SceneFractalExplorer<V extends string>({
             ),
           },
         ]}
-        onRestore={(saved) =>
+        onRestore={(saved) => {
+          setDestination(undefined);
           setConfig({
             ...saved,
             iterations: Math.min(saved.iterations, variants[saved.variant].maxIterations),
-          })
-        }
+          });
+        }}
       >
         <PanelColor path="background" />
         <PanelColor path="fillColor" />
@@ -325,6 +355,7 @@ export function SceneFractalExplorer<V extends string>({
           style={config}
           width={flightWidth}
           height={flightHeight}
+          cameraPreset={destination?.variant === config.variant ? destination.camera : undefined}
         />
       )}
       <SideDrawer description={description} />

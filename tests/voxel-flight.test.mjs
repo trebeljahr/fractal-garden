@@ -26,6 +26,7 @@ const {
   FLIGHT_NAVIGATION_RATE,
   MAX_VOXEL_DEPTH,
 } = require("../utils/voxelZoom/camera.ts");
+const { MOSELY_PLACES } = require("../utils/moselyPlaces.ts");
 const { fixedToFloatExp } = require("../utils/deepZoom/math.ts");
 const {
   generateMengerSponge,
@@ -71,9 +72,12 @@ test("Menger flight crosses the outer bounding box through its empty center tunn
   assert.ok(m * 2 ** e < 1, `camera remained outside at ${m * 2 ** e}`);
   assert.ok(buildGridFrame(camera, "menger").clearance > 0);
 });
-test("snowflake Explore starts in an empty interior cavity with room to navigate", () => {
-  for (const pattern of ["mosely-light", "mosely-heavy"]) {
-    const camera = initialFlightCamera(pattern);
+test("snowflake interior destinations retain empty cavities with room to navigate", () => {
+  for (const [pattern, label] of [
+    ["mosely-light", "Koch opening"],
+    ["mosely-heavy", "Inside the dense lattice"],
+  ]) {
+    const camera = MOSELY_PLACES.find((place) => place.label === label).camera(pattern);
     const one = 1n << BigInt(camera.bits);
     assert.ok(
       camera.position.every((p) => p > -one && p < one),

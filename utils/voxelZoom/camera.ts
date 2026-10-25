@@ -63,26 +63,66 @@ const retained = Object.fromEntries(
   }),
 ) as Record<VoxelPattern, Vec3[]>;
 export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCamera {
+  if (pattern.startsWith("mosely")) return exteriorFlightCamera(pattern);
   const bits = bitsForLevel(0);
-  const snowflake = pattern.startsWith("mosely");
-  const position: Vec3 = snowflake
-    ? pattern === "mosely-light"
-      ? [0, 0, 0]
-      : [-1 / 8, -1 / 8, -1 / 8]
-    : pattern === "menger"
-      ? [0, 0, 3.2]
-      : [0.7, 0.7, 3.2];
+  const position: Vec3 = pattern === "menger" ? [0, 0, 3.2] : [0.7, 0.7, 3.2];
   return fitFlightPrecision(
     {
       position: position.map((p) => fixedFromNumber(p, bits)) as FlightCamera["position"],
       bits,
       level: 0,
       viewLevel: 0,
-      navigationLevel: snowflake ? (pattern === "mosely-light" ? 1 : 2) : 0,
-      atmosphereLevel: snowflake ? (pattern === "mosely-light" ? 1 : 2) : 0,
+      navigationLevel: 0,
+      atmosphereLevel: 0,
       atmosphereVelocity: 0,
-      yaw: snowflake ? -Math.PI / 4 : 0,
-      pitch: snowflake ? -Math.asin(1 / Math.sqrt(3)) : 0,
+      yaw: 0,
+      pitch: 0,
+    },
+    pattern,
+  );
+}
+
+/** Fit the exterior into the shorter screen dimension.
+ * Mosely removes the root's corners: its first-stage cubes fit within the
+ * 24 vertices (±1/2, ±1/2, ±1/6), including permutations. Later stages fit too.
+ * The flight projection uses 0.58 in both axes, scaled by min(width, height). */
+export function exteriorFlightCamera(
+  pattern: VoxelPattern,
+  yaw = (-32 * Math.PI) / 180,
+  pitch = (-28 * Math.PI) / 180,
+): FlightCamera {
+  const basis = flightBasis({ yaw, pitch });
+  let distance = 0;
+  for (let insetAxis = 0; insetAxis < 3; insetAxis++) {
+    for (let index = 0; index < 8; index++) {
+      const corner = [0, 1, 2].map((axis) => {
+        const half = pattern.startsWith("mosely") && axis === insetAxis ? 1 / 6 : 0.5;
+        return index & (1 << axis) ? half : -half;
+      });
+      const dot = (direction: Vec3) =>
+        corner.reduce((sum, v, axis) => sum + v * direction[axis], 0);
+      distance = Math.max(
+        distance,
+        -dot(basis.forward) +
+          Math.max(Math.abs(dot(basis.right)), Math.abs(dot(basis.up))) / (0.58 * 0.84),
+      );
+    }
+  }
+  const bits = bitsForLevel(0);
+  return fitFlightPrecision(
+    {
+      // Stored coordinates are twice the world coordinates used by the renderer.
+      position: basis.forward.map((v) =>
+        fixedFromNumber(-2 * distance * v, bits),
+      ) as FlightCamera["position"],
+      bits,
+      level: 0,
+      viewLevel: 0,
+      navigationLevel: 0,
+      atmosphereLevel: 0,
+      atmosphereVelocity: 0,
+      yaw,
+      pitch,
     },
     pattern,
   );
@@ -557,7 +597,7 @@ function moveFlightCameraByClearance(
 const worldPosition = (camera: FlightCamera) =>
   camera.position.map((p) => localFloat(p, camera.bits)) as Vec3;
 // Keep scroll-out/page handoff outside the whole fractal, independently of
-// the curated interior entry camera. The clipping sphere encloses the root.
+// the selected destination. The clipping sphere encloses the root.
 const zoomRadius = (pattern: VoxelPattern) =>
   Math.hypot(
     3.2,

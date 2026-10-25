@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import styles from "../styles/FractalPlaces.module.css";
 import { type FractalPlace, matchesPlace } from "../utils/fractalPlaces";
 
@@ -19,6 +19,43 @@ export function FractalPlaces<T extends FractalPlace>({
   matchesParameters?: (view: T) => boolean;
   initialZoomSize?: number;
   matchesViewport?: (view: T) => boolean;
+}) {
+  const activePlace = views.find(
+    (view) =>
+      (matchesViewport ? matchesViewport(view) : viewport && matchesPlace(view, viewport)) &&
+      matchesParameters(view),
+  );
+  return (
+    <PlacesMenu
+      views={views}
+      activePlace={activePlace}
+      onSelect={onSelect}
+      annotation={
+        initialZoomSize
+          ? (view) => (
+              <small className={styles.zoom}>
+                {new Intl.NumberFormat("en", { maximumSignificantDigits: 3 }).format(
+                  initialZoomSize / view.zoomSize,
+                )}
+                × zoom
+              </small>
+            )
+          : undefined
+      }
+    />
+  );
+}
+
+export function PlacesMenu<T extends Pick<FractalPlace, "label" | "detail" | "group" | "preview">>({
+  views,
+  activePlace,
+  onSelect,
+  annotation,
+}: {
+  views: T[];
+  activePlace?: T;
+  onSelect: (view: T) => void;
+  annotation?: (view: T) => ReactNode;
 }) {
   const menu = useRef<HTMLDetailsElement>(null);
 
@@ -42,11 +79,6 @@ export function FractalPlaces<T extends FractalPlace>({
     };
   }, []);
 
-  const activePlace = views.find(
-    (view) =>
-      (matchesViewport ? matchesViewport(view) : viewport && matchesPlace(view, viewport)) &&
-      matchesParameters(view),
-  );
   const groups = Array.from(new Set(views.map((view) => view.group)));
 
   return (
@@ -86,14 +118,7 @@ export function FractalPlaces<T extends FractalPlace>({
                           )}
                         </span>
                         {view.detail && <small>{view.detail}</small>}
-                        {initialZoomSize && (
-                          <small className={styles.zoom}>
-                            {new Intl.NumberFormat("en", { maximumSignificantDigits: 3 }).format(
-                              initialZoomSize / view.zoomSize,
-                            )}
-                            × zoom
-                          </small>
-                        )}
+                        {annotation?.(view)}
                       </span>
                     </button>
                   </li>

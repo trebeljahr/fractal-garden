@@ -28,7 +28,7 @@ Current limits: 256 global subdivision levels, camera levels 0–244, camera-rel
 
 Mobile uses two independently captured touch sticks, following the Collection of Beauty move/look layout. A small deadzone and proportional deflection permit fine movement; the right stick turns continuously. Up/Down and held Fast buttons control height and speed. Multi-touch, pointer cancellation, lost capture, blur, visibility changes and unmount clear held input. Controls belong to the stage subtree, so they remain in fullscreen and scroll with the view.
 
-The Mosely entry cameras start in empty interior cavities, looking along a body diagonal at a centered opening. Menger and Vicsek retain their exterior entry views. Supported rules: Menger, seven-copy Vicsek, and both Mosely variants. Jerusalem and polyhedron flakes have different subdivision rules and do not use this path.
+The Mosely entry cameras fit all retained first-stage cubes from outside, centered with a margin in the shorter viewport dimension. Its Places to explore menu includes a face-on view and the former interior entry cameras. Menger and Vicsek retain their exterior entry views. Supported rules: Menger, seven-copy Vicsek, and both Mosely variants. Jerusalem and polyhedron flakes have different subdivision rules and do not use this path.
 
 Effect cleanup deletes renderer resources immediately. Context release waits until the canvas leaves the DOM, so development Strict Mode and Fast Refresh can replay effects on the same canvas without losing its context. Real context loss pauses rendering; restoration recreates resources and draws the current camera. The stage keeps the selected background while graphics are unavailable.
 

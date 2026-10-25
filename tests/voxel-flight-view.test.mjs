@@ -12,7 +12,7 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
-const { flightBasis } = require("../utils/voxelZoom/camera.ts");
+const { flightBasis, initialFlightCamera, flightRootBounds } = require("../utils/voxelZoom/camera.ts");
 const { flightScreenBounds } = require("../utils/voxelZoom/view.ts");
 const basis = flightBasis({ yaw: 0, pitch: 0 });
 
@@ -114,4 +114,34 @@ test("screen bounds include every root-intersecting pixel across flight views", 
   }
   assert.ok(intersections > 1000);
   assert.ok(clippedViews > 20);
+});
+
+// Check unclamped corner projections: clipped screen bounds could hide an
+// opening camera that crops the root, especially on a portrait screen.
+test("Mosely defaults center the complete snowflake from outside on every screen shape", () => {
+  for (const pattern of ["mosely-light", "mosely-heavy"]) {
+    const camera = initialFlightCamera(pattern);
+    const one = 1n << BigInt(camera.bits);
+    assert.ok(camera.position.some((p) => p < -one || p > one));
+    assert.equal(camera.viewLevel, 0);
+    const basis = flightBasis(camera);
+    const bounds = flightRootBounds(camera, true);
+    const center = bounds.low.map((v, axis) => (v + bounds.high[axis]) / 2);
+    const dot = (point, direction) => point.reduce((sum, v, axis) => sum + v * direction[axis], 0);
+    assert.ok(Math.abs(dot(center, basis.right)) < 1e-12);
+    assert.ok(Math.abs(dot(center, basis.up)) < 1e-12);
+    for (const [width, height] of [[1440, 900], [390, 844], [844, 390]]) {
+      const scale = Math.min(width, height) / 1.16;
+      for (let insetAxis = 0; insetAxis < 3; insetAxis++) {
+        for (let index = 0; index < 8; index++) {
+          const corner = center.map((v, axis) => v +
+            (index & (1 << axis) ? 1 : -1) * (axis === insetAxis ? 1 / 6 : 0.5));
+          const depth = dot(corner, basis.forward);
+          assert.ok(depth > 0);
+          assert.ok(Math.abs(scale * dot(corner, basis.right) / depth) <= width * 0.42 + 1e-9);
+          assert.ok(Math.abs(scale * dot(corner, basis.up) / depth) <= height * 0.42 + 1e-9);
+        }
+      }
+    }
+  }
 });

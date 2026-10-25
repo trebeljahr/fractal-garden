@@ -46,11 +46,13 @@ export function VoxelFlight({
   style,
   width,
   height,
+  cameraPreset,
 }: {
   pattern: VoxelPattern;
   style: FlightStyle;
   width: number;
   height: number;
+  cameraPreset?: FlightCamera;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<FlightCamera>(initialFlightCamera(pattern));
@@ -74,6 +76,14 @@ export function VoxelFlight({
       dirty.current = true;
     },
   );
+  useEffect(() => {
+    if (!cameraPreset) return;
+    held.current.clear();
+    resetFlightTouch(touch.current);
+    if (document.pointerLockElement === canvasRef.current) document.exitPointerLock();
+    cameraRef.current = cameraPreset;
+    dirty.current = true;
+  }, [cameraPreset]);
   // Camera-independent style and size changes need one new frame.
   // biome-ignore lint/correctness/useExhaustiveDependencies: invalidates the imperative renderer
   useEffect(() => {
