@@ -10,6 +10,7 @@ import {
   tetrahedronMesh,
 } from "./polyhedronFractals";
 import type { SceneSpec } from "./render/scene3d";
+import { buildRomanescoScene } from "./romanesco";
 import {
   type BoxScene,
   type Cube,
@@ -128,6 +129,11 @@ function jerusalemMotion(level: number): SceneMotion {
 
 export function createSceneMotion(spec: SceneSpec, level: number): SceneMotion | null {
   if (level < 1) return null;
+  if (spec.kind === "romanesco") {
+    const scene = buildRomanescoScene(level);
+    const start = buildRomanescoScene(level, 0).positions;
+    return { type: "faces", scene, start, end: scene.positions.slice() };
+  }
   if (spec.kind === "menger" || spec.kind === "mosely" || spec.kind === "vicsek3d")
     return voxelMotion(spec, level);
   if (spec.kind === "jerusalem") return jerusalemMotion(level);

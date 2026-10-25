@@ -73,6 +73,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://fractal.garden/romanesco</loc>
+    <lastmod>2026-10-25T03:27:02.017Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://fractal.garden/menger-sponge</loc>
     <lastmod>2026-05-14T20:44:19.000Z</lastmod>
     <changefreq>monthly</changefreq>

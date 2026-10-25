@@ -127,7 +127,7 @@ export function useSpatialControls<T extends View>({
     const oldTouch = canvas.style.touchAction;
     canvas.style.touchAction = "none";
     canvas.style.cursor = "grab";
-    const stop = () => setView((old) => ({ ...old, autoRotate: false }));
+    const stop = () => setView((old) => (old.autoRotate ? { ...old, autoRotate: false } : old));
     const pan = (dx: number, dy: number) => {
       if (current.current.flying) {
         travel([-dx, dy, 0], Math.hypot(dx, dy) / 200);

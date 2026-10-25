@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import type { ConstructionView } from "../utils/constructionView";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import type { Orientation } from "../utils/orientation";
 import type { SceneSpec } from "../utils/render/scene3d";
@@ -61,6 +62,8 @@ type Props<V extends string> = {
   rotationX?: number;
   rotationY?: number;
   lineWidth?: number;
+  showWireframe?: boolean;
+  lighting?: "classic" | "depth";
   /** Degrees of yaw added per frame while auto-rotating. */
   rotationSpeed?: number;
   places?: ScenePlace<V>[];
@@ -85,6 +88,8 @@ export function SceneFractalExplorer<V extends string>({
   rotationX = 24,
   rotationY = 28,
   lineWidth = 0.7,
+  showWireframe = true,
+  lighting = "depth",
   rotationSpeed = 0.4,
   places = [],
 }: Props<V>) {
@@ -100,9 +105,9 @@ export function SceneFractalExplorer<V extends string>({
     fillColor,
     strokeColor,
     showFaces: true,
-    showWireframe: true,
+    showWireframe,
     lineWidth,
-    lighting: "depth",
+    lighting,
     occlusion: "soft",
   });
   const [destination, setDestination] = useState<{ variant: V; camera: FlightCamera }>();
@@ -126,7 +131,7 @@ export function SceneFractalExplorer<V extends string>({
       ? variant.spec
       : null;
   const maxIterations = variant.maxIterations;
-  const variantOptions = Object.keys(variants) as V[];
+  const variantOptions = useMemo(() => Object.keys(variants) as V[], [variants]);
 
   const construction = useMemo(() => {
     const view = {
@@ -203,6 +208,36 @@ export function SceneFractalExplorer<V extends string>({
     }));
   };
 
+  const constructionControls = useCallback(
+    (view: ConstructionView) => (
+      <>
+        <PanelColor path="background" />
+        {(view.showFaces || view.showWireframe) && <PanelColor path="fillColor" />}
+        {variantOptions.length > 1 && (
+          <PanelSelect
+            path="variant"
+            label={variantLabel}
+            optionLabels={variantOptions.map((option) => variants[option].label)}
+            options={variantOptions}
+          />
+        )}
+        <PanelBoolean path="autoRotate" />
+        <PanelNumber path="rotationX" min={-180} max={180} step={1} />
+        <PanelNumber path="rotationY" min={-180} max={180} step={1} />
+        <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
+        <PanelBoolean path="showFaces" />
+        <PanelBoolean path="showWireframe" />
+        {view.showWireframe && (
+          <>
+            <PanelColor path="strokeColor" />
+            <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
+          </>
+        )}
+      </>
+    ),
+    [variants, variantOptions, variantLabel],
+  );
+
   return (
     <main className={styles.fullScreen}>
       <ExplorerPanel
@@ -237,32 +272,7 @@ export function SceneFractalExplorer<V extends string>({
             </button>
           ))
         }
-        constructionControls={(view) => (
-          <>
-            <PanelColor path="background" />
-            {(view.showFaces || view.showWireframe) && <PanelColor path="fillColor" />}
-            {variantOptions.length > 1 && (
-              <PanelSelect
-                path="variant"
-                label={variantLabel}
-                optionLabels={variantOptions.map((option) => variants[option].label)}
-                options={variantOptions}
-              />
-            )}
-            <PanelBoolean path="autoRotate" />
-            <PanelNumber path="rotationX" min={-180} max={180} step={1} />
-            <PanelNumber path="rotationY" min={-180} max={180} step={1} />
-            <PanelNumber path="cameraDistance" min={2} max={12} step={0.1} />
-            <PanelBoolean path="showFaces" />
-            <PanelBoolean path="showWireframe" />
-            {view.showWireframe && (
-              <>
-                <PanelColor path="strokeColor" />
-                <PanelNumber path="lineWidth" min={0} max={2} step={0.1} />
-              </>
-            )}
-          </>
-        )}
+        constructionControls={constructionControls}
         explorationControls={
           <>
             {config.showFaces && (

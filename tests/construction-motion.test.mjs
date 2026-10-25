@@ -198,6 +198,7 @@ test("construction delegates native scene motion and view state without a cached
 });
 
 const specs = [
+  { kind: "romanesco" },
   { kind: "menger" },
   { kind: "vicsek3d" },
   { kind: "mosely", variant: "lighter" },

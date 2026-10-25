@@ -15,6 +15,7 @@ function useLinks() {
     "/vicsek-fractal-3d",
     "/menger-sponge",
     "/mandelbulb",
+    "/romanesco",
     "/buddhabrot",
     "/newton-fractal",
     "/pythagoras-tree",

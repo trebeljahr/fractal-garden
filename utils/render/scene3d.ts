@@ -19,6 +19,7 @@ import {
   squarePyramidMesh,
   tetrahedronMesh,
 } from "../polyhedronFractals";
+import { buildRomanescoScene } from "../romanesco";
 import {
   type BoxScene,
   drawBoxScene,
@@ -45,6 +46,7 @@ export type SceneSpec =
   | { kind: "vicsek3d" }
   | { kind: "mosely"; variant: "lighter" | "heavier" }
   | { kind: "jerusalem" }
+  | { kind: "romanesco" }
   | { kind: "quadraticKoch3d" }
   | { kind: "flake"; mesh: keyof typeof MESHES; ratio: number }
   | { kind: "kochSurface"; start: "triangle" | "tetrahedron" };
@@ -90,6 +92,8 @@ function getMesh(name: keyof typeof MESHES) {
 
 export function buildScene(spec: SceneSpec, iterations: number): BuiltScene {
   switch (spec.kind) {
+    case "romanesco":
+      return { type: "faces", scene: buildRomanescoScene(iterations) };
     case "menger":
       return {
         type: "faces",

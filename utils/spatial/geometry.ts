@@ -11,6 +11,7 @@ import {
 } from "../polyhedronFractals";
 import { generateHilbertCurve3D } from "../polyline3d";
 import type { SceneSpec } from "../render/scene3d";
+import { ROMANESCO_BOUND, ROMANESCO_CHILDREN, ROMANESCO_MESH, ROMANESCO_ROOT } from "../romanesco";
 import {
   type BigVec3,
   bigPoint,
@@ -210,7 +211,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
       pixelSize
     );
   };
-  const face = (points: BigVec3[], doubleSided = false, padding = 0) => {
+  const face = (points: BigVec3[], doubleSided = false, padding = 0, smooth?: Vec3[]) => {
     const p = points.map(local),
       a = p[0],
       b = p[1],
@@ -221,10 +222,10 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
     if (facing < 0) normal = normal.map((v) => -v) as Vec3;
     for (let i = 1; i < p.length - 1; i++) {
       const edge = [1, Number(i === p.length - 2), Number(i === 1)];
-      [p[0], p[i], p[i + 1]].forEach((v, j) => {
+      [0, i, i + 1].forEach((index, j) => {
         output.push(
-          ...v,
-          ...(request.flight ? [padding, 0, 0] : normal),
+          ...p[index],
+          ...(request.flight ? [padding, 0, 0] : (smooth?.[index] ?? normal)),
           ...[0, 1, 2].map((k) => Number(j === k)),
           ...edge,
         );
@@ -336,6 +337,63 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
       size: one,
       depth: 0,
       matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    });
+  } else if (spec.kind === "romanesco") {
+    // Average only the cone's side normals, keeping the underside flat.
+    const normals = ROMANESCO_MESH.vertices.map((): Vec3 => [0, 0, 0]);
+    for (const indices of ROMANESCO_MESH.faces.slice(1)) {
+      const [a, b, c] = indices.map((index) => ROMANESCO_MESH.vertices[index]);
+      const n = norm(cross(b.map((v, i) => v - a[i]) as Vec3, c.map((v, i) => v - a[i]) as Vec3));
+      for (const index of indices)
+        for (let axis = 0; axis < 3; axis++) normals[index][axis] += n[axis];
+    }
+    const smoothNormals = normals.map((n) => {
+      const v = norm(n);
+      return [0, 1, 2].map(
+        (axis) =>
+          rotation[axis * 3] * v[0] + rotation[axis * 3 + 1] * v[1] + rotation[axis * 3 + 2] * v[2],
+      ) as Vec3;
+    });
+    const children = ROMANESCO_CHILDREN.map((child) => ({
+      center: bigPoint(child.center, bits),
+      scale: fixedFromNumber(child.scale, bits),
+    }));
+    const visit = (node: Node) => {
+      if (!visible(node, ROMANESCO_BOUND)) return;
+      const stop = budget(node) || small(node, ROMANESCO_BOUND);
+      // Each cone remains as the core of its smaller copies. Unresolved
+      // descendants pad the collision shell until a closer view refines them.
+      const points = ROMANESCO_MESH.vertices.map((point) =>
+        add(node.center, mul(bigPoint(point, bits), node.size, one)),
+      );
+      for (const indices of ROMANESCO_MESH.faces) {
+        face(
+          indices.map((index) => points[index]),
+          false,
+          stop ? number(node.size) * ROMANESCO_BOUND : 0,
+          indices.length === 3 || indices.length === 4
+            ? indices.map((index) => smoothNormals[index])
+            : undefined,
+        );
+      }
+      if (stop) {
+        leaves++;
+        return;
+      }
+      descend(
+        children.map((child) => ({
+          center: add(node.center, mul(child.center, node.size, one)),
+          size: (node.size * child.scale) / one,
+          depth: node.depth + 1,
+        })),
+        ROMANESCO_BOUND,
+        visit,
+      );
+    };
+    visit({
+      center: bigPoint(ROMANESCO_ROOT.center, bits),
+      size: fixedFromNumber(ROMANESCO_ROOT.scale, bits),
+      depth: 0,
     });
   } else if (spec.kind === "flake" || spec.kind === "jerusalem") {
     const mesh = spec.kind === "flake" ? MESHES[spec.mesh] : CUBE;

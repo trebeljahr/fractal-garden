@@ -91,6 +91,13 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Orbit around the Mandelbulb in 3D and explore a volumetric relative of the Mandelbrot Set with live controls.",
     imagePath: "/assets/fractal-images/mandelbulb.jpg",
   },
+  "/romanesco": {
+    title: "Romanesco Fractal Explorer",
+    name: "Romanesco",
+    description:
+      "Fly between nested green cones in a Romanesco-inspired fractal. Explore its spiral arrangement and build the shape one step at a time.",
+    imagePath: "/assets/fractal-images/romanesco.jpg",
+  },
   "/menger-sponge": {
     title: "Menger Sponge",
     description:

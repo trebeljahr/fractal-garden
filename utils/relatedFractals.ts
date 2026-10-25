@@ -32,6 +32,7 @@ const families: Family[] = [
   {
     paths: [
       "/mandelbulb",
+      "/romanesco",
       "/menger-sponge",
       "/polyhedron-flake",
       "/jerusalem-cube",

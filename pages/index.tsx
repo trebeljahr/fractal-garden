@@ -48,6 +48,7 @@ import polyhedronFlakeImage from "../public/assets/fractal-images/polyhedron-fla
 import pythagorasTreeImage from "../public/assets/fractal-images/pythagoras-tree.jpg";
 import quadraticKoch3DImage from "../public/assets/fractal-images/quadratic-koch-3d.jpg";
 import rauzyFractalImage from "../public/assets/fractal-images/rauzy-fractal.jpg";
+import romanescoImage from "../public/assets/fractal-images/romanesco.jpg";
 import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attractor.jpg";
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
@@ -94,6 +95,7 @@ const Home: NextPage = () => {
           />
           <FractalLink href="/menger-sponge" title="Menger Sponge" imageSrc={mengerSpongeImage} />
           <FractalLink href="/mandelbulb" title="Mandelbulb" imageSrc={mandelbulbImage} />
+          <FractalLink href="/romanesco" title="Romanesco" imageSrc={romanescoImage} />
           <FractalLink href="/buddhabrot" title="Buddhabrot" imageSrc={buddhabrotImage} />
           <FractalLink
             href="/newton-fractal"
