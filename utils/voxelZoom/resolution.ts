@@ -3,6 +3,9 @@ import { MAX_VOXEL_DEPTH } from "./camera";
 // Numerical floor in the local precision scale. Flying toward a surface
 // refines that scale independently of the selected travel and fog scale.
 export const MIN_FLIGHT_DETAIL_DISTANCE = 0.02;
+// Refine geometry only while a child spans several visible pixels. Lighting
+// and edge antialiasing retain the actual framebuffer pixel footprint.
+export const FLIGHT_DETAIL_PIXELS = 4;
 export function flightDetailDepth(navigationLevel: number, level = navigationLevel) {
   // At the maximum framebuffer budget, twelve extra subdivisions are already
   // below the minimum pixel cone. Do not build unreachable render levels.
@@ -17,8 +20,16 @@ export function flightResolution(
   height: number,
   level = 0,
   navigationLevel = level,
+  displayWidth = width,
+  displayHeight = height,
 ) {
   const pixelAngle = 1.16 / Math.max(1, Math.min(width, height));
   const minimumDistance = MIN_FLIGHT_DETAIL_DISTANCE * Math.min(1, 3 ** (level - navigationLevel));
-  return { pixelAngle, nearFootprint: Math.max(minimumDistance, clearance) * pixelAngle };
+  const displayScale =
+    Math.max(1, Math.min(width, height)) / Math.max(1, Math.min(displayWidth, displayHeight));
+  return {
+    pixelAngle,
+    nearFootprint: Math.max(minimumDistance, clearance) * pixelAngle,
+    detailScale: FLIGHT_DETAIL_PIXELS * displayScale,
+  };
 }

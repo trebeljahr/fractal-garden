@@ -164,7 +164,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
     target = cameraTarget(camera),
     rotation = rotationOf(style);
   const maxVertices = request.maxVertices ?? 240000,
-    pixelSize = request.pixelSize ?? 1.5;
+    pixelSize = request.pixelSize ?? (spec.kind === "hilbert3d" ? 1.5 : 6);
   const output: number[] = [];
   let deepest = 0,
     visited = 0,
@@ -534,7 +534,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
 
 /** A full frame always contains every surviving branch; a cap raises screen tolerance uniformly. */
 function completeSpatialFrame(request: SpatialRequest): SpatialGeometry {
-  let pixelSize = request.pixelSize ?? 1.5;
+  let pixelSize = request.pixelSize ?? (request.spec.kind === "hilbert3d" ? 1.5 : 6);
   for (let attempt = 0; attempt < 14; attempt++) {
     const result = buildSpatialGeometry({ ...request, pixelSize });
     if (!result.limited) return { ...result, pixelSize };

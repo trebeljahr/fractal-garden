@@ -64,6 +64,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     "resolution",
     "pixelAngle",
     "nearFootprint",
+    "detailScale",
     "farDistance",
     "fogDistanceScale",
     "fogStart",
@@ -164,9 +165,18 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previousPattern = pattern;
       }
       gl.uniform2f(u.resolution, w, h);
-      const detail = flightResolution(frame.clearance, w, h, camera.level, navigationLevel);
+      const detail = flightResolution(
+        frame.clearance,
+        w,
+        h,
+        camera.level,
+        navigationLevel,
+        width,
+        height,
+      );
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);
+      gl.uniform1f(u.detailScale, detail.detailScale);
       gl.uniform1f(u.farDistance, nextAtmosphere.farDistance);
       gl.uniform1f(u.fogDistanceScale, nextAtmosphere.fogDistanceScale);
       gl.uniform1f(u.fogStart, nextAtmosphere.fogStart);

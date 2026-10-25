@@ -664,6 +664,36 @@ async function checkMain(payload) {
           );
         }
       }
+      // Metadata records the global subdivision address, not a material.
+      // Changing only that address must not recolour otherwise identical walls.
+      gl.uniform1i(u("checkMainMode"), 0);
+      gl.uniform1i(u("lighting"), 1);
+      gl.uniform1i(u("aoMode"), 0);
+      gl.uniform1f(u("detailScale"), 4);
+      const original = draw();
+      const recollected = new Float32Array(fixture.frame.texture);
+      for (let level = 0; level < fixture.frame.levels; level++)
+        recollected[256 * 4 + level * 4 + 3] += 37;
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 2, gl.RGBA, gl.FLOAT, recollected);
+      const deeper = draw();
+      compare(
+        "material is independent of subdivision address",
+        Math.max(...original.map((v, i) => Math.abs(v - deeper[i]))),
+        0,
+        0,
+      );
+      // Double framebuffer density, retaining the same centre ray and CSS cone.
+      gl.uniform1f(u("pixelAngle"), 0.5e-5);
+      gl.uniform1f(u("nearFootprint"), 0.5e-6);
+      gl.uniform1f(u("detailScale"), 8);
+      const retina = draw();
+      compare(
+        "CSS detail is independent of framebuffer density",
+        Math.max(...deeper.map((v, i) => Math.abs(v - retina[i]))),
+        0,
+        1,
+      );
+      gl.uniform1f(u("detailScale"), 1);
       const error = gl.getError();
       if (error !== gl.NO_ERROR)
         throw Error(`WebGL error ${error} in main integration ${fixture.name}`);

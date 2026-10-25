@@ -2,6 +2,7 @@ precision highp float;
 uniform vec2 u_resolution;
 uniform float u_pixelAngle;
 uniform float u_nearFootprint;
+uniform float u_detailScale;
 uniform float u_farDistance;
 uniform float u_fogDistanceScale;
 uniform float u_fogStart;
@@ -119,6 +120,10 @@ void main() {
     int surfaceLevel = -1;
     float surfaceDepth = 0.0;
     float surfaceT = t;
+    vec3 shadingNormal = normal;
+    vec3 resolvedNormal = normal;
+    float detailVisibility = 1.0;
+    float detailScale = max(1.0, u_detailScale);
     // Retry unusually expensive grazing rays at a coarser footprint instead
     // of turning an unfinished traversal into a false hole.
     for (int attempt = 0; attempt < 2; attempt++) {
@@ -127,6 +132,9 @@ void main() {
       surfaceLevel = -1;
       surfaceDepth = 0.0;
       surfaceT = t;
+      shadingNormal = rootNormal;
+      resolvedNormal = rootNormal;
+      detailVisibility = 1.0;
       int retainedLevels = 0;
       vec3 retainedLow = vec3(-1e30);
       vec3 retainedHigh = vec3(1e30);
@@ -137,7 +145,7 @@ void main() {
       if (far > t) {
         for (int stepIndex = 0; stepIndex < 512; stepIndex++) {
             if (t >= far) break;
-            footprint = max(u_nearFootprint, t * u_pixelAngle) * (attempt == 0 ? 1.0 : 8.0);
+            footprint = max(u_nearFootprint, t * u_pixelAngle) * detailScale * (attempt == 0 ? 1.0 : 8.0);
             vec3 p = ray * (t + footprint * 0.025);
             // Empty-cell jumps often stay inside the same retained parents.
             // Reuse that prefix until the sample leaves their shared bounds.
@@ -188,6 +196,12 @@ void main() {
                     float jump = min(min(distances.x, distances.y), distances.z);
                     normal = distances.x <= distances.y && distances.x <= distances.z ? vec3(-sign(ray.x), 0.0, 0.0)
                         : distances.y <= distances.z ? vec3(0.0, -sign(ray.y), 0.0) : vec3(0.0, 0.0, -sign(ray.z));
+                    // A newly resolved hole starts with its enclosing face's
+                    // light. Reveal its own orientation over one subdivision,
+                    // rather than changing brightness at the detail cutoff.
+                    detailVisibility = smoothstep(1.0, 3.0, size / footprint);
+                    if (detailVisibility == 1.0) resolvedNormal = normal;
+                    shadingNormal = mix(resolvedNormal, normal, detailVisibility);
                     surfaceGrid = grid;
                     surfaceLevel = level;
                     surfaceDepth = rule.w;
@@ -216,27 +230,25 @@ void main() {
     }
     vec3 color = u_background;
     if (hit) {
-        // Light the intersected face. A parent-cell normal produces large,
-        // flat tiles which jump when the pixel footprint crosses a level.
-        float diffuse = max(0.0, dot(normal, normalize(vec3(-0.5, 0.8, 0.6))));
-        float facing = 0.15 * max(0.0, dot(normal, -ray));
+        // Fully resolved faces use their exact hit normal; the smallest
+        // visible subdivision reveals its lighting gradually.
+        vec3 litNormal = length(shadingNormal) > 0.001 ? normalize(shadingNormal) : normal;
+        float diffuse = max(0.0, dot(litNormal, normalize(vec3(-0.5, 0.8, 0.6))));
+        float facing = 0.15 * max(0.0, dot(litNormal, -ray));
         float light = 0.38 + 0.62 * diffuse + facing;
         color = u_fill * light;
         float occlusion = 0.0;
         if (u_aoMode > 0 && u_faces && surfaceLevel >= 0) {
-            float resolved = smoothstep(2.0, 8.0, surfaceGrid.w / footprint);
+            float resolved = detailVisibility * smoothstep(2.0, 8.0, surfaceGrid.w / max(u_nearFootprint, t * u_pixelAngle));
             // CPU-pruned ancestors are valid in the local horizon, including these neighbours.
             resolved *= 1.0 - smoothstep(0.125, 0.25, surfaceGrid.w / u_farDistance);
             if (resolved > 0.0) occlusion = resolved * surfaceOcclusion(ray * surfaceT, normal, surfaceGrid, surfaceLevel);
         }
         float ambientVisibility = 1.0 - (u_aoMode == 2 ? 0.7 : 0.55) * occlusion;
         if (u_lighting == 1 && u_faces) {
-            // Absolute cavity depth stays attached to geometry as precision and LOD change.
-            float nested = 0.5 + 0.5 * sin(surfaceDepth * 0.9);
-            vec3 material = u_fill * mix(vec3(1.07, 0.99, 0.91), vec3(0.91, 0.99, 1.07), nested);
-            vec3 ambient = mix(vec3(0.29, 0.34, 0.43), vec3(0.43, 0.43, 0.40), 0.5 + 0.5 * normal.y);
+            vec3 ambient = mix(vec3(0.29, 0.34, 0.43), vec3(0.43, 0.43, 0.40), 0.5 + 0.5 * litNormal.y);
             vec3 illumination = ambient * ambientVisibility + 0.62 * diffuse * vec3(1.08, 1.0, 0.88) + facing * 0.75;
-            color = material * illumination;
+            color = u_fill * illumination;
         } else if (u_aoMode > 0) {
             color = u_fill * (0.38 * ambientVisibility + 0.62 * diffuse + facing);
         }
@@ -244,6 +256,7 @@ void main() {
         // Ignore the surface-normal axis when finding edges on this face.
         faceEdges += abs(normal) * 2.0;
         float edge = min(min(faceEdges.x, faceEdges.y), faceEdges.z) * cellSize;
+        footprint = max(u_nearFootprint, t * u_pixelAngle);
         float outline = 1.0 - smoothstep(footprint * u_lineWidth * 0.25, footprint * (u_lineWidth * 0.25 + 0.6), edge);
         if (u_wire) color = mix(color, u_stroke * light, outline * (u_faces ? 0.25 : 1.0));
         if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);

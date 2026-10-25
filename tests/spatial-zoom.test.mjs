@@ -153,6 +153,25 @@ test("work caps produce complete coarser frames and empty views stay empty", () 
   });
   assert.equal(empty.vertices.length, 0);
 });
+test("solid detail omits tiny distant copies and still refines on approach", () => {
+  const request = {
+    spec: { kind: "flake", mesh: "tetrahedron", ratio: 0.5 },
+    camera: INITIAL_SPATIAL_CAMERA,
+    style,
+    width,
+    height,
+  };
+  const opening = buildSpatialFrame(request);
+  const tiny = buildSpatialFrame({ ...request, pixelSize: 1.5 });
+  assert.equal(opening.limited, false);
+  assert.ok(opening.leaves < tiny.leaves / 2);
+  assert.ok(opening.depth < tiny.depth);
+  const closer = buildSpatialFrame({
+    ...request,
+    camera: { ...INITIAL_SPATIAL_CAMERA, zoom: 2 },
+  });
+  assert.ok(closer.depth > opening.depth);
+});
 test("Hilbert endpoints agree with adjacent recursive octants", () => {
   assert.deepEqual(hilbertEnds, [
     [-1, -1, -1],

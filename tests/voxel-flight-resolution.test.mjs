@@ -17,7 +17,24 @@ const {
   flightResolution,
   flightDetailDepth,
   MIN_FLIGHT_DETAIL_DISTANCE,
+  FLIGHT_DETAIL_PIXELS,
 } = require("../utils/voxelZoom/resolution.ts");
+
+test("geometry detail follows visible pixels while edge antialiasing follows the framebuffer", () => {
+  const css = flightResolution(0.1, 1200, 800, 0, 0, 1200, 800);
+  for (const scale of [0.75, 1, 1.5, 2]) {
+    const detail = flightResolution(0.1, 1200 * scale, 800 * scale, 0, 0, 1200, 800);
+    assert.equal(detail.detailScale, FLIGHT_DETAIL_PIXELS * scale);
+    assert.ok(
+      Math.abs(detail.pixelAngle * detail.detailScale - css.pixelAngle * css.detailScale) < 1e-15,
+    );
+    assert.ok(
+      Math.abs(detail.nearFootprint * detail.detailScale - css.nearFootprint * css.detailScale) <
+        1e-15,
+    );
+    assert.ok(Math.abs(detail.pixelAngle * scale - css.pixelAngle) < 1e-15);
+  }
+});
 
 test("pixel cones grow with distance and shrink with framebuffer resolution", () => {
   const detail = flightResolution(0.1, 1200, 800);

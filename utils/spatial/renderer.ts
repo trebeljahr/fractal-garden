@@ -41,6 +41,8 @@ void main() {
   }
   vec3 a = smoothstep(vec3(0.), max(fwidth(b) * max(lineWidth, .5), vec3(.000001)), b);
   float edge = min(min(mix(1., a.x, e.x), mix(1., a.y, e.y)), mix(1., a.z, e.z));
+  // Thin triangles should not become solid stroke colour in the distance.
+  float edgeVisibility = smoothstep(3., 10., 1. / max(max(fwidth(b.x), fwidth(b.y)), fwidth(b.z)));
   if (faces < .5 && (wire < .5 || edge > .9)) discard;
   float diffuse = max(0., dot(normal, normalize(vec3(-.5, .8, .6))));
   float facing = .15 * max(0., dot(normal, normalize(vec3(-p.xy, ${CAMERA_DISTANCE.toFixed(1)}-p.z))));
@@ -54,7 +56,7 @@ void main() {
     float far = clamp((${CAMERA_DISTANCE.toFixed(1)} - p.z - 2.) / 10., 0., 1.);
     color = mix(background, mix(fill, farColor, far), mix(1., farAlpha, far));
   }
-  gl_FragColor = vec4(mix(stroke * light, color, wire > .5 ? (faces > .5 ? mix(.75,1.,edge) : edge) : 1.), 1.);
+  gl_FragColor = vec4(mix(stroke * light, color, wire > .5 ? (faces > .5 ? 1. - .25 * (1. - edge) * edgeVisibility : edge) : 1.), 1.);
 }`;
 const screenVertex = `attribute vec2 position; varying vec2 uv;
 void main(){ uv = position * .5 + .5; gl_Position = vec4(position,0.,1.); }`;
