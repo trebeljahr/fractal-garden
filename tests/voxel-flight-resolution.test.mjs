@@ -22,7 +22,7 @@ const {
 
 test("geometry detail follows visible pixels while edge antialiasing follows the framebuffer", () => {
   const css = flightResolution(0.1, 1200, 800, 0, 0, 1200, 800);
-  for (const scale of [0.75, 1, 1.5, 2]) {
+  for (const scale of [1, 1.5, 2]) {
     const detail = flightResolution(0.1, 1200 * scale, 800 * scale, 0, 0, 1200, 800);
     assert.equal(detail.detailScale, FLIGHT_DETAIL_PIXELS * scale);
     assert.ok(
@@ -33,6 +33,16 @@ test("geometry detail follows visible pixels while edge antialiasing follows the
         1e-15,
     );
     assert.ok(Math.abs(detail.pixelAngle * scale - css.pixelAngle) < 1e-15);
+  }
+});
+
+test("reduced flight resolution stops holes before they become isolated pixel samples", () => {
+  for (const scale of [0.25, 0.5, 0.75, 1, 1.5, 2]) {
+    const detail = flightResolution(0.1, 1200 * scale, 800 * scale, 0, 0, 1200, 800);
+    const framebufferPixels = detail.detailScale;
+    const displayPixels = framebufferPixels / scale;
+    assert.ok(framebufferPixels >= 2, `only ${framebufferPixels} samples at scale ${scale}`);
+    assert.ok(displayPixels >= 2);
   }
 });
 
