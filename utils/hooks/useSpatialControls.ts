@@ -111,6 +111,7 @@ export function useSpatialControls<T extends View>({
       release();
       speed = 1;
       anchor = null;
+      setFlying(true);
       setCamera(INITIAL_SPATIAL_CAMERA);
       setView((old) => ({
         ...old,
@@ -494,10 +495,6 @@ export function useSpatialControls<T extends View>({
   }, [animateOrbit, view.autoRotate, setView]);
   const navigation = createElement(SpatialNavigation, {
     flying,
-    setFlying: (value: boolean) => {
-      setFlying(value);
-      if (!value) window.dispatchEvent(new Event("garden:reset-pose"));
-    },
     input: touch.current,
   });
   return { camera, setCamera, flying, navigation };

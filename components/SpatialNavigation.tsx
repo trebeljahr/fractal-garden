@@ -3,15 +3,7 @@ import { createPortal } from "react-dom";
 import styles from "../styles/VoxelFlight.module.css";
 import { FlightTouchControls, type FlightTouchInput } from "./FlightTouchControls";
 
-export function SpatialNavigation({
-  flying,
-  setFlying,
-  input,
-}: {
-  flying: boolean;
-  setFlying: (value: boolean) => void;
-  input: FlightTouchInput;
-}) {
+export function SpatialNavigation({ flying, input }: { flying: boolean; input: FlightTouchInput }) {
   const [needsReset, setNeedsReset] = useState(false);
   const [host, setHost] = useState<Element | null>(null);
   useEffect(() => {
@@ -37,19 +29,6 @@ export function SpatialNavigation({
                 Reset view
               </button>
             )}
-            <button
-              className={styles.navigation}
-              type="button"
-              onClick={() => setFlying(!flying)}
-              aria-pressed={flying}
-              title={
-                flying
-                  ? "Return to drag-to-rotate controls"
-                  : "Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
-              }
-            >
-              {flying ? "Back outside" : "Fly inside"}
-            </button>
           </div>,
           host,
         )}
