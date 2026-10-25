@@ -19,31 +19,6 @@
   outline: 1px solid var(--explorer-accent);
   outline-offset: -2px;
 }
-.navigation {
-  height: var(--explorer-control-height);
-  padding: 0 16px;
-  border: 1px solid rgba(245, 241, 209, 0.16);
-  border-radius: 3px;
-  background: var(--explorer-surface);
-  color: var(--explorer-ink);
-  font:
-    500 14px "Montserrat",
-    sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background-color 150ms,
-    color 150ms;
-}
-.navigation:hover {
-  background: var(--explorer-field);
-  color: var(--explorer-accent);
-}
-.navigation:focus-visible,
-.touchControls button:focus-visible {
-  outline: 2px solid var(--explorer-accent);
-  outline-offset: -2px;
-}
 .touchControls {
   position: absolute;
   z-index: 22;
@@ -134,28 +109,5 @@
 @media (hover: hover) and (pointer: fine) {
   .touchControls {
     display: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .navigation {
-    transition: none;
-  }
-}
-
-.navigationGroup {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
-}
-@media (max-width: 700px) {
-  .navigationGroup {
-    gap: 4px;
-    min-width: 0;
-    justify-content: end;
-  }
-  .navigationGroup .navigation {
-    padding: 0 6px;
-    font-size: 12px;
   }
 }

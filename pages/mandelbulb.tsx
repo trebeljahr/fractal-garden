@@ -21,6 +21,7 @@ import {
   MAX_BULB_ZOOM,
   pickBulbPoint,
 } from "../utils/spatial/mandelbulb";
+import { SPATIAL_PLACES } from "../utils/spatial/places";
 import { spatialProjection } from "../utils/spatial/projection";
 
 type Props = {
@@ -117,6 +118,7 @@ const Mandelbulb = ({ description }: Props) => {
   const redraw = useRef<(schedule?: boolean) => void>(() => {});
   const [contextVersion, setContextVersion] = useState(0);
   const { navigation } = useSpatialControls({
+    places: SPATIAL_PLACES.mandelbulb,
     canvas: cnv,
     view: config,
     setView: setConfig,

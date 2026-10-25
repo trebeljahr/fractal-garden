@@ -116,7 +116,9 @@ export function ExplorerPanel<T>({
           <div className={`${styles.panel} ${styles.headerControls}`}>
             <div className={styles.studioGroup} data-fractal-studio>
               <div ref={setViewControlsHost} className={styles.viewControlsHost} />
-              {places && <div className={styles.placesHost}>{places}</div>}
+              <div className={styles.placesHost} data-fractal-places-host>
+                {places}
+              </div>
               {mainControls && (
                 <FractalStudioControls
                   data={data}

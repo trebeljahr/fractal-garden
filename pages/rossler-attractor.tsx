@@ -10,6 +10,7 @@ import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import { getDescription } from "../utils/readFiles";
 import type { Polyline3DSceneConfig, PolylineSceneParams } from "../utils/render/polylineScene";
 import { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } from "../utils/spatial/camera";
+import { SPATIAL_PLACES } from "../utils/spatial/places";
 
 type Props = {
   description: string;
@@ -63,6 +64,7 @@ const RosslerAttractor = ({ description }: Props) => {
   });
 
   const { navigation } = useSpatialControls({
+    places: SPATIAL_PLACES.rossler,
     canvas,
     view: config,
     setView: setConfig,

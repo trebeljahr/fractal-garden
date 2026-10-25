@@ -9,6 +9,7 @@ import {
   type SpatialCamera,
 } from "../utils/spatial/camera";
 import type { SpatialStyle } from "../utils/spatial/geometry";
+import { SPATIAL_PLACES } from "../utils/spatial/places";
 import type { GpuSpatialSpec } from "../utils/spatialGpu/model";
 import { createSpatialGpuRenderer } from "../utils/spatialGpu/renderer";
 import { MAX_FLIGHT_PIXELS } from "../utils/voxelZoom/frameBudget";
@@ -33,12 +34,13 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
   const renderer = useRef<ReturnType<typeof createSpatialGpuRenderer> | null>(null);
   const drawn = useRef<{ camera: SpatialCamera; style: SpatialStyle } | null>(null);
   const live = useRef({ camera: INITIAL_SPATIAL_CAMERA, style });
-  const { camera, flying, navigation } = useSpatialControls({
+  const { camera, navigation } = useSpatialControls({
     canvas,
     frame: framing,
     view: style,
     setView: setStyle,
     identity: JSON.stringify(spec),
+    places: SPATIAL_PLACES[spec.kind as keyof typeof SPATIAL_PLACES],
     clearance: (camera, view) => {
       try {
         return renderer.current?.clearance(camera, spec, view) ?? null;
@@ -189,12 +191,8 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
         data-spatial-explorer
         data-gpu-spatial-explorer
         data-zoom={camera.zoom}
-        data-flying={flying}
-        aria-label={
-          flying
-            ? "Explore the fractal interior. Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
-            : "Drag to rotate. Shift-drag to pan. Scroll or pinch to zoom. Double-click to reset."
-        }
+        data-flying="true"
+        aria-label="Explore the fractal interior. Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
         style={{ width, height, display: "block", background: style.background }}
       />
     </>

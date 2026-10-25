@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
-import flightStyles from "../styles/VoxelFlight.module.css";
 import type { ConstructionView } from "../utils/constructionView";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import type { Orientation } from "../utils/orientation";
 import type { SceneSpec } from "../utils/render/scene3d";
 import type { FlightCamera, VoxelPattern } from "../utils/voxelZoom/camera";
+import { voxelPlaces } from "../utils/voxelZoom/places";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { useConstructionRegistration } from "./FractalConstruction";
@@ -245,12 +245,11 @@ export function SceneFractalExplorer<V extends string>({
       <ExplorerPanel
         data={config}
         introTitle={title}
-        lines={exploring ? [] : ["Drag to rotate. Shift-drag to pan. Scroll to zoom."]}
+        lines={[]}
         places={
-          exploring &&
-          (places.length > 0 ? (
+          exploring && (
             <PlacesMenu
-              views={places}
+              views={places.length > 0 ? places : voxelPlaces<V>(pattern)}
               onSelect={(place) => {
                 const nextVariant = place.variant ?? config.variant;
                 const spec = variants[nextVariant].spec;
@@ -264,15 +263,7 @@ export function SceneFractalExplorer<V extends string>({
                 setDestination({ variant: nextVariant, camera: place.camera(nextPattern) });
               }}
             />
-          ) : (
-            <button
-              className={flightStyles.navigation}
-              type="button"
-              onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
-            >
-              Reset view
-            </button>
-          ))
+          )
         }
         constructionControls={constructionControls}
         explorationControls={

@@ -4,7 +4,7 @@ import { exteriorFlightCamera, initialFlightCamera, restoreFlightCamera } from "
 
 export const MOSELY_PLACES: ScenePlace<"lighter" | "heavier">[] = [
   {
-    label: "Reset view",
+    label: "Default view",
     detail: "See the whole lattice from outside.",
     camera: initialFlightCamera,
   },

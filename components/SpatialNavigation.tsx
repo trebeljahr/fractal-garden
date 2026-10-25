@@ -1,38 +1,30 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import styles from "../styles/VoxelFlight.module.css";
+import { DEFAULT_SPATIAL_PLACE, type SpatialPlace } from "../utils/spatial/places";
 import { FlightTouchControls, type FlightTouchInput } from "./FlightTouchControls";
+import { PlacesMenu } from "./FractalPlaces";
 
-export function SpatialNavigation({ flying, input }: { flying: boolean; input: FlightTouchInput }) {
-  const [needsReset, setNeedsReset] = useState(false);
+export function SpatialNavigation({
+  input,
+  places,
+  onSelect,
+}: {
+  input: FlightTouchInput;
+  places: SpatialPlace[];
+  onSelect: (place: SpatialPlace) => void;
+}) {
   const [host, setHost] = useState<Element | null>(null);
   useEffect(() => {
-    const target = document.querySelector("[data-fractal-studio]");
-    setHost(target);
-    setNeedsReset(
-      !Array.from(target?.querySelectorAll("button") ?? []).some(
-        (button) => button.textContent === "Reset view",
-      ),
-    );
+    setHost(document.querySelector("[data-fractal-places-host]"));
   }, []);
   return (
     <>
       {host &&
         createPortal(
-          <div className={styles.navigationGroup} data-spatial-navigation>
-            {needsReset && (
-              <button
-                className={styles.navigation}
-                type="button"
-                onClick={() => window.dispatchEvent(new Event("garden:reset-pose"))}
-              >
-                Reset view
-              </button>
-            )}
-          </div>,
+          <PlacesMenu views={[DEFAULT_SPATIAL_PLACE, ...places]} onSelect={onSelect} />,
           host,
         )}
-      {flying && <FlightTouchControls input={input} />}
+      <FlightTouchControls input={input} />
     </>
   );
 }

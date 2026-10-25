@@ -917,6 +917,10 @@
   background: var(--explorer-surface);
 }
 
+.placesHost:empty {
+  display: none;
+}
+
 .placesHost {
   flex: 0 0 auto;
   pointer-events: auto;
@@ -930,7 +934,7 @@
   }
 
   .headerControls .viewControlsHost,
-  .headerControls .studioGroup:not(:has(.placesHost)) .studio {
+  .headerControls .studioGroup:not(:has([data-fractal-places])) .studio {
     grid-column: 1 / -1;
   }
 
@@ -964,10 +968,4 @@
 .inlinePanel .selectTrigger {
   min-height: 2.7rem;
   padding: 0 0.85rem 0 0.8rem;
-}
-
-@media (max-width: 700px) {
-  .headerControls .studioGroup:has([data-spatial-navigation]) .studio {
-    grid-column: auto;
-  }
 }

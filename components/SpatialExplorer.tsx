@@ -19,6 +19,7 @@ import {
 } from "../utils/spatial/geometry";
 import { spatialReliefFront } from "../utils/spatial/lighting";
 import { pickSpatialPoint } from "../utils/spatial/picking";
+import { SPATIAL_PLACES } from "../utils/spatial/places";
 import { createSpatialRenderer } from "../utils/spatial/renderer";
 
 export function SpatialExplorer<T extends SpatialStyle>({
@@ -40,12 +41,13 @@ export function SpatialExplorer<T extends SpatialStyle>({
   const geometry = useRef<SpatialGeometry | null>(null);
   const geometryFrame = useRef<SpatialRequest | null>(null);
   const currentFrame = useRef({ camera: INITIAL_SPATIAL_CAMERA, style });
-  const { camera, flying, navigation } = useSpatialControls({
+  const { camera, navigation } = useSpatialControls({
     canvas,
     frame,
     view: style,
     setView: setStyle,
     identity: JSON.stringify(spec),
+    places: SPATIAL_PLACES[spec.kind as keyof typeof SPATIAL_PLACES],
     clearance:
       spec.kind === "hilbert3d"
         ? undefined
@@ -232,7 +234,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
   // biome-ignore lint/correctness/useExhaustiveDependencies: Colors redraw existing buffers; only the listed view fields change geometry.
   useEffect(() => {
     if (!ready || !frame) return;
-    const request = { spec, camera, style, width, height, frame, flight: flying };
+    const request = { spec, camera, style, width, height, frame, flight: true };
     requestRef.current({ ...request, pixelSize: geometry.current?.pixelSize });
     const idle = window.setTimeout(() => requestRef.current(request), 300);
     return () => window.clearTimeout(idle);
@@ -240,7 +242,6 @@ export function SpatialExplorer<T extends SpatialStyle>({
     ready,
     spec,
     camera,
-    flying,
     style.rotationX,
     style.rotationY,
     style.grab,
@@ -276,12 +277,8 @@ export function SpatialExplorer<T extends SpatialStyle>({
         ref={setCanvas}
         data-spatial-explorer
         data-zoom={camera.zoom}
-        data-flying={flying}
-        aria-label={
-          flying
-            ? "Explore the fractal interior. Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
-            : "Drag to rotate. Shift-drag to pan. Scroll or pinch to zoom. Double-click to reset."
-        }
+        data-flying="true"
+        aria-label="Explore the fractal interior. Click to look. WASD to move. Space up. C down. Shift faster. Escape releases the mouse."
         style={{ width, height, display: "block", background: style.background }}
       />
     </>
