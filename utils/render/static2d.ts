@@ -1,4 +1,5 @@
 import { applyCanvasViewport, type CanvasViewport } from "../canvasViewport";
+import type { FractalFrame } from "../fractalFrame";
 import type { Context2D, Renderer } from "./types";
 
 /**
@@ -14,7 +15,12 @@ export type StaticDrawing<P extends { iterations: number }> = (
 ) => number;
 
 export class StaticRenderer<
-  P extends { iterations: number; viewport?: CanvasViewport; background?: string },
+  P extends {
+    iterations: number;
+    viewport?: CanvasViewport;
+    background?: string;
+    framing?: FractalFrame;
+  },
 > implements Renderer<P>
 {
   private params: P | null = null;
@@ -28,13 +34,15 @@ export class StaticRenderer<
 
   draw(ctx: Context2D, width: number, height: number) {
     if (!this.params) return false;
+    // Clear the entire surface before moving the geometry into its opening frame.
+    ctx.fillStyle = this.params.background ?? "#252424";
+    ctx.fillRect(0, 0, width, height);
     ctx.save();
-    if (this.params.viewport) {
-      ctx.fillStyle = this.params.background ?? "#252424";
-      ctx.fillRect(0, 0, width, height);
-      applyCanvasViewport(ctx, width, height, this.params.viewport);
-    }
-    this.work = this.drawing(ctx, width, height, this.params);
+    applyCanvasViewport(ctx, width, height, this.params.viewport);
+    const top = this.params.framing?.top ?? 0;
+    const bottom = this.params.framing?.bottom ?? 0;
+    ctx.translate(0, top);
+    this.work = this.drawing(ctx, width, Math.max(1, height - top - bottom), this.params);
     ctx.restore();
     return false;
   }

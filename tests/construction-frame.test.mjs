@@ -78,6 +78,31 @@ test("L-system lesson frames retain proportions and placement across desktop and
   }
 });
 
+test("L-system article construction does not inherit the explorer's UI insets", () => {
+  for (const [width, height, top, bottom] of [
+    [1440, 848, 24, 92],
+    [390, 740, 24, 108],
+    [844, 338, 24, 92],
+  ]) {
+    const fitHeight = height - top - bottom;
+    const source = {
+      initialLength: 300,
+      translation: [width / 2 - 80, fitHeight / 2 + 100],
+      iterations: 7,
+    };
+    const framed = {
+      ...source,
+      framing: { width, height, top, bottom },
+      translation: [source.translation[0], source.translation[1] + top],
+    };
+    assert.deepEqual(
+      constructionFrame("lsystem2d", framed, 2, width, height),
+      constructionFrame("lsystem2d", source, 2, width, fitHeight),
+    );
+    assert.equal(framed.translation[1], source.translation[1] + top);
+  }
+});
+
 const { drawLSystemConstruction } = require("../utils/render/drawings/lsystemConstruction.ts");
 const { DEFAULT_SPEC } = require("../utils/lsystem/spec.ts");
 

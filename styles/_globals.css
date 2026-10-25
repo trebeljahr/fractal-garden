@@ -10,6 +10,7 @@
   --explorer-nav-font-size: 13px;
   --explorer-nav-name-size: 11px;
   --explorer-nav-gap: 0px;
+  --fractal-canvas-top: var(--explorer-header-height);
   --fractal-viewport-top: calc(var(--explorer-header-height) + 24px);
   --fractal-viewport-bottom: calc(
     var(--explorer-nav-height) +
@@ -278,12 +279,8 @@ body[data-fractal-fullscreen] {
   --fractal-viewport-top: calc(var(--explorer-header-height) + 82px);
 }
 
-/* Zoomed drawings reach the navbar edge; the opening view keeps its breathing room. */
-body[data-fractal-zoom] {
-  --fractal-viewport-top: var(--explorer-header-height);
-}
-
 body[data-fractal-clean] {
+  --fractal-canvas-top: 0px;
   --fractal-viewport-top: 0px;
   --fractal-viewport-bottom: 0px;
 }

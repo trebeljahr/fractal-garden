@@ -1,4 +1,5 @@
 import { finite } from "../explorerShare";
+import type { FractalFrame } from "../fractalFrame";
 import {
   createEndlessOrbit,
   drawPolyline3D,
@@ -29,6 +30,7 @@ export type PolylineSource =
 export type PolylineSceneParams = {
   source: PolylineSource;
   config: Polyline3DSceneConfig;
+  framing?: FractalFrame;
   /** Oldest points are dropped beyond this count so an endless trail stays fast. */
   maxPoints?: number;
 };
@@ -96,6 +98,7 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     if (!this.params) return null;
     const config = {
       ...this.params.config,
+      framing: this.params.framing,
       rotationY: this.params.config.rotationY + this.yawOffset,
     };
     const polyline = config.animateTrail ? this.polyline : (this.detailPolyline ?? this.polyline);
@@ -143,7 +146,7 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     const params = this.params;
     if (!params) return false;
 
-    const { config } = params;
+    const config = { ...params.config, framing: params.framing };
     const maxPoints = params.maxPoints ?? Number.POSITIVE_INFINITY;
     const extend = config.animateTrail ? this.extend : undefined;
 
@@ -173,6 +176,7 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
         this.yawOffset,
         width,
         height,
+        params.framing,
       ]);
       if (key !== this.detailKey) {
         this.detail ??= new AttractorDetail(params.source);

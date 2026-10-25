@@ -1,16 +1,12 @@
+import type { FractalFrame } from "../fractalFrame";
 import { createShaderProgram } from "../shaders/compileShader";
-import {
-  CAMERA_DISTANCE,
-  FAR_PLANE,
-  FOCAL_SCALE,
-  NEAR_PLANE,
-  type SpatialFrameTransform,
-} from "./camera";
+import { CAMERA_DISTANCE, FAR_PLANE, NEAR_PLANE, type SpatialFrameTransform } from "./camera";
 import type { SpatialGeometry, SpatialStyle } from "./geometry";
+import { spatialProjection } from "./projection";
 
 const vertex = `
 attribute vec3 position, normal, bary, edges;
-uniform vec2 scale;
+uniform vec2 scale, origin;
 uniform mat3 frame;
 uniform vec3 shift;
 uniform float magnification;
@@ -18,7 +14,7 @@ varying vec3 n, b, e, p;
 void main() {
   p = frame * (position * magnification) + shift;
   float d = ${CAMERA_DISTANCE.toFixed(1)} - p.z;
-  gl_Position = vec4(p.xy * scale, ${((FAR_PLANE + NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)} * d - ${((2 * FAR_PLANE * NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)}, d);
+  gl_Position = vec4(p.xy * scale + origin * d, ${((FAR_PLANE + NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)} * d - ${((2 * FAR_PLANE * NEAR_PLANE) / (FAR_PLANE - NEAR_PLANE)).toFixed(12)}, d);
   n = frame * normal; b = bary; e = edges;
 }`;
 const fragment = `
@@ -68,11 +64,11 @@ void main(){ uv = position * .5 + .5; gl_Position = vec4(position,0.,1.); }`;
 const screenFragment = `precision highp float;
 varying vec2 uv;
 uniform sampler2D colorMap, surfaceMap;
-uniform vec2 resolution, projection;
+uniform vec2 resolution, projection, origin;
 uniform vec3 background;
 uniform float aoMode, faces, lighting, fogDistanceScale, reliefFront, reliefEnabled, reliefScale;
 float depth(vec4 s) { return exp2((s.b + s.a / 255.) * log2(${(FAR_PLANE + 1).toFixed(1)})) - 1.; }
-vec3 point(vec2 at, float d) { return vec3((at * 2. - 1.) * d / projection, -d); }
+vec3 point(vec2 at, float d) { return vec3((at * 2. - 1. - origin) * d / projection, -d); }
 vec3 normal(vec4 s) {
   vec2 f = s.rg * 2. - 1.; vec3 n = vec3(f, 1. - abs(f.x) - abs(f.y));
   float t = max(-n.z, 0.); n.xy += mix(vec2(t),vec2(-t),step(vec2(0.),n.xy));
@@ -157,6 +153,7 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
       height: number,
       fogDistanceScale = 1 / 96,
       reliefFront = 0,
+      frame?: FractalFrame | null,
     ) {
       const canvas = gl.canvas as HTMLCanvasElement,
         ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -197,11 +194,11 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
         gl.enableVertexAttribArray(a);
         gl.vertexAttribPointer(a, 3, gl.FLOAT, false, 48, i * 12);
       });
-      const projection = [
-        (2 * FOCAL_SCALE * Math.min(width, height)) / width,
-        (2 * FOCAL_SCALE * Math.min(width, height)) / height,
-      ];
+      const view = spatialProjection(width, height, frame);
+      const projection = [(2 * view.focal) / width, (2 * view.focal) / height];
+      const origin = [0, 1 - (2 * view.centerY) / height];
       gl.uniform2fv(location("scale"), projection);
+      gl.uniform2fv(location("origin"), origin);
       gl.uniformMatrix3fv(location("frame"), false, transform.matrix);
       gl.uniform3fv(location("shift"), transform.offset);
       uniform("magnification", transform.scale);
@@ -253,6 +250,7 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
       gl.uniform1i(screenLocation("surfaceMap"), 1);
       gl.uniform2f(screenLocation("resolution"), w, h);
       gl.uniform2fv(screenLocation("projection"), projection);
+      gl.uniform2fv(screenLocation("origin"), origin);
       gl.uniform3fv(screenLocation("background"), rgb(style.background));
       gl.uniform1f(screenLocation("faces"), Number(style.showFaces));
       gl.uniform1f(screenLocation("fogDistanceScale"), Math.max(1 / FAR_PLANE, fogDistanceScale));

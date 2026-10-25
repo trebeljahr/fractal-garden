@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../styles/VoxelFlight.module.css";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { createZoomWheelGuard, listenForZoomWheel } from "../utils/shouldZoomWheel";
 import {
   atFlightZoomLimit,
@@ -60,10 +61,11 @@ export function VoxelFlight({
   height: number;
   cameraPreset?: FlightCamera;
 }) {
+  const framing = useFractalFrame(width, height);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<FlightCamera>(initialFlightCamera(pattern));
-  const latest = useRef({ pattern, style, width, height });
-  latest.current = { pattern, style, width, height };
+  const latest = useRef({ pattern, style, width, height, framing });
+  latest.current = { pattern, style, width, height, framing };
   const dirty = useRef(true);
   const held = useRef(new Set<string>());
   const touch = useRef<FlightTouchInput>({
@@ -94,7 +96,7 @@ export function VoxelFlight({
   // biome-ignore lint/correctness/useExhaustiveDependencies: invalidates the imperative renderer
   useEffect(() => {
     dirty.current = true;
-  }, [pattern, style, width, height]);
+  }, [pattern, style, width, height, framing]);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -181,7 +183,8 @@ export function VoxelFlight({
     };
     const draw = (pixelBudget?: number) => {
       if (!renderer || gl.isContextLost()) return;
-      const { pattern, style, width, height } = latest.current;
+      const { pattern, style, width, height, framing } = latest.current;
+      if (!framing) return;
       renderer.draw(
         cameraRef.current,
         pattern,
@@ -190,6 +193,7 @@ export function VoxelFlight({
         height,
         window.devicePixelRatio || 1,
         pixelBudget,
+        framing,
       );
       const stillSize = flightRenderSize(
         width,

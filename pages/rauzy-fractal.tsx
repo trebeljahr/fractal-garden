@@ -8,6 +8,7 @@ import styles from "../styles/Fullscreen.module.css";
 import { applyCanvasViewport } from "../utils/canvasViewport";
 import { radians } from "../utils/ctxHelpers";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { contractingProjection, tribonacciWord } from "../utils/rauzy";
 import { getDescription } from "../utils/readFiles";
@@ -32,6 +33,7 @@ const PADDING = 0.08;
 
 const RauzyFractal = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const viewport = useCanvasViewport(ctx?.canvas ?? null);
   const [config, setConfig] = useState<Config>({
@@ -83,15 +85,16 @@ const RauzyFractal = ({ description }: Props) => {
       maxY = Math.max(maxY, ys[i]);
     }
 
+    const fitHeight = height - (framing?.top ?? 0) - (framing?.bottom ?? 0);
     const drawWidth = maxX - minX || 1;
     const drawHeight = maxY - minY || 1;
     const scale = Math.min(
       (width * (1 - 2 * PADDING)) / drawWidth,
-      (height * (1 - 2 * PADDING)) / drawHeight,
+      (fitHeight * (1 - 2 * PADDING)) / drawHeight,
     );
     const xOffset = (width - drawWidth * scale) / 2 - minX * scale;
     // Flip y so the picture uses the usual mathematical orientation.
-    const yOffset = (height - drawHeight * scale) / 2 + maxY * scale;
+    const yOffset = (framing?.top ?? 0) + (fitHeight - drawHeight * scale) / 2 + maxY * scale;
 
     ctx.resetTransform();
     const ratio = window.devicePixelRatio || 1;
@@ -116,7 +119,7 @@ const RauzyFractal = ({ description }: Props) => {
       }
       ctx.fill();
     });
-  }, [config, ctx, width, height, points, word, viewport]);
+  }, [config, ctx, width, height, points, word, viewport, framing]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));
@@ -145,7 +148,7 @@ const RauzyFractal = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
         >
-          <Canvas setCtx={setCtx} width={width} height={height} />
+          {framing && <Canvas setCtx={setCtx} width={width} height={height} />}
         </div>
         <SideDrawer description={description} />
         <NavElement />

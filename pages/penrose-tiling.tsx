@@ -5,9 +5,9 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import { useZoomActivity } from "../components/ZoomActivity";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { type PenroseStart, type PenroseVariant, PHI } from "../utils/penroseTiling";
 import { getDescription } from "../utils/readFiles";
 import { getMinTilePx, type PenroseParams } from "../utils/render/penrose";
@@ -72,7 +72,7 @@ const startLabels: Record<PenroseStart, string> = {
 };
 
 const PenroseTiling = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [zoomed, setZoomed] = useState(false);
   const { setActive: setZoomActive } = useZoomActivity();
   const [config, setConfig] = useState<Config>({
@@ -194,7 +194,7 @@ const PenroseTiling = ({ description }: Props) => {
         <PanelColor path="outlineColor" label="Outline color" />
         <PanelNumber path="lineWidth" min={0} max={4} step={0.1} />
       </ExplorerPanel>
-      <div className={styles.fullScreen} ref={containerRef} />
+      <div data-fractal-viewport className={styles.viewport} ref={containerRef} />
       <SideDrawer description={description} />
       <NavElement />
     </main>

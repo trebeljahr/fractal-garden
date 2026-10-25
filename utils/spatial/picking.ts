@@ -1,11 +1,12 @@
+import type { FractalFrame } from "../fractalFrame";
 import {
   CAMERA_DISTANCE,
-  FOCAL_SCALE,
   NEAR_PLANE,
   type SpatialFrameTransform,
   transformSpatialPoint,
   type Vec3,
 } from "./camera";
+import { spatialProjection } from "./projection";
 
 const cross = (a: Vec3, b: Vec3): Vec3 => [
   a[1] * b[2] - a[2] * b[1],
@@ -22,10 +23,12 @@ export function pickSpatialPoint(
   width: number,
   height: number,
   transform?: SpatialFrameTransform,
+  frame?: FractalFrame | null,
 ): Vec3 | null {
+  const projection = spatialProjection(width, height, frame);
   const direction: Vec3 = [
-      (x - width / 2) / (Math.min(width, height) * FOCAL_SCALE),
-      -(y - height / 2) / (Math.min(width, height) * FOCAL_SCALE),
+      (x - projection.centerX) / projection.focal,
+      -(y - projection.centerY) / projection.focal,
       -1,
     ],
     origin: Vec3 = [0, 0, CAMERA_DISTANCE];

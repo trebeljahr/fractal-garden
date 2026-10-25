@@ -1,4 +1,5 @@
-import { type DeepViewport, fixedOffset } from "./deepZoom/math";
+import { createViewport, type DeepViewport, fixedOffset } from "./deepZoom/math";
+import type { FractalFrame } from "./fractalFrame";
 import { fixedFromNumber, fixedToNumber } from "./lsystem/bigfixed";
 
 export type FernMethod = "chaos" | "deterministic";
@@ -45,6 +46,15 @@ export function fernBounds(matrix: number[][]): FernBounds {
 export function fernOpeningSpan(bounds: FernBounds, width: number, height: number) {
   const side = Math.min(width, height);
   return Math.max((bounds.rx * side) / width, (bounds.ry * side) / height) / 0.95;
+}
+
+/** Keep the complete fern above controls while sampling the full canvas. */
+export function fernOpeningView(bounds: FernBounds, frame: FractalFrame): DeepViewport {
+  const fitHeight = frame.height - frame.top - frame.bottom;
+  const side = Math.min(frame.width, frame.height);
+  const span =
+    (fernOpeningSpan(bounds, frame.width, fitHeight) * side) / Math.min(frame.width, fitHeight);
+  return createViewport([bounds.x, bounds.y + ((frame.top - frame.bottom) * span) / side], span);
 }
 
 /** Exact finite deterministic levels for the article's construction demo. */

@@ -1,6 +1,9 @@
+import type { FractalFrame } from "../fractalFrame";
 import type { Context2D, Renderer } from "./types";
 
 export type LSystem2DParams = {
+  /** Opening fit metadata; article construction removes these UI insets. */
+  framing?: FractalFrame;
   axiom: string;
   replace: Record<string, string>;
   /** Turn per "+" or "-", in degrees. */

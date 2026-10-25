@@ -1,8 +1,10 @@
 import { type CanvasViewport, INITIAL_CANVAS_VIEW } from "../canvasViewport";
+import type { FractalFrame } from "../fractalFrame";
 import type { Context2D, Renderer } from "./types";
 
 export type BuddhabrotParams = {
   paused?: boolean;
+  framing?: FractalFrame;
   viewport?: CanvasViewport;
   maxIterations: number;
   minOrbitLength: number;
@@ -42,8 +44,19 @@ function getViewportForAspect(aspect: number) {
   };
 }
 
-function getZoomedViewport(aspect: number, view: CanvasViewport) {
-  const base = getViewportForAspect(aspect);
+function getZoomedViewport(
+  width: number,
+  height: number,
+  view: CanvasViewport,
+  framing?: FractalFrame,
+) {
+  const top = framing?.top ?? 0,
+    bottom = framing?.bottom ?? 0;
+  const fitHeight = Math.max(1, height - top - bottom);
+  const base = getViewportForAspect(width / fitHeight);
+  const units = (base.maxY - base.minY) / fitHeight;
+  base.maxY += top * units;
+  base.minY -= bottom * units;
   const side = Math.min(base.maxX - base.minX, base.maxY - base.minY);
   const centerX = (base.minX + base.maxX) / 2 + view.x * side;
   const centerY = (base.minY + base.maxY) / 2 - view.y * side;
@@ -110,13 +123,13 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
     const renderWidth = Math.max(1, ctx.canvas.width);
     const renderHeight = Math.max(1, ctx.canvas.height);
     const view = params.viewport ?? INITIAL_CANVAS_VIEW;
-    const key = `${params.maxIterations}:${params.minOrbitLength}:${renderWidth}x${renderHeight}:${view.x}:${view.y}:${view.zoom}`;
+    const key = `${params.maxIterations}:${params.minOrbitLength}:${renderWidth}x${renderHeight}:${view.x}:${view.y}:${view.zoom}:${params.framing?.top}:${params.framing?.bottom}`;
     if (this.state?.key !== key) {
       this.state = {
         key,
         width: renderWidth,
         height: renderHeight,
-        viewport: getZoomedViewport(renderWidth / renderHeight, view),
+        viewport: getZoomedViewport(width, height, view, params.framing),
         histogram: new Float32Array(renderWidth * renderHeight),
         image: ctx.createImageData(renderWidth, renderHeight),
         maxVisits: 1,

@@ -1,8 +1,9 @@
 .stage {
   position: relative;
-  height: calc(100vh - var(--fractal-viewport-top) - var(--fractal-viewport-bottom));
-  margin-top: var(--fractal-viewport-top);
-  margin-bottom: var(--fractal-viewport-bottom);
+  height: calc(100vh - var(--fractal-canvas-top));
+  margin-top: var(--fractal-canvas-top);
+  scroll-padding-top: calc(var(--fractal-viewport-top) - var(--fractal-canvas-top));
+  scroll-padding-bottom: var(--fractal-viewport-bottom);
   overflow: hidden;
   touch-action: none;
   cursor: grab;

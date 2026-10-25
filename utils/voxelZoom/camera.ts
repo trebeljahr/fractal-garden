@@ -66,8 +66,14 @@ export function initialFlightCamera(pattern: VoxelPattern = "menger"): FlightCam
   // Look along a cube diagonal so the six snowflake arms are equally visible.
   if (pattern.startsWith("mosely"))
     return exteriorFlightCamera(pattern, -Math.PI / 4, -Math.asin(1 / Math.sqrt(3)));
+  if (pattern === "vicsek")
+    return exteriorFlightCamera(
+      pattern,
+      -Math.atan2(0.7, 3.2),
+      -Math.atan2(0.7, Math.hypot(0.7, 3.2)),
+    );
   const bits = bitsForLevel(0);
-  const position: Vec3 = pattern === "menger" ? [0, 0, 3.2] : [0.7, 0.7, 3.2];
+  const position: Vec3 = [0, 0, 3.2];
   return fitFlightPrecision(
     {
       position: position.map((p) => fixedFromNumber(p, bits)) as FlightCamera["position"],

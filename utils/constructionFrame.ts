@@ -33,14 +33,17 @@ export function constructionFrame(
   }
   if (kind === "lsystem2d") {
     const source = params as LSystem2DParams;
-    const scale = Math.min(targetWidth / width, targetHeight / height);
+    const { framing, ...drawing } = source;
+    const top = framing?.top ?? 0;
+    const fitHeight = Math.max(1, height - top - (framing?.bottom ?? 0));
+    const scale = Math.min(targetWidth / width, targetHeight / fitHeight);
     return {
-      ...source,
+      ...drawing,
       iterations: level,
       initialLength: source.initialLength * scale,
       translation: [
         targetWidth / 2 + (source.translation[0] - width / 2) * scale,
-        targetHeight / 2 + (source.translation[1] - height / 2) * scale,
+        targetHeight / 2 + (source.translation[1] - top - fitHeight / 2) * scale,
       ],
     } satisfies LSystem2DParams;
   }

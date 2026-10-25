@@ -7,6 +7,7 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { applyCanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 
@@ -58,6 +59,7 @@ function parseHexColor(hex: string) {
 
 const DiffusionLimitedAggregation = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const viewport = useCanvasViewport(ctx?.canvas ?? null);
   const viewportRef = useRef(viewport);
@@ -86,8 +88,9 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
     const scaleX = renderWidth / width || 1;
     const scaleY = renderHeight / height || 1;
 
+    const fitHeight = Math.max(1, height - (framing?.top ?? 0) - (framing?.bottom ?? 0));
     const gridWidth = Math.max(16, Math.round(width / CELL_SIZE));
-    const gridHeight = Math.max(16, Math.round(height / CELL_SIZE));
+    const gridHeight = Math.max(16, Math.round(fitHeight / CELL_SIZE));
     const occupied = new Uint8Array(gridWidth * gridHeight);
     // Cell index of every stuck particle, in arrival order.
     const arrivals = new Int32Array(particleBudget);
@@ -282,7 +285,7 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
       ctx.fillRect(0, 0, renderWidth, renderHeight);
       ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
       applyCanvasViewport(ctx, width, height, viewportRef.current);
-      ctx.drawImage(offscreen, 0, 0, width, height);
+      ctx.drawImage(offscreen, 0, framing?.top ?? 0, width, fitHeight);
       ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
       ctx.font = "14px monospace";
       ctx.fillStyle = lastColor;
@@ -331,6 +334,7 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
       cancelAnimationFrame(frameId);
     };
   }, [
+    framing,
     ctx,
     width,
     height,
@@ -388,7 +392,7 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
         >
-          <Canvas setCtx={setCtx} width={width} height={height} />
+          {framing && <Canvas setCtx={setCtx} width={width} height={height} />}
         </div>
         <SideDrawer description={description} />
         <NavElement />

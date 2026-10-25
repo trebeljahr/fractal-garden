@@ -1,3 +1,5 @@
+import type { FractalFrame } from "./fractalFrame";
+
 export type LogisticView = { rMin: number; rMax: number; xMin: number; xMax: number };
 export type LogisticStyle = {
   settleIterations: number;
@@ -19,16 +21,35 @@ export type LogisticRender = {
 export const MIN_LOGISTIC_RANGE = 0.000001;
 export const FULL_LOGISTIC_VIEW: LogisticView = { rMin: 2.5, rMax: 4, xMin: 0, xMax: 1 };
 
+export function fitLogisticView(view: LogisticView, frame: FractalFrame): LogisticView {
+  const fitHeight = frame.height - frame.top - frame.bottom;
+  const unitsPerPixel = (view.xMax - view.xMin) / fitHeight;
+  return {
+    ...view,
+    xMax: view.xMax + frame.top * unitsPerPixel,
+    xMin: view.xMin - frame.bottom * unitsPerPixel,
+  };
+}
+
 export function logisticPoint(view: LogisticView, x: number, y: number) {
   return { r: view.rMin + x * (view.rMax - view.rMin), x: view.xMax - y * (view.xMax - view.xMin) };
 }
 
 // One scale factor preserves the diagram's proportions and the point under the gesture.
-export function zoomLogisticView(view: LogisticView, x: number, y: number, factor: number) {
+export function zoomLogisticView(
+  view: LogisticView,
+  x: number,
+  y: number,
+  factor: number,
+  maxView = FULL_LOGISTIC_VIEW,
+) {
   const rRange = view.rMax - view.rMin;
   const xRange = view.xMax - view.xMin;
   const minFactor = Math.max(MIN_LOGISTIC_RANGE / rRange, MIN_LOGISTIC_RANGE / xRange);
-  const maxFactor = Math.min(1.5 / rRange, 1 / xRange);
+  const maxFactor = Math.min(
+    (maxView.rMax - maxView.rMin) / rRange,
+    (maxView.xMax - maxView.xMin) / xRange,
+  );
   const scale = Math.max(minFactor, Math.min(maxFactor, factor));
   const anchor = logisticPoint(view, x, y);
   const rMin = anchor.r - x * rRange * scale;

@@ -1,6 +1,6 @@
 precision highp float;
 
-uniform vec2 u_resolution;
+uniform vec3 u_projection;
 uniform mat3 u_basis;
 uniform vec3 u_target;
 uniform float u_scale;
@@ -109,10 +109,10 @@ vec3 palette(float t) {
 }
 
 void main() {
-    vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 uv = 2.0 * (gl_FragCoord.xy - u_projection.xy) / u_projection.z;
     // Half the width of one pixel at unit distance: the surface is resolved
     // just finely enough to stay sharp at any zoom.
-    float pixel = 1.0 / min(u_resolution.x, u_resolution.y);
+    float pixel = 1.0 / u_projection.z;
 
     vec3 rayOrigin = u_target + u_basis * vec3(0.0, 0.0, u_cameraDistance * 2.0 * u_scale);
     vec3 rayDirection = u_basis * normalize(vec3(uv / 3.6, -1.0));

@@ -2,6 +2,7 @@ import { type PointerEvent, useCallback, useEffect, useRef, useState } from "rea
 import styles from "../styles/EndlessZoom.module.css";
 import { finite, isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { fixedFromNumber, fixedToNumber, rescale } from "../utils/lsystem/bigfixed";
 import {
   type CenteredZoomFrame,
@@ -26,7 +27,7 @@ type Props = {
   // Shift automatic refinement by whole growth periods; retain the base view.
   detailOffset?: number;
   // Where the page draws that generation, worked out when zooming starts.
-  frame: () => ZoomFrame;
+  frame: (width: number, height: number) => ZoomFrame;
   width: number | null;
   height: number | null;
   // Called when zooming starts and when the view is reset to the page's.
@@ -73,6 +74,7 @@ export const EndlessZoom = ({
   onActiveChange,
   ready = true,
 }: Props) => {
+  const framing = useFractalFrame(width, height);
   const [active, setActive] = useState(false);
   const { setActive: setZoomActive } = useZoomActivity();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
@@ -106,8 +108,14 @@ export const EndlessZoom = ({
   specRef.current = spec;
   const generationRef = useRef(generation);
   generationRef.current = generation;
-  const pageFrameRef = useRef(frame);
-  pageFrameRef.current = frame;
+  const pageFrameRef = useRef<() => ZoomFrame>(() => frame(width ?? 1, height ?? 1));
+  pageFrameRef.current = () => {
+    const fitted = frame(
+      width ?? 1,
+      framing ? framing.height - framing.top - framing.bottom : (height ?? 1),
+    );
+    return { ...fitted, originY: fitted.originY + (framing?.top ?? 0) };
+  };
 
   const reset = useCallback(() => {
     untouched.current = true;
@@ -429,9 +437,9 @@ export const EndlessZoom = ({
   };
 
   // Keep the calibrated full shape in the zoom renderer from the start. Refit
-  // only an untouched opening view when the viewport expands around the header.
+  // only an untouched opening view when its available space changes.
   useEffect(() => {
-    if (!ready || !width || !height || unsupported) return;
+    if (!ready || !width || !height || !framing || unsupported) return;
     if (viewRef.current && !untouched.current) return;
     viewRef.current = {
       zoom: 1,
@@ -447,7 +455,7 @@ export const EndlessZoom = ({
     takeoverCenterRef.current = null;
     setActive(true);
     requestDrawRef.current();
-  }, [ready, width, height, generation, active, unsupported, rulesKey]);
+  }, [ready, width, height, framing, generation, active, unsupported, rulesKey]);
 
   useEffect(() => {
     window.addEventListener("garden:reset-pose", reset);

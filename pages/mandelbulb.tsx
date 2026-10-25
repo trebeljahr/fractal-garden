@@ -7,8 +7,9 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { finite } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useSpatialControls } from "../utils/hooks/useSpatialControls";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
@@ -20,6 +21,7 @@ import {
   MAX_BULB_ZOOM,
   pickBulbPoint,
 } from "../utils/spatial/mandelbulb";
+import { spatialProjection } from "../utils/spatial/projection";
 
 type Props = {
   description: string;
@@ -66,7 +68,8 @@ const PALETTE_NAMES = Object.keys(PALETTES) as PaletteName[];
 
 // Close enough to the center to fly into the bulb's folds.
 const MIN_DISTANCE = 1.05;
-const MAX_DISTANCE = 3;
+// Keep the enclosing sphere inside the opening fit rectangle.
+const MAX_DISTANCE = 5.5;
 
 type Config = {
   palette: PaletteName;
@@ -100,7 +103,10 @@ const INITIAL_CONFIG: Config = {
 };
 
 const Mandelbulb = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
+  const frame = useFractalFrame(width, height);
+  const frameRef = useRef(frame);
+  frameRef.current = frame;
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
   const [config, setConfig] = useState<Config>(INITIAL_CONFIG);
@@ -129,8 +135,12 @@ const Mandelbulb = ({ description }: Props) => {
       );
     },
     controlled: { camera, setCamera },
-    pick: (x, y) => pickBulbPoint(camera, config, x, y, width ?? 1, height ?? 1),
+    pick: (x, y) => pickBulbPoint(camera, config, x, y, width ?? 1, height ?? 1, frame),
   });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: projection changes invalidate the retained frame
+  useEffect(() => {
+    redraw.current();
+  }, [frame]);
   const drawnRotation = useRef(INITIAL_CONFIG.rotationY);
 
   useExplorerPart(
@@ -166,9 +176,9 @@ const Mandelbulb = ({ description }: Props) => {
     gl.enableVertexAttribArray(aPositionLocation);
     gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
 
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
     const basisLocation = gl.getUniformLocation(program, "u_basis");
     const targetLocation = gl.getUniformLocation(program, "u_target");
+    const projectionLocation = gl.getUniformLocation(program, "u_projection");
     const scaleLocation = gl.getUniformLocation(program, "u_scale");
     const fogLocation = gl.getUniformLocation(program, "u_fogDistanceScale");
     const cameraDistanceLocation = gl.getUniformLocation(program, "u_cameraDistance");
@@ -183,7 +193,7 @@ const Mandelbulb = ({ description }: Props) => {
     const shadowsLocation = gl.getUniformLocation(program, "u_shadows");
 
     if (
-      resolutionLocation === null ||
+      projectionLocation === null ||
       basisLocation === null ||
       targetLocation === null ||
       scaleLocation === null ||
@@ -223,7 +233,13 @@ const Mandelbulb = ({ description }: Props) => {
         currentConfig.rotationY + (currentConfig.autoRotate ? elapsed * 18 : 0);
       drawnRotation.current = ((((animatedRotationY + 180) % 360) + 360) % 360) - 180;
 
-      gl.uniform2f(resolutionLocation, width * ratio, height * ratio);
+      const projection = spatialProjection(width, height, frameRef.current);
+      gl.uniform3f(
+        projectionLocation,
+        projection.centerX * ratio,
+        (height - projection.centerY) * ratio,
+        (projection.focal / 1.8) * ratio,
+      );
       const spatial = cameraRef.current;
       gl.uniformMatrix3fv(
         basisLocation,
@@ -324,7 +340,7 @@ const Mandelbulb = ({ description }: Props) => {
         <PanelNumber path="offsetY" min={-2} max={2} step={0.01} />
         <PanelBoolean path="autoRotate" />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
+      <div data-fractal-viewport className={styles.viewport}>
         <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
       </div>
       <SideDrawer description={description} />

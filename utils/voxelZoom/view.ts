@@ -1,4 +1,17 @@
+import type { FractalFrame } from "../fractalFrame";
 import type { flightBasis, Vec3 } from "./camera";
+
+/** Optical center uses bottom-up coordinates, matching fragment coordinates. */
+export function flightProjection(width: number, height: number, frame?: FractalFrame | null) {
+  const top = frame?.top ?? 0;
+  const bottom = frame?.bottom ?? 0;
+  const fitHeight = Math.max(1, height - top - bottom);
+  return {
+    centerX: width / 2,
+    centerY: height - top - fitHeight / 2,
+    side: Math.min(width, fitHeight),
+  };
+}
 
 export type FlightScreenBounds = { x: number; y: number; width: number; height: number };
 
@@ -11,6 +24,7 @@ export function flightScreenBounds(
   width: number,
   height: number,
   farDistance: number,
+  frame?: FractalFrame | null,
 ): FlightScreenBounds | null {
   const low = bounds.low.map((v) => Math.max(v, -farDistance));
   const high = bounds.high.map((v) => Math.min(v, farDistance));
@@ -24,9 +38,10 @@ export function flightScreenBounds(
   }
   if (corners.every((point) => point.z <= 0)) return null;
   if (corners.some((point) => point.z <= 0)) return full;
-  const scale = Math.min(width, height) / 1.16;
-  const x = corners.map((point) => width / 2 + (scale * point.x) / point.z);
-  const y = corners.map((point) => height / 2 + (scale * point.y) / point.z);
+  const projection = flightProjection(width, height, frame);
+  const scale = projection.side / 1.16;
+  const x = corners.map((point) => projection.centerX + (scale * point.x) / point.z);
+  const y = corners.map((point) => projection.centerY + (scale * point.y) / point.z);
   // Keep a pixel on either side for CPU/GPU rounding at the silhouette.
   const left = Math.max(0, Math.floor(Math.min(...x)) - 1);
   const bottom = Math.max(0, Math.floor(Math.min(...y)) - 1);

@@ -1,10 +1,12 @@
-import { type PointerEvent, useEffect, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../styles/EndlessZoom.module.css";
 import { isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { fixedFromNumber } from "../utils/lsystem/bigfixed";
 import {
+  framedPatternCamera,
   initialPatternCamera,
   movePatternCamera,
   type PatternCamera,
@@ -24,19 +26,25 @@ type Props = {
 // Show the whole recursive shape as soon as its opening depth is calibrated.
 // The shared render host coalesces gestures and draws local detail on a worker.
 export function RecursivePatternZoom({ pattern, width, height, ready = true }: Props) {
+  const framing = useFractalFrame(width, height);
+  const opening = useMemo(
+    () =>
+      framing
+        ? framedPatternCamera(pattern, framing)
+        : initialPatternCamera(pattern, width ?? 1000, height ?? 1000),
+    [pattern, framing, width, height],
+  );
   const { setActive: setZoomActive } = useZoomActivity();
   const [camera, setCamera] = useState<PatternCamera | null>(null);
   const stage = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const latest = useRef({ camera, pattern, width, height });
+  const latest = useRef({ camera, pattern, width, height, opening });
   const restoring = useRef<string | null>(null);
   const restoringFrame = useRef(false);
-  latest.current = { camera, pattern, width, height };
+  latest.current = { camera, pattern, width, height, opening };
   const { containerRef } = useRenderSurface({
     kind: "recursiveZoom",
-    params: ready
-      ? { pattern, camera: camera ?? initialPatternCamera(pattern, width ?? 1000, height ?? 1000) }
-      : null,
+    params: ready && framing ? { pattern, camera: camera ?? opening } : null,
     width,
     height,
   });
@@ -120,8 +128,7 @@ export function RecursivePatternZoom({ pattern, width, height, ready = true }: P
   const change = (factor: number, clientX: number, clientY: number, dx = 0, dy = 0) => {
     const current = latest.current;
     if (!current.width || !current.height || !stage.current) return;
-    const before =
-      current.camera ?? initialPatternCamera(current.pattern, current.width, current.height);
+    const before = current.camera ?? current.opening;
     const rect = stage.current.getBoundingClientRect();
     const next = movePatternCamera(
       before,
@@ -159,13 +166,7 @@ export function RecursivePatternZoom({ pattern, width, height, ready = true }: P
   useExplorerPart(
     "pattern",
     () => {
-      const view =
-        latest.current.camera ??
-        initialPatternCamera(
-          latest.current.pattern,
-          latest.current.width ?? 1000,
-          latest.current.height ?? 1000,
-        );
+      const view = latest.current.camera ?? latest.current.opening;
       return view
         ? { ...view, x: view.x.toString(), y: view.y.toString(), shape: shapeRef.current }
         : undefined;

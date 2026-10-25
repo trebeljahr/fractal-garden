@@ -1,5 +1,6 @@
 import { canopyFrame } from "./canopyZoom";
 import { finite, isRecord } from "./explorerShare";
+import type { FractalFrame } from "./fractalFrame";
 import {
   fixedCosSinOf,
   fixedFromNumber,
@@ -49,6 +50,18 @@ export function initialPatternCamera(
     frame /= (1 - r ** n) / (1 - r) + r ** n;
   }
   return { x: ZERO, y: ZERO, bits: 96, zoom: 1, frame };
+}
+
+/** Fit the opening shape into UI clearance without cropping its drawing surface. */
+export function framedPatternCamera(pattern: RecursivePattern, frame: FractalFrame): PatternCamera {
+  const fitHeight = frame.height - frame.top - frame.bottom;
+  const camera = initialPatternCamera(pattern, frame.width, fitHeight);
+  const scale = camera.frame * Math.min(frame.width, fitHeight);
+  return {
+    ...camera,
+    frame: scale / Math.min(frame.width, frame.height),
+    y: camera.y + fixedFromNumber((frame.bottom - frame.top) / (2 * scale), camera.bits),
+  };
 }
 
 // Cursor anchoring and panning share the same fixed-point camera at every

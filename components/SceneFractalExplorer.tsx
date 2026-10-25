@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import type { Orientation } from "../utils/orientation";
 import type { SceneSpec } from "../utils/render/scene3d";
 import type { FlightCamera, VoxelPattern } from "../utils/voxelZoom/camera";
@@ -90,7 +89,6 @@ export function SceneFractalExplorer<V extends string>({
   places = [],
 }: Props<V>) {
   const { width, height } = useFractalViewportSize();
-  const { width: flightWidth, height: flightHeight } = useWindowSize();
   const [config, setConfig] = useState<Config<V>>({
     variant: initialVariant,
     iterations: 0,
@@ -359,17 +357,17 @@ export function SceneFractalExplorer<V extends string>({
             height={height}
           />
         )}
+        {exploring && width && height && (
+          <VoxelFlight
+            key={config.variant}
+            pattern={pattern}
+            style={config}
+            width={width}
+            height={height}
+            cameraPreset={destination?.variant === config.variant ? destination.camera : undefined}
+          />
+        )}
       </div>
-      {exploring && flightWidth && flightHeight && (
-        <VoxelFlight
-          key={config.variant}
-          pattern={pattern}
-          style={config}
-          width={flightWidth}
-          height={flightHeight}
-          cameraPreset={destination?.variant === config.variant ? destination.camera : undefined}
-        />
-      )}
       <SideDrawer description={description} />
       <NavElement />
     </main>

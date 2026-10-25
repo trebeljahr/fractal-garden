@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { fittedFrame, type ZoomFrame } from "../utils/lsystem/pageZoom";
@@ -93,11 +94,14 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
     ruleset: ruleset,
   }));
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
+  const fitHeight = framing ? framing.height - framing.top - framing.bottom : height;
+  const fitTop = framing?.top ?? 0;
 
   // Fit the mature fern once, so its branches grow in place without clipping
   // on narrow screens. The renderer and zoom layer use this same frame.
   const fitted = useMemo(() => {
-    if (!width || !height || !config.ruleset.fitToViewport) return null;
+    if (!width || !fitHeight || !config.ruleset.fitToViewport) return null;
     const { startAngle } = readInitialPose(config.ruleset);
     return fittedFrame(
       {
@@ -112,18 +116,22 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
       },
       config.ruleset.maxIterations - 1,
       width,
-      height,
+      fitHeight,
     );
-  }, [config.ruleset, width, height]);
+  }, [config.ruleset, width, fitHeight]);
 
   const params = useMemo<LSystem2DParams | null>(() => {
-    if (!width || !height) return null;
-    const sizes = { width, height };
+    if (!width || !fitHeight || !framing) return null;
+    const sizes = { width, height: fitHeight };
     const initialLength = fitted
       ? fitted.scale * config.ruleset.divideFactor ** (config.ruleset.maxIterations - 1)
       : config.ruleset.initLength(sizes);
     const { startAngle, lineWidth } = readInitialPose(config.ruleset, config);
+    const translation = fitted
+      ? [fitted.originX, fitted.originY]
+      : config.ruleset.initTranslation(sizes, initialLength);
     return {
+      framing,
       axiom: config.ruleset.axiom,
       replace: config.ruleset.replace,
       angle: config.ruleset.angle,
@@ -132,13 +140,11 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
       color: config.ruleset.color,
       background: config.background,
       initialLength,
-      translation: fitted
-        ? [fitted.originX, fitted.originY]
-        : config.ruleset.initTranslation(sizes, initialLength),
+      translation: [translation[0], translation[1] + fitTop],
       divideFactor: config.ruleset.divideFactor,
       iterations: config.iterations,
     };
-  }, [config, width, height, fitted]);
+  }, [config, width, fitHeight, fitTop, framing, fitted]);
 
   const { containerRef, ready } = useFractalRenderer({
     kind: "lsystem2d",
@@ -182,11 +188,11 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
     return { ...spec, dimension: dimensionOf(spec) };
   }, [params]);
   const zoomFrame = useCallback(
-    (): ZoomFrame =>
-      zoomSpec && width && height
-        ? fittedFrame(zoomSpec, generation, width, height)
+    (fitWidth: number, fitHeight: number): ZoomFrame =>
+      zoomSpec
+        ? fittedFrame(zoomSpec, generation, fitWidth, fitHeight)
         : { originX: 0, originY: 0, scale: 1 },
-    [zoomSpec, generation, width, height],
+    [zoomSpec, generation],
   );
   const handleUpdate = (newData: Config) => {
     setConfig((prevState) => ({

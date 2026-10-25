@@ -8,12 +8,12 @@ import {
 } from "react";
 import { type FlightTouchInput, resetFlightTouch } from "../../components/FlightTouchControls";
 import { SpatialNavigation } from "../../components/SpatialNavigation";
+import { type FractalFrame, readFractalFrame } from "../fractalFrame";
 import { dragRotation, IDENTITY, type Orientation } from "../orientation";
 import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 import {
   CAMERA_DISTANCE,
   cameraTarget,
-  FOCAL_SCALE,
   INITIAL_SPATIAL_CAMERA,
   inverseRotate,
   moveSpatialCamera,
@@ -24,6 +24,7 @@ import {
   type Vec3,
 } from "../spatial/camera";
 import { advanceSpatialFlight, lookSpatialRotation, reframeSpatialEye } from "../spatial/flight";
+import { spatialProjection } from "../spatial/projection";
 import { useExplorerPart } from "./useExplorerPart";
 
 type View = {
@@ -37,6 +38,7 @@ type View = {
 };
 export function useSpatialControls<T extends View>({
   canvas,
+  frame,
   view,
   setView,
   pick,
@@ -49,6 +51,7 @@ export function useSpatialControls<T extends View>({
   eyeDistance = CAMERA_DISTANCE,
 }: {
   canvas: HTMLCanvasElement | null;
+  frame?: FractalFrame | null;
   /** Current surrounding surface distance, in camera-relative units. Null waits for geometry. */
   clearance?: (camera: SpatialCamera, view: T) => number | null;
   eyeDistance?: number;
@@ -72,8 +75,8 @@ export function useSpatialControls<T extends View>({
     down: false,
     boost: false,
   });
-  const current = useRef({ view, camera, pick, worldPick, clearance, flying, eyeDistance });
-  current.current = { view, camera, pick, worldPick, clearance, flying, eyeDistance };
+  const current = useRef({ view, camera, pick, worldPick, clearance, flying, eyeDistance, frame });
+  current.current = { view, camera, pick, worldPick, clearance, flying, eyeDistance, frame };
   useExplorerPart(
     "spatialNavigation",
     () => current.current.flying,
@@ -128,7 +131,13 @@ export function useSpatialControls<T extends View>({
       }
       const { view, camera } = current.current,
         rect = canvas.getBoundingClientRect();
-      const scale = CAMERA_DISTANCE / (Math.min(rect.width, rect.height) * FOCAL_SCALE);
+      const scale =
+        CAMERA_DISTANCE /
+        spatialProjection(
+          rect.width,
+          rect.height,
+          current.current.frame ?? readFractalFrame(canvas),
+        ).focal;
       const next = moveSpatialCamera(
         camera,
         inverseRotate([-dx * scale, dy * scale, 0], rotationOf(view)),
@@ -169,7 +178,12 @@ export function useSpatialControls<T extends View>({
       let distance = frame.clearance?.(frame.camera, frame.view);
       if (distance === undefined) {
         const rect = canvas.getBoundingClientRect();
-        const hit = frame.pick?.(rect.width / 2, rect.height / 2);
+        const projection = spatialProjection(
+          rect.width,
+          rect.height,
+          frame.frame ?? readFractalFrame(canvas),
+        );
+        const hit = frame.pick?.(projection.centerX, projection.centerY);
         if (hit) distance = Math.hypot(hit[0], hit[1], frame.eyeDistance - hit[2]);
         else if (anchor) {
           const target = cameraTarget(frame.camera).map((v) =>
@@ -277,8 +291,13 @@ export function useSpatialControls<T extends View>({
           anchorPending = true;
           anchorTime = time;
           const rect = canvas.getBoundingClientRect();
+          const projection = spatialProjection(
+            rect.width,
+            rect.height,
+            frame.frame ?? readFractalFrame(canvas),
+          );
           void frame
-            .worldPick(rect.width / 2, rect.height / 2)
+            .worldPick(projection.centerX, projection.centerY)
             .then((point) => {
               anchor = point;
             })
@@ -324,11 +343,16 @@ export function useSpatialControls<T extends View>({
         const { camera, view, pick } = current.current;
         const next = Math.max(0, Math.min(maxZoom, camera.zoom + change));
         if (next === camera.zoom) return;
+        const projection = spatialProjection(
+          rect.width,
+          rect.height,
+          current.current.frame ?? readFractalFrame(canvas),
+        );
         const rotation = rotationOf(view),
-          scale = CAMERA_DISTANCE / (Math.min(rect.width, rect.height) * FOCAL_SCALE);
+          scale = CAMERA_DISTANCE / projection.focal;
         let point = pick?.(x - rect.left, y - rect.top) ?? [
-          (x - rect.left - rect.width / 2) * scale,
-          -(y - rect.top - rect.height / 2) * scale,
+          (x - rect.left - projection.centerX) * scale,
+          -(y - rect.top - projection.centerY) * scale,
           0,
         ];
         if (world) {

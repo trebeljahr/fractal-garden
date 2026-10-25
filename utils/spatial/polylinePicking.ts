@@ -1,12 +1,6 @@
 import type { Polyline3D, Polyline3DDrawOptions } from "../polyline3d";
-import {
-  CAMERA_DISTANCE,
-  cameraTarget,
-  FOCAL_SCALE,
-  relativeNumber,
-  rotationOf,
-  type Vec3,
-} from "./camera";
+import { CAMERA_DISTANCE, cameraTarget, relativeNumber, rotationOf, type Vec3 } from "./camera";
+import { spatialProjection } from "./projection";
 /** Perspective-correct model point on the nearest drawn line; never connects culled pieces. */
 export function pickPolylinePoint(
   polyline: Polyline3D,
@@ -16,6 +10,7 @@ export function pickPolylinePoint(
   width: number,
   height: number,
 ): Vec3 | null {
+  const projection = spatialProjection(width, height, view.framing);
   const camera = view.spatialCamera;
   if (!camera) return null;
   const target = cameraTarget(camera).map((v) => relativeNumber(v, camera.bits, 0)),
@@ -28,8 +23,8 @@ export function pickPolylinePoint(
       ),
       d = CAMERA_DISTANCE - r[2];
     return [
-      width / 2 + (r[0] * Math.min(width, height) * FOCAL_SCALE) / d,
-      height / 2 - (r[1] * Math.min(width, height) * FOCAL_SCALE) / d,
+      projection.centerX + (r[0] * projection.focal) / d,
+      projection.centerY - (r[1] * projection.focal) / d,
       d,
     ];
   };

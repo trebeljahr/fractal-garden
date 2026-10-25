@@ -1,4 +1,5 @@
 import { fixedFromNumber } from "../deepZoom/math";
+import type { FractalFrame } from "../fractalFrame";
 import type { Orientation } from "../orientation";
 import {
   dodecahedronMesh,
@@ -16,13 +17,13 @@ import {
   CAMERA_DISTANCE,
   cameraTarget,
   FAR_PLANE,
-  FOCAL_SCALE,
   NEAR_PLANE,
   relativeNumber,
   rotationOf,
   type SpatialCamera,
   type Vec3,
 } from "./camera";
+import { spatialProjection } from "./projection";
 
 export type SpatialStyle = {
   rotationX: number;
@@ -48,6 +49,7 @@ export type SpatialRequest = {
   style: SpatialStyle;
   width: number;
   height: number;
+  frame?: FractalFrame | null;
   maxVertices?: number;
   pixelSize?: number;
   maxDepth?: number;
@@ -159,6 +161,7 @@ export const hilbertEnds = [0, 7].map((index) => {
 /** Descendant bounds, rather than current faces, drive culling. All world positions stay fixed point. */
 export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
   const { camera, spec, width, height, style } = request;
+  const projection = spatialProjection(width, height, request.frame);
   const bits = camera.bits,
     one = BigInt(1) << BigInt(bits),
     target = cameraTarget(camera),
@@ -184,18 +187,20 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
     if (request.flight) return Math.hypot(p[0], p[1], d) <= r + 24;
     if (d + r < NEAR_PLANE || d - r > FAR_PLANE) return false;
     // Plane tests avoid projecting corners behind the camera.
-    const tx = width / Math.min(width, height) / (2 * FOCAL_SCALE),
-      ty = height / Math.min(width, height) / (2 * FOCAL_SCALE);
+    const tx = width / (2 * projection.focal);
+    const above = projection.centerY / projection.focal;
+    const below = (height - projection.centerY) / projection.focal;
     return (
       Math.abs(p[0]) - tx * d <= r * Math.hypot(1, tx) &&
-      Math.abs(p[1]) - ty * d <= r * Math.hypot(1, ty)
+      p[1] - above * d <= r * Math.hypot(1, above) &&
+      -p[1] - below * d <= r * Math.hypot(1, below)
     );
   };
   const small = (node: Node, bound: number) => {
     const p = local(node.center),
       r = number(node.size) * bound;
     return (
-      (r * 2 * FOCAL_SCALE * Math.min(width, height)) /
+      (r * 2 * projection.focal) /
         Math.max(
           NEAR_PLANE,
           (request.flight
@@ -264,7 +269,7 @@ export function buildSpatialGeometry(request: SpatialRequest): SpatialGeometry {
         dy = q[1] / dq - p[1] / dp,
         length = Math.hypot(dx, dy);
       if (length < 1e-12) return;
-      const half = Math.max(0.6, style.lineWidth) / 2 / (Math.min(width, height) * FOCAL_SCALE);
+      const half = Math.max(0.6, style.lineWidth) / 2 / projection.focal;
       const u: Vec3 = [(-dy / length) * half, (dx / length) * half, 0];
       const corners = [
         p.map((v, i) => v + u[i] * dp),

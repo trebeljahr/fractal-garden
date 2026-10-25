@@ -7,8 +7,9 @@ import styles from "../styles/Fullscreen.module.css";
 import { createViewport, type DeepViewport } from "../utils/deepZoom/math";
 import { FERN_LABELS, FERN_OPTIONS, FERN_PRESETS, type FernStyle } from "../utils/fernPresets";
 import { FernViewportRenderer } from "../utils/fernRenderer";
-import { type FernMethod, fernBounds, fernOpeningSpan } from "../utils/fernViewport";
+import { type FernMethod, fernBounds, fernOpeningView } from "../utils/fernViewport";
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
 
@@ -31,6 +32,7 @@ const BarnsleyFern = ({ description }: Props) => {
     method: "chaos",
   });
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const renderer = useRef<FernViewportRenderer | null>(null);
   const view = useRef<DeepViewport>(createViewport([0, 0], 1));
@@ -38,27 +40,28 @@ const BarnsleyFern = ({ description }: Props) => {
     () => fernBounds(FERN_PRESETS[config.fernToUse].matrix),
     [config.fernToUse],
   );
-  const span = width && height ? fernOpeningSpan(bounds, width, height) : 1;
-  const opening = useMemo(() => createViewport([bounds.x, bounds.y], span), [bounds, span]);
+  const opening = useMemo(
+    () => (framing ? fernOpeningView(bounds, framing) : createViewport([bounds.x, bounds.y], 1)),
+    [bounds, framing],
+  );
+  const span = 2 ** opening.logZoom;
   const previousOpening = useRef(opening);
   const initialized = useRef(false);
+  const untouched = useRef(true);
   const lastStyle = useRef(config.fernToUse);
 
   // Fit new styles and the opening view on resize. Preserve an explored center.
   useEffect(() => {
-    if (!width || !height) return;
-    if (
-      !initialized.current ||
-      lastStyle.current !== config.fernToUse ||
-      view.current.logZoom >= previousOpening.current.logZoom - 1e-10
-    ) {
+    if (!width || !height || !framing) return;
+    if (!initialized.current || lastStyle.current !== config.fernToUse || untouched.current) {
       view.current = opening;
+      untouched.current = true;
       renderer.current?.setView(view.current);
     }
     initialized.current = true;
     previousOpening.current = opening;
     lastStyle.current = config.fernToUse;
-  }, [opening, config.fernToUse, width, height]);
+  }, [opening, config.fernToUse, width, height, framing]);
 
   useDeepZoomControls({
     canvas,
@@ -66,6 +69,7 @@ const BarnsleyFern = ({ description }: Props) => {
     maxZoomSize: span,
     flipY: false,
     onChange: () => {
+      untouched.current = false;
       if (canvas) canvas.dataset.fernLogZoom = String(opening.logZoom - view.current.logZoom);
       renderer.current?.setView(view.current);
     },
@@ -74,6 +78,7 @@ const BarnsleyFern = ({ description }: Props) => {
   useEffect(() => {
     if (!canvas) return;
     const reset = () => {
+      untouched.current = true;
       view.current = opening;
       canvas.dataset.fernLogZoom = "0";
       setConfig((old) => ({ ...old, paused: true }));
@@ -166,7 +171,7 @@ const BarnsleyFern = ({ description }: Props) => {
         className={styles.viewport}
         style={{ background: config.background }}
       >
-        {width && height && <canvas ref={setCanvas} />}
+        {width && height && framing && <canvas ref={setCanvas} />}
       </div>
       <SideDrawer description={description} />
       <NavElement />

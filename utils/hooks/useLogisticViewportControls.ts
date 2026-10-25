@@ -1,5 +1,6 @@
 import { type MutableRefObject, useEffect } from "react";
 import {
+  FULL_LOGISTIC_VIEW,
   type LogisticView,
   logisticPoint,
   panLogisticView,
@@ -13,6 +14,7 @@ export function useLogisticViewportControls(
   canvas: HTMLCanvasElement | null,
   viewRef: MutableRefObject<LogisticView>,
   onChange: () => void,
+  maxView: LogisticView = FULL_LOGISTIC_VIEW,
 ) {
   useEffect(() => {
     if (!canvas) return;
@@ -66,6 +68,7 @@ export function useLogisticViewportControls(
           start.x,
           start.y,
           pinchDistance / pinch.distance,
+          maxView,
         );
         // Move the original world anchor with the midpoint as well as changing scale.
         const anchor = logisticPoint(startView, start.x, start.y);
@@ -84,6 +87,7 @@ export function useLogisticViewportControls(
           start.x,
           start.y,
           Math.exp((current.y - start.y) * 2.2),
+          maxView,
         );
       } else {
         viewRef.current = panLogisticView(startView, current.x - start.x, current.y - start.y);
@@ -98,7 +102,9 @@ export function useLogisticViewportControls(
     const guard = createZoomWheelGuard(canvas);
     const wheel = (event: WheelEvent) => {
       const view = viewRef.current;
-      const atMinZoom = view.rMax - view.rMin >= 1.5 - 1e-9 || view.xMax - view.xMin >= 1 - 1e-9;
+      const atMinZoom =
+        view.rMax - view.rMin >= maxView.rMax - maxView.rMin - 1e-9 ||
+        view.xMax - view.xMin >= maxView.xMax - maxView.xMin - 1e-9;
       if (!guard.shouldZoom(event, atMinZoom)) return;
       event.preventDefault();
       const focus = point(event);
@@ -107,6 +113,7 @@ export function useLogisticViewportControls(
         focus.x,
         focus.y,
         Math.exp(zoomWheelDelta(event, canvas)),
+        maxView,
       );
       // Wheel/pinch and dragging can overlap on a trackpad.
       reanchor();
@@ -130,5 +137,5 @@ export function useLogisticViewportControls(
       guard.dispose();
       canvas.style.touchAction = "";
     };
-  }, [canvas, onChange, viewRef]);
+  }, [canvas, onChange, viewRef, maxView]);
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
@@ -7,10 +7,12 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { finite, isRecord } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useLogisticViewportControls } from "../utils/hooks/useLogisticViewportControls";
 import {
   FULL_LOGISTIC_VIEW,
+  fitLogisticView,
   type LogisticRender,
   type LogisticView,
   renderLogistic,
@@ -79,6 +81,12 @@ const INITIAL_VIEW: View = FULL_LOGISTIC_VIEW;
 
 const LogisticMap = ({ description }: Props) => {
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
+  const opening = useMemo(
+    () => (framing ? fitLogisticView(INITIAL_VIEW, framing) : INITIAL_VIEW),
+    [framing],
+  );
+  const untouched = useRef(true);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const renderRef = useRef<(() => void) | null>(null);
   const viewRef = useRef<View>(INITIAL_VIEW);
@@ -95,10 +103,28 @@ const LogisticMap = ({ description }: Props) => {
 
   const configRef = useRef(config);
   const updateView = useCallback(() => {
+    untouched.current = false;
     setConfig((old) => (old.preset === "Custom" ? old : { ...old, preset: "Custom" }));
     renderRef.current?.();
   }, []);
-  useLogisticViewportControls(ctx?.canvas ?? null, viewRef, updateView);
+  useLogisticViewportControls(ctx?.canvas ?? null, viewRef, updateView, opening);
+
+  useEffect(() => {
+    if (!framing || !untouched.current) return;
+    viewRef.current = opening;
+    renderRef.current?.();
+  }, [opening, framing]);
+
+  useEffect(() => {
+    const reset = () => {
+      untouched.current = true;
+      viewRef.current = opening;
+      setConfig((old) => ({ ...old, preset: "Full" }));
+      renderRef.current?.();
+    };
+    window.addEventListener("garden:reset-pose", reset);
+    return () => window.removeEventListener("garden:reset-pose", reset);
+  }, [opening]);
 
   useExplorerPart(
     "logisticView",
@@ -115,6 +141,7 @@ const LogisticMap = ({ description }: Props) => {
       ) {
         throw new Error("Invalid diagram view");
       }
+      untouched.current = false;
       viewRef.current = { rMin: saved.rMin, rMax: saved.rMax, xMin: saved.xMin, xMax: saved.xMax };
       renderRef.current?.();
     },
@@ -195,7 +222,10 @@ const LogisticMap = ({ description }: Props) => {
   const handleUpdate = (newData: Config) => {
     const merged = { ...config, ...newData };
     if (newData.preset && newData.preset !== config.preset && newData.preset !== "Custom") {
-      viewRef.current = { ...PRESETS[newData.preset] };
+      untouched.current = newData.preset === "Full";
+      viewRef.current = framing
+        ? fitLogisticView(PRESETS[newData.preset], framing)
+        : { ...PRESETS[newData.preset] };
     }
     setConfig(merged);
   };
@@ -229,7 +259,7 @@ const LogisticMap = ({ description }: Props) => {
         className={styles.viewport}
         style={{ background: config.background }}
       >
-        <Canvas setCtx={setCtx} width={width} height={height} />
+        {framing && <Canvas setCtx={setCtx} width={width} height={height} />}
       </div>
       <SideDrawer description={description} />
       <NavElement />

@@ -12,7 +12,11 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
-const { flightBasis, initialFlightCamera, flightRootBounds } = require("../utils/voxelZoom/camera.ts");
+const {
+  flightBasis,
+  initialFlightCamera,
+  flightRootBounds,
+} = require("../utils/voxelZoom/camera.ts");
 const { flightScreenBounds } = require("../utils/voxelZoom/view.ts");
 const basis = flightBasis({ yaw: 0, pitch: 0 });
 
@@ -71,7 +75,10 @@ test("screen bounds include every root-intersecting pixel across flight views", 
     [64, 96],
     [128, 32],
   ]) {
-    for (let index = 0; index < 24; index++) {
+    for (let index = 0; index < 48; index++) {
+      const frame = index < 24 ? undefined : { width, height, top: 3, bottom: 12 };
+      const fitHeight = height - (frame?.top ?? 0) - (frame?.bottom ?? 0);
+      const centerY = height - (frame?.top ?? 0) - fitHeight / 2;
       const basis = flightBasis({ yaw: index * 0.73, pitch: Math.sin(index * 1.13) * 1.5 });
       const center = [Math.sin(index * 2.2) * 3, Math.cos(index * 0.83) * 3, -2];
       const halfSize = 0.2 + (index % 5) * 0.4;
@@ -80,12 +87,12 @@ test("screen bounds include every root-intersecting pixel across flight views", 
         high: center.map((v) => v + halfSize),
       };
       const farDistance = 1 + (index % 7);
-      const visible = flightScreenBounds(bounds, basis, width, height, farDistance);
+      const visible = flightScreenBounds(bounds, basis, width, height, farDistance, frame);
       if (!visible || visible.width * visible.height < width * height) clippedViews++;
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-          const u = (2 * (x + 0.5) - width) / Math.min(width, height);
-          const v = (2 * (y + 0.5) - height) / Math.min(width, height);
+          const u = (2 * (x + 0.5) - width) / Math.min(width, fitHeight);
+          const v = (2 * (y + 0.5 - centerY)) / Math.min(width, fitHeight);
           const direction = basis.forward.map(
             (value, axis) => value + 0.58 * (u * basis.right[axis] + v * basis.up[axis]),
           );
@@ -130,16 +137,21 @@ test("Mosely defaults center the complete snowflake from outside on every screen
     const dot = (point, direction) => point.reduce((sum, v, axis) => sum + v * direction[axis], 0);
     assert.ok(Math.abs(dot(center, basis.right)) < 1e-12);
     assert.ok(Math.abs(dot(center, basis.up)) < 1e-12);
-    for (const [width, height] of [[1440, 900], [390, 844], [844, 390]]) {
+    for (const [width, height] of [
+      [1440, 900],
+      [390, 844],
+      [844, 390],
+    ]) {
       const scale = Math.min(width, height) / 1.16;
       for (let insetAxis = 0; insetAxis < 3; insetAxis++) {
         for (let index = 0; index < 8; index++) {
-          const corner = center.map((v, axis) => v +
-            (index & (1 << axis) ? 1 : -1) * (axis === insetAxis ? 1 / 6 : 0.5));
+          const corner = center.map(
+            (v, axis) => v + (index & (1 << axis) ? 1 : -1) * (axis === insetAxis ? 1 / 6 : 0.5),
+          );
           const depth = dot(corner, basis.forward);
           assert.ok(depth > 0);
-          assert.ok(Math.abs(scale * dot(corner, basis.right) / depth) <= width * 0.42 + 1e-9);
-          assert.ok(Math.abs(scale * dot(corner, basis.up) / depth) <= height * 0.42 + 1e-9);
+          assert.ok(Math.abs((scale * dot(corner, basis.right)) / depth) <= width * 0.42 + 1e-9);
+          assert.ok(Math.abs((scale * dot(corner, basis.up)) / depth) <= height * 0.42 + 1e-9);
         }
       }
     }

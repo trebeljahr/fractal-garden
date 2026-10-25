@@ -1,3 +1,4 @@
+import type { FractalFrame } from "../fractalFrame";
 import type { Orientation } from "../orientation";
 import {
   cameraTarget,
@@ -8,6 +9,7 @@ import {
   type SpatialCamera,
   type Vec3,
 } from "./camera";
+import { spatialProjection } from "./projection";
 export type BulbView = {
   power: number;
   detail: number;
@@ -48,18 +50,16 @@ export function pickBulbPoint(
   y: number,
   width: number,
   height: number,
+  frame?: FractalFrame | null,
 ): Vec3 | null {
+  const projection = spatialProjection(width, height, frame);
   const scale = 0.5 * 2 ** -camera.zoom,
     target = bulbTarget(camera, view),
     rotation = rotationOf(view),
     offset = inverseRotate([0, 0, view.cameraDistance * 2 * scale], rotation);
   const origin = target.map((v, i) => v + offset[i]) as Vec3;
   let direction = inverseRotate(
-    [
-      (x - width / 2) / (Math.min(width, height) * FOCAL_SCALE),
-      -(y - height / 2) / (Math.min(width, height) * FOCAL_SCALE),
-      -1,
-    ],
+    [(x - projection.centerX) / projection.focal, -(y - projection.centerY) / projection.focal, -1],
     rotation,
   );
   const length = Math.hypot(...direction);
@@ -74,7 +74,7 @@ export function pickBulbPoint(
   for (let i = 0; i < 256 && distance <= far; i++) {
     const point = origin.map((v, j) => v + direction[j] * distance) as Vec3,
       d = bulbDistance(point, view.power, detail);
-    if (d < Math.max((distance / Math.min(width, height)) * 0.5, 2e-7)) {
+    if (d < Math.max((distance / (projection.focal / FOCAL_SCALE)) * 0.5, 2e-7)) {
       const relative = point.map((v, j) => (v - target[j]) / scale);
       return [0, 1, 2].map(
         (j) =>

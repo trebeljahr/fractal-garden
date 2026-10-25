@@ -6,14 +6,8 @@ import {
   stepRK4,
 } from "../polyline3d";
 import type { Polyline3DSceneConfig, PolylineSource } from "../render/polylineScene";
-import {
-  CAMERA_DISTANCE,
-  cameraTarget,
-  FOCAL_SCALE,
-  relativeNumber,
-  rotationOf,
-  type Vec3,
-} from "./camera";
+import { CAMERA_DISTANCE, cameraTarget, relativeNumber, rotationOf, type Vec3 } from "./camera";
+import { spatialProjection } from "./projection";
 export type AttractorSource = Exclude<PolylineSource, { kind: "hilbert3d" }>;
 export function attractorDerivative(source: AttractorSource): Derivative {
   return source.kind === "lorenz"
@@ -62,6 +56,7 @@ export class AttractorDetail {
     width: number,
     height: number,
   ): Polyline3D & { coverage: number; refinements: number } {
+    const projection = spatialProjection(width, height, config.framing);
     const camera = config.spatialCamera!,
       band = Math.min(12, Math.max(0, Math.ceil(camera.zoom)));
     const steps = Math.min(160000, Math.max(this.source.steps, 20000) * (1 + band));
@@ -83,8 +78,8 @@ export class AttractorDetail {
       const v = view(p),
         d = CAMERA_DISTANCE - v[2];
       return [
-        width / 2 + (v[0] * Math.min(width, height) * FOCAL_SCALE) / Math.max(d, 0.02),
-        height / 2 - (v[1] * Math.min(width, height) * FOCAL_SCALE) / Math.max(d, 0.02),
+        projection.centerX + (v[0] * projection.focal) / Math.max(d, 0.02),
+        projection.centerY - (v[1] * projection.focal) / Math.max(d, 0.02),
         d,
       ];
     };
@@ -117,8 +112,9 @@ export class AttractorDetail {
         normalized(b.map((v, k) => v - (this.source.dt * d1[k]) / 3)),
         pb,
       ].map(view);
-      const tx = width / Math.min(width, height) / (2 * FOCAL_SCALE),
-        ty = height / Math.min(width, height) / (2 * FOCAL_SCALE);
+      const tx = width / (2 * projection.focal);
+      const above = projection.centerY / projection.focal;
+      const below = (height - projection.centerY) / projection.focal;
       // Cubic Hermite curves stay inside their Bezier control hull. These plane
       // tests also work across the camera plane, unlike projected endpoint bounds.
       if (
@@ -126,8 +122,8 @@ export class AttractorDetail {
         controls.every((p) => p[2] < CAMERA_DISTANCE - 128) ||
         controls.every((p) => p[0] > tx * (CAMERA_DISTANCE - p[2])) ||
         controls.every((p) => -p[0] > tx * (CAMERA_DISTANCE - p[2])) ||
-        controls.every((p) => p[1] > ty * (CAMERA_DISTANCE - p[2])) ||
-        controls.every((p) => -p[1] > ty * (CAMERA_DISTANCE - p[2]))
+        controls.every((p) => p[1] > above * (CAMERA_DISTANCE - p[2])) ||
+        controls.every((p) => -p[1] > below * (CAMERA_DISTANCE - p[2]))
       )
         continue;
       if (lastEnd !== i) {

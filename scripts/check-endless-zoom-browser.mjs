@@ -65,7 +65,7 @@ async function check(page, baseURL, output) {
         controls.every(
           (control) =>
             control &&
-            canvas.getBoundingClientRect().bottom <= control.getBoundingClientRect().top - 24 &&
+            Math.abs(canvas.getBoundingClientRect().bottom - innerHeight) < 1 &&
             Math.abs(control.getBoundingClientRect().bottom - innerHeight) < 1,
         ) &&
         controls[1].getBoundingClientRect().left === 0 &&

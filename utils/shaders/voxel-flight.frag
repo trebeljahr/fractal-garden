@@ -1,5 +1,6 @@
 precision highp float;
-uniform vec2 u_resolution;
+uniform vec2 u_viewCenter;
+uniform float u_viewSide;
 uniform float u_pixelAngle;
 uniform float u_nearFootprint;
 uniform float u_detailScale;
@@ -109,7 +110,7 @@ float depthRelief(float axialDepth) {
 }
 
 void main() {
-    vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
+    vec2 uv = 2.0 * (gl_FragCoord.xy - u_viewCenter) / u_viewSide;
     vec3 ray = normalize(u_forward + 0.58 * (uv.x * u_right + uv.y * u_up));
     vec3 safeRay = sign(ray) * max(abs(ray), vec3(1e-20));
     safeRay += (vec3(1.0) - abs(sign(ray))) * 1e-20;

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/LSystemExplorer.module.css";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { fixedFromNumber, rescale } from "../utils/lsystem/bigfixed";
 import { isStochastic, MAX_SEGMENTS } from "../utils/lsystem/engine";
@@ -169,6 +170,7 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
   const [computing, setComputing] = useState(true);
   const [failed, setFailed] = useState(false);
   const { width, height } = useFractalViewportSize();
+  const framing = useFractalFrame(width, height);
 
   const jobSpecRef = useRef<LSystemSpec | null>(null);
   // The system the current drawing was made from.
@@ -307,11 +309,16 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
   }, [gl]);
 
   const viewport = useMemo<Viewport | null>(() => {
-    if (!width || !height) return null;
+    if (!width || !height || !framing) return null;
     // On wide screens fit the drawing into the space beside the open panel.
     const offset = panelOpen && uiVisible && width > 900 ? PANEL_WIDTH + 24 : 0;
-    return { x: 0, y: 0, width: width - offset, height };
-  }, [width, height, panelOpen, uiVisible]);
+    return {
+      x: 0,
+      y: framing.top,
+      width: width - offset,
+      height: height - framing.top - framing.bottom,
+    };
+  }, [width, height, framing, panelOpen, uiVisible]);
 
   // Endless zoom for 2D systems. A second worker redraws only the visible
   // part, at a generation deep enough for the zoom, whenever the view
@@ -416,12 +423,16 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
       offsetY: camera.deepY,
       bits,
       scale,
-      halfWidth: viewport.width * 0.65,
-      halfHeight: viewport.height * 0.65,
+      halfWidth:
+        (width ?? viewport.width) * 0.65 +
+        Math.abs(viewport.x + viewport.width / 2 - (width ?? viewport.width) / 2),
+      halfHeight:
+        (height ?? viewport.height) * 0.65 +
+        Math.abs(viewport.y + viewport.height / 2 - (height ?? viewport.height) / 2),
       zoom: camera.zoom,
     };
     sendZoom({ id: ++zoomJobRef.current, spec, iterations: result.expansion.iterations, view });
-  }, [result, viewport, sendZoom]);
+  }, [result, viewport, width, height, sendZoom]);
 
   const draw = useCallback(() => {
     if (!renderer || !viewport) return;

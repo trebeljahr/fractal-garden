@@ -1,4 +1,4 @@
-import { Children, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { Children, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
 import { createViewport, matchesDeepViewport } from "../utils/deepZoom/math";
@@ -15,7 +15,8 @@ import {
 import type { ControlRule } from "../utils/explorerShare";
 import { type EscapeTimePlace, matchesJuliaConstant } from "../utils/fractalPlaces";
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { DeepZoomCanvas } from "./DeepZoomCanvas";
 import { PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
@@ -64,7 +65,24 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   children,
   shareRules,
 }: Props<T>) {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
+  const frame = useFractalFrame(width, height);
+  const opening = useMemo(() => {
+    const fitHeight = frame ? Math.max(1, frame.height - frame.top - frame.bottom) : 1;
+    const span = frame
+      ? (initialZoomSize * Math.min(frame.width, frame.height)) / Math.min(frame.width, fitHeight)
+      : initialZoomSize;
+    const offset = frame
+      ? (((frame.top - frame.bottom) * span) / Math.min(frame.width, frame.height)) *
+        (flipY ? -1 : 1)
+      : 0;
+    return createViewport([initialCenter[0], initialCenter[1] + offset], span);
+  }, [frame, initialCenter[0], initialCenter[1], initialZoomSize, flipY]);
+  const isOpeningPlace = (view: EscapeTimePlace) =>
+    view.zoomSize === initialZoomSize &&
+    view.center[0] === initialCenter[0] &&
+    view.center[1] === initialCenter[1];
+  const previousOpening = useRef(opening);
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
   const viewportRef = useRef(createViewport(initialCenter, initialZoomSize));
@@ -74,6 +92,21 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     setViewport(viewportRef.current);
     rendererRef.current?.update();
   }, []);
+  useEffect(() => {
+    if (matchesDeepViewport(viewportRef.current, previousOpening.current)) {
+      viewportRef.current = opening;
+      updateViewport();
+    }
+    previousOpening.current = opening;
+  }, [opening, updateViewport]);
+  useEffect(() => {
+    const reset = () => {
+      viewportRef.current = opening;
+      updateViewport();
+    };
+    window.addEventListener("garden:reset-pose", reset);
+    return () => window.removeEventListener("garden:reset-pose", reset);
+  }, [opening, updateViewport]);
   const [renderError, setRenderError] = useState("");
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
@@ -82,7 +115,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   useDeepZoomControls({
     canvas: cnv,
     viewportRef,
-    maxZoomSize,
+    maxZoomSize: Math.max(maxZoomSize, 2 ** opening.logZoom),
     flipY,
     onChange: updateViewport,
   });
@@ -133,14 +166,15 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
               matchesViewport={(view) =>
                 matchesDeepViewport(
                   viewport,
-                  createViewport(view.preciseCenter ?? view.center, view.zoomSize),
+                  isOpeningPlace(view)
+                    ? opening
+                    : createViewport(view.preciseCenter ?? view.center, view.zoomSize),
                 )
               }
               onSelect={(view) => {
-                viewportRef.current = createViewport(
-                  view.preciseCenter ?? view.center,
-                  view.zoomSize,
-                );
+                viewportRef.current = isOpeningPlace(view)
+                  ? opening
+                  : createViewport(view.preciseCenter ?? view.center, view.zoomSize);
                 onRestore({
                   ...config,
                   ...view.parameters,
@@ -159,7 +193,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         onUpdate={(newData) => {
           // Studio family changes start wide; destination restores retain their framing.
           if ("preset" in config && "preset" in newData && config.preset !== newData.preset) {
-            viewportRef.current = createViewport(initialCenter, initialZoomSize);
+            viewportRef.current = opening;
             updateViewport();
           }
           onUpdate(newData);
@@ -192,8 +226,8 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         <PanelNumber path="colorOffset" label="Color offset" min={0} max={1} step={0.01} />
         <PanelColor path="interior" label="Interior" />
       </ExplorerPanel>
-      <div className={styles.fullScreen}>
-        <DeepZoomCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
+      <div data-fractal-viewport className={styles.viewport}>
+        {frame && <DeepZoomCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />}
         {renderError && gl && (
           <output className={zoomStyles.error} data-fractal-chrome role="alert">
             {renderError}

@@ -9,17 +9,13 @@
   composes: fullScreen;
 }
 
-/* Fit the whole fractal above navigation; let zoomed detail reach the bottom. */
-:global(body[data-fractal-zoom]) .lSystem {
-  --fractal-viewport-bottom: 0px;
-}
-
 .viewport {
   position: relative;
   box-sizing: border-box;
-  height: 100vh;
-  padding-top: var(--fractal-viewport-top);
-  padding-bottom: var(--fractal-viewport-bottom);
+  height: calc(100vh - var(--fractal-canvas-top));
+  margin-top: var(--fractal-canvas-top);
+  scroll-padding-top: calc(var(--fractal-viewport-top) - var(--fractal-canvas-top));
+  scroll-padding-bottom: var(--fractal-viewport-bottom);
   overflow: hidden;
   background: var(--semi-dark-grey);
 }
@@ -30,10 +26,4 @@
 
 .endlessPattern {
   composes: fullScreen;
-}
-
-/* The opening tree clears chrome; explored branches fill the whole screen. */
-:global(body[data-fractal-zoom]) .endlessPattern {
-  --fractal-viewport-top: 0px;
-  --fractal-viewport-bottom: 0px;
 }

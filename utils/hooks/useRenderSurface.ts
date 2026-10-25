@@ -4,6 +4,7 @@ import { RenderHost } from "../render/host";
 import type { RendererKind } from "../render/registry";
 import type { CalibrationRequest, HostEvent } from "../render/types";
 import { useExplorerPart } from "./useExplorerPart";
+import { useFractalFrame } from "./useFractalFrame";
 
 type Channel = {
   setParams: (params: unknown) => void;
@@ -127,8 +128,23 @@ export function useRenderSurface<P>({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const channelRef = useRef<Channel | null>(null);
+  const frame = useFractalFrame(width, height);
+  const framing = shareView && canvas?.closest("[data-fractal-viewport]") ? frame : null;
+  const framingRef = useRef(framing);
+  framingRef.current = framing;
+  const prepareParams = useCallback(
+    (next: P) =>
+      next && typeof next === "object" && framingRef.current
+        ? { ...next, framing: framingRef.current }
+        : next,
+    [],
+  );
   const latestParams = useRef(params);
-  latestParams.current = params;
+  const previousParams = useRef(params);
+  if (previousParams.current !== params) {
+    previousParams.current = params;
+    latestParams.current = params;
+  }
   const latestSize = useRef({ width, height });
   latestSize.current = { width, height };
   const onEventRef = useRef(onEvent);
@@ -156,7 +172,7 @@ export function useRenderSurface<P>({
       channelRef.current = channel;
       const { width: w, height: h } = latestSize.current;
       if (w && h) channel.resize(w, h, window.devicePixelRatio || 1);
-      if (latestParams.current != null) channel.setParams(latestParams.current);
+      if (latestParams.current != null) channel.setParams(prepareParams(latestParams.current));
       setConnected(true);
     };
 
@@ -197,7 +213,7 @@ export function useRenderSurface<P>({
       element.remove();
       setCanvas(null);
     };
-  }, [kind]);
+  }, [kind, prepareParams]);
 
   useExplorerPart(
     "renderer",
@@ -220,9 +236,11 @@ export function useRenderSurface<P>({
     channelRef.current?.resize(width, height, window.devicePixelRatio || 1);
   }, [canvas, width, height]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fit changes must redraw the current imperative view too
   useEffect(() => {
-    if (params != null) channelRef.current?.setParams(params);
-  }, [params]);
+    if (latestParams.current != null)
+      channelRef.current?.setParams(prepareParams(latestParams.current));
+  }, [params, framing, prepareParams]);
 
   useEffect(() => {
     if (measureKey) channelRef.current?.remeasure();
@@ -249,10 +267,13 @@ export function useRenderSurface<P>({
 
   // For pages that change the picture faster than React should re-render,
   // such as a pan: posts straight to the renderer.
-  const setParams = useCallback((next: P) => {
-    latestParams.current = next;
-    channelRef.current?.setParams(next);
-  }, []);
+  const setParams = useCallback(
+    (next: P) => {
+      latestParams.current = next;
+      channelRef.current?.setParams(prepareParams(next));
+    },
+    [prepareParams],
+  );
 
   const restoreView = useCallback((state: unknown) => channelRef.current?.restoreView(state), []);
 

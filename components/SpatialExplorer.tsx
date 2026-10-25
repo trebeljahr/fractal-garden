@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useSpatialControls } from "../utils/hooks/useSpatialControls";
 import type { SceneSpec } from "../utils/render/scene3d";
 import {
@@ -33,6 +34,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
   width: number;
   height: number;
 }) {
+  const frame = useFractalFrame(width, height);
   const [error, setError] = useState("");
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const geometry = useRef<SpatialGeometry | null>(null);
@@ -40,6 +42,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
   const currentFrame = useRef({ camera: INITIAL_SPATIAL_CAMERA, style });
   const { camera, flying, navigation } = useSpatialControls({
     canvas,
+    frame,
     view: style,
     setView: setStyle,
     identity: JSON.stringify(spec),
@@ -60,9 +63,9 @@ export function SpatialExplorer<T extends SpatialStyle>({
             return meshClearance(data.collision, eye) * 2 ** (camera.zoom - frame.camera.zoom);
           },
     pick: (x, y) => {
-      const frame = geometryFrame.current,
+      const source = geometryFrame.current,
         live = currentFrame.current;
-      if (!geometry.current || !frame) return null;
+      if (!geometry.current || !source) return null;
       return pickSpatialPoint(
         geometry.current.vertices,
         x,
@@ -70,17 +73,18 @@ export function SpatialExplorer<T extends SpatialStyle>({
         width,
         height,
         spatialFrameTransform(
-          frame.camera,
-          rotationOf(frame.style),
+          source.camera,
+          rotationOf(source.style),
           live.camera,
           rotationOf(live.style),
         ),
+        frame,
       );
     },
   });
   currentFrame.current = { camera, style };
-  const latest = useRef({ style, width, height });
-  latest.current = { style, width, height };
+  const latest = useRef({ style, width, height, frame });
+  latest.current = { style, width, height, frame };
   const drawRef = useRef<() => void>(() => {});
   const requestRef = useRef<(request: SpatialRequest) => void>(() => {});
   const [ready, setReady] = useState(0);
@@ -114,7 +118,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
     init();
     const draw = () => {
       if (disposed || gl.isContextLost() || !renderer) return;
-      const { style, width, height } = latest.current;
+      const { style, width, height, frame } = latest.current;
       const data = geometry.current,
         old = geometryFrame.current,
         live = currentFrame.current;
@@ -135,6 +139,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
           height,
           2 ** ((live.camera.atmosphereZoom ?? live.camera.zoom) - live.camera.zoom) / 96,
           spatialReliefFront(live.camera, rotationOf(live.style)),
+          frame,
         );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
@@ -226,8 +231,8 @@ export function SpatialExplorer<T extends SpatialStyle>({
   }, [canvas]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: Colors redraw existing buffers; only the listed view fields change geometry.
   useEffect(() => {
-    if (!ready) return;
-    const request = { spec, camera, style, width, height, flight: flying };
+    if (!ready || !frame) return;
+    const request = { spec, camera, style, width, height, frame, flight: flying };
     requestRef.current({ ...request, pixelSize: geometry.current?.pixelSize });
     const idle = window.setTimeout(() => requestRef.current(request), 300);
     return () => window.clearTimeout(idle);
@@ -242,6 +247,7 @@ export function SpatialExplorer<T extends SpatialStyle>({
     style.lineWidth,
     width,
     height,
+    frame,
   ]);
   useEffect(() => drawRef.current());
   useEffect(() => {

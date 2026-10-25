@@ -1,3 +1,4 @@
+import type { FractalFrame } from "../fractalFrame";
 import { createShaderProgram } from "../shaders/compileShader";
 import vertex from "../shaders/mandelbrot.vert";
 import fragment from "../shaders/voxel-flight.frag";
@@ -13,7 +14,7 @@ import {
 } from "./camera";
 import { MAX_STILL_FLIGHT_PIXELS } from "./frameBudget";
 import { flightDetailDepth, flightRenderSize, flightResolution } from "./resolution";
-import { flightScreenBounds } from "./view";
+import { flightProjection, flightScreenBounds } from "./view";
 
 export type FlightStyle = {
   background: string;
@@ -62,7 +63,8 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     gl.texParameteri(gl.TEXTURE_2D, name, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, MAX_VOXEL_DEPTH, 2, 0, gl.RGBA, gl.FLOAT, null);
   const names = [
-    "resolution",
+    "viewCenter",
+    "viewSide",
     "pixelAngle",
     "nearFootprint",
     "detailScale",
@@ -101,6 +103,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       height: number,
       ratio: number,
       pixelBudget = MAX_STILL_FLIGHT_PIXELS,
+      framing?: FractalFrame | null,
     ) {
       // Frame cadence adjusts the pixel budget without changing camera units.
       const { width: w, height: h } = flightRenderSize(width, height, ratio, pixelBudget);
@@ -117,12 +120,23 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         camera.atmosphereLevel ?? navigationLevel,
       );
       const basis = flightBasis(camera);
+      const pixelFrame = framing
+        ? {
+            width: w,
+            height: h,
+            top: (framing.top * h) / height,
+            bottom: (framing.bottom * h) / height,
+          }
+        : undefined;
+      const projection = flightProjection(w, h, pixelFrame);
+      const displayProjection = flightProjection(width, height, framing);
       const visible = flightScreenBounds(
         flightRootBounds(camera),
         basis,
         w,
         h,
         nextAtmosphere.farDistance,
+        pixelFrame,
       );
       const background = rgb(style.background);
       // Clear the full canvas before clipping the expensive ray traversal.
@@ -164,15 +178,16 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previous = camera;
         previousPattern = pattern;
       }
-      gl.uniform2f(u.resolution, w, h);
+      gl.uniform2f(u.viewCenter, projection.centerX, projection.centerY);
+      gl.uniform1f(u.viewSide, projection.side);
       const detail = flightResolution(
         frame.clearance,
-        w,
-        h,
+        projection.side,
+        projection.side,
         camera.level,
         navigationLevel,
-        width,
-        height,
+        displayProjection.side,
+        displayProjection.side,
       );
       gl.uniform1f(u.pixelAngle, detail.pixelAngle);
       gl.uniform1f(u.nearFootprint, detail.nearFootprint);

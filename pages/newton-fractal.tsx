@@ -5,8 +5,8 @@ import { NavElement } from "../components/Navbar";
 import { SideDrawer } from "../components/SideDrawer";
 import { ViewportOverlay } from "../components/ViewportOverlay";
 import styles from "../styles/Fullscreen.module.css";
+import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { useShaderViewportControls } from "../utils/hooks/useShaderViewportControls";
-import { useWindowSize } from "../utils/hooks/useWindowResize";
 import { getDescription } from "../utils/readFiles";
 import { createShaderProgram } from "../utils/shaders/compileShader";
 import vertexShader from "../utils/shaders/mandelbrot.vert";
@@ -22,7 +22,7 @@ const MIN_ZOOM_SIZE = 0.00005;
 const MAX_ZOOM_SIZE = INITIAL_ZOOM_SIZE;
 
 const NewtonFractal = ({ description }: Props) => {
-  const { width, height } = useWindowSize();
+  const { width, height } = useFractalViewportSize();
   const [gl, setGl] = useState<WebGLRenderingContext | null>(null);
   const [cnv, setCnv] = useState<HTMLCanvasElement | null>(null);
   const viewportRef = useRef({
@@ -109,7 +109,7 @@ const NewtonFractal = ({ description }: Props) => {
   return (
     <>
       <main className={styles.fullScreen}>
-        <div className={styles.fullScreen}>
+        <div data-fractal-viewport className={styles.viewport}>
           <WebGLCanvas setGl={setGl} width={width} height={height} setCnv={setCnv} />
           <ViewportOverlay
             places={

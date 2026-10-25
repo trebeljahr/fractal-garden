@@ -1,3 +1,4 @@
+import type { FractalFrame } from "./fractalFrame";
 import { type Orientation, viewRotation } from "./orientation";
 import {
   CAMERA_DISTANCE,
@@ -6,6 +7,7 @@ import {
   relativeNumber,
   type SpatialCamera,
 } from "./spatial/camera";
+import { spatialProjection } from "./spatial/projection";
 
 export type Polyline3D = {
   // Packed xyz triples: [x0, y0, z0, x1, y1, z1, ...]
@@ -17,6 +19,7 @@ export type Polyline3D = {
 
 export type Polyline3DDrawOptions = {
   spatialCamera?: SpatialCamera;
+  framing?: FractalFrame;
   rotationX: number;
   rotationY: number;
   grab?: Orientation;
@@ -323,7 +326,8 @@ export function drawPolyline3D(
     options.rotationY,
     options.grab,
   );
-  const scale = Math.min(width, height) * (options.viewScale ?? 0.42);
+  const projection = spatialProjection(width, height, options.framing);
+  const scale = (projection.focal / FOCAL_SCALE) * (options.viewScale ?? 0.42);
   const projected = new Float32Array(count * 3);
   const clipped = new Uint8Array(count);
 
@@ -346,8 +350,8 @@ export function drawPolyline3D(
       (spatial ? FOCAL_SCALE / (options.viewScale ?? 0.42) : PROJECTION_FOCAL_LENGTH) /
       Math.max(cameraDepth, NEAR_PLANE);
 
-    projected[i * 3] = width / 2 + rx * scale * perspective;
-    projected[i * 3 + 1] = height / 2 - ry * scale * perspective;
+    projected[i * 3] = projection.centerX + rx * scale * perspective;
+    projected[i * 3 + 1] = projection.centerY - ry * scale * perspective;
     projected[i * 3 + 2] = rz;
   }
 

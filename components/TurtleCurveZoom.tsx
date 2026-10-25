@@ -58,8 +58,9 @@ export function TurtleCurveZoom<C extends Config>({
     [axiom, rulesKey, turn, start, draw, config.color, config.background, config.lineWidth],
   );
   const frame = useCallback(
-    () => fittedFrame(spec, config.iterations, width ?? 0, height ?? 0, PADDING, minSpan),
-    [spec, config.iterations, width, height, minSpan],
+    (fitWidth: number, fitHeight: number) =>
+      fittedFrame(spec, config.iterations, fitWidth, fitHeight, PADDING, minSpan),
+    [spec, config.iterations, minSpan],
   );
   return (
     <EndlessZoom
