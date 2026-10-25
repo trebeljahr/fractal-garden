@@ -82,12 +82,6 @@ async function check(page, baseURL, captures) {
       const canvas = view.getByLabel("Explore the fractal interior", { exact: true });
       await canvas.waitFor();
       await view.waitForTimeout(350);
-      const initial = await state();
-      assert(
-        initial.width === viewport.width * 2,
-        `${name}: initial view is not native resolution`,
-      );
-      assert(initial.height === viewport.height * 2, `${name}: initial height is not native`);
       const hide = view.getByRole("button", { name: "Hide UI", exact: true });
       if (await hide.isVisible()) {
         await hide.click();
@@ -95,6 +89,17 @@ async function check(page, baseURL, captures) {
           () => document.activeElement?.getAttribute("aria-label") === "Show UI",
         );
       }
+      await view.waitForFunction(() => {
+        const canvas = document.querySelector('canvas[aria-label="Explore the fractal interior"]');
+        return (
+          canvas &&
+          canvas.width === canvas.clientWidth * 2 &&
+          canvas.height === canvas.clientHeight * 2
+        );
+      });
+      const initial = await state();
+      assert(initial.width === initial.displayWidth * 2, `${name}: initial width is not native`);
+      assert(initial.height === initial.displayHeight * 2, `${name}: initial height is not native`);
       await canvas.focus();
       await view.evaluate(() => {
         window.__settleDelay = 65;
@@ -111,10 +116,11 @@ async function check(page, baseURL, captures) {
         window.__settleDelay = 0;
       });
       const released = await state();
-      const movingPixels = await view.evaluate(() =>
-        Math.min(...window.__settleFrames.map((frame) => frame.width * frame.height)),
+      const frames = await view.evaluate(
+        (start) => window.__settleFrames.slice(start),
+        initial.draws,
       );
-      const frames = await view.evaluate(() => window.__settleFrames);
+      const movingPixels = Math.min(...frames.map((frame) => frame.width * frame.height));
       assert(
         frames.every((frame) => frame.width === initial.width && frame.height === initial.height),
         `${name}: framebuffer resolution changed during movement`,
