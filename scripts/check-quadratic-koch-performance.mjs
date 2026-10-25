@@ -5,6 +5,17 @@ import { style as fixtureStyle, require } from "../tests/helpers/spatial-gpu-fix
 // node scripts/check-quadratic-koch-performance.mjs BASELINE.frag CALLBACK.js [CAPTURES] [--candidate FILE]
 // node scripts/check-quadratic-koch-performance.mjs --extract-captures CAPTURES/captures.json
 // QK_WIDTH, QK_HEIGHT, QK_SAMPLES, QK_WARMUP and QK_FILTER bound individual runs.
+// SPATIAL_SPECS=jerusalem,tetrahedron,squarePyramid,octahedron,dodecahedron,
+// icosahedron,koch-triangle,koch-tetrahedron,quadratic,romanesco (or all).
+// Without SPATIAL_SPECS the original quadratic fixtures and raw baseline remain.
+// With it, baseline uses the original production specialization: quadratic fixed
+// kind/counts, Romanesco fixed kind and safe stack, other shapes generic/40.
+// SPATIAL_BASELINE_RAW=1 leaves baseline bytes unchanged in either mode.
+// QK_STACK=16|24|40 overrides only generated candidates for stack experiments.
+// QK_GROWTH (0..1), QK_MAX_RANK and QK_VISIT_LIMIT exercise finite growth and
+// exhausted traversal. A visit override changes the nearest-hit 4096 budget in
+// both sources, including child pretests; other budgets stay unchanged.
+// --candidate keeps supplied bytes, except for an explicit QK_VISIT_LIMIT.
 // Run the generated callback with Playwright CLI's run-code --filename option.
 const args = process.argv.slice(2);
 const extractIndex = args.indexOf("--extract-captures");
@@ -44,6 +55,28 @@ const width = Number(process.env.QK_WIDTH ?? 640);
 const height = Number(process.env.QK_HEIGHT ?? 480);
 const samples = Number(process.env.QK_SAMPLES ?? 8);
 const warmup = Number(process.env.QK_WARMUP ?? 3);
+const growth = Number(process.env.QK_GROWTH ?? 1);
+const maxRank = Number(process.env.QK_MAX_RANK ?? 1000);
+const visitLimit = process.env.QK_VISIT_LIMIT ? Number(process.env.QK_VISIT_LIMIT) : null;
+if (!Number.isFinite(growth) || growth < 0 || growth > 1)
+  throw Error("QK_GROWTH must be between 0 and 1");
+if (!Number.isInteger(maxRank) || maxRank < 0)
+  throw Error("QK_MAX_RANK must be a nonnegative integer");
+if (visitLimit !== null && (!Number.isInteger(visitLimit) || visitLimit < 1 || visitLimit > 65536))
+  throw Error("QK_VISIT_LIMIT must be an integer between 1 and 65536");
+const settings = { growth, maxRank, visitLimit };
+const diagnosticSource = (source) => {
+  if (visitLimit === null) return source;
+  const start = source.indexOf("bool traceNearest(");
+  const end = source.indexOf("bool traceUnionExit(", start);
+  if (start < 0 || end < 0)
+    throw Error("QK_VISIT_LIMIT requires the traceNearest/traceUnionExit shader layout");
+  const nearest = source.slice(start, end);
+  if (!/\b4096\b/.test(nearest)) throw Error("Nearest traversal's 4096 visit budget was not found");
+  return (
+    source.slice(0, start) + nearest.replace(/\b4096\b/g, String(visitLimit)) + source.slice(end)
+  );
+};
 for (const [name, value] of Object.entries({ width, height, samples, warmup })) {
   if (!Number.isInteger(value) || value < 1) throw Error(`${name} must be a positive integer`);
 }
@@ -53,14 +86,18 @@ const {
   buildGpuFrame,
   packTransforms,
   packOrderedChildren,
+  packChildBounds,
+  selectGpuStackDepth,
 } = require("../../utils/spatialGpu/model.ts");
 const { INITIAL_SPATIAL_CAMERA, inverseRotate } = require("../../utils/spatial/camera.ts");
 const { viewRotation } = require("../../utils/orientation.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
 const { spatialProjection } = require("../../utils/spatial/projection.ts");
 const { spatialReliefFront } = require("../../utils/spatial/lighting.ts");
-const { specializeSpatialShader } = require("../../utils/spatialGpu/shader.ts");
-const spec = { kind: "quadraticKoch3d" };
+const {
+  spatialShaderStackDepth,
+  specializeSpatialShader,
+} = require("../../utils/spatialGpu/shader.ts");
 const shaderPath = new URL("../utils/shaders/spatial-flight.frag", import.meta.url);
 const vertex = readFileSync(
   new URL("../utils/shaders/spatial-flight.vert", import.meta.url),
@@ -72,53 +109,175 @@ const screenSource = readFileSync(
 );
 const screen = screenSource.match(/const screenFragment = `([\s\S]*?)`;/)?.[1];
 if (!screen) throw Error("Production screen shader was not found.");
-const variants = [
-  { name: "baseline", source: readFileSync(baselinePath, "utf8") },
-  {
-    name: "current",
-    source: candidatePath
-      ? readFileSync(candidatePath, "utf8")
-      : specializeSpatialShader(readFileSync(shaderPath, "utf8"), spec),
-  },
-];
-const shape = buildGpuShape(spec);
-const baseStyle = { ...fixtureStyle, fillColor: "#ff8f7e", strokeColor: "#ffe4de" };
+const baselineSource = diagnosticSource(readFileSync(baselinePath, "utf8"));
+const candidateSource = diagnosticSource(readFileSync(candidatePath ?? shaderPath, "utf8"));
+const expanded = Boolean(process.env.SPATIAL_SPECS);
+const baselineRaw = !expanded || process.env.SPATIAL_BASELINE_RAW === "1";
+const forcedStack = process.env.QK_STACK ? Number(process.env.QK_STACK) : null;
+if (forcedStack !== null && ![16, 24, 40].includes(forcedStack))
+  throw Error("QK_STACK must be 16, 24 or 40");
+const phi = (1 + Math.sqrt(5)) / 2;
+const specCatalogue = {
+  jerusalem: { kind: "jerusalem" },
+  tetrahedron: { kind: "flake", mesh: "tetrahedron", ratio: 0.5 },
+  squarePyramid: { kind: "flake", mesh: "squarePyramid", ratio: 0.5 },
+  octahedron: { kind: "flake", mesh: "octahedron", ratio: 0.5 },
+  dodecahedron: { kind: "flake", mesh: "dodecahedron", ratio: 1 / (2 + phi) },
+  icosahedron: { kind: "flake", mesh: "icosahedron", ratio: 1 / (1 + phi) },
+  "koch-triangle": { kind: "kochSurface", start: "triangle" },
+  "koch-tetrahedron": { kind: "kochSurface", start: "tetrahedron" },
+  quadratic: { kind: "quadraticKoch3d" },
+  romanesco: { kind: "romanesco" },
+};
+const selected =
+  process.env.SPATIAL_SPECS === "all"
+    ? Object.keys(specCatalogue)
+    : (process.env.SPATIAL_SPECS ?? "quadratic").split(",").map((name) => name.trim());
+for (const name of selected)
+  if (!Object.hasOwn(specCatalogue, name)) throw Error(`Unknown SPATIAL_SPECS entry ${name}`);
+const variants = [],
+  variantIndices = new Map(),
+  shapes = {};
+const withStack = (source, depth) =>
+  source.replace("#version 300 es", `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}`);
+// Keep the baseline's production decisions independent of the candidate helper.
+const originalSource = (source, spec, depth) => {
+  if (baselineRaw) return source;
+  if (spec.kind === "quadraticKoch3d")
+    return source
+      .replace("#version 300 es", "#version 300 es\n#define QUADRATIC_KOCH")
+      .replace("uniform int u_kind;", "const int u_kind = 2;")
+      .replace("uniform int u_childCount;", "const int u_childCount = 13;")
+      .replace("uniform int u_hullCount;", "const int u_hullCount = 6;")
+      .replace("uniform int u_edgeCount;", "const int u_edgeCount = 4;");
+  if (spec.kind === "romanesco")
+    return withStack(source.replace("uniform int u_kind;", "const int u_kind = 3;"), depth);
+  return source;
+};
+const registerVariant = (name, source, stackDepth) => {
+  const key = `${name}\0${source}`;
+  if (!variantIndices.has(key)) {
+    variantIndices.set(key, variants.length);
+    variants.push({ name, source, stackDepth });
+  }
+  return variantIndices.get(key);
+};
+const sourcesFor = (frame, options) => {
+  const depth = selectGpuStackDepth(frame, options);
+  const candidateDepth = forcedStack ?? spatialShaderStackDepth(frame);
+  const baselineDepth = !baselineRaw && frame.shape.kind === 3 ? depth : 40;
+  return [
+    registerVariant(
+      "baseline",
+      originalSource(baselineSource, frame.shape.spec, baselineDepth),
+      baselineDepth,
+    ),
+    registerVariant(
+      "current",
+      candidatePath
+        ? candidateSource
+        : specializeSpatialShader(candidateSource, frame.shape.spec, candidateDepth),
+      candidatePath ? null : candidateDepth,
+    ),
+  ];
+};
 const cameraAt = (zoom, target = [0, 0, 0]) => {
   const bits = 160 + Math.ceil(zoom);
   return { bits, zoom, target: target.map((v) => fixedFromNumber(v, bits).toString()) };
 };
-const cornerDirection = [0.5 + 0.137, 0.5 + 0.073, 0.5 - 0.093];
-const cornerLength = Math.hypot(...cornerDirection);
-const cornerStyle = {
-  ...baseStyle,
-  rotationX: (Math.asin(cornerDirection[1] / cornerLength) * 180) / Math.PI,
-  rotationY: (Math.atan2(-cornerDirection[0], cornerDirection[2]) * 180) / Math.PI,
-};
-const definitions = [
-  { name: "opening-depth", camera: INITIAL_SPATIAL_CAMERA, style: baseStyle },
-  {
-    name: "rotated-depth",
-    camera: INITIAL_SPATIAL_CAMERA,
-    style: { ...baseStyle, rotationX: -17, rotationY: 133 },
-  },
-  { name: "close-depth", camera: cameraAt(2), style: baseStyle },
-  {
-    name: "close-classic",
-    camera: cameraAt(2),
-    style: { ...baseStyle, lighting: "classic", occlusion: "off" },
-  },
-  {
-    name: "close-wire",
-    camera: cameraAt(2),
-    style: { ...baseStyle, showFaces: false, lighting: "classic", occlusion: "off" },
-  },
-  { name: "deep-80", camera: cameraAt(80, [0.5, 0.5, 0.5]), style: cornerStyle },
-  { name: "deep-240", camera: cameraAt(240, [0.5, 0.5, 0.5]), style: cornerStyle },
-];
-const fixtures = definitions
-  .filter(({ name }) => !process.env.QK_FILTER || new RegExp(process.env.QK_FILTER).test(name))
-  .map(({ name, camera, style }) => {
+const fixtures = [];
+for (const specName of [...new Set(selected)]) {
+  const spec = specCatalogue[specName],
+    shape = buildGpuShape(spec),
+    bounds = packChildBounds(shape);
+  shapes[specName] = {
+    kind: shape.kind,
+    hull: shape.hull,
+    edges: shape.edges,
+    radius: shape.radius,
+    featureSize: shape.featureSize,
+    childCount: shape.children.length,
+    coneSlope: shape.coneSlope ?? 0,
+    boundConeSlope: shape.boundConeSlope ?? 0,
+    children: Array.from(packOrderedChildren(shape)),
+    childBounds: Array.from(bounds.data),
+    childBoundsCount: bounds.nodeCount,
+  };
+  const baseStyle =
+    spec.kind === "quadraticKoch3d"
+      ? { ...fixtureStyle, fillColor: "#ff8f7e", strokeColor: "#ffe4de" }
+      : spec.kind === "romanesco"
+        ? {
+            ...fixtureStyle,
+            fillColor: "#c4e87c",
+            strokeColor: "#d8e99c",
+            rotationX: 65,
+            showWireframe: false,
+          }
+        : { ...fixtureStyle };
+  const anchor =
+    spec.kind === "flake"
+      ? shape.seedVertices[0]
+      : spec.kind === "jerusalem"
+        ? [1, 1, 1]
+        : spec.kind === "quadraticKoch3d"
+          ? [0.5, 0.5, 0.5]
+          : spec.kind === "romanesco"
+            ? applyPoint(shape.roots[0], [0, 1, 0])
+            : shape.rootTriangles[0][0];
+  const direction = anchor.map((v, i) => v + [0.137, 0.073, -0.093][i]);
+  const length = Math.hypot(...direction);
+  const deepStyle =
+    spec.kind === "romanesco"
+      ? { ...baseStyle, rotationX: 0, rotationY: 0 }
+      : {
+          ...baseStyle,
+          rotationX: (Math.asin(direction[1] / length) * 180) / Math.PI,
+          rotationY: (Math.atan2(-direction[0], direction[2]) * 180) / Math.PI,
+        };
+  const anchorCamera = (zoom) => {
+    if (spec.kind !== "romanesco") return cameraAt(zoom, anchor);
+    // Sum the root center and apex offset in fixed point. Adding their doubles
+    // first loses the exact construction boundary at 80/240 zoom doublings.
+    const bits = 160 + Math.ceil(zoom),
+      root = shape.roots[0];
+    const target = root.center.map((v) => fixedFromNumber(v, bits));
+    target[1] += fixedFromNumber(root.axes[1][1], bits);
+    return { bits, zoom, target: target.map(String) };
+  };
+  const definitions = [
+    { name: "opening-depth", camera: INITIAL_SPATIAL_CAMERA, style: baseStyle },
+    {
+      name: "rotated-depth",
+      camera: INITIAL_SPATIAL_CAMERA,
+      style: { ...baseStyle, rotationX: -17, rotationY: 133 },
+    },
+    { name: "close-depth", camera: cameraAt(2), style: baseStyle },
+    {
+      name: "close-classic",
+      camera: cameraAt(2),
+      style: { ...baseStyle, lighting: "classic", occlusion: "off" },
+    },
+    {
+      name: "close-wire",
+      camera: cameraAt(2),
+      style: {
+        ...baseStyle,
+        showFaces: false,
+        showWireframe: true,
+        lighting: "classic",
+        occlusion: "off",
+      },
+    },
+    { name: "deep-80", camera: anchorCamera(80), style: deepStyle },
+    { name: "deep-240", camera: anchorCamera(240), style: deepStyle },
+  ];
+  for (const definition of definitions) {
+    const name = expanded ? `${specName}/${definition.name}` : definition.name;
+    if (process.env.QK_FILTER && !new RegExp(process.env.QK_FILTER).test(name)) continue;
+    const { camera, style } = definition;
     const frame = buildGpuFrame(shape, camera, style);
+    if (!frame.roots.length) throw Error(`No roots in ${name}`);
     const rotation = viewRotation(style.rotationX, style.rotationY);
     const projection = spatialProjection(width, height, { top: 60, bottom: 76 });
     let left = width,
@@ -126,6 +285,12 @@ const fixtures = definitions
       right = 0,
       top = 0;
     for (const root of frame.roots) {
+      if (root.cone) {
+        left = bottom = 0;
+        right = width;
+        top = height;
+        break;
+      }
       let nearEye = false,
         front = false;
       const projected = [];
@@ -162,16 +327,42 @@ const fixtures = definitions
     }
     const x = Math.max(0, Math.floor(left) - 1),
       y = Math.max(0, Math.floor(bottom) - 1);
-    return {
+    const minimumFootprint = 0.04 / projection.focal;
+    const tangentPoints =
+      shape.kind === 2
+        ? [
+            [-1, -1, 0],
+            [1, 0, 0],
+          ]
+        : shape.kind === 1
+          ? [
+              [-0.5, -Math.sqrt(3) / 6, 0],
+              [0, -Math.sqrt(3) / 6, 0],
+            ]
+          : shape.kind === 3
+            ? [
+                [0, 1, 0],
+                [shape.coneSlope * 2, -1, 0],
+              ]
+            : shape.seedVertices.slice(0, 2);
+    fixtures.push({
       name,
+      specName,
       camera,
       style,
+      variants: sourcesFor(frame, { minimumFootprint, maxRank }),
+      clearanceVariants: sourcesFor(frame, { clearance: true, maxRank }),
       roots: Array.from(packTransforms(frame.roots)),
       visited: frame.visited,
-      tangencies: frame.roots.slice(0, 3).flatMap((root, i) => [
-        { name: `root-${i}-corner`, ray: applyPoint(root, [-1, -1, 0]) },
-        { name: `root-${i}-edge`, ray: applyPoint(root, [1, 0, 0]) },
-      ]),
+      tangencies: frame.roots
+        .filter((root) => !root.cone)
+        .slice(0, 3)
+        .flatMap((root, i) =>
+          tangentPoints.map((point, j) => ({
+            name: `root-${i}-boundary-${j}`,
+            ray: applyPoint(root, point),
+          })),
+        ),
       scissor: [
         x,
         y,
@@ -188,8 +379,9 @@ const fixtures = definitions
         up: inverseRotate([0, 1, 0], rotation),
         forward: inverseRotate([0, 0, -1], rotation),
       },
-    };
-  });
+    });
+  }
+}
 if (!fixtures.length) throw Error("QK_FILTER matched no fixtures.");
 
 async function check(page, payload, captures) {
@@ -203,8 +395,8 @@ async function check(page, payload, captures) {
       height,
       samples,
       warmup,
-      shape,
-      children,
+      shapes,
+      settings,
       capture,
     }) => {
       const canvas = document.createElement("canvas");
@@ -238,7 +430,13 @@ async function check(page, payload, captures) {
       const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
       const images = [];
       try {
-        const programs = variants.map((variant) => ({ ...variant, ...program(variant.source) }));
+        const compiled = new Map();
+        const programsFor = (indices) =>
+          indices.map((index) => {
+            if (!compiled.has(index))
+              compiled.set(index, { ...variants[index], ...program(variants[index].source) });
+            return compiled.get(index);
+          });
         const post = program(screen);
         const vao = own(gl.createVertexArray(), (v) => gl.deleteVertexArray(v));
         gl.bindVertexArray(vao);
@@ -247,7 +445,7 @@ async function check(page, payload, captures) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        const textures = Array.from({ length: 4 }, () =>
+        const textures = Array.from({ length: 5 }, () =>
           own(gl.createTexture(), (v) => gl.deleteTexture(v)),
         );
         const bind = (unit) => {
@@ -261,18 +459,6 @@ async function check(page, payload, captures) {
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         });
-        bind(1);
-        gl.texImage2D(
-          gl.TEXTURE_2D,
-          0,
-          gl.RGBA32F,
-          4,
-          children.length / 16,
-          0,
-          gl.RGBA,
-          gl.FLOAT,
-          new Float32Array(children),
-        );
         const framebuffer = own(gl.createFramebuffer(), (v) => gl.deleteFramebuffer(v));
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
         for (let i = 0; i < 2; i++) {
@@ -313,17 +499,20 @@ async function check(page, payload, captures) {
         const renderer = hardware
           ? gl.getParameter(hardware.UNMASKED_RENDERER_WEBGL)
           : gl.getParameter(gl.RENDERER);
-        const planeData = new Float32Array(80),
-          edgeData = new Float32Array(16);
-        planeData.set(shape.hull.flat());
-        edgeData.set(shape.edges.flat());
         const setup = (p, f) => {
+          const shape = shapes[f.specName];
+          const planeData = new Float32Array(80),
+            edgeData = new Float32Array(16);
+          planeData.set(shape.hull.flat());
+          edgeData.set(shape.edges.flat());
           // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
           gl.useProgram(p.program);
           const u = p.uniform;
           for (const [name, value] of Object.entries({
             roots: 0,
             children: 1,
+            childBounds: 4,
+            childBoundsCount: shape.childBoundsCount,
             orderedChildren: 1,
             rootCount: f.roots.length / 16,
             childCount: shape.childCount,
@@ -340,9 +529,12 @@ async function check(page, payload, captures) {
           for (const [name, value] of Object.entries({
             radius: shape.radius,
             featureSize: shape.featureSize,
+            coneSlope: shape.coneSlope,
+            boundConeSlope: shape.boundConeSlope,
+            growth: settings.growth,
             focal: 3.6,
             far: 128,
-            maxRank: 1000,
+            maxRank: settings.maxRank,
             pixelAngle: f.pixelAngle,
             nearFootprint: f.nearFootprint,
             detailScale: 2,
@@ -412,6 +604,26 @@ async function check(page, payload, captures) {
           ];
         const results = [];
         for (const f of fixtures) {
+          const shape = shapes[f.specName];
+          const programs = programsFor(f.variants);
+          const clearancePrograms = programsFor(f.clearanceVariants);
+          for (const [unit, textureWidth, values] of [
+            [1, 4, shape.children],
+            [4, 2, shape.childBounds],
+          ]) {
+            bind(unit);
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.RGBA32F,
+              textureWidth,
+              values.length / (textureWidth * 4),
+              0,
+              gl.RGBA,
+              gl.FLOAT,
+              new Float32Array(values),
+            );
+          }
           bind(0);
           gl.texImage2D(
             gl.TEXTURE_2D,
@@ -424,7 +636,7 @@ async function check(page, payload, captures) {
             gl.FLOAT,
             new Float32Array(f.roots),
           );
-          for (const p of programs) setup(p, f);
+          for (const p of new Set([...programs, ...clearancePrograms])) setup(p, f);
           // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
           gl.useProgram(post.program);
           const pu = post.uniform;
@@ -460,7 +672,10 @@ async function check(page, payload, captures) {
             draw(p);
             gl.finish();
             if (capture)
-              images.push({ name: `${f.name}-${p.name}.png`, data: canvas.toDataURL("image/png") });
+              images.push({
+                name: `${f.name.replaceAll("/", "-")}-${p.name}.png`,
+                data: canvas.toDataURL("image/png"),
+              });
             return read();
           });
           const synchronizedTimings = programs.map(() => []);
@@ -544,7 +759,7 @@ async function check(page, payload, captures) {
           };
           const decode = (bytes) => new DataView(bytes.buffer).getFloat32(0, true);
           const failures = [];
-          const clearance = programs.map((p) => query(p, 2, f.basis.forward));
+          const clearance = clearancePrograms.map((p) => query(p, 2, f.basis.forward));
           if (clearance[0].some((v, i) => v !== clearance[1][i]))
             failures.push({
               mode: "clearance",
@@ -574,6 +789,8 @@ async function check(page, payload, captures) {
           gl.viewport(0, 0, width, height);
           results.push({
             name: f.name,
+            stackDepths: programs.map((p) => p.stackDepth),
+            clearanceStackDepths: clearancePrograms.map((p) => p.stackDepth),
             queries: {
               rays: queryRays.length,
               clearance: clearance.map(decode),
@@ -605,6 +822,7 @@ async function check(page, payload, captures) {
           height,
           samples,
           warmup,
+          settings,
           timing:
             "GPU timer queries for trace + production screen pass; one-pixel readback synchronized wall time also reported; shader compilation excluded",
           webglError: error,
@@ -655,5 +873,5 @@ async function check(page, payload, captures) {
 
 writeFileSync(
   args[1] ?? "/private/tmp/check-quadratic-koch-performance.js",
-  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, screen, variants, fixtures, width, height, samples, warmup, shape: { kind: shape.kind, hull: shape.hull, edges: shape.edges, radius: shape.radius, featureSize: shape.featureSize, childCount: shape.children.length }, children: Array.from(packOrderedChildren(shape)) })},${JSON.stringify(args[2] ?? null)})`,
+  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, screen, variants, fixtures, width, height, samples, warmup, shapes, settings })},${JSON.stringify(args[2] ?? null)})`,
 );

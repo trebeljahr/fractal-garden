@@ -20,14 +20,12 @@ import {
   buildGpuShape,
   type GpuFrame,
   type GpuSpatialSpec,
-  type GpuStackOptions,
   MAX_GPU_ROOTS,
   normalize,
   packChildBounds,
   packOrderedChildren,
-  selectGpuStackDepth,
 } from "./model";
-import { specializeSpatialShader } from "./shader";
+import { spatialShaderStackDepth, specializeSpatialShader } from "./shader";
 
 const screenFragment = `#version 300 es
 precision highp float;
@@ -94,17 +92,10 @@ export function createSpatialGpuRenderer(
       gl.deleteShader(p.frag);
     });
   try {
-    // A fixed Romanesco kind lets the driver eliminate the unrelated solid and
-    // Koch paths, rather than keeping their branches and temporaries live.
-    const specialized = initialSpec?.kind === "romanesco";
-    const sourceFor = (depth: 16 | 24 | 40) =>
-      specialized
-        ? fragment
-            .replace("uniform int u_kind;", "const int u_kind = 3;")
-            .replace("#version 300 es", `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}`)
-        : specializeSpatialShader(fragment, initialSpec);
-    let stackDepth: 16 | 24 | 40 = specialized ? 16 : 40;
-    let shader = program(sourceFor(stackDepth));
+    // Full stacks are faster for recursive work. Ancestor-only Romanesco frames
+    // use the small variant; they never traverse children or change detail.
+    let stackDepth: 16 | 40 = 40;
+    let shader = program(specializeSpatialShader(fragment, initialSpec, stackDepth));
     const screen = program(screenFragment);
     const vao = allocate(gl.createVertexArray(), (r) => gl.deleteVertexArray(r)),
       buffer = allocate(gl.createBuffer(), (r) => gl.deleteBuffer(r));
@@ -190,7 +181,7 @@ export function createSpatialGpuRenderer(
     let u = uniforms(shader.program);
     type Variant = { shader: typeof shader; uniforms: typeof u; shape?: GpuFrame["shape"] };
     let active: Variant = { shader, uniforms: u };
-    const variants = new Map<16 | 24 | 40, Variant>([[stackDepth, active]]);
+    const variants = new Map<16 | 40, Variant>([[stackDepth, active]]);
     const screenNames = ["color", "surface", "resolution", "projection", "origin", "far", "ao"];
     const su = Object.fromEntries(
       screenNames.map((name) => [name, gl.getUniformLocation(screen.program, `u_${name}`)]),
@@ -219,25 +210,20 @@ export function createSpatialGpuRenderer(
         | undefined;
     let clearanceKey = "",
       lastClearance = 0;
-    const prepare = (
-      camera: SpatialCamera,
-      spec: GpuSpatialSpec,
-      style: SpatialStyle,
-      stackOptions: GpuStackOptions = {},
-    ) => {
-      if (specialized && spec.kind !== "romanesco")
-        throw new Error("A Romanesco renderer cannot draw a different construction.");
+    const prepare = (camera: SpatialCamera, spec: GpuSpatialSpec, style: SpatialStyle) => {
+      if (initialSpec && spec.kind !== initialSpec.kind)
+        throw new Error("A specialized renderer cannot draw a different construction.");
       const rotation = rotationOf(style),
         key = `${JSON.stringify(spec)}|${camera.bits}|${camera.zoom}|${camera.target.join(",")}|${rotation.join(",")}`;
       if (!frame || key !== cachedKey) {
         frame = buildGpuFrame(buildGpuShape(spec), camera, style, { previous: frame });
         cachedKey = key;
       }
-      const depth = specialized ? selectGpuStackDepth(frame, stackOptions) : 40;
+      const depth = initialSpec?.kind === "romanesco" ? spatialShaderStackDepth(frame) : 40;
       if (depth !== stackDepth) {
         let variant = variants.get(depth);
         if (!variant) {
-          const next = program(sourceFor(depth));
+          const next = program(specializeSpatialShader(fragment, initialSpec, depth));
           variant = { shader: next, uniforms: uniforms(next.program) };
           variants.set(depth, variant);
         }
@@ -299,6 +285,7 @@ export function createSpatialGpuRenderer(
           gl.FLOAT,
           bounds.data,
         );
+
         uploadedShape = frame.shape;
       }
       if (active.shape !== frame.shape) {
@@ -350,11 +337,7 @@ export function createSpatialGpuRenderer(
       ray: Vec3,
       options: GpuDiagnosticOptions = {},
     ) => {
-      prepare(camera, spec, style, {
-        minimumFootprint: (options.nearFootprint ?? 0.00002) * (options.detailScale ?? 2),
-        maxRank: options.maxRank ?? 1000,
-        clearance: mode === 2,
-      });
+      prepare(camera, spec, style);
       gl.uniform1i(u.query, mode);
       gl.uniform3fv(u.queryRay, ray);
       gl.uniform2f(u.resolution, 1, 1);
@@ -394,10 +377,7 @@ export function createSpatialGpuRenderer(
         const pixelAngle = 1 / (projection.focal * renderScale),
           nearFootprint = pixelAngle * 0.02;
         const detailScale = 2 * Math.max(1, renderScale);
-        const data = prepare(camera, spec, style, {
-          minimumFootprint: nearFootprint * detailScale,
-          maxRank: options.maxRank ?? 1000,
-        });
+        const data = prepare(camera, spec, style);
         if (gl.canvas.width !== w || gl.canvas.height !== h) {
           gl.canvas.width = w;
           gl.canvas.height = h;
@@ -580,7 +560,7 @@ export function createSpatialGpuRenderer(
         style: SpatialStyle,
         options: GpuRenderOptions = {},
       ) {
-        prepare(camera, spec, style, { clearance: true, maxRank: options.maxRank ?? 1000 });
+        prepare(camera, spec, style);
         const key = `${cachedKey}|${options.maxRank ?? 1000}|${options.growth ?? 1}`;
         if (clearanceKey !== key) {
           lastClearance = Math.max(0, decode(query(camera, spec, style, 2, [0, 0, -1], options)));

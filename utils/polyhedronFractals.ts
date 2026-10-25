@@ -1,5 +1,6 @@
 import { radians } from "./ctxHelpers";
 import { type Orientation, viewRotation } from "./orientation";
+import { sortFloatDepthOrder } from "./render/floatDepthOrder";
 import { SURFACE_SHADE_STEPS as SHADE_STEPS, surfaceBrightness } from "./render/surfaceLighting";
 import { seamWidth, shadeColor } from "./voxelFractals";
 
@@ -486,7 +487,7 @@ export function drawPolyhedronScene(
     order[visible++] = face;
   }
 
-  const drawOrder = order.subarray(0, visible).sort((a, b) => depths[a] - depths[b]);
+  const drawOrder = sortFloatDepthOrder(depths, order, visible);
   const fillStyles = new Map<number, string>();
   const strokeStyles = new Map<number, string>();
   const highlightStyles = new Map<number, string>();

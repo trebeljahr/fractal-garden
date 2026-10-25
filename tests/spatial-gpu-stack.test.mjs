@@ -9,6 +9,7 @@ const {
   selectGpuStackDepth,
   transformSize,
 } = require("../../utils/spatialGpu/model.ts");
+const { spatialShaderStackDepth } = require("../../utils/spatialGpu/shader.ts");
 const { INITIAL_SPATIAL_CAMERA } = require("../../utils/spatial/camera.ts");
 
 const shape = buildGpuShape({ kind: "romanesco" });
@@ -137,6 +138,10 @@ test("retained ancestor quadratics do not consume descendant stack capacity", ()
   };
   const options = { minimumFootprint: 1e-5 };
   assert.equal(selectGpuStackDepth(frameWith([ancestor]), options), 16);
+  // Production uses the small program only when every root bypasses descent.
+  assert.equal(spatialShaderStackDepth(frameWith([ancestor])), 16);
+  assert.equal(spatialShaderStackDepth(frameWith([ancestor, ...opening.roots])), 40);
+  assert.equal(spatialShaderStackDepth(opening), 40);
   assert.equal(
     assertSafe(frameWith([ancestor, ...opening.roots]), options),
     assertSafe(opening, options),

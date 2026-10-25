@@ -46,6 +46,7 @@ const fragment = (
     : source
 ).replace(colorOutput, "outColor = encodeDistance(exhausted ? -2.0 : hit, exhausted || found);");
 const quadraticFragment = specializeSpatialShader(fragment, { kind: "quadraticKoch3d" });
+const flakeFragment = specializeSpatialShader(fragment, { kind: "flake" }, 40);
 const romanescoFragment = fragment
   .replace("uniform int u_kind;", specialized ? "const int u_kind = 3;" : "uniform int u_kind;")
   .replace("#version 300 es", `#version 300 es\n#define SPATIAL_STACK_DEPTH ${stackDepth}`);
@@ -67,6 +68,7 @@ for (const spec of selectedSpecs) {
       name: `${spec.kind}/${spec.mesh ?? spec.start ?? "default"}/${rank}`,
       rank,
       kind: shape.kind,
+      specKind: shape.spec.kind,
       radius: shape.radius,
       featureSize: shape.featureSize,
       hull: shape.hull,
@@ -145,6 +147,7 @@ if (selectedSpecs.some((spec) => spec.kind === "quadraticKoch3d")) {
         name: `quadraticKoch3d/${name}/${ordered ? "ordered" : "unordered"}`,
         rank,
         kind: shape.kind,
+        specKind: shape.spec.kind,
         radius: shape.radius,
         featureSize: shape.featureSize,
         hull: shape.hull,
@@ -198,6 +201,7 @@ for (const spec of selectedSpecs) {
       name: `${spec.kind}/${spec.mesh ?? spec.start ?? "default"}/zoom-${zoom}`,
       rank,
       kind: shape.kind,
+      specKind: shape.spec.kind,
       radius: shape.radius,
       featureSize: shape.featureSize,
       hull: shape.hull,
@@ -246,6 +250,7 @@ for (const spec of selectedSpecs) {
       name,
       rank,
       kind: shape.kind,
+      specKind: shape.spec.kind,
       radius: shape.radius,
       featureSize: shape.featureSize,
       coneSlope: shape.coneSlope,
@@ -456,6 +461,7 @@ for (const zoom of selectedSpecs.length ? [80, 240] : []) {
     name: `octahedron/analytical-edge-tangent/zoom-${zoom}`,
     rank: Math.min(...frame.roots.map((r) => r.rank)) + 2,
     kind: shape.kind,
+    specKind: shape.spec.kind,
     radius: shape.radius,
     featureSize: shape.featureSize,
     hull: shape.hull,
@@ -485,6 +491,7 @@ async function check(page, payload) {
       vertex,
       fragment,
       quadraticFragment,
+      flakeFragment,
       romanescoFragment,
       fixtures,
       basis,
@@ -505,7 +512,9 @@ async function check(page, payload) {
         return shader;
       };
       const vert = compile(gl.VERTEX_SHADER, vertex);
-      const programs = [fragment, quadraticFragment, romanescoFragment].map((text) => {
+      const sources = [fragment, quadraticFragment, romanescoFragment];
+      if (specialized) sources.push(flakeFragment);
+      const programs = sources.map((text) => {
         const frag = compile(gl.FRAGMENT_SHADER, text),
           program = gl.createProgram();
         gl.attachShader(program, vert);
@@ -553,7 +562,16 @@ async function check(page, payload) {
         for (const fixture of fixtures) {
           if (diagnostics && !fixture.name.includes("/adaptive/")) continue;
           // Match each production shader; smaller stacks apply only to Romanesco.
-          program = programs[fixture.kind === 2 ? 1 : fixture.kind === 3 ? 2 : 0].program;
+          program =
+            programs[
+              fixture.kind === 2
+                ? 1
+                : fixture.kind === 3
+                  ? 2
+                  : specialized && fixture.specKind === "flake"
+                    ? 3
+                    : 0
+            ].program;
           // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
           gl.useProgram(program);
           const location = gl.getAttribLocation(program, "aPosition");
@@ -661,7 +679,9 @@ async function check(page, payload) {
                 ? "quadratic"
                 : fixture.kind === 3 && specialized
                   ? "romanesco"
-                  : "generic",
+                  : fixture.specKind === "flake" && specialized
+                    ? "flake"
+                    : "generic",
             stackDepth: fixture.kind === 3 ? stackDepth : 40,
             samples: fixture.expected.length,
             failures,
@@ -696,5 +716,5 @@ async function check(page, payload) {
 }
 writeFileSync(
   process.argv[2] ?? "/private/tmp/check-spatial-flight-gpu.js",
-  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, romanescoFragment, fixtures, basis, diagnostics, stackDepth, specialized })})`,
+  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, flakeFragment, romanescoFragment, fixtures, basis, diagnostics, stackDepth, specialized })})`,
 );

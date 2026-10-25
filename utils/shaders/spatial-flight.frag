@@ -458,6 +458,15 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
   inside = false;
   bool found = false;
   vec3 origins[SPATIAL_STACK_DEPTH]; vec3 directions[SPATIAL_STACK_DEPTH]; float sizes[SPATIAL_STACK_DEPTH]; float ranks[SPATIAL_STACK_DEPTH]; int cursors[SPATIAL_STACK_DEPTH];
+#ifdef QUADRATIC_KOCH
+  // Keep failed child bounds out of the ray stacks. Carry the one surviving
+  // interval into the next iteration without testing it twice.
+  bool pendingBound = false;
+  float pendingNear, pendingFar; vec3 pendingNormal;
+  // Only the nearest patch contributes normals. Save its path for one replay.
+  int bestPath[SPATIAL_STACK_DEPTH];
+  int bestLevel = 0, bestRootIndex = -1; vec3 bestNormal = vec3(0.0);
+#endif
   int visits = 0;
   for (int rootIndex = 0; rootIndex < 512; rootIndex++) {
     if (rootIndex >= u_rootCount) break;
@@ -473,12 +482,27 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
     Transform root = readTransform(u_roots, rootIndex);
     origins[0] = inverseVector(root, -root.center); directions[0] = inverseVector(root, ray); sizes[0] = root.size; ranks[0] = root.rank; cursors[0] = -1;
     int level = 0;
+#ifdef QUADRATIC_KOCH
+    pendingBound = false;
+#endif
     for (int step = 0; step < 65536; step++) {
       if (level < 0) break;
-      if (++visits > (u_kind == 3 ? 65536 : 4096)) { complete = false; return found; }
+      if (++visits > (u_kind == 3 ? 65536 : 4096)) {
+        complete = false;
+#ifdef QUADRATIC_KOCH
+        break; // Finish the saved normal even when the visit budget runs out.
+#else
+        return found;
+#endif
+      }
       if (cursors[level] == -1) {
         COUNT_VISIT;
         float nearAt, farAt; vec3 boundNormal;
+#ifdef QUADRATIC_KOCH
+        if (pendingBound) {
+          nearAt = pendingNear; farAt = pendingFar; boundNormal = pendingNormal; pendingBound = false;
+        } else
+#endif
         if (!boundInterval(origins[level], directions[level], hit, nearAt, farAt, boundNormal)) { level--; continue; }
         if (max(0.0, nearAt) >= hit) { level--; continue; }
         float footprint = max(u_nearFootprint, max(0.0, nearAt) * u_pixelAngle) * detail;
@@ -498,6 +522,10 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
           else intersects = leaf(origins[level], directions[level], hit, t, n, e);
           if (intersects) {
             COUNT_HIT;
+#ifdef QUADRATIC_KOCH
+            bestRootIndex = rootIndex; bestLevel = level; bestNormal = n;
+            for (int j = 0; j < level; j++) bestPath[j] = cursors[j] - 1;
+#else
             vec3 smoothNormal = n;
             float childFootprint = max(u_nearFootprint, t * u_pixelAngle) * detail;
             for (int j = level; j > 0; j--) {
@@ -524,6 +552,7 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
             }
             normal = normalize(root.axes * n);
             shadingNormal = length(smoothNormal) > 1e-5 ? normalize(root.axes * smoothNormal) : normal;
+#endif
             hit = t; edge = e * sizes[level]; cell = sizes[level]; found = true;
           }
           if (terminal) { level--; continue; }
@@ -542,12 +571,68 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
         float nearAt, farAt; vec3 boundNormal;
         if (!sphereInterval(origins[level] - child.center, directions[level], child.size * u_radius, hit, nearAt, farAt, boundNormal)) continue;
       }
+#ifdef QUADRATIC_KOCH
+      // The original loop would push here and exhaust its step budget before
+      // entering the child. Preserve that cutoff and its fallback behavior.
+      if (step == 65535) { complete = false; break; }
+      vec3 childOrigin = inverseVector(child, origins[level] - child.center);
+      vec3 childDirection = inverseVector(child, directions[level]);
+      if (!boundInterval(childOrigin, childDirection, hit, pendingNear, pendingFar, pendingNormal) || max(0.0, pendingNear) >= hit) {
+        // Account for the skipped child iteration; the traversal budget and
+        // visit diagnostics must retain the same logical order.
+        step++;
+        if (++visits > 4096) { complete = false; break; }
+        COUNT_VISIT;
+        continue;
+      }
+      pendingBound = true;
+      origins[level + 1] = childOrigin;
+      directions[level + 1] = childDirection;
+#else
       origins[level + 1] = inverseVector(child, origins[level] - child.center);
       directions[level + 1] = inverseVector(child, directions[level]);
+#endif
       sizes[level + 1] = sizes[level] * child.size; ranks[level + 1] = ranks[level] + child.rank; cursors[level + 1] = -1; level++;
     }
-    if (level >= 0) { complete = false; return found; }
+    if (level >= 0) {
+      complete = false;
+#ifdef QUADRATIC_KOCH
+      break;
+#else
+      return found;
+#endif
+    }
   }
+#ifdef QUADRATIC_KOCH
+  if (found && bestRootIndex >= 0) {
+    Transform root = readTransform(u_roots, bestRootIndex);
+    origins[0] = inverseVector(root, -root.center); directions[0] = inverseVector(root, ray);
+    sizes[0] = root.size; ranks[0] = root.rank;
+    for (int j = 0; j < bestLevel; j++) {
+      // Growth can change the child scale, so replay the same transform used
+      // by traversal rather than the ungrown template.
+      Transform child = growChild(readChild(bestPath[j], directions[j]), ranks[j]);
+      origins[j + 1] = inverseVector(child, origins[j] - child.center);
+      directions[j + 1] = inverseVector(child, directions[j]);
+      sizes[j + 1] = sizes[j] * child.size; ranks[j + 1] = ranks[j] + child.rank;
+    }
+    vec3 n = bestNormal, smoothNormal = n;
+    float childFootprint = max(u_nearFootprint, hit * u_pixelAngle) * detail;
+    for (int j = bestLevel; j > 0; j--) {
+      COUNT_NORMAL;
+      Transform child = readChild(bestPath[j - 1], directions[j - 1]);
+      n = child.axes * n / child.size;
+      smoothNormal = child.axes * smoothNormal / child.size;
+      if (!envelope) {
+        float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize / max(childFootprint, 1e-20));
+        vec3 parentNormal = vec3(0.0, 0.0, directions[j - 1].z < 0.0 ? 1.0 : -1.0);
+        smoothNormal = mix(parentNormal, smoothNormal, reveal);
+      }
+    }
+    normal = normalize(root.axes * n);
+    shadingNormal = length(smoothNormal) > 1e-5 ? normalize(root.axes * smoothNormal) : normal;
+  }
+#endif
   return found;
 }
 
