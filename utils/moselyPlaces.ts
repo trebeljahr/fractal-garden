@@ -1,5 +1,4 @@
 import type { ScenePlace } from "../components/SceneFractalExplorer";
-import { fixedFromNumber } from "./deepZoom/math";
 import { MOSELY_KOCH_VIEW } from "./moselyKochView";
 import { exteriorFlightCamera, initialFlightCamera, restoreFlightCamera } from "./voxelZoom/camera";
 
@@ -19,18 +18,5 @@ export const MOSELY_PLACES: ScenePlace<"lighter" | "heavier">[] = [
     detail: "Look out from the airy lattice's center through a snowflake-shaped opening.",
     variant: "lighter",
     camera: () => restoreFlightCamera(MOSELY_KOCH_VIEW.voxelCamera, "mosely-light"),
-  },
-  {
-    label: "Inside the dense lattice",
-    detail: "Enter a smaller cavity in the dense lattice and look toward a corner.",
-    variant: "heavier",
-    camera: () =>
-      restoreFlightCamera(
-        {
-          ...MOSELY_KOCH_VIEW.voxelCamera,
-          position: Array(3).fill(fixedFromNumber(-1 / 8, 160).toString(16)),
-        },
-        "mosely-heavy",
-      ),
   },
 ];

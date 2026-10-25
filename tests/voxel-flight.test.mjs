@@ -72,32 +72,28 @@ test("Menger flight crosses the outer bounding box through its empty center tunn
   assert.ok(m * 2 ** e < 1, `camera remained outside at ${m * 2 ** e}`);
   assert.ok(buildGridFrame(camera, "menger").clearance > 0);
 });
-test("snowflake interior destinations retain empty cavities with room to navigate", () => {
-  for (const [pattern, label] of [
-    ["mosely-light", "Koch opening"],
-    ["mosely-heavy", "Inside the dense lattice"],
+test("the Koch opening retains an empty interior cavity with room to navigate", () => {
+  const pattern = "mosely-light";
+  const camera = MOSELY_PLACES.find((place) => place.label === "Koch opening").camera(pattern);
+  const one = 1n << BigInt(camera.bits);
+  assert.ok(
+    camera.position.every((p) => p > -one && p < one),
+    pattern,
+  );
+  assert.ok(flightClearance(camera, pattern) > 0, `${pattern}: starts in retained geometry`);
+  const restored = restoreFlightCamera(serializeFlightCamera(camera), pattern);
+  assert.deepEqual(
+    restored.position,
+    camera.position.map((p) => p << BigInt(restored.bits - camera.bits)),
+  );
+  for (const motion of [
+    [0.01, 0, 0],
+    [0, 0.01, 0],
+    [0, 0, 0.01],
   ]) {
-    const camera = MOSELY_PLACES.find((place) => place.label === label).camera(pattern);
-    const one = 1n << BigInt(camera.bits);
-    assert.ok(
-      camera.position.every((p) => p > -one && p < one),
-      pattern,
-    );
-    assert.ok(flightClearance(camera, pattern) > 0, `${pattern}: starts in retained geometry`);
-    const restored = restoreFlightCamera(serializeFlightCamera(camera), pattern);
-    assert.deepEqual(
-      restored.position,
-      camera.position.map((p) => p << BigInt(restored.bits - camera.bits)),
-    );
-    for (const motion of [
-      [0.01, 0, 0],
-      [0, 0.01, 0],
-      [0, 0, 0.01],
-    ]) {
-      const moved = moveFlightCamera(camera, pattern, motion);
-      assert.notDeepEqual(moved.position, camera.position);
-      assert.ok(flightClearance(moved, pattern) > 0);
-    }
+    const moved = moveFlightCamera(camera, pattern, motion);
+    assert.notDeepEqual(moved.position, camera.position);
+    assert.ok(flightClearance(moved, pattern) > 0);
   }
 });
 test("flight clips solid faces, grows render precision and keeps its selected scale", () => {
