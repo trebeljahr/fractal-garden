@@ -93,7 +93,7 @@ test("drag rotations beyond a full turn remain shareable", () => {
   assert.deepEqual(restoreConfig({ rotationY: 0 }, snapshot, rule), { rotationY: 12 });
 });
 
-test("related links explain connections and never link a fractal to itself", () => {
+test("related links never link a fractal to itself or repeat a destination", () => {
   for (const path of [
     "/mandelbrot",
     "/burning-ship",
@@ -103,7 +103,7 @@ test("related links explain connections and never link a fractal to itself", () 
   ]) {
     const related = getRelatedFractals(path);
     assert.ok(related.length >= 2);
-    assert.ok(related.every((entry) => entry.href !== path && entry.reason.length > 20));
+    assert.ok(related.every((entry) => entry.href !== path));
     assert.equal(new Set(related.map((entry) => entry.href)).size, related.length);
   }
 });

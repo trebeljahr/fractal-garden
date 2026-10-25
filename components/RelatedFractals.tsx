@@ -28,7 +28,7 @@ export function RelatedFractals() {
               </span>
               <span className={styles.copy}>
                 <span className={styles.name}>{getFractalName(href)}</span>
-                <span className={styles.reason}>{reason}</span>
+                {reason && <span className={styles.reason}>{reason}</span>}
               </span>
             </Link>
           );

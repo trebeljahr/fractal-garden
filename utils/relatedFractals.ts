@@ -1,13 +1,11 @@
-type Family = { paths: string[]; reason: string };
+type Family = { paths: string[] };
 
 const families: Family[] = [
   {
     paths: ["/mandelbrot", "/julia-set", "/burning-ship", "/buddhabrot", "/newton-fractal"],
-    reason: "Compare patterns made by iterating complex numbers.",
   },
   {
     paths: ["/newton-fractal", "/mandelbrot", "/julia-set", "/burning-ship", "/buddhabrot"],
-    reason: "Compare the patterns made by iterating complex numbers.",
   },
   {
     paths: [
@@ -17,7 +15,6 @@ const families: Family[] = [
       "/menger-sponge",
       "/jerusalem-cube",
     ],
-    reason: "See how removing smaller copies changes a triangle, square or solid.",
   },
   {
     paths: [
@@ -27,7 +24,6 @@ const families: Family[] = [
       "/mosely-snowflake",
       "/vicsek-fractal-3d",
     ],
-    reason: "Compare recursive holes in squares and cubes.",
   },
   {
     paths: [
@@ -38,7 +34,6 @@ const families: Family[] = [
       "/jerusalem-cube",
       "/sierpinski-tetrahedron",
     ],
-    reason: "Rotate another fractal solid and explore its surface.",
   },
   {
     paths: [
@@ -48,7 +43,6 @@ const families: Family[] = [
       "/l-system/levy-curve",
       "/l-system/sierpinski-arrowhead",
     ],
-    reason: "Compare folding curves built from repeated turns.",
   },
   {
     paths: [
@@ -58,7 +52,6 @@ const families: Family[] = [
       "/koch-surface",
       "/l-system/quadratic-snowflake",
     ],
-    reason: "Compare snowflakes and surfaces built by replacing their edges.",
   },
   {
     paths: [
@@ -68,7 +61,6 @@ const families: Family[] = [
       "/quadratic-koch-3d",
       "/l-system/board",
     ],
-    reason: "Compare recursive edges built from right-angle turns.",
   },
   {
     paths: [
@@ -78,7 +70,6 @@ const families: Family[] = [
       "/l-system/sierpinski-curve",
       "/l-system/dragon-curve",
     ],
-    reason: "Watch another curve fold into the space around it.",
   },
   {
     paths: [
@@ -88,7 +79,6 @@ const families: Family[] = [
       "/l-system/fern-3",
       "/l-system/fern-4",
     ],
-    reason: "Compare fern shapes made with transformations and rewriting rules.",
   },
   {
     paths: [
@@ -98,7 +88,6 @@ const families: Family[] = [
       "/l-system/explorer",
       "/l-system/fern-1",
     ],
-    reason: "Try another way to grow a branching structure.",
   },
   {
     paths: [
@@ -108,7 +97,6 @@ const families: Family[] = [
       "/julia-set",
       "/mandelbrot",
     ],
-    reason: "Compare patterns made by nonlinear equations.",
   },
   {
     paths: [
@@ -118,7 +106,6 @@ const families: Family[] = [
       "/n-flake",
       "/t-square-fractal",
     ],
-    reason: "Compare smaller copies arranged around a shared center.",
   },
   {
     paths: [
@@ -128,7 +115,6 @@ const families: Family[] = [
       "/menger-sponge",
       "/jerusalem-cube",
     ],
-    reason: "Build another recursive shape from triangular faces or solid copies.",
   },
   {
     paths: [
@@ -138,7 +124,6 @@ const families: Family[] = [
       "/l-system/koch-snowflake",
       "/l-system/terdragon",
     ],
-    reason: "Compare curves that replace each segment with a bent path.",
   },
   {
     paths: [
@@ -148,7 +133,6 @@ const families: Family[] = [
       "/l-system/gosper-curve",
       "/l-system/sierpinski-curve",
     ],
-    reason: "See how repeated symbol rules become geometric patterns.",
   },
   {
     paths: [
@@ -158,7 +142,6 @@ const families: Family[] = [
       "/l-system/sierpinski-triangle",
       "/sierpinski-tetrahedron",
     ],
-    reason: "Explore another pattern that repeats inside its gaps.",
   },
   {
     paths: [
@@ -168,7 +151,6 @@ const families: Family[] = [
       "/pythagoras-tree",
       "/l-system/fern-2",
     ],
-    reason: "Compare branching forms made by different growth rules.",
   },
   {
     paths: [
@@ -178,7 +160,6 @@ const families: Family[] = [
       "/l-system/hilbert-curve",
       "/l-system/sierpinski-curve",
     ],
-    reason: "Compare different ways to cover the plane.",
   },
   {
     paths: [
@@ -188,7 +169,6 @@ const families: Family[] = [
       "/l-system/board",
       "/l-system/quadratic-koch-island",
     ],
-    reason: "Grow another recursive pattern from squares and right angles.",
   },
   {
     paths: [
@@ -198,7 +178,6 @@ const families: Family[] = [
       "/l-system/quadratic-koch-island",
       "/l-system/minkowski-sausage",
     ],
-    reason: "Explore another drawing made from L-system rules.",
   },
 ];
 
@@ -217,12 +196,11 @@ const specific: Record<string, Record<string, string>> = {
 };
 
 export function getRelatedFractals(path: string) {
-  const found = new Map<string, string>();
+  const found = new Map<string, string | undefined>();
   for (const family of families) {
     if (!family.paths.includes(path)) continue;
     for (const target of family.paths) {
-      if (target !== path && !found.has(target))
-        found.set(target, specific[path]?.[target] ?? family.reason);
+      if (target !== path && !found.has(target)) found.set(target, specific[path]?.[target]);
     }
   }
   return Array.from(found, ([href, reason]) => ({ href, reason })).slice(0, 4);
