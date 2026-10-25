@@ -410,11 +410,18 @@ async function check(payload) {
   gl.uniform1i(u("wire"), 0);
   gl.viewport(0, 0, 65, 65);
   const results = [];
+  // A half-sized detail scale and doubled cone must intersect the same geometry.
+  // This catches a shader clamp silently dropping the extra subdivision.
+  const samples = payload.fixtures.flatMap((fixture) =>
+    [0, 0.5].map((detailScale) => ({ fixture, detailScale })),
+  );
   try {
-    for (const fixture of payload.fixtures) {
+    for (const { fixture, detailScale } of samples) {
+      const coneScale = detailScale || 1;
+      gl.uniform1f(u("detailScale"), detailScale);
       const { frame, basis } = fixture;
-      gl.uniform1f(u("pixelAngle"), fixture.detail.pixelAngle);
-      gl.uniform1f(u("nearFootprint"), fixture.detail.nearFootprint);
+      gl.uniform1f(u("pixelAngle"), fixture.detail.pixelAngle / coneScale);
+      gl.uniform1f(u("nearFootprint"), fixture.detail.nearFootprint / coneScale);
       gl.uniform1f(u("farDistance"), fixture.atmosphere.farDistance);
       gl.uniform1f(u("fogDistanceScale"), fixture.atmosphere.fogDistanceScale);
       gl.uniform1f(u("fogStart"), fixture.atmosphere.fogStart);
@@ -479,6 +486,7 @@ async function check(payload) {
           });
       }
       results.push({
+        detailScale,
         lightingMismatches,
         exhausted,
         asymmetric,

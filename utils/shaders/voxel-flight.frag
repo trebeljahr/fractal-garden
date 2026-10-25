@@ -125,7 +125,9 @@ void main() {
     vec3 shadingNormal = normal;
     vec3 resolvedNormal = normal;
     float detailVisibility = 1.0;
-    float detailScale = max(1.0, u_detailScale);
+    // Positive subpixel footprints retain the requested extra subdivision.
+    // An unset diagnostic uniform still uses the original one-pixel cone.
+    float detailScale = u_detailScale > 0.0 ? u_detailScale : 1.0;
     // Retry unusually expensive grazing rays at a coarser footprint instead
     // of turning an unfinished traversal into a false hole.
     for (int attempt = 0; attempt < 2; attempt++) {

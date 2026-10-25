@@ -5,7 +5,7 @@ import { MAX_VOXEL_DEPTH } from "./camera";
 export const MIN_FLIGHT_DETAIL_DISTANCE = 0.02;
 // Refine geometry down to a small visible pixel footprint. Lighting
 // and edge antialiasing retain the actual framebuffer pixel footprint.
-export const FLIGHT_DETAIL_PIXELS = 1.5;
+export const FLIGHT_DETAIL_PIXELS = 0.5;
 export function flightDetailDepth(navigationLevel: number, level = navigationLevel) {
   // At the maximum framebuffer budget, twelve extra subdivisions are already
   // below the minimum pixel cone. Do not build unreachable render levels.
