@@ -11,11 +11,7 @@ import {
 import type { SpatialStyle } from "../utils/spatial/geometry";
 import type { GpuSpatialSpec } from "../utils/spatialGpu/model";
 import { createSpatialGpuRenderer } from "../utils/spatialGpu/renderer";
-import {
-  createFlightFrameBudget,
-  FLIGHT_SETTLE_MS,
-  MAX_STILL_FLIGHT_PIXELS,
-} from "../utils/voxelZoom/frameBudget";
+import { MAX_FLIGHT_PIXELS } from "../utils/voxelZoom/frameBudget";
 
 /** Recursive surfaces are evaluated by the GPU for the current camera each draw. */
 export function GpuSpatialExplorer<T extends SpatialStyle>({
@@ -86,10 +82,6 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
     }
     let disposed = false;
     let animation = 0;
-    let previousDraw = 0;
-    let needsRefinement = false;
-    let refineAt = 0;
-    const budget = createFlightFrameBudget();
     const init = () => {
       try {
         renderer.current = createSpatialGpuRenderer(gl);
@@ -113,14 +105,6 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
           pixels,
           framing,
         );
-        const stillScale = Math.min(
-          window.devicePixelRatio || 1,
-          2,
-          Math.sqrt(MAX_STILL_FLIGHT_PIXELS / Math.max(1, width * height)),
-        );
-        needsRefinement =
-          canvas.width < Math.max(1, Math.round(width * stillScale)) ||
-          canvas.height < Math.max(1, Math.round(height * stillScale));
         drawn.current = { camera, style };
         canvas.dataset.renderZoom = String(camera.zoom);
         canvas.dataset.pixelBudget = String(pixels);
@@ -131,16 +115,10 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
         return false;
       }
     };
-    const tick = (time: number) => {
+    const tick = () => {
       if (dirty.current) {
-        if (previousDraw) budget.sample(time - previousDraw, canvas.width * canvas.height);
         dirty.current = false;
-        previousDraw = draw(budget.pixels) ? time : 0;
-        refineAt = time + FLIGHT_SETTLE_MS;
-      } else {
-        previousDraw = 0;
-        budget.pause();
-        if (needsRefinement && time >= refineAt && !document.hidden) draw(MAX_STILL_FLIGHT_PIXELS);
+        draw(MAX_FLIGHT_PIXELS);
       }
       animation = requestAnimationFrame(tick);
     };
@@ -148,14 +126,11 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
       dirty.current = true;
     };
     const exportFrame = () => {
-      draw(MAX_STILL_FLIGHT_PIXELS);
+      draw(MAX_FLIGHT_PIXELS);
       dirty.current = false;
-      previousDraw = 0;
     };
     const lost = (event: Event) => {
       event.preventDefault();
-      previousDraw = 0;
-      budget.pause();
     };
     const restored = () => {
       renderer.current = null;

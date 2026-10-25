@@ -12,6 +12,7 @@ import ts from "typescript";
 //   --baseline=HEAD --sizes=320x180,640x360 --captures=/private/tmp/lighting-stills
 // Optional: --rounds=9 --warmup=3 --frames-per-mode=1 --max-ms=180000 --capture-size=640x360
 // --fixtures=menger/exterior,mosely-heavy/interior --sizes=1280x720
+// Matched optimization: --baseline-mode=depth --specialize=mosely-light --modes=baseline,depth
 const options = Object.fromEntries(
   process.argv.slice(3).map((arg) => {
     const match = /^--([a-z-]+)=(.+)$/.exec(arg);
