@@ -1,3 +1,4 @@
+import type { ApproximationTable } from "./approximation";
 import {
   type DeepViewport,
   type FloatExp,
@@ -22,6 +23,7 @@ export type ReferenceOrbit = {
   escaped: boolean;
   bits: number;
   viewport: SerializedViewport;
+  approximation?: ApproximationTable;
   critical?: { orbit: Float32Array<ArrayBuffer>; length: number };
 };
 

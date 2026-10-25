@@ -9,6 +9,13 @@ uniform float u_criticalLength;
 uniform bool u_exactPixel;
 uniform vec4 u_deltaCenter;
 uniform vec2 u_scale;
+uniform sampler2D u_approximation;
+uniform vec2 u_approximationSize;
+uniform float u_approximationLogDeltaC;
+uniform float u_approximationMaxLogRadius;
+uniform bool u_hasApproximation;
+uniform float u_nativeReferenceStart;
+uniform bool u_hasNativeReference;
 const int DEEP_ITERATION_LIMIT = 8192;
 
 vec2 fe(float m, float e) {
@@ -53,6 +60,10 @@ float logAdd(float a, float b) {
 vec4 referenceAt(float index) {
     vec2 uv = (vec2(mod(index,u_referenceSize.x), floor(index/u_referenceSize.x)) + 0.5) / u_referenceSize;
     return texture2D(u_reference, uv);
+}
+vec4 approximationAt(float index) {
+    vec2 uv = (vec2(mod(index,u_approximationSize.x),floor(index/u_approximationSize.x)) + 0.5) / u_approximationSize;
+    return texture2D(u_approximation,uv);
 }
 // |a+b|-|a|, without subtracting almost equal large values.
 vec2 diffAbs(vec2 a, vec2 b) {
@@ -100,6 +111,12 @@ vec4 perturb(vec4 ref, vec4 delta, vec4 dc) {
     return perturbFull(ref,delta,dc);
 }
 
+bool nativeRebase(vec2 z, vec2 d) {
+    float scale = max(max(abs(z.x),abs(z.y)),max(abs(d.x),abs(d.y)));
+    if (scale > 0.0 && scale < 1e-10) { z /= scale; d /= scale; }
+    return dot(z,z) < dot(d,d);
+}
+
 void main() {
     vec2 uv = (2.0*gl_FragCoord.xy-u_resolution)/min(u_resolution.x,u_resolution.y);
 #ifdef FORMULA_BURNING_SHIP
@@ -128,14 +145,106 @@ void main() {
     float uvLength=max(abs(uv.x),abs(uv.y));
     float inputError=u_exactPixel ? -1e6 : logAdd(cxLogLength(u_deltaCenter),uvLength==0.0 ? -1e6 : u_scale.y+log2(u_scale.x*uvLength))-22.0;
 #endif
+    bool canSkip = false;
+#ifdef FORMULA_MANDELBROT
+    canSkip = u_hasApproximation && u_colorMode < MODE_DISTANCE && cxLogLength(dc) <= u_approximationLogDeltaC;
+#endif
     float iteration = 0.0;
     bool escaped = false;
     bool glitch = false;
     float trap = 1e10;
     float stripeSum = 0.0;
     float stripeLast = 0.0;
+    bool finishedNative = false;
+#ifdef FORMULA_MANDELBROT
+    // In this range delta-c is a normal float. Keep it and the orbit delta in
+    // native arithmetic throughout; range-sensitive views retain the full path.
+    bool nativeForcing = (dc.x == 0.0 || dc.y >= -120.0) && (dc.z == 0.0 || dc.w >= -120.0);
+    if (u_hasNativeReference && u_scale.y >= -110.0 && nativeForcing && u_colorMode != MODE_DISTANCE && !u_exactPixel) {
+        float skipRadius = exp2(u_approximationMaxLogRadius);
+        vec2 d = vec2(0.0);
+        vec2 forcing = cxValue(dc);
+        vec2 r = referenceAt(u_nativeReferenceStart).xy;
+        bool restartFull = false;
+        for (int i=0; i<DEEP_ITERATION_LIMIT; i++) {
+            if (iteration >= u_maxIterations) break;
+            // Long sensitive orbits retain the established componentwise path.
+            // This limit is identical during movement and at rest.
+            if (i >= 128) { restartFull = true; break; }
+            if (canSkip && max(abs(d.x),abs(d.y)) < skipRadius) {
+                vec4 header = approximationAt(5.0*refIndex);
+                float coefficients = 1.0;
+                // Divide before measuring: dot(d,d) can underflow at these zooms.
+                if (!(header.y > 1.0 && iteration+header.y <= u_maxIterations && length(d/exp2(header.x)) < 1.0)) {
+                    header.xy=header.zw; coefficients=3.0;
+                }
+                if (header.y > 1.0 && iteration+header.y <= u_maxIterations && length(d/exp2(header.x)) < 1.0) {
+                    vec2 a = cxValue(approximationAt(5.0*refIndex+coefficients));
+                    vec2 b = cxValue(approximationAt(5.0*refIndex+coefficients+1.0));
+                    d = complexMultiply(a,d)+complexMultiply(b,forcing);
+                    refIndex += header.y;
+                    iteration += header.y;
+                    r = referenceAt(u_nativeReferenceStart+refIndex).xy;
+                    z = r+d;
+                    if (nativeRebase(z,d) || refIndex >= u_referenceLength-1.0) {
+                        d=z; refIndex=0.0; r=vec2(0.0);
+                    }
+                    continue;
+                }
+            }
+            d = 2.0*complexMultiply(r,d) + complexSquare(d) + forcing;
+            refIndex += 1.0;
+            r = referenceAt(u_nativeReferenceStart+refIndex).xy;
+            z = r+d;
+            if (u_colorMode == MODE_TRAP_POINT) trap = min(trap,length(z));
+            else if (u_colorMode == MODE_TRAP_CROSS) trap = min(trap,min(abs(z.x),abs(z.y)));
+            else if (u_colorMode == MODE_STRIPES) {
+                stripeLast = 0.5+0.5*sin(stripeDensity*atan(z.y,z.x));
+                stripeSum += stripeLast;
+            }
+            if (dot(z,z) > escapeRadius2) { escaped=true; break; }
+            if (nativeRebase(z,d) || refIndex >= u_referenceLength-1.0) {
+                d=z; refIndex=0.0; r=vec2(0.0);
+            }
+            iteration += 1.0;
+        }
+        finishedNative = !restartFull;
+        if (restartFull) {
+            delta=vec4(0.0); refIndex=0.0; ref=referenceAt(0.0);
+            actual=ref; z=cxValue(actual); iteration=0.0;
+            trap=1e10; stripeSum=0.0; stripeLast=0.0;
+            canSkip=false;
+        }
+    }
+#endif
+    if (!finishedNative) {
     for (int i=0; i<DEEP_ITERATION_LIMIT; i++) {
         if (iteration >= u_maxIterations) break;
+#ifdef FORMULA_MANDELBROT
+        if (canSkip && max(delta.x == 0.0 ? -1e6 : delta.y, delta.z == 0.0 ? -1e6 : delta.w) < u_approximationMaxLogRadius) {
+            vec4 header = approximationAt(5.0*refIndex);
+            float coefficients = 1.0;
+            float logDelta = cxLogLength(delta);
+            if (!(header.y > 1.0 && iteration+header.y <= u_maxIterations && logDelta < header.x)) {
+                header.xy=header.zw; coefficients=3.0;
+            }
+            if (header.y > 1.0 && iteration+header.y <= u_maxIterations && logDelta < header.x) {
+                vec4 a = approximationAt(5.0*refIndex+coefficients);
+                vec4 b = approximationAt(5.0*refIndex+coefficients+1.0);
+                delta = cxAdd(cxMul(a,delta),cxMul(b,dc));
+                refIndex += header.y;
+                iteration += header.y;
+                ref = referenceAt(refIndex);
+                actual = cxAdd(ref,delta);
+                z = cxValue(actual);
+                // All intermediate states in an admitted block are below bailout.
+                if (cxLogLength(actual) < cxLogLength(delta) || refIndex >= u_referenceLength-1.0) {
+                    delta=actual; refIndex=0.0; ref=referenceAt(0.0);
+                }
+                continue;
+            }
+        }
+#endif
         if (u_colorMode == MODE_DISTANCE) {
             vec4 derivativeZ = actual;
 #ifdef FORMULA_BURNING_SHIP
@@ -197,6 +306,7 @@ void main() {
 #endif
         }
         iteration += 1.0;
+    }
     }
     // Alpha is a validity mask. The renderer replaces these tiles with fresh
     // high-precision references; it never treats them as interior pixels.

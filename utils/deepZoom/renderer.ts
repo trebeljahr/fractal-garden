@@ -32,6 +32,7 @@ type Job = {
   view: DeepViewport;
   iterations: number;
   c: [number, number];
+  logDeltaC?: number;
   tiles?: { tile: Tile; view: DeepViewport }[];
 };
 
@@ -51,6 +52,7 @@ export function createDeepZoomRenderer(
   options: { pixelRatio?: number } = {},
 ) {
   const release: (() => void)[] = [];
+  const sharpMotion = formula === "mandelbrot";
   try {
     const compile = (fragment: string) => {
       const output = createShaderProgram(gl, vertexShader, fragment);
@@ -90,10 +92,12 @@ export function createDeepZoomRenderer(
     const buffer = gl.createBuffer();
     const texture = gl.createTexture();
     const frameTexture = gl.createTexture();
+    const approximationTexture = gl.createTexture();
+    if (approximationTexture) release.push(() => gl.deleteTexture(approximationTexture));
     if (buffer) release.push(() => gl.deleteBuffer(buffer));
     if (texture) release.push(() => gl.deleteTexture(texture));
     if (frameTexture) release.push(() => gl.deleteTexture(frameTexture));
-    if (!buffer || !texture || !frameTexture)
+    if (!buffer || !texture || !frameTexture || !approximationTexture)
       throw new Error("Could not allocate the fractal renderer.");
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -102,6 +106,13 @@ export function createDeepZoomRenderer(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, approximationTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.FLOAT, new Float32Array(4));
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, frameTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -137,6 +148,13 @@ export function createDeepZoomRenderer(
           "exactPixel",
           "deltaCenter",
           "scale",
+          "approximation",
+          "approximationSize",
+          "approximationLogDeltaC",
+          "approximationMaxLogRadius",
+          "hasApproximation",
+          "nativeReferenceStart",
+          "hasNativeReference",
         ].map((name) => [name, gl.getUniformLocation(program, `u_${name}`)]),
       ),
     }));
@@ -153,6 +171,14 @@ export function createDeepZoomRenderer(
     let textureWidth = 0;
     let textureHeight = 0;
     let repairQueue: Tile[] = [];
+    let nativeReferenceStart = 0;
+    let hasNativeReference = false;
+    let approximationMaxLogRadius = -1000000;
+    let approximationWidth = 1;
+    let approximationHeight = 1;
+    let referenceDomain = Number.NEGATIVE_INFINITY;
+    let renderedVersion = -1;
+    let inspectedVersion = -1;
 
     const report = (message: string, error = false) => {
       if (destroyed) return;
@@ -169,10 +195,31 @@ export function createDeepZoomRenderer(
     const upload = (orbit: ReferenceOrbit) => {
       if (uploaded === orbit) return;
       textureWidth = Math.min(1024, gl.getParameter(gl.MAX_TEXTURE_SIZE));
-      textureHeight = Math.ceil((orbit.length + (orbit.critical?.length ?? 0)) / textureWidth);
+      nativeReferenceStart = orbit.length + (orbit.critical?.length ?? 0);
+      hasNativeReference = sharpMotion;
+      // A second, ordinary-float copy avoids repeated exponent conversion in the
+      // range where every nonzero reference component is representable normally.
+      if (hasNativeReference) {
+        for (let i = 0; i < orbit.orbit.length; i += 2) {
+          if (orbit.orbit[i] !== 0 && (orbit.orbit[i + 1] < -90 || orbit.orbit[i + 1] > 100)) {
+            hasNativeReference = false;
+            break;
+          }
+        }
+      }
+      textureHeight = Math.ceil(
+        (nativeReferenceStart + (hasNativeReference ? orbit.length : 0)) / textureWidth,
+      );
       const data = new Float32Array(textureWidth * textureHeight * 4);
       data.set(orbit.orbit);
       if (orbit.critical) data.set(orbit.critical.orbit, orbit.length * 4);
+      if (hasNativeReference) {
+        for (let i = 0; i < orbit.length; i++) {
+          data[(nativeReferenceStart + i) * 4] = orbit.orbit[i * 4] * 2 ** orbit.orbit[i * 4 + 1];
+          data[(nativeReferenceStart + i) * 4 + 1] =
+            orbit.orbit[i * 4 + 2] * 2 ** orbit.orbit[i * 4 + 3];
+        }
+      }
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -185,6 +232,36 @@ export function createDeepZoomRenderer(
         gl.FLOAT,
         data,
       );
+      approximationMaxLogRadius = -1000000;
+      if (orbit.approximation?.maxSkip) {
+        for (let i = 0; i < orbit.approximation.data.length; i += 20) {
+          for (const header of [0, 2]) {
+            if (orbit.approximation.data[i + header + 1] > 0)
+              approximationMaxLogRadius = Math.max(
+                approximationMaxLogRadius,
+                orbit.approximation.data[i + header],
+              );
+          }
+        }
+        approximationWidth = textureWidth;
+        approximationHeight = Math.ceil((orbit.approximation.length * 5) / approximationWidth);
+        const maps = new Float32Array(approximationWidth * approximationHeight * 4);
+        maps.set(orbit.approximation.data);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, approximationTexture);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          approximationWidth,
+          approximationHeight,
+          0,
+          gl.RGBA,
+          gl.FLOAT,
+          maps,
+        );
+        gl.activeTexture(gl.TEXTURE0);
+      }
       uploaded = orbit;
     };
     const maxViewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
@@ -192,7 +269,7 @@ export function createDeepZoomRenderer(
       gl.getParameter(gl.MAX_TEXTURE_SIZE),
       gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),
     );
-    const resize = () => {
+    const frameSize = () => {
       const { width, height } = getState();
       // Each display pixel gets its own sample, at every zoom and during gestures.
       // Hardware limits are the only reason to reduce the drawing buffer.
@@ -203,13 +280,20 @@ export function createDeepZoomRenderer(
       );
       const w = Math.max(1, Math.round(width * ratio));
       const h = Math.max(1, Math.round(height * ratio));
+      return { w, h };
+    };
+    const resize = () => {
+      const { w, h } = frameSize();
       if (gl.canvas.width !== w || gl.canvas.height !== h) {
         gl.canvas.width = w;
         gl.canvas.height = h;
+        renderedVersion = -1;
+        inspectedVersion = -1;
       }
       return { w, h };
     };
     const rememberFrame = () => {
+      if (sharpMotion) return;
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, frameTexture);
       gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 0, 0, gl.canvas.width, gl.canvas.height, 0);
@@ -281,6 +365,13 @@ export function createDeepZoomRenderer(
         gl.uniform1i(u.exactPixel, tile?.width === 1 && tile.height === 1 ? 1 : 0);
         gl.uniform4f(u.deltaCenter, ...delta.x, ...delta.y);
         gl.uniform2f(u.scale, ...delta.scale);
+        gl.uniform1i(u.approximation, 2);
+        gl.uniform2f(u.approximationSize, approximationWidth, approximationHeight);
+        gl.uniform1f(u.approximationMaxLogRadius, approximationMaxLogRadius);
+        gl.uniform1f(u.approximationLogDeltaC, orbit.approximation?.logDeltaC ?? -1000000);
+        gl.uniform1i(u.hasApproximation, orbit.approximation?.maxSkip ? 1 : 0);
+        gl.uniform1f(u.nativeReferenceStart, nativeReferenceStart);
+        gl.uniform1i(u.hasNativeReference, hasNativeReference ? 1 : 0);
       } else {
         const zero: DeepViewport = {
           x: BigInt(0),
@@ -294,7 +385,11 @@ export function createDeepZoomRenderer(
       }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disable(gl.SCISSOR_TEST);
-      if (!tile) rememberFrame();
+      if (!tile) {
+        rememberFrame();
+        renderedVersion = version;
+        inspectedVersion = -1;
+      }
       return true;
     };
     const request = (tiles?: Tile[]) => {
@@ -332,7 +427,22 @@ export function createDeepZoomRenderer(
         version,
         view,
         c: [...state.c],
-        iterations: iterationBudget(view, state.config.iterations),
+        iterations:
+          sharpMotion && !tiles
+            ? Math.min(
+                MAX_RENDER_ITERATIONS,
+                (Math.ceil(iterationBudget(view, state.config.iterations) / 256) + 1) * 256,
+              )
+            : iterationBudget(view, state.config.iterations),
+        logDeltaC:
+          sharpMotion && !tiles
+            ? view.logZoom +
+              Math.log2(
+                Math.hypot(state.width, state.height) /
+                  Math.max(1, Math.min(state.width, state.height)),
+              ) +
+              2
+            : undefined,
         tiles: repairs,
       };
       worker.postMessage({ ...pending, formula });
@@ -375,12 +485,53 @@ export function createDeepZoomRenderer(
         report("Detail ready");
       }
     };
+    const referenceCoordinateMargin = () => {
+      if (!referenceView) return Number.NEGATIVE_INFINITY;
+      const state = getState();
+      const delta = viewportDelta(state.view, referenceView);
+      const exponent = Math.max(
+        delta.x[0] === 0 ? Number.NEGATIVE_INFINITY : delta.x[1],
+        delta.y[0] === 0 ? Number.NEGATIVE_INFINITY : delta.y[1],
+      );
+      const { w, h } = frameSize();
+      const pixels = Math.min(w, h);
+      // Adding the pixel offset to deltaCenter uses float32's 24-bit significand.
+      // Compare its ULP with the pixel step, 2 * halfSpan / shorterDimension.
+      // A distant reference can lose pixel distinctions even with enough orbit bits.
+      return state.view.logZoom + 24 - Math.log2(pixels) - exponent;
+    };
     const validReference = () =>
       reference &&
       referenceView &&
       sameParameters(reference.c) &&
       reference.iterations >= iterationBudget(getState().view, getState().config.iterations) &&
-      reference.bits >= Math.ceil(-getState().view.logZoom) + 64;
+      reference.bits >= Math.ceil(-getState().view.logZoom) + 64 &&
+      (!sharpMotion || referenceCoordinateMargin() >= 4);
+    const needsReference = () => {
+      if (!validReference() || !referenceView || !reference) return true;
+      const state = getState();
+      if (
+        referenceCoordinateMargin() < 8 ||
+        reference.bits < Math.ceil(-state.view.logZoom) + 96 ||
+        (reference.iterations < MAX_RENDER_ITERATIONS &&
+          reference.iterations - iterationBudget(state.view, state.config.iterations) < 128)
+      )
+        return true;
+      const delta = viewportDelta(state.view, referenceView);
+      // Work in reference-relative units so a 10^-1000 view never underflows.
+      const scale = 2 ** (state.view.logZoom - referenceView.logZoom);
+      const component = ([m, e]: [number, number]) =>
+        m === 0 ? 0 : Math.abs(m) * 2 ** (e - referenceView!.logZoom);
+      const size = Math.max(1, Math.min(state.width, state.height));
+      const radius = Math.hypot(
+        component(delta.x) + (state.width / size) * scale,
+        component(delta.y) + (state.height / size) * scale,
+      );
+      return referenceView.logZoom + Math.log2(radius) > referenceDomain - 0.5;
+    };
+    const schedule = () => {
+      if (!destroyed && !frame) frame = requestAnimationFrame(render);
+    };
     const render = () => {
       frame = 0;
       if (destroyed) return;
@@ -388,6 +539,20 @@ export function createDeepZoomRenderer(
       if (state.view.logZoom >= -7) {
         draw(null, null);
         report("Ready");
+        return;
+      }
+      if (sharpMotion) {
+        resize();
+        if (validReference() && renderedVersion !== version) draw(reference, referenceView);
+        if (!pending && needsReference()) request();
+        if (renderedVersion === version) {
+          if (inspectedVersion !== version) {
+            repairQueue = [];
+            inspectedVersion = version;
+            inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
+          }
+          repairNext();
+        }
         return;
       }
       if (validReference()) draw(reference, referenceView);
@@ -420,7 +585,10 @@ export function createDeepZoomRenderer(
         job.view.bits < Math.ceil(-getState().view.logZoom) + 64
       ) {
         // Never let an old tile or parameter edit overwrite the current view.
-        if (getState().view.logZoom < -7) request();
+        if (getState().view.logZoom < -7) {
+          if (sharpMotion) schedule();
+          else request();
+        }
         return;
       }
       if (getState().view.logZoom >= -7) return;
@@ -446,8 +614,21 @@ export function createDeepZoomRenderer(
         // Worker replies already yield to the event loop between batches.
         repairNext();
       } else {
+        if (
+          sharpMotion &&
+          event.data.references[0].iterations <
+            iterationBudget(getState().view, getState().config.iterations)
+        ) {
+          schedule();
+          return;
+        }
         reference = event.data.references[0];
         referenceView = job.view;
+        referenceDomain = job.logDeltaC ?? Number.NEGATIVE_INFINITY;
+        if (sharpMotion) {
+          schedule();
+          return;
+        }
         draw(reference, referenceView);
         if (job.version !== version) {
           request();
@@ -465,7 +646,7 @@ export function createDeepZoomRenderer(
     const update = () => {
       version++;
       repairQueue = [];
-      if (!frame) frame = requestAnimationFrame(render);
+      schedule();
     };
     const redraw = () => {
       // Export hooks are synchronous. Preserve the repaired framebuffer if ready.

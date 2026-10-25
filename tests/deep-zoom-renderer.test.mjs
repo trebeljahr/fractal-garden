@@ -24,12 +24,13 @@ for (const extension of [".frag", ".vert"])
   require.extensions[extension] = (module, filename) => {
     module.exports = readFileSync(filename, "utf8");
   };
-const { createDeepZoomRenderer } = require("../utils/deepZoom/renderer.ts");
+const { createDeepZoomRenderer, iterationBudget } = require("../utils/deepZoom/renderer.ts");
 const { createViewportAtLog, moveViewport, zoomViewport } = require("../utils/deepZoom/math.ts");
 const { buildReference } = require("../utils/deepZoom/orbit.ts");
 const { exportDeepZoomPng } = require("../utils/deepZoom/export.ts");
+const { buildApproximation } = require("../utils/deepZoom/approximation.ts");
 
-async function harness(run, { isolatedExport = false } = {}) {
+async function harness(run, { isolatedExport = false, formula = "mandelbrot" } = {}) {
   const saved = Object.fromEntries(
     [
       "Worker",
@@ -46,6 +47,10 @@ async function harness(run, { isolatedExport = false } = {}) {
   let serial = 0;
   let bound = null;
   let glitches = 0;
+  let historyCopies = 0;
+  let maskReads = 0;
+  let scissorEnabled = false;
+  let scissor = null;
   const draws = [];
   let uniforms = {};
   const statuses = [];
@@ -92,15 +97,29 @@ async function harness(run, { isolatedExport = false } = {}) {
       useProgram: () => {
         uniforms = {};
       },
+      enable: (flag) => {
+        if (flag === "SCISSOR_TEST") scissorEnabled = true;
+      },
+      disable: (flag) => {
+        if (flag === "SCISSOR_TEST") scissorEnabled = false;
+      },
+      scissor: (...rectangle) => {
+        scissor = rectangle;
+      },
       drawArrays: () =>
         draws.push({
           bound,
+          tile: scissorEnabled ? scissor : null,
           uniforms: structuredClone(uniforms),
           width: canvas.width,
           height: canvas.height,
         }),
       texImage2D: (...args) => allocations.push([args[3], args[4]]),
+      copyTexImage2D: () => {
+        historyCopies++;
+      },
       readPixels: (_x, _y, _w, _h, _format, _type, data) => {
+        maskReads++;
         data.fill(255);
         if (glitches > 0) {
           data[3] = 0;
@@ -146,9 +165,19 @@ async function harness(run, { isolatedExport = false } = {}) {
           ...(error
             ? { error }
             : {
-                references: (job.tiles?.map((repair) => repair.view) ?? [job.view]).map((view) =>
-                  buildReference(view, job.formula, job.c, job.iterations),
-                ),
+                references: (job.tiles?.map((repair) => repair.view) ?? [job.view]).map((view) => {
+                  const reference = buildReference(view, job.formula, job.c, job.iterations);
+                  if (
+                    job.formula === "mandelbrot" &&
+                    !job.tiles &&
+                    Number.isFinite(job.logDeltaC)
+                  ) {
+                    reference.approximation = buildApproximation(reference, {
+                      logDeltaC: job.logDeltaC,
+                    });
+                  }
+                  return reference;
+                }),
               }),
         },
       });
@@ -174,7 +203,7 @@ async function harness(run, { isolatedExport = false } = {}) {
     ? null
     : createDeepZoomRenderer(
         gl,
-        "mandelbrot",
+        formula,
         () => state,
         (status) => statuses.push(status),
       );
@@ -210,10 +239,24 @@ async function harness(run, { isolatedExport = false } = {}) {
     get visible() {
       return draws.filter((draw) => draw.bound === null);
     },
+    get fullDraws() {
+      return draws.filter((draw) => draw.tile === null);
+    },
+    get historyCopies() {
+      return historyCopies;
+    },
+    get maskReads() {
+      return maskReads;
+    },
     glitch: () => {
       glitches++;
     },
     tick,
+    completeReference: () => {
+      const job = worker.complete();
+      if (frames.size) tick();
+      return job;
+    },
   };
   try {
     await run(h);
@@ -243,56 +286,71 @@ test("ordinary zoom stays at device resolution during movement and at rest", () 
     assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
   }));
 
-test("deep zoom stays at device resolution during movement and precision repairs", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
-    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    h.worker.complete();
-    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    assert.equal(h.statuses.at(-1).message, "Detail ready");
-  }));
+for (const formula of ["julia", "burning-ship"]) {
+  test(`${formula}: deep zoom stays at device resolution during movement and precision repairs`, () =>
+    harness(
+      (h) => {
+        h.renderer.update();
+        h.tick();
+        h.worker.complete();
+        assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+        h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+        h.renderer.update();
+        h.tick();
+        assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+        h.worker.complete();
+        assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+        assert.equal(h.statuses.at(-1).message, "Detail ready");
+      },
+      { formula },
+    ));
+}
 
-test("deep navigation redraws current coordinates while the next reference is pending", () =>
-  harness((h) => {
-    h.state = { ...h.state, config: { ...h.state.config, iterations: 1000 } };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
-    h.renderer.update();
-    h.tick();
-    assert.equal(h.worker.jobs.length, 1);
-    assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
-    const count = h.draws.length;
-    h.state = { ...h.state, view: zoomViewport(h.state.view, -11, 0.5, 0.25) };
-    h.renderer.update();
-    h.tick();
-    assert.equal(h.draws.length, count + 1);
-    assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
-    assert.equal(h.worker.jobs.length, 1, "gestures do not build a worker backlog");
-  }));
+for (const formula of ["julia", "burning-ship"]) {
+  test(`${formula}: deep navigation redraws current coordinates while the next reference is pending`, () =>
+    harness(
+      (h) => {
+        h.state = { ...h.state, config: { ...h.state.config, iterations: 1000 } };
+        h.renderer.update();
+        h.tick();
+        h.worker.complete();
+        h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+        h.renderer.update();
+        h.tick();
+        assert.equal(h.worker.jobs.length, 1);
+        assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
+        const count = h.draws.length;
+        h.state = { ...h.state, view: zoomViewport(h.state.view, -11, 0.5, 0.25) };
+        h.renderer.update();
+        h.tick();
+        assert.equal(h.draws.length, count + 1);
+        assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
+        assert.equal(h.worker.jobs.length, 1, "gestures do not build a worker backlog");
+      },
+      { formula },
+    ));
+}
 
-test("a cached preview is only used when a new usable reference is required", () =>
-  harness((h) => {
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
-    h.renderer.update();
-    h.tick();
-    assert.ok("u_ratio" in h.draws.at(-1).uniforms);
-    assert.equal(h.worker.jobs.length, 1);
-    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    h.worker.complete();
-    assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
-    assert.equal(h.statuses.at(-1).message, "Detail ready");
-  }));
+for (const formula of ["julia", "burning-ship"]) {
+  test(`${formula}: a cached preview is only used when a new usable reference is required`, () =>
+    harness(
+      (h) => {
+        h.renderer.update();
+        h.tick();
+        h.worker.complete();
+        h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
+        h.renderer.update();
+        h.tick();
+        assert.ok("u_ratio" in h.draws.at(-1).uniforms);
+        assert.equal(h.worker.jobs.length, 1);
+        assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+        h.worker.complete();
+        assert.ok("u_deltaCenter" in h.draws.at(-1).uniforms);
+        assert.equal(h.statuses.at(-1).message, "Detail ready");
+      },
+      { formula },
+    ));
+}
 
 test("changed display density updates the framebuffer without changing the CSS viewport", () =>
   harness((h) => {
@@ -310,7 +368,7 @@ test("deep frames are visible before repairs finish and stale tiles cannot overw
     h.renderer.update();
     h.tick();
     h.glitch();
-    h.worker.complete();
+    h.completeReference();
     assert.equal(h.draws.length, 1, "first GPU frame is shown without waiting for all repairs");
     assert.ok(h.worker.jobs[0].tiles);
     h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
@@ -319,6 +377,11 @@ test("deep frames are visible before repairs finish and stale tiles cannot overw
     const count = h.draws.length;
     h.worker.complete();
     assert.equal(h.draws.length, count, "obsolete tile result was discarded");
+    assert.equal(
+      h.worker.jobs.length,
+      0,
+      "discarding stale repairs does not rebuild a reusable reference",
+    );
   }));
 
 test("parameter edits discard old reference results", () =>
@@ -330,19 +393,26 @@ test("parameter edits discard old reference results", () =>
     h.tick();
     h.worker.complete();
     assert.equal(h.draws.length, 0);
-    h.worker.complete();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1, "the scheduled frame requests current parameters");
+    h.completeReference();
     assert.deepEqual(h.draws.at(-1).uniforms.u_c, [0.1, 0.2]);
   }));
 
-test("high iteration counts retain every device pixel", () =>
-  harness((h) => {
-    h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
-    h.renderer.update();
-    h.tick();
-    h.worker.complete();
-    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
-    assert.equal(h.statuses.at(-1).message, "Detail ready");
-  }));
+for (const formula of ["mandelbrot", "julia", "burning-ship"]) {
+  test(`${formula}: high iteration counts retain every device pixel`, () =>
+    harness(
+      (h) => {
+        h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
+        h.renderer.update();
+        h.tick();
+        h.completeReference();
+        assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+        assert.equal(h.statuses.at(-1).message, "Detail ready");
+      },
+      { formula },
+    ));
+}
 
 test("repairs batch disjoint cells and draw the whole batch before mask readback", () =>
   harness((h) => {
@@ -359,7 +429,7 @@ test("repairs batch disjoint cells and draw the whole batch before mask readback
           "all eight repairs are queued before the GPU wait",
         );
     };
-    h.worker.complete();
+    h.completeReference();
     assert.equal(h.worker.jobs.length, 1, "only one worker packet is pending");
     const first = h.worker.jobs[0].tiles;
     assert.equal(first.length, 8);
@@ -382,7 +452,7 @@ test("partial edge cells and invalid pixels late in a cell are retained", () =>
       data.fill(255);
       data[(width * height - 1) * 4 + 3] = 0;
     };
-    h.worker.complete();
+    h.completeReference();
     const [{ tile }] = h.worker.jobs[0].tiles;
     assert.equal(tile.x + tile.width, h.canvas.width);
     assert.equal(tile.y + tile.height, h.canvas.height);
@@ -398,7 +468,7 @@ test("expensive deep repair batches stay small and stale batches are discarded",
     h.renderer.update();
     h.tick();
     h.gl.readPixels = (_x, _y, _w, _h, _format, _type, data) => data.fill(0);
-    h.worker.complete();
+    h.completeReference();
     assert.equal(h.worker.jobs[0].tiles.length, 1);
     h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
     h.renderer.update();
@@ -414,7 +484,7 @@ test("a failed exact-pixel repair still reports a precision error", () =>
     h.renderer.update();
     h.tick();
     h.gl.readPixels = (_x, _y, _w, _h, _format, _type, data) => data.fill(0);
-    h.worker.complete();
+    h.completeReference();
     assert.equal(h.worker.jobs[0].tiles.length, 4);
     h.worker.complete();
     assert.equal(h.statuses.at(-1).error, true);
@@ -435,7 +505,7 @@ test("PNG export uses captured parameters and waits for all precision repairs be
       h.tick();
       assert.equal(h.encodings.length, 0);
       h.glitch();
-      h.worker.complete();
+      h.completeReference();
       assert.equal(h.encodings.length, 0, "an unfinished repair mask cannot be exported");
       assert.ok(h.worker.jobs[0].tiles);
       assert.deepEqual(h.draws[0].uniforms.u_c, [0, 0]);
@@ -498,3 +568,338 @@ test("PNG encoding failure also releases the worker and graphics context", () =>
     },
     { isolatedExport: true },
   ));
+
+for (const iterations of [200, 8192]) {
+  test(`Mandelbrot keeps native pixels while moving and settled at ${iterations} requested iterations`, () =>
+    harness((h) => {
+      h.state = { ...h.state, config: { ...h.state.config, iterations } };
+      h.renderer.update();
+      h.tick();
+      assert.deepEqual(
+        [h.canvas.width, h.canvas.height],
+        [1280, 720],
+        "allocate native pixels before reference arrives",
+      );
+      h.completeReference();
+      const beforeSettle = h.fullDraws.length;
+      assert.equal(h.frames.size, 0);
+      assert.equal(h.timers.size, 0);
+      assert.equal(beforeSettle, 1);
+      assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+      assert.equal(
+        h.fullDraws.length,
+        beforeSettle,
+        "settling does not redraw an already current native frame",
+      );
+      assert.ok(h.draws.every((draw) => draw.width === 1280 && draw.height === 720));
+      assert.ok(h.draws.every((draw) => !("u_ratio" in draw.uniforms)));
+      assert.equal(h.historyCopies, 0, "sharp motion needs no cached bitmap");
+      assert.equal(h.statuses.at(-1).message, "Detail ready");
+    }));
+}
+
+test("nearby Mandelbrot pans and anchored zooms draw every changed camera without rebuilding the reference", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    const job = h.completeReference();
+    const start = h.fullDraws.length;
+    for (let step = 1; step <= 12; step++) {
+      h.state = {
+        ...h.state,
+        view: zoomViewport(moveViewport(h.state.view, 0.02, -0.01), -10 - step / 32, 0.5, 0.25),
+      };
+      h.renderer.update();
+      h.tick();
+      assert.equal(h.fullDraws.length, start + step);
+      assert.equal(h.worker.jobs.length, 0);
+      const last = h.draws.at(-1);
+      assert.ok("u_deltaCenter" in last.uniforms);
+      assert.ok(!("u_ratio" in last.uniforms));
+      assert.deepEqual(last.uniforms.u_maxIterations, [
+        iterationBudget(h.state.view, h.state.config.iterations),
+      ]);
+      assert.ok(job.iterations > last.uniforms.u_maxIterations[0]);
+    }
+    assert.equal(h.historyCopies, 0);
+    const draws = h.fullDraws.length;
+    assert.equal(h.fullDraws.length, draws);
+    assert.equal(h.worker.jobs.length, 0);
+  }));
+
+test("reference iteration headroom does not change Mandelbrot's displayed limit", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    const job = h.completeReference();
+    const requested = iterationBudget(h.state.view, h.state.config.iterations);
+    assert.ok(job.iterations > requested);
+    assert.deepEqual(h.draws.at(-1).uniforms.u_maxIterations, [requested]);
+    h.state = {
+      ...h.state,
+      config: { ...h.state.config, iterations: requested + 20, palette: "fire" },
+    };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 0, "an increase within cached capacity reuses the orbit");
+    assert.deepEqual(h.draws.at(-1).uniforms.u_maxIterations, [requested + 20]);
+  }));
+
+test("Mandelbrot refreshes its domain after a large pan and continues drawing while replacement is pending", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    h.state = { ...h.state, view: moveViewport(h.state.view, 8, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    assert.equal(h.fullDraws.length, 2);
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.fullDraws.length, 3);
+    assert.equal(h.worker.jobs.length, 1, "movement does not queue more worker jobs");
+    assert.ok(h.draws.every((draw) => !("u_ratio" in draw.uniforms)));
+    const count = h.fullDraws.length;
+    h.completeReference();
+    assert.equal(
+      h.fullDraws.length,
+      count,
+      "replacement must not duplicate an already current draw",
+    );
+    assert.equal(h.worker.jobs.length, 0);
+  }));
+
+test("Mandelbrot refreshes domain on zoom-out even when its center is unchanged", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    const initial = h.completeReference();
+    h.state = { ...h.state, view: zoomViewport(h.state.view, -8) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    const replacement = h.worker.jobs[0];
+    assert.ok(replacement.logDeltaC > initial.logDeltaC);
+    assert.equal(h.fullDraws.length, 2);
+    h.completeReference();
+    assert.equal(h.worker.jobs.length, 0);
+  }));
+
+test("Mandelbrot domain includes the full viewport after an extreme aspect-ratio change", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    const initial = h.completeReference();
+    h.state = { ...h.state, width: 6400, height: 100 };
+    h.renderer.update();
+    h.tick();
+    assert.deepEqual([h.canvas.width, h.canvas.height], [12800, 200]);
+    assert.equal(h.worker.jobs.length, 1);
+    assert.ok(h.worker.jobs[0].logDeltaC > initial.logDeltaC);
+    h.completeReference();
+    assert.equal(
+      h.worker.jobs.length,
+      0,
+      "new domain covers the wide viewport without repeated rebuilding",
+    );
+  }));
+
+test("Mandelbrot worker completion coalesces with pending input and draws the latest camera once", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    assert.equal(h.frames.size, 1);
+    h.worker.complete();
+    assert.equal(h.draws.length, 0, "worker callback must not draw outside the animation frame");
+    assert.equal(h.frames.size, 1, "reply reuses the pending input frame");
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.03, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.fullDraws.length, 1);
+    assert.notEqual(h.draws[0].uniforms.u_deltaCenter[0], 0);
+    assert.equal(h.frames.size, 0);
+    assert.equal(h.worker.jobs.length, 0);
+  }));
+
+test("repairs queued while a replacement reference is pending resume when the worker is free", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    h.state = { ...h.state, view: moveViewport(h.state.view, 8, 0) };
+    h.glitch();
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    assert.equal(h.maskReads, 2);
+    assert.ok(!h.worker.jobs[0].tiles, "main reference still owns the worker");
+    const fullDraws = h.fullDraws.length;
+    h.completeReference();
+    assert.equal(h.fullDraws.length, fullDraws);
+    assert.equal(h.maskReads, 2, "an inspected frame needs no second full readback");
+    assert.ok(h.worker.jobs[0]?.tiles, "deferred repair resumes when worker is free");
+    h.worker.complete();
+    assert.equal(h.worker.jobs.length, 0);
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
+  }));
+
+test("Mandelbrot refreshes before exhausting cached iteration headroom", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    const initial = h.completeReference();
+    h.state = { ...h.state, config: { ...h.state.config, iterations: initial.iterations - 1 } };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.fullDraws.length, 2, "still-compatible reference draws the changed state");
+    assert.equal(
+      h.worker.jobs.length,
+      1,
+      "replacement starts before reference capacity is exhausted",
+    );
+    assert.ok(h.worker.jobs[0].iterations > initial.iterations);
+  }));
+
+test("Mandelbrot refreshes precision before its reference loses the required guard bits", () =>
+  harness((h) => {
+    h.state = {
+      ...h.state,
+      view: createViewportAtLog([-2, 0], -80),
+      config: { ...h.state.config, iterations: 8192 },
+    };
+    h.renderer.update();
+    h.tick();
+    const initial = h.completeReference();
+    h.state = { ...h.state, view: zoomViewport(h.state.view, -130) };
+    h.renderer.update();
+    h.tick();
+    assert.ok(initial.view.bits >= 130 + 64, "reference still has its hard precision margin");
+    assert.equal(h.fullDraws.length, 2);
+    assert.equal(h.worker.jobs.length, 1, "replacement begins with spare guard bits remaining");
+    assert.ok(h.worker.jobs[0].view.bits > initial.view.bits);
+  }));
+
+test("a stale lower-capacity Mandelbrot reply cannot displace a still-usable reference", () =>
+  harness((h) => {
+    h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    h.state = {
+      ...h.state,
+      view: moveViewport(h.state.view, 8, 0),
+      config: { ...h.state.config, iterations: 200 },
+    };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    assert.ok(h.worker.jobs[0].iterations < 8192);
+    h.state = { ...h.state, config: { ...h.state.config, iterations: 8192 } };
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    const count = h.fullDraws.length;
+    h.state = { ...h.state, view: moveViewport(h.state.view, 0.02, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(
+      h.fullDraws.length,
+      count + 1,
+      "old compatible reference keeps drawing while current replacement is pending",
+    );
+    assert.deepEqual(h.draws.at(-1).uniforms.u_maxIterations, [8192]);
+  }));
+
+test("a device-pixel-ratio change redraws Mandelbrot after resizing even without a new input version", () =>
+  harness((h) => {
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    h.state = { ...h.state, view: moveViewport(h.state.view, 8, 0) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    const beforeResize = h.fullDraws.length;
+    globalThis.window.devicePixelRatio = 1;
+    h.completeReference();
+    assert.deepEqual([h.canvas.width, h.canvas.height], [640, 360]);
+    assert.equal(
+      h.fullDraws.length,
+      beforeResize + 1,
+      "resizing clears pixels, so current version must be redrawn",
+    );
+    assert.deepEqual([h.draws.at(-1).width, h.draws.at(-1).height], [640, 360]);
+    assert.ok(!("u_ratio" in h.draws.at(-1).uniforms));
+    assert.equal(h.fullDraws.length, beforeResize + 1, "settling retains the resized frame");
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
+  }));
+
+test("a distant same-depth Mandelbrot jump waits for a reference that can distinguish its pixels", () =>
+  harness((h) => {
+    h.state = {
+      ...h.state,
+      view: createViewportAtLog([-2, 0], -100),
+      config: { ...h.state.config, iterations: 8192 },
+    };
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    const beforeJump = h.fullDraws.length;
+    h.state = { ...h.state, view: createViewportAtLog([0, 1], -100) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.worker.jobs.length, 1);
+    assert.equal(
+      h.fullDraws.length,
+      beforeJump,
+      "a huge deltaCenter must not collapse all current pixels into one parameter",
+    );
+    h.completeReference();
+    assert.equal(
+      h.fullDraws.length,
+      beforeJump + 1,
+      "the first usable reference draws the new location",
+    );
+    assert.deepEqual(h.draws.at(-1).uniforms.u_deltaCenter, [0, 0, 0, 0]);
+    assert.deepEqual([h.canvas.width, h.canvas.height], [1280, 720]);
+    assert.equal(h.fullDraws.length, beforeJump + 1);
+    assert.equal(h.statuses.at(-1).message, "Detail ready");
+  }));
+
+test("anchored Mandelbrot zoom refreshes before deltaCenter loses pixel precision", () =>
+  harness((h) => {
+    h.state = {
+      ...h.state,
+      view: createViewportAtLog([-2, 0], -100),
+      config: { ...h.state.config, iterations: 8192 },
+    };
+    h.renderer.update();
+    h.tick();
+    h.completeReference();
+    h.state = { ...h.state, view: zoomViewport(h.state.view, -109, 0.5, 0.25) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(h.fullDraws.length, 2, "reference is still usable while refresh starts");
+    assert.equal(
+      h.worker.jobs.length,
+      1,
+      "shrinking pixels trigger refresh even inside the cached domain",
+    );
+    h.state = { ...h.state, view: zoomViewport(h.state.view, -114, 0.5, 0.25) };
+    h.renderer.update();
+    h.tick();
+    assert.equal(
+      h.fullDraws.length,
+      2,
+      "an exhausted coordinate margin must not display a collapsed image",
+    );
+    assert.equal(h.worker.jobs.length, 1);
+    h.completeReference();
+    assert.equal(h.fullDraws.length, 3, "the refreshed reference resolves the latest camera");
+    assert.equal(h.worker.jobs.length, 0);
+    assert.ok(h.draws.every((draw) => !("u_ratio" in draw.uniforms)));
+  }));

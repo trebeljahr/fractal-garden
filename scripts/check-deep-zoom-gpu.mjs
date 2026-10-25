@@ -19,6 +19,7 @@ const {
   moveViewport,
   scaleToFloatExp,
 } = require("../utils/deepZoom/math.ts");
+const { buildApproximation } = require("../utils/deepZoom/approximation.ts");
 const { buildReference, sampleEscape } = require("../utils/deepZoom/orbit.ts");
 const root = fileURLToPath(new URL("../", import.meta.url));
 const read = (path) => readFileSync(resolve(root, path), "utf8");
@@ -92,6 +93,7 @@ const fixtures = definitions.map((definition) => {
   );
   const referenceStart = performance.now();
   const reference = buildReference(view, formula, c, iterations);
+  const approximation = buildApproximation(reference, { logDeltaC: view.logZoom + 4 });
   const referenceMs = performance.now() - referenceStart;
   const oracleStart = performance.now();
   const expected = [];
@@ -118,6 +120,7 @@ const fixtures = definitions.map((definition) => {
     criticalStart: reference.length,
     criticalLength: reference.critical?.length ?? 0,
     referenceLength: reference.length,
+    approximation: { ...approximation, data: [...approximation.data] },
     expected,
     referenceMs: Math.round(referenceMs * 100) / 100,
     oracleMs: Math.round((performance.now() - oracleStart) * 100) / 100,
@@ -142,7 +145,8 @@ function checkGpu({ vertex, shared, diagnostic, fixtures }) {
   const results = [];
   const buffer = gl.createBuffer();
   const texture = gl.createTexture();
-  if (!buffer || !texture) throw new Error("GPU allocation failed.");
+  const approximationTexture = gl.createTexture();
+  if (!buffer || !texture || !approximationTexture) throw new Error("GPU allocation failed.");
 
   function compile(source, type) {
     const shader = gl.createShader(type);
@@ -189,6 +193,11 @@ function checkGpu({ vertex, shared, diagnostic, fixtures }) {
         "deltaCenter",
         "scale",
         "constant",
+        "approximation",
+        "approximationSize",
+        "approximationLogDeltaC",
+        "approximationMaxLogRadius",
+        "hasApproximation",
       ].map((name) => [name, gl.getUniformLocation(program, `u_${name}`)]),
     );
     const entry = {
@@ -241,6 +250,42 @@ function checkGpu({ vertex, shared, diagnostic, fixtures }) {
         gl.FLOAT,
         reference,
       );
+      const approximationHeight = Math.max(
+        1,
+        Math.ceil((fixture.approximation.length * 5) / textureWidth),
+      );
+      const approximation = new Float32Array(textureWidth * approximationHeight * 4);
+      approximation.set(fixture.approximation.data);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, approximationTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        textureWidth,
+        approximationHeight,
+        0,
+        gl.RGBA,
+        gl.FLOAT,
+        approximation,
+      );
+      gl.activeTexture(gl.TEXTURE0);
+      gl.uniform1i(u.approximation, 1);
+      gl.uniform2f(u.approximationSize, textureWidth, approximationHeight);
+      gl.uniform1f(u.approximationLogDeltaC, fixture.approximation.logDeltaC);
+      let maxLogRadius = -1e6;
+      for (let i = 0; i < fixture.approximation.data.length; i += 20) {
+        for (const offset of [0, 2]) {
+          if (fixture.approximation.data[i + offset + 1] > 1)
+            maxLogRadius = Math.max(maxLogRadius, fixture.approximation.data[i + offset]);
+        }
+      }
+      gl.uniform1f(u.approximationMaxLogRadius, maxLogRadius);
+      gl.uniform1i(u.hasApproximation, fixture.approximation.maxSkip > 0 ? 1 : 0);
       gl.uniform2f(u.resolution, fixture.width, fixture.height);
       gl.uniform1f(u.maxIterations, fixture.iterations);
       gl.uniform1i(u.colorMode, 0);
@@ -314,6 +359,7 @@ function checkGpu({ vertex, shared, diagnostic, fixtures }) {
     for (const { program } of programs.values()) gl.deleteProgram(program);
     gl.deleteBuffer(buffer);
     gl.deleteTexture(texture);
+    gl.deleteTexture(approximationTexture);
     gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
   return {
