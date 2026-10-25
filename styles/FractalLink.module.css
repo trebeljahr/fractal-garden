@@ -1,5 +1,6 @@
 .gridItem {
   display: block;
+  min-width: 0;
 }
 
 .cardHeading {
@@ -94,5 +95,76 @@
 @media (min-width: 1350px) {
   .squareImage {
     height: 25vw;
+  }
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid #f5cc75;
+  outline-offset: -2px;
+}
+
+.card.relatedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0 0 1.25rem;
+  border: 0;
+  border-bottom: 1px solid rgba(245, 241, 209, 0.12);
+  border-radius: 0;
+  transform: none;
+}
+
+.relatedCard .squareImage {
+  height: auto;
+  aspect-ratio: 1;
+  background: #222;
+}
+
+.relatedCard .cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0;
+  background: none;
+  text-align: left;
+}
+
+.relatedCard .cardHeading {
+  margin: 0;
+  font:
+    1.05rem "Montserrat",
+    sans-serif;
+  transition: color 180ms ease;
+}
+
+.reason {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(245, 241, 209, 0.7);
+}
+
+.relatedCard:hover .cardHeading,
+.relatedCard:focus-within .cardHeading {
+  color: #f5cc75;
+}
+
+@media (max-width: 600px) {
+  .card.relatedCard {
+    gap: 0.75rem;
+  }
+  .relatedCard .cardHeading {
+    font-size: 0.95rem;
+  }
+  .reason {
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .relatedCard .cardHeading {
+    transition: none;
   }
 }

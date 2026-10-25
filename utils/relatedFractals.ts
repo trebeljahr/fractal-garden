@@ -1,4 +1,6 @@
-type Family = { paths: string[] };
+import type { FractalTilePath } from "./fractalTiles";
+
+type Family = { paths: FractalTilePath[] };
 
 const families: Family[] = [
   {
@@ -196,9 +198,9 @@ const specific: Record<string, Record<string, string>> = {
 };
 
 export function getRelatedFractals(path: string) {
-  const found = new Map<string, string | undefined>();
+  const found = new Map<FractalTilePath, string | undefined>();
   for (const family of families) {
-    if (!family.paths.includes(path)) continue;
+    if (!family.paths.some((member) => member === path)) continue;
     for (const target of family.paths) {
       if (target !== path && !found.has(target)) found.set(target, specific[path]?.[target]);
     }

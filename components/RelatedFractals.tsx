@@ -1,9 +1,9 @@
-import Image from "next/legacy/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/RelatedFractals.module.css";
-import { getFractalName, PAGE_SEO } from "../utils/pageSeo";
+import { FRACTAL_TILES } from "../utils/fractalTiles";
+import { getFractalName } from "../utils/pageSeo";
 import { getRelatedFractals } from "../utils/relatedFractals";
+import { FractalLink } from "./FractalLink";
 
 export function RelatedFractals() {
   const { pathname } = useRouter();
@@ -13,26 +13,16 @@ export function RelatedFractals() {
     <nav className={styles.related} aria-labelledby="related-fractals-heading">
       <h2 id="related-fractals-heading">Related fractals</h2>
       <div className={styles.links}>
-        {related.map(({ href, reason }) => {
-          const entry = PAGE_SEO[href];
-          return (
-            <Link key={href} href={href} className={styles.link}>
-              <span className={styles.image}>
-                <Image
-                  src={entry.imagePath}
-                  alt=""
-                  layout="fill"
-                  objectFit="contain"
-                  sizes="(max-width: 980px) 44vw, 434px"
-                />
-              </span>
-              <span className={styles.copy}>
-                <span className={styles.name}>{getFractalName(href)}</span>
-                {reason && <span className={styles.reason}>{reason}</span>}
-              </span>
-            </Link>
-          );
-        })}
+        {related.map(({ href, reason }) => (
+          <FractalLink
+            key={href}
+            href={href}
+            imageSrc={FRACTAL_TILES[href].imageSrc}
+            title={getFractalName(href)}
+            variant="related"
+            reason={reason}
+          />
+        ))}
       </div>
     </nav>
   );

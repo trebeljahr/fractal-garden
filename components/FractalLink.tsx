@@ -1,6 +1,5 @@
 import Image, { type StaticImageData } from "next/legacy/image";
 import Link from "next/link";
-import useDimensions from "react-cool-dimensions";
 import styles from "../styles/FractalLink.module.css";
 
 type FractalLinkProps = {
@@ -8,32 +7,45 @@ type FractalLinkProps = {
   imageSrc: StaticImageData;
   title: string;
   prio?: boolean;
+  variant?: "gallery" | "related";
+  reason?: string;
 };
 
-export const FractalLink = ({ href, imageSrc, title, prio = false }: FractalLinkProps) => {
-  const { observe, width, height } = useDimensions<HTMLDivElement | null>();
-
+export const FractalLink = ({
+  href,
+  imageSrc,
+  title,
+  prio = false,
+  variant = "gallery",
+  reason,
+}: FractalLinkProps) => {
   return (
     <div className={styles.gridItem}>
-      <article className={styles.card}>
+      <article className={`${styles.card} ${variant === "related" ? styles.relatedCard : ""}`}>
         <Link href={href} prefetch={false} className={styles.cardLink}>
           <span className="screen-reader-only">Link to the {title} fractal page.</span>
         </Link>
-        <div className={styles.squareImage} ref={observe}>
+        <div className={styles.squareImage}>
           <Image
             src={imageSrc}
             alt={title}
             // Development blur URLs need an image optimizer; static export disables it.
             placeholder={process.env.NODE_ENV === "development" ? "empty" : "blur"}
-            width={width}
-            height={height}
-            className={styles.squareImage}
+            layout="fill"
+            objectFit="cover"
+            objectPosition="center"
+            sizes={
+              variant === "related"
+                ? "(max-width: 980px) 44vw, 434px"
+                : "(min-width: 1350px) 30vw, (min-width: 900px) 45vw, 90vw"
+            }
             priority={prio}
           />
         </div>
 
         <div className={styles.cardContent}>
           <h3 className={styles.cardHeading}>{title}</h3>
+          {reason && <p className={styles.reason}>{reason}</p>}
         </div>
       </article>
     </div>
