@@ -208,10 +208,11 @@ function writeNormalized(
   { center, scale, axisOrder }: Normalization,
   target: Float32Array | Float64Array,
   index: number,
+  sourceOffset = 0,
 ) {
   for (let axis = 0; axis < 3; axis++) {
     const from = axisOrder[axis];
-    target[index * 3 + axis] = (source[from] - center[from]) * scale;
+    target[index * 3 + axis] = (source[sourceOffset + from] - center[from]) * scale;
   }
 }
 
@@ -222,7 +223,7 @@ function applyNormalization(
   const normalized = new Float32Array(count * 3);
 
   for (let i = 0; i < count; i++) {
-    writeNormalized(points.subarray(i * 3, i * 3 + 3), normalization, normalized, i);
+    writeNormalized(points, normalization, normalized, i, i * 3);
   }
 
   return { points: normalized, count };
@@ -300,6 +301,36 @@ function hexToRgb(hex: string) {
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
 }
 
+type PolylineDrawScratch = {
+  capacity: number;
+  projected: Float32Array;
+  clipped: Uint8Array;
+  segmentBins: Uint8Array;
+  binStarts: Uint32Array;
+  cursor: Uint32Array;
+  sorted: Uint32Array;
+};
+// Scratch follows the canvas lifetime and contains no source geometry references.
+const polylineDrawScratch = new WeakMap<CanvasRenderingContext2D, PolylineDrawScratch>();
+
+function drawScratch(ctx: CanvasRenderingContext2D, count: number) {
+  let scratch = polylineDrawScratch.get(ctx);
+  if (!scratch || scratch.capacity < count) {
+    const capacity = Math.max(count, (scratch?.capacity ?? 128) * 2);
+    scratch = {
+      capacity,
+      projected: new Float32Array(capacity * 3),
+      clipped: new Uint8Array(capacity),
+      segmentBins: new Uint8Array(capacity),
+      binStarts: new Uint32Array(129),
+      cursor: new Uint32Array(128),
+      sorted: new Uint32Array(capacity),
+    };
+    polylineDrawScratch.set(ctx, scratch);
+  }
+  return scratch;
+}
+
 /**
  * Draws a normalized polyline with perspective projection. Segments are
  * bucketed by depth so the whole curve is drawn with DEPTH_BINS stroke calls,
@@ -328,13 +359,15 @@ export function drawPolyline3D(
   );
   const projection = spatialProjection(width, height, options.framing);
   const scale = (projection.focal / FOCAL_SCALE) * (options.viewScale ?? 0.42);
-  const projected = new Float32Array(count * 3);
-  const clipped = new Uint8Array(count);
 
   ctx.fillStyle = options.background;
   ctx.fillRect(0, 0, width, height);
 
   if (count < 2) return null;
+
+  const { projected, clipped, segmentBins, binStarts, cursor, sorted } = drawScratch(ctx, count);
+  clipped.fill(0, 0, count);
+  binStarts.fill(0, 0, depthBins + 1);
 
   for (let i = 0; i < count; i++) {
     const x = (points[i * 3] - spatialTarget[0]) * spatialScale;
@@ -357,10 +390,6 @@ export function drawPolyline3D(
 
   // Counting sort of segment indices into depth bins.
   const segmentCount = count - 1;
-  const segmentBins = new Uint8Array(segmentCount);
-  const binStarts = new Uint32Array(depthBins + 1);
-
-  let visibleSegments = 0;
 
   for (let i = 0; i < segmentCount; i++) {
     if (clipped[i] || clipped[i + 1] || polyline.breaks?.[i + 1]) {
@@ -380,15 +409,13 @@ export function drawPolyline3D(
     const bin = Math.floor(t * depthBins);
     segmentBins[i] = bin;
     binStarts[bin + 1]++;
-    visibleSegments++;
   }
 
   for (let bin = 0; bin < depthBins; bin++) {
     binStarts[bin + 1] += binStarts[bin];
   }
 
-  const cursor = binStarts.slice(0, depthBins);
-  const sorted = new Uint32Array(visibleSegments);
+  for (let bin = 0; bin < depthBins; bin++) cursor[bin] = binStarts[bin];
   for (let i = 0; i < segmentCount; i++) {
     if (segmentBins[i] === CLIPPED) continue;
     sorted[cursor[segmentBins[i]]++] = i;
