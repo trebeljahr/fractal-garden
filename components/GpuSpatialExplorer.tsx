@@ -1,7 +1,9 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import { watchDisplayResolution } from "../utils/displayResolution";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useSpatialControls } from "../utils/hooks/useSpatialControls";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import {
   INITIAL_SPATIAL_CAMERA,
   reframeSpatialPoint,
@@ -97,20 +99,11 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
         setError(cause instanceof Error ? cause.message : "Could not start this view.");
       }
     };
-    const draw = (pixels: number) => {
+    const draw = (pixels: number, ratio = window.devicePixelRatio || 1) => {
       if (disposed || gl.isContextLost() || !renderer.current) return false;
       const { camera, spec, style, width, height, framing } = latest.current;
       try {
-        renderer.current.draw(
-          camera,
-          spec,
-          style,
-          width,
-          height,
-          window.devicePixelRatio || 1,
-          pixels,
-          framing,
-        );
+        renderer.current.draw(camera, spec, style, width, height, ratio, pixels, framing);
         drawn.current = { camera, style };
         canvas.dataset.renderZoom = String(camera.zoom);
         canvas.dataset.pixelBudget = String(pixels);
@@ -142,6 +135,13 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
       renderer.current = null;
       init();
     };
+    const unregister = registerPngExporter(canvas, (size) =>
+      renderCanvasPng(canvas, size, (ratio) => {
+        if (!draw(Number.POSITIVE_INFINITY, ratio)) throw new Error("Drawing not ready");
+        dirty.current = true;
+      }),
+    );
+    const unwatch = watchDisplayResolution(redraw);
     init();
     animation = requestAnimationFrame(tick);
     canvas.addEventListener("webglcontextlost", lost);
@@ -150,6 +150,8 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
     window.addEventListener("garden:before-export", exportFrame);
     return () => {
       disposed = true;
+      unregister();
+      unwatch();
       cancelAnimationFrame(animation);
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", restored);

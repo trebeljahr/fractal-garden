@@ -17,6 +17,19 @@ scope.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const message = event.data;
   try {
     switch (message.type) {
+      case "export-png": {
+        if (!host) {
+          emit({ type: "png", id: message.id, error: "Drawing not ready" });
+          break;
+        }
+        Promise.resolve()
+          .then(() => host!.exportPng(message.ratio, () => createRenderer(kind)))
+          .then(
+            (blob) => emit({ type: "png", id: message.id, blob }),
+            (error) => emit({ type: "png", id: message.id, error: String(error) }),
+          );
+        break;
+      }
       case "pick":
         emit({ type: "picked", id: message.id, point: host?.pick(message.x, message.y) ?? null });
         break;

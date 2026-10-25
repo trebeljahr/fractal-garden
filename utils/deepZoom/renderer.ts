@@ -48,6 +48,7 @@ export function createDeepZoomRenderer(
   formula: EscapeFormula,
   getState: () => RenderState,
   onStatus: (status: ZoomStatus) => void,
+  options: { pixelRatio?: number } = {},
 ) {
   const release: (() => void)[] = [];
   try {
@@ -143,7 +144,6 @@ export function createDeepZoomRenderer(
     release.push(() => worker.terminate());
     let destroyed = false;
     let frame = 0;
-    let settle: ReturnType<typeof setTimeout> | undefined;
     let version = 0;
     let nextId = 0;
     let pending: Job | null = null;
@@ -152,7 +152,6 @@ export function createDeepZoomRenderer(
     let uploaded: ReferenceOrbit | null = null;
     let textureWidth = 0;
     let textureHeight = 0;
-    let moving = false;
     let repairQueue: Tile[] = [];
 
     const report = (message: string, error = false) => {
@@ -188,20 +187,19 @@ export function createDeepZoomRenderer(
       );
       uploaded = orbit;
     };
+    const maxViewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
+    const maxSide = Math.min(
+      gl.getParameter(gl.MAX_TEXTURE_SIZE),
+      gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),
+    );
     const resize = () => {
       const { width, height } = getState();
-      // Ordinary zooms stay sharp. Deep perturbation keeps its responsive
-      // preview budget and restores detail after the gesture.
-      const iterations = iterationBudget(getState().view, getState().config.iterations);
-      const maxPixels =
-        getState().view.logZoom >= -7
-          ? Number.POSITIVE_INFINITY
-          : moving
-            ? 110_000 * Math.min(1, 800 / iterations)
-            : 750_000 * Math.min(1, 2400 / iterations);
+      // Each display pixel gets its own sample, at every zoom and during gestures.
+      // Hardware limits are the only reason to reduce the drawing buffer.
       const ratio = Math.min(
-        window.devicePixelRatio || 1,
-        Math.sqrt(maxPixels / Math.max(1, width * height)),
+        options.pixelRatio ?? (window.devicePixelRatio || 1),
+        Math.min(maxSide, maxViewport[0]) / Math.max(1, width),
+        Math.min(maxSide, maxViewport[1]) / Math.max(1, height),
       );
       const w = Math.max(1, Math.round(width * ratio));
       const h = Math.max(1, Math.round(height * ratio));
@@ -361,7 +359,7 @@ export function createDeepZoomRenderer(
       }
     };
     const repairNext = () => {
-      if (destroyed || moving || pending) return;
+      if (destroyed || pending) return;
       if (repairQueue.length) {
         const state = getState();
         // Bound worker occupancy as precision and iteration counts grow. Ordinary
@@ -392,9 +390,8 @@ export function createDeepZoomRenderer(
         report("Ready");
         return;
       }
-      if (!moving || !previewFrame()) {
-        if (validReference()) draw(reference, referenceView);
-      }
+      if (validReference()) draw(reference, referenceView);
+      else previewFrame();
       report("Refining detail…");
       if (!pending) {
         const exact =
@@ -403,7 +400,6 @@ export function createDeepZoomRenderer(
           referenceView.x === rescaleFixed(state.view.x, state.view.bits, referenceView.bits) &&
           referenceView.y === rescaleFixed(state.view.y, state.view.bits, referenceView.bits);
         if (exact) {
-          if (moving) return;
           repairQueue = [];
           inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
           repairNext();
@@ -457,11 +453,9 @@ export function createDeepZoomRenderer(
           request();
           return;
         }
-        if (!moving) {
-          repairQueue = [];
-          inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
-          repairNext();
-        }
+        repairQueue = [];
+        inspect({ x: 0, y: 0, width: gl.canvas.width, height: gl.canvas.height });
+        repairNext();
       }
     };
     worker.onerror = () => {
@@ -470,15 +464,8 @@ export function createDeepZoomRenderer(
     };
     const update = () => {
       version++;
-      moving = true;
       repairQueue = [];
-      clearTimeout(settle);
       if (!frame) frame = requestAnimationFrame(render);
-      settle = setTimeout(() => {
-        moving = false;
-        if (frame) cancelAnimationFrame(frame);
-        render();
-      }, 160);
     };
     const redraw = () => {
       // Export hooks are synchronous. Preserve the repaired framebuffer if ready.
@@ -490,7 +477,6 @@ export function createDeepZoomRenderer(
       destroy() {
         destroyed = true;
         cancelAnimationFrame(frame);
-        clearTimeout(settle);
         for (const dispose of release.splice(0).reverse()) dispose();
       },
     };

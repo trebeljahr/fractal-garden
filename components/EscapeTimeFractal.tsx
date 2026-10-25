@@ -1,8 +1,10 @@
 import { Children, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
+import { exportDeepZoomPng } from "../utils/deepZoom/export";
 import { createViewport, matchesDeepViewport } from "../utils/deepZoom/math";
 import { createDeepZoomRenderer, MAX_RENDER_ITERATIONS } from "../utils/deepZoom/renderer";
+import { watchDisplayResolution } from "../utils/displayResolution";
 import {
   COLOR_MODE_LABELS,
   COLOR_MODES,
@@ -17,6 +19,7 @@ import { type EscapeTimePlace, matchesJuliaConstant } from "../utils/fractalPlac
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { registerPngExporter } from "../utils/pngExport";
 import { DeepZoomCanvas } from "./DeepZoomCanvas";
 import { PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
@@ -140,9 +143,26 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
       return;
     }
     rendererRef.current = renderer;
+    const capture = new AbortController();
+    const unregisterExport = registerPngExporter(cnv, (size) =>
+      exportDeepZoomPng(
+        formula,
+        {
+          ...stateRef.current,
+          view: viewportRef.current,
+          width: stateRef.current.width || 1,
+          height: stateRef.current.height || 1,
+        },
+        size,
+        capture.signal,
+      ),
+    );
     cnv.addEventListener("garden:redraw", renderer.redraw);
-    renderer.update();
+    const stopWatchingResolution = watchDisplayResolution(renderer.update);
     return () => {
+      stopWatchingResolution();
+      unregisterExport();
+      capture.abort();
       cnv.removeEventListener("garden:redraw", renderer.redraw);
       renderer.destroy();
       rendererRef.current = null;

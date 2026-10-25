@@ -73,13 +73,8 @@ const NewtonFractal = ({ description }: Props) => {
       return;
     }
 
-    const getResolution = () => {
-      const ratio = window.devicePixelRatio || 1;
-      return [width * ratio, height * ratio] as const;
-    };
-
     const drawNewton = () => {
-      const [resolutionX, resolutionY] = getResolution();
+      const [resolutionX, resolutionY] = [gl.drawingBufferWidth, gl.drawingBufferHeight];
       const { center, zoomSize } = viewportRef.current;
 
       gl.uniform2f(centerLocation, center[0], center[1]);
@@ -92,13 +87,17 @@ const NewtonFractal = ({ description }: Props) => {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     renderRef.current = drawNewton;
-    cnv.addEventListener("garden:redraw", drawNewton);
+    const redraw = (event: Event) => {
+      drawNewton();
+      event.preventDefault();
+    };
+    cnv.addEventListener("garden:redraw", redraw);
 
     drawNewton();
 
     return () => {
       renderRef.current = null;
-      cnv.removeEventListener("garden:redraw", drawNewton);
+      cnv.removeEventListener("garden:redraw", redraw);
       gl.deleteBuffer(vertBuf);
       gl.deleteProgram(program);
       gl.deleteShader(vert);

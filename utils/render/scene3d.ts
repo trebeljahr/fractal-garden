@@ -132,6 +132,7 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
   // from what is on screen.
   private yawOffset = 0;
   private drawnYaw = 0;
+  private drawnProgress = 1;
   private motion: SceneMotion | null = null;
   private motionStarted = 0;
 
@@ -167,11 +168,6 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
 
     const { view } = params;
     this.drawnYaw = this.yawOffset;
-    const options = {
-      ...view,
-      rotationY: view.rotationY + this.yawOffset,
-      highlightColor: "#f5c56d",
-    };
     const motion = this.motion;
     if (motion && params.constructionMotion && !this.motionStarted)
       this.motionStarted = performance.now();
@@ -180,7 +176,40 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
         ? Math.min(1, (performance.now() - this.motionStarted) / CONSTRUCTION_MOTION_MS)
         : 1;
     if (motion) setSceneProgress(motion, progress);
+    this.drawnProgress = progress;
     const drawing = motion ?? built;
+    this.paint(ctx, width, height, drawing, this.drawnYaw, progress);
+
+    if (!view.autoRotate) return progress < 1;
+    this.yawOffset += view.rotationSpeed;
+    return true;
+  }
+
+  drawExport(ctx: Context2D, width: number, height: number, pendingParams?: Scene3DParams) {
+    if (pendingParams) {
+      const snapshot = new Scene3DRenderer();
+      snapshot.update(pendingParams);
+      snapshot.restoreView(this.drawnYaw);
+      snapshot.draw(ctx, width, height);
+    } else if (this.params && this.built) {
+      this.paint(ctx, width, height, this.motion ?? this.built, this.drawnYaw, this.drawnProgress);
+    }
+  }
+
+  private paint(
+    ctx: Context2D,
+    width: number,
+    height: number,
+    drawing: BuiltScene | SceneMotion,
+    yaw: number,
+    progress: number,
+  ) {
+    if (!this.params) return;
+    const options = {
+      ...this.params.view,
+      rotationY: this.params.view.rotationY + yaw,
+      highlightColor: "#f5c56d",
+    };
     // Both draw functions only use the drawing API OffscreenCanvas shares.
     const target = ctx as CanvasRenderingContext2D;
     if (drawing.type === "faces") {
@@ -191,10 +220,6 @@ export class Scene3DRenderer implements Renderer<Scene3DParams> {
     } else {
       drawBoxScene(target, width, height, drawing.scene, options);
     }
-
-    if (!view.autoRotate) return progress < 1;
-    this.yawOffset += view.rotationSpeed;
-    return true;
   }
 
   describe() {

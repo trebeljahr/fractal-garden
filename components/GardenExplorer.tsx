@@ -31,6 +31,7 @@ import {
   projection,
 } from "../utils/garden/render";
 import type { Dimension } from "../utils/lsystem/spec";
+import { canvasToPng, downloadPng, exportCanvasPng, registerPngExporter } from "../utils/pngExport";
 
 const STORAGE_KEY = "fractal-garden:experimental-bed:v1";
 
@@ -187,11 +188,36 @@ function GardenCanvas({
         performance.now(),
       );
     };
+    const unregister = registerPngExporter(canvas, (outputSize) => {
+      const output = document.createElement("canvas");
+      output.width = outputSize.width;
+      output.height = outputSize.height;
+      const target = output.getContext("2d");
+      if (!target) throw new Error("Canvas unavailable");
+      target.setTransform(
+        output.width / size.current.width,
+        0,
+        0,
+        output.height / size.current.height,
+        0,
+        0,
+      );
+      drawGarden(
+        target,
+        size.current.width,
+        size.current.height,
+        built,
+        { ...view, wind: view.wind && !reduced },
+        last || performance.now(),
+      );
+      return canvasToPng(output);
+    });
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     resize();
     if (view.wind && !reduced) frame = requestAnimationFrame(render);
     return () => {
+      unregister();
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
@@ -296,6 +322,8 @@ export default function GardenExplorer() {
   const [wind, setWind] = useState(false);
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savingImage, setSavingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
   const [previous, setPrevious] = useState<Plant[] | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nextId = useRef(9);
@@ -370,13 +398,18 @@ export default function GardenExplorer() {
     setDimension(value);
     setTool(value === "3d" ? "orbit" : "arrange");
   };
-  const saveImage = () => {
+  const saveImage = async () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const link = document.createElement("a");
-    link.download = `fractal-garden-${dimension}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    if (!canvas || savingImage) return;
+    setSavingImage(true);
+    setImageError("");
+    try {
+      downloadPng(await exportCanvasPng(canvas), `fractal-garden-${dimension}.png`);
+    } catch {
+      setImageError("The image could not be saved. Try again.");
+    } finally {
+      setSavingImage(false);
+    }
   };
 
   return (
@@ -388,10 +421,11 @@ export default function GardenExplorer() {
         <span className={styles.dev}>
           Experimental <span>· development only</span>
         </span>
-        <button type="button" onClick={saveImage} className={styles.save}>
-          Save image
+        <button type="button" onClick={saveImage} className={styles.save} disabled={savingImage}>
+          {savingImage ? "Saving…" : "Save image"}
         </button>
       </header>
+      {imageError && <p role="status">{imageError}</p>}
       <div className={styles.workspace}>
         <section className={styles.stage} aria-label="Garden workspace">
           <GardenCanvas

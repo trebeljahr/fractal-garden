@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../styles/VoxelFlight.module.css";
+import { watchDisplayResolution } from "../utils/displayResolution";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import { createZoomWheelGuard, listenForZoomWheel } from "../utils/shouldZoomWheel";
 import {
   atFlightZoomLimit,
@@ -172,21 +174,13 @@ export function VoxelFlight({
         dirty.current = true;
       }
     };
-    const draw = (sample = -1) => {
-      if (!renderer || gl.isContextLost()) return;
+    const draw = (sample = -1, ratio = window.devicePixelRatio || 1, pixels?: number) => {
+      if (!renderer || gl.isContextLost()) return false;
       const { style, width, height, framing } = latest.current;
-      if (!framing) return;
-      renderer.draw(
-        cameraRef.current,
-        style,
-        width,
-        height,
-        window.devicePixelRatio || 1,
-        undefined,
-        framing,
-        sample,
-      );
+      if (!framing) return false;
+      renderer.draw(cameraRef.current, style, width, height, ratio, pixels, framing, sample);
       dirty.current = false;
+      return true;
     };
     const render = (now: number) => {
       if (disposed) return;
@@ -339,6 +333,16 @@ export function VoxelFlight({
         /* The normal render loop exposes failures. */
       }
     };
+    const unregister = registerPngExporter(canvas, (size) =>
+      renderCanvasPng(canvas, size, (ratio) => {
+        for (let sample = 0; sample < FLIGHT_SAMPLE_OFFSETS.length; sample++)
+          if (!draw(sample, ratio, Number.POSITIVE_INFINITY)) throw new Error("Drawing not ready");
+        dirty.current = true;
+      }),
+    );
+    const unwatch = watchDisplayResolution(() => {
+      dirty.current = true;
+    });
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("click", click);
     canvas.addEventListener("contextmenu", contextmenu);
@@ -363,6 +367,8 @@ export function VoxelFlight({
     canvas.focus({ preventScroll: true });
     return () => {
       disposed = true;
+      unregister();
+      unwatch();
       guard.dispose();
       cancelAnimationFrame(frame);
       held.current.clear();

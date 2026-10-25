@@ -1,7 +1,9 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import { watchDisplayResolution } from "../utils/displayResolution";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useSpatialControls } from "../utils/hooks/useSpatialControls";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import type { SceneSpec } from "../utils/render/scene3d";
 import {
   CAMERA_DISTANCE,
@@ -118,8 +120,8 @@ export function SpatialExplorer<T extends SpatialStyle>({
       }
     };
     init();
-    const draw = () => {
-      if (disposed || gl.isContextLost() || !renderer) return;
+    const draw = (ratio = window.devicePixelRatio || 1) => {
+      if (disposed || gl.isContextLost() || !renderer) return false;
       const { style, width, height, frame } = latest.current;
       const data = geometry.current,
         old = geometryFrame.current,
@@ -142,16 +144,22 @@ export function SpatialExplorer<T extends SpatialStyle>({
           2 ** ((live.camera.atmosphereZoom ?? live.camera.zoom) - live.camera.zoom) / 96,
           spatialReliefFront(live.camera, rotationOf(live.style)),
           frame,
+          ratio,
         );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
+        return false;
       }
       canvas.dataset.renderZoom = String(old?.camera.zoom ?? 0);
       canvas.dataset.detailDepth = String(data?.depth ?? 0);
       canvas.dataset.leaves = String(data?.leaves ?? 0);
       canvas.dataset.limited = String(data?.limited ?? false);
+      return true;
     };
-    drawRef.current = draw;
+    const redraw = () => {
+      draw();
+    };
+    drawRef.current = redraw;
     const accept = (result: SpatialGeometry) => {
       if (disposed) return;
       geometry.current = result;
@@ -213,18 +221,27 @@ export function SpatialExplorer<T extends SpatialStyle>({
     };
     canvas.addEventListener("webglcontextlost", lost);
     canvas.addEventListener("webglcontextrestored", restored);
-    canvas.addEventListener("garden:redraw", draw);
-    window.addEventListener("garden:before-export", draw);
+    canvas.addEventListener("garden:redraw", redraw);
+    window.addEventListener("garden:before-export", redraw);
+    const unregister = registerPngExporter(canvas, (size) => {
+      if (!geometry.current) return Promise.reject(new Error("Drawing not ready"));
+      return renderCanvasPng(canvas, size, (ratio) => {
+        if (!draw(ratio)) throw new Error("Drawing not ready");
+      });
+    });
+    const unwatch = watchDisplayResolution(redraw);
     setReady((v) => v + 1);
     return () => {
       disposed = true;
+      unregister();
+      unwatch();
       worker?.terminate();
       requestRef.current = () => {};
       drawRef.current = () => {};
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", restored);
-      canvas.removeEventListener("garden:redraw", draw);
-      window.removeEventListener("garden:before-export", draw);
+      canvas.removeEventListener("garden:redraw", redraw);
+      window.removeEventListener("garden:before-export", redraw);
       renderer?.destroy();
       queueMicrotask(() => {
         if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();

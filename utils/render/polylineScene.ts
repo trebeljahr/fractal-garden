@@ -143,6 +143,25 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
   }
 
   draw(ctx: Context2D, width: number, height: number) {
+    return this.drawFrame(ctx, width, height, true);
+  }
+
+  drawExport(ctx: Context2D, width: number, height: number, pendingParams?: PolylineSceneParams) {
+    // Geometry is read-only while drawing. Keep the full grown/trimmed trail,
+    // but give export-only sampling and parameter changes their own state.
+    const snapshot = Object.assign(new PolylineSceneRenderer(), this);
+    snapshot.detail = null;
+    const restartsTrail =
+      pendingParams &&
+      (JSON.stringify(pendingParams.source) !== this.sourceKey ||
+        pendingParams.config.animateTrail !== this.params?.config.animateTrail);
+    if (pendingParams) snapshot.update(pendingParams);
+    // A queued source/trail reset needs its opening frame; existing playback
+    // keeps precisely the state already visible on screen.
+    snapshot.drawFrame(ctx, width, height, Boolean(restartsTrail));
+  }
+
+  private drawFrame(ctx: Context2D, width: number, height: number, advance: boolean) {
     const params = this.params;
     if (!params) return false;
 
@@ -150,7 +169,7 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     const maxPoints = params.maxPoints ?? Number.POSITIVE_INFINITY;
     const extend = config.animateTrail ? this.extend : undefined;
 
-    if (extend && this.visible + config.trailSpeed > this.polyline.count) {
+    if (advance && extend && this.visible + config.trailSpeed > this.polyline.count) {
       this.polyline = extend(this.polyline, config.trailSpeed);
       if (this.polyline.count > maxPoints + TRIM_CHUNK) {
         this.visible -= trimPolyline(this.polyline, maxPoints);
@@ -158,10 +177,10 @@ export class PolylineSceneRenderer implements Renderer<PolylineSceneParams> {
     }
 
     const trailRunning = config.animateTrail && this.visible < this.polyline.count;
-    if (trailRunning) {
+    if (advance && trailRunning) {
       this.visible = Math.min(this.polyline.count, this.visible + config.trailSpeed);
     }
-    if (config.autoRotate && !config.spatialCamera) {
+    if (advance && config.autoRotate && !config.spatialCamera) {
       this.yawOffset += 0.25;
     }
 

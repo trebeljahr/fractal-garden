@@ -10,6 +10,8 @@ import {
 } from "./fernPoints";
 import { createFernSampling, type FernPointMessage, type FernPointRequest } from "./fernSampling";
 import type { FernMethod } from "./fernViewport";
+import { registerPngExporter, renderCanvasPng } from "./pngExport";
+import { webglPixelRatio } from "./renderResolution";
 import { createShaderProgram } from "./shaders/compileShader";
 
 export type FernProgress = {
@@ -117,6 +119,16 @@ export class FernViewportRenderer {
       paused: options.paused,
     });
     this.resize(options.width, options.height);
+    this.unregisterExport = registerPngExporter(canvas, (size) => {
+      if (this.disposed || this.gl?.isContextLost()) throw new Error("Drawing not ready");
+      const { width, height } = this.options;
+      const ratio = this.gl ? webglPixelRatio(this.gl, width, height, size.ratio) : size.ratio;
+      return renderCanvasPng(
+        canvas,
+        { ratio, width: Math.round(width * ratio), height: Math.round(height * ratio) },
+        this.paint,
+      );
+    });
     canvas.addEventListener("garden:redraw", this.paint);
     window.addEventListener("garden:before-export", this.paint);
     this.schedule();
@@ -242,6 +254,8 @@ export class FernViewportRenderer {
     this.options.onProgress(this.progress);
   };
 
+  private unregisterExport = () => {};
+
   private paint = () => {
     if (this.disposed) return;
     const target = { view: this.view, width: this.options.width, height: this.options.height };
@@ -261,7 +275,7 @@ export class FernViewportRenderer {
       gl.uniform2f(this.uniforms.resolution, width, height);
       gl.uniform3f(this.uniforms.color, color[0], color[1], color[2]);
       // A dot remains one CSS pixel at every magnification; it never becomes a scaled bitmap block.
-      gl.uniform1f(this.uniforms.dotSize, window.devicePixelRatio || 1);
+      gl.uniform1f(this.uniforms.dotSize, this.canvas.width / width);
       gl.enableVertexAttribArray(this.attribute);
       for (const tile of Array.from(this.tiles.values())) {
         let transform = fernPointTransform(tile, target),
@@ -313,7 +327,7 @@ export class FernViewportRenderer {
       gl.disableVertexAttribArray(this.attribute);
     } else if (this.ctx) {
       const ctx = this.ctx,
-        ratio = window.devicePixelRatio || 1;
+        ratio = this.canvas.width / width;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       ctx.fillStyle = this.options.background;
       ctx.fillRect(0, 0, width, height);
@@ -327,6 +341,7 @@ export class FernViewportRenderer {
 
   dispose() {
     this.disposed = true;
+    this.unregisterExport();
     if (this.frameId !== null) cancelAnimationFrame(this.frameId);
     this.channel.dispose();
     this.canvas.removeEventListener("garden:redraw", this.paint);

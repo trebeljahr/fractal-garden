@@ -95,9 +95,15 @@ type Accumulation = {
   image: ImageData;
   maxVisits: number;
   samples: number;
+  paintedSamples: number;
   frames: number;
   rng: number;
 };
+
+function orbitKey(params: BuddhabrotParams) {
+  const view = params.viewport ?? INITIAL_CANVAS_VIEW;
+  return `${params.maxIterations}:${params.minOrbitLength}:${view.x}:${view.y}:${view.zoom}:${params.framing?.top}:${params.framing?.bottom}`;
+}
 
 /**
  * Accumulates random escaping orbits into a histogram, a frame at a time.
@@ -123,7 +129,7 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
     const renderWidth = Math.max(1, ctx.canvas.width);
     const renderHeight = Math.max(1, ctx.canvas.height);
     const view = params.viewport ?? INITIAL_CANVAS_VIEW;
-    const key = `${params.maxIterations}:${params.minOrbitLength}:${renderWidth}x${renderHeight}:${view.x}:${view.y}:${view.zoom}:${params.framing?.top}:${params.framing?.bottom}`;
+    const key = `${orbitKey(params)}:${renderWidth}x${renderHeight}`;
     if (this.state?.key !== key) {
       this.state = {
         key,
@@ -134,6 +140,7 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
         image: ctx.createImageData(renderWidth, renderHeight),
         maxVisits: 1,
         samples: 0,
+        paintedSamples: 0,
         frames: 0,
         rng: 42,
       };
@@ -157,6 +164,21 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
       this.paint(ctx, state, params, width, height);
     }
     return !params.paused;
+  }
+
+  drawExport(ctx: Context2D, width: number, height: number, pendingParams?: BuddhabrotParams) {
+    const params = pendingParams ?? this.params;
+    if (!params) return;
+    const sameOrbit = this.params && orbitKey(params) === orbitKey(this.params);
+    const samples = sameOrbit ? this.state?.paintedSamples : undefined;
+    const renderer = new BuddhabrotRenderer();
+    // Replay the same seeded samples at the new resolution without resetting the live histogram.
+    renderer.update({
+      ...params,
+      paused: true,
+      samplesPerFrame: samples || params.samplesPerFrame,
+    });
+    renderer.draw(ctx, width, height);
   }
 
   describe() {
@@ -225,6 +247,7 @@ export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
     width: number,
     height: number,
   ) {
+    state.paintedSamples = state.samples;
     const { histogram, image } = state;
     const { data } = image;
     const background = parseHexColor(params.background);

@@ -1,4 +1,5 @@
 import type { FractalFrame } from "../fractalFrame";
+import { webglPixelRatio } from "../renderResolution";
 import { createShaderProgram } from "../shaders/compileShader";
 import fragment from "../shaders/spatial-flight.frag";
 import vertex from "../shaders/spatial-flight.vert";
@@ -369,7 +370,7 @@ export function createSpatialGpuRenderer(
         viewFrame?: FractalFrame | null,
         options: GpuRenderOptions = {},
       ) {
-        const scale = Math.min(ratio, 2, Math.sqrt(pixelBudget / Math.max(1, width * height)));
+        const scale = webglPixelRatio(gl, width, height, ratio, pixelBudget);
         const w = Math.max(1, Math.round(width * scale)),
           h = Math.max(1, Math.round(height * scale));
         const projection = spatialProjection(width, height, viewFrame);

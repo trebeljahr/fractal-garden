@@ -1,4 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
+import { watchDisplayResolution } from "../utils/displayResolution";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
+import { webglPixelRatio } from "../utils/renderResolution";
 
 type CleanedProps = {
   width: number;
@@ -14,15 +17,18 @@ export const _Canvas = ({ setCtx, width, height }: CleanedProps) => {
     if (!canvas) return;
 
     const context = canvas.getContext("2d");
-    const ratio = window.devicePixelRatio || 1;
+    return watchDisplayResolution(() => {
+      const ratio = window.devicePixelRatio || 1;
 
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
 
-    if (!context) return;
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      if (!context) return;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      canvas.dispatchEvent(new Event("garden:redraw"));
+    });
   }, [width, height]);
 
   useEffect(() => {
@@ -79,11 +85,33 @@ export const _WebGLCanvas = ({ setCtx, setCnv, width, height }: WebGLCleanedProp
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    return registerPngExporter(canvas, (size) => {
+      const gl = canvas.getContext("webgl");
+      if (!gl || gl.isContextLost()) return Promise.reject(new Error("Drawing not ready"));
+      const rect = canvas.getBoundingClientRect();
+      const ratio = webglPixelRatio(gl, rect.width, rect.height, size.ratio);
+      return renderCanvasPng(
+        canvas,
+        { ratio, width: Math.round(rect.width * ratio), height: Math.round(rect.height * ratio) },
+        () => {
+          if (canvas.dispatchEvent(new Event("garden:redraw", { cancelable: true })))
+            throw new Error("Drawing not ready");
+        },
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    return watchDisplayResolution(() => {
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      canvas.dispatchEvent(new Event("garden:redraw"));
+    });
   }, [width, height]);
 
   return <canvas ref={canvasRef} width={width} height={height} />;

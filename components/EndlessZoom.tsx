@@ -403,10 +403,14 @@ export const EndlessZoom = ({
 
   useEffect(() => {
     if (!gl) return;
-    const redraw = () => draw();
+    const redraw = (event: Event) => {
+      if (!renderer || !width || !height || !viewRef.current || !detailRef.current) return;
+      draw();
+      event.preventDefault();
+    };
     gl.canvas.addEventListener("garden:redraw", redraw);
     return () => gl.canvas.removeEventListener("garden:redraw", redraw);
-  }, [gl, draw]);
+  }, [gl, draw, renderer, width, height]);
 
   useEffect(() => {
     requestDraw();

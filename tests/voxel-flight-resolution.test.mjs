@@ -12,6 +12,7 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
+const { MAX_FLIGHT_PIXELS } = require("../utils/voxelZoom/frameBudget.ts");
 const { buildGridFrame } = require("../utils/voxelZoom/camera.ts");
 const {
   flightResolution,
@@ -52,9 +53,14 @@ test("reduced flight resolution cannot request geometry below its own sampling f
 });
 
 test("a fixed framebuffer retains native pixels across desktop and phone views", () => {
-  const size = flightRenderSize(1440, 900, 2, 8_000_000);
+  const size = flightRenderSize(1440, 900, 2, MAX_FLIGHT_PIXELS);
   assert.deepEqual(size, { width: 2880, height: 1800 });
   assert.deepEqual(flightRenderSize(390, 844, 2, 8_000_000), { width: 780, height: 1688 });
+  assert.deepEqual(flightRenderSize(390, 844, 3, MAX_FLIGHT_PIXELS), { width: 1170, height: 2532 });
+  assert.deepEqual(flightRenderSize(2560, 1440, 2, MAX_FLIGHT_PIXELS), {
+    width: 5120,
+    height: 2880,
+  });
   const capped = flightRenderSize(4000, 3000, 2, 8_000_000);
   assert.ok(capped.width * capped.height < 8_010_000);
 });

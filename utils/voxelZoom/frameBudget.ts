@@ -1,2 +1,3 @@
-// Fixed for movement, stationary views and exports. Frame timing never changes quality.
-export const MAX_FLIGHT_PIXELS = 8_000_000;
+// Fixed for movement and stationary views. Frame timing never changes quality.
+// Covers native 5K/6K displays; larger surfaces retain a bounded allocation.
+export const MAX_FLIGHT_PIXELS = 32_000_000;

@@ -10,6 +10,7 @@ import { radians } from "../utils/ctxHelpers";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import { contractingProjection, tribonacciWord } from "../utils/rauzy";
 import { getDescription } from "../utils/readFiles";
 
@@ -96,29 +97,38 @@ const RauzyFractal = ({ description }: Props) => {
     // Flip y so the picture uses the usual mathematical orientation.
     const yOffset = (framing?.top ?? 0) + (fitHeight - drawHeight * scale) / 2 + maxY * scale;
 
-    ctx.resetTransform();
-    const ratio = window.devicePixelRatio || 1;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const draw = () => {
+      ctx.resetTransform();
+      ctx.setTransform(ctx.canvas.width / width, 0, 0, ctx.canvas.height / height, 0, 0);
 
-    ctx.fillStyle = config.background;
-    ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
 
-    applyCanvasViewport(ctx, width, height, viewport);
-    const size = config.pointSize;
-    const half = size / 2;
-    const colors = [config.color1, config.color2, config.color3];
+      applyCanvasViewport(ctx, width, height, viewport);
+      const size = config.pointSize;
+      const half = size / 2;
+      const colors = [config.color1, config.color2, config.color3];
 
-    // Each point is colored by the letter that follows its prefix, which splits
-    // the fractal into its three self-similar sub-tiles.
-    colors.forEach((color, letter) => {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      for (let i = 0; i < count; i++) {
-        if (word[i] !== letter) continue;
-        ctx.rect(xOffset + xs[i] * scale - half, yOffset - ys[i] * scale - half, size, size);
-      }
-      ctx.fill();
-    });
+      // Each point is colored by the letter that follows its prefix, which splits
+      // the fractal into its three self-similar sub-tiles.
+      colors.forEach((color, letter) => {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        for (let i = 0; i < count; i++) {
+          if (word[i] !== letter) continue;
+          ctx.rect(xOffset + xs[i] * scale - half, yOffset - ys[i] * scale - half, size, size);
+        }
+        ctx.fill();
+      });
+    };
+    draw();
+    const canvas = ctx.canvas;
+    canvas.addEventListener("garden:redraw", draw);
+    const unregister = registerPngExporter(canvas, (size) => renderCanvasPng(canvas, size, draw));
+    return () => {
+      unregister();
+      canvas.removeEventListener("garden:redraw", draw);
+    };
   }, [config, ctx, width, height, points, word, viewport, framing]);
 
   const handleUpdate = (newData: Config) => {

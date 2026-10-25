@@ -1,4 +1,5 @@
 import type { FractalFrame } from "../fractalFrame";
+import { webglPixelRatio } from "../renderResolution";
 import { createShaderProgram } from "../shaders/compileShader";
 import vertex from "../shaders/mandelbrot.vert";
 import fragment from "../shaders/voxel-flight.frag";
@@ -110,8 +111,13 @@ export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPa
       framing?: FractalFrame | null,
       sample = -1,
     ) {
-      // Movement, stationary samples and exports all use the same framebuffer.
-      const { width: w, height: h } = flightRenderSize(width, height, ratio, pixelBudget);
+      // Movement and stationary samples share a framebuffer; export requests a larger ratio.
+      const { width: w, height: h } = flightRenderSize(
+        width,
+        height,
+        webglPixelRatio(gl, width, height, ratio, pixelBudget),
+        pixelBudget,
+      );
       if (gl.canvas.width !== w || gl.canvas.height !== h) {
         gl.canvas.width = w;
         gl.canvas.height = h;

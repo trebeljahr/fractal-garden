@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { watchDisplayResolution } from "../displayResolution";
+import { registerPngExporter } from "../pngExport";
 import { calibrate } from "../render/calibrate";
 import { RenderHost } from "../render/host";
 import type { RendererKind } from "../render/registry";
@@ -7,6 +9,7 @@ import { useExplorerPart } from "./useExplorerPart";
 import { useFractalFrame } from "./useFractalFrame";
 
 type Channel = {
+  exportPng: (ratio: number) => Promise<Blob>;
   setParams: (params: unknown) => void;
   pick: (x: number, y: number) => Promise<[number, number, number] | null>;
   resize: (width: number, height: number, ratio: number) => void;
@@ -50,13 +53,25 @@ function openWorkerChannel(
     worker = new Worker(new URL("../../workers/render.worker.ts", import.meta.url));
     const offscreen = canvas.transferControlToOffscreen();
     worker.onmessage = (event: MessageEvent<HostEvent>) => {
-      if (event.data.type === "snapshot") {
+      if (event.data.type === "png") {
+        pending.get(event.data.id)?.(
+          event.data.blob ?? new Error(event.data.error ?? "PNG encoding failed"),
+        );
+        pending.delete(event.data.id);
+      } else if (event.data.type === "snapshot") {
         pending.get(event.data.id)?.(event.data.state);
         pending.delete(event.data.id);
       } else if (event.data.type === "picked") {
         pending.get(event.data.id)?.(event.data.point);
         pending.delete(event.data.id);
       } else onEvent(event.data);
+    };
+    worker.onerror = () => {
+      pending.forEach((resolve) => {
+        resolve(new Error("Renderer failed"));
+      });
+      pending.clear();
+      onEvent({ type: "error", message: "The renderer stopped. Reload to try again." });
     };
     worker.postMessage({ type: "init", kind, canvas: offscreen, width: 0, height: 0, ratio: 1 }, [
       offscreen,
@@ -68,6 +83,20 @@ function openWorkerChannel(
 
   const active = worker;
   return {
+    exportPng: (ratio) =>
+      new Promise((resolve, reject) => {
+        const id = ++sequence;
+        const timeout = window.setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("PNG rendering timed out"));
+        }, 120000);
+        pending.set(id, (value) => {
+          window.clearTimeout(timeout);
+          if (value instanceof Blob) resolve(value);
+          else reject(value instanceof Error ? value : new Error("Renderer closed"));
+        });
+        active.postMessage({ type: "export-png", id, ratio });
+      }),
     setParams: (params) => active.postMessage({ type: "params", params }),
     resize: (width, height, ratio) => active.postMessage({ type: "resize", width, height, ratio }),
     remeasure: () => active.postMessage({ type: "remeasure" }),
@@ -176,6 +205,14 @@ export function useRenderSurface<P>({
       setConnected(true);
     };
 
+    const unregister = registerPngExporter(element, (size) => {
+      if (!channelRef.current) return Promise.reject(new Error("Drawing not ready"));
+      return channelRef.current.exportPng(size.ratio);
+    });
+    const unwatch = watchDisplayResolution(() => {
+      const { width: w, height: h } = latestSize.current;
+      if (w && h) channelRef.current?.resize(w, h, window.devicePixelRatio || 1);
+    });
     const workerChannel = openWorkerChannel(element, kind, handle);
     if (workerChannel) {
       connect(workerChannel);
@@ -184,6 +221,7 @@ export function useRenderSurface<P>({
         if (disposed) return;
         const host = new RenderHost(element, createRenderer(kind), handle, false);
         connect({
+          exportPng: (ratio) => host.exportPng(ratio, () => createRenderer(kind)),
           setParams: (next) => host.setParams(next),
           resize: (w, h, ratio) => host.resize(w, h, ratio),
           remeasure: () => host.remeasure(),
@@ -206,6 +244,8 @@ export function useRenderSurface<P>({
 
     return () => {
       disposed = true;
+      unregister();
+      unwatch();
       channelRef.current?.dispose();
       channelRef.current = null;
       sentCalibration.current = null;

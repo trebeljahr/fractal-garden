@@ -527,7 +527,9 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
   // Strokes the uploaded lines with the flat program, whose origin and scale
   // are already set.
   const strokeFlat = (style: Style, count: number) => {
-    const ratio = window.devicePixelRatio || 1;
+    const ratio =
+      gl.drawingBufferWidth /
+      Math.max(1, (gl.canvas as HTMLCanvasElement).getBoundingClientRect().width);
     const color = parseHex(style.color);
     const colorEnd = style.colorMode === "solid" ? color : parseHex(style.colorEnd);
     gl.uniform2f(flatU.resolution, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
@@ -556,7 +558,9 @@ export function createRenderer(gl: WebGLRenderingContext): Renderer | null {
   ) => {
     const { center, radius, geometry } = drawing;
     const count = geometry.count;
-    const ratio = window.devicePixelRatio || 1;
+    const ratio =
+      gl.drawingBufferWidth /
+      Math.max(1, (gl.canvas as HTMLCanvasElement).getBoundingClientRect().width);
     const view = viewFor(camera, radius, viewport);
     const fitDistance = view.distance * camera.zoom;
     const color = parseHex(style.color);

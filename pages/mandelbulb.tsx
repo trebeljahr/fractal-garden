@@ -220,7 +220,6 @@ const Mandelbulb = ({ description }: Props) => {
       ] as const;
     };
 
-    const ratio = window.devicePixelRatio || 1;
     const startTime = performance.now();
     let animationId = 0;
     let contextWasLost = false;
@@ -235,6 +234,7 @@ const Mandelbulb = ({ description }: Props) => {
         currentConfig.rotationY + (currentConfig.autoRotate ? elapsed * 18 : 0);
       drawnRotation.current = ((((animatedRotationY + 180) % 360) + 360) % 360) - 180;
 
+      const ratio = gl.drawingBufferWidth / width;
       const projection = spatialProjection(width, height, frameRef.current);
       gl.uniform3f(
         projectionLocation,
@@ -275,7 +275,10 @@ const Mandelbulb = ({ description }: Props) => {
 
       if (schedule && currentConfig.autoRotate) animationId = requestAnimationFrame(() => render());
     };
-    const exportFrame = () => render(false);
+    const exportFrame = (event: Event) => {
+      render(false);
+      event.preventDefault();
+    };
     cnv.addEventListener("garden:redraw", exportFrame);
 
     redraw.current = render;

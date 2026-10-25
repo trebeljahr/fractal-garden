@@ -17,6 +17,7 @@ import {
   type LogisticView,
   renderLogistic,
 } from "../utils/logisticMap";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -202,11 +203,17 @@ const LogisticMap = ({ description }: Props) => {
       const job = request();
       paint(renderLogistic(job), job.width, job.height);
     };
+    const unregister = registerPngExporter(ctx.canvas, (size) =>
+      renderCanvasPng(ctx.canvas, size, beforeExport),
+    );
+    ctx.canvas.addEventListener("garden:redraw", schedule);
     window.addEventListener("garden:before-export", beforeExport);
     renderRef.current = schedule;
     schedule();
     return () => {
       disposed = true;
+      unregister();
+      ctx.canvas.removeEventListener("garden:redraw", schedule);
       renderRef.current = null;
       cancelAnimationFrame(frame);
       worker?.terminate();

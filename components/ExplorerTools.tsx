@@ -9,6 +9,7 @@ import {
   snapshotConfig,
 } from "../utils/explorerShare";
 import { useExplorerPart } from "../utils/hooks/useExplorerPart";
+import { downloadPng, exportCanvasPng } from "../utils/pngExport";
 import { ExplorerContextMenu } from "./ExplorerContextMenu";
 
 type Props<T> = {
@@ -75,42 +76,34 @@ export function ExplorerTools<T>({ data, rules, onRestore, viewControlsHost }: P
     }
   };
 
-  const savePng = () => {
+  const savePng = async () => {
+    if (saving) return;
+    const filename = `fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`;
     setSaving(true);
     setMessage("");
-    // Redraw and capture in the same frame. WebGL clears its default drawing
-    // buffer after presentation; preserving it permanently wastes GPU memory.
-    requestAnimationFrame(() => {
-      try {
-        window.dispatchEvent(new Event("garden:before-export"));
-        const canvases = Array.from(document.querySelectorAll<HTMLCanvasElement>("main canvas"));
-        const canvas = canvases.reverse().find((candidate) => {
-          const rect = candidate.getBoundingClientRect();
-          return (
-            candidate.width > 0 &&
-            candidate.height > 0 &&
-            rect.width > 0 &&
-            getComputedStyle(candidate).visibility !== "hidden" &&
-            !candidate.closest("[data-fractal-description]") &&
-            !candidate.closest('[data-export-hidden="true"]')
-          );
-        });
-        if (!canvas) throw new Error("Drawing not ready");
-        const url = canvas.toDataURL("image/png");
-        if (url === "data:,") throw new Error("Empty drawing");
-        const link = document.createElement("a");
-        link.download = `fractal-garden-${window.location.pathname.split("/").filter(Boolean).join("-")}.png`;
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setMessage("PNG ready.");
-      } catch {
-        setMessage("The drawing is not ready to save. Try again in a moment.");
-      } finally {
-        setSaving(false);
-      }
-    });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    try {
+      const canvases = Array.from(document.querySelectorAll<HTMLCanvasElement>("main canvas"));
+      const canvas = canvases.reverse().find((candidate) => {
+        const rect = candidate.getBoundingClientRect();
+        return (
+          candidate.width > 0 &&
+          candidate.height > 0 &&
+          rect.width > 0 &&
+          getComputedStyle(candidate).visibility !== "hidden" &&
+          !candidate.closest("[data-fractal-description]") &&
+          !candidate.closest('[data-export-hidden="true"]')
+        );
+      });
+      if (!canvas) throw new Error("Drawing not ready");
+      const blob = await exportCanvasPng(canvas);
+      downloadPng(blob, filename);
+      setMessage("PNG ready.");
+    } catch {
+      setMessage("The drawing is not ready to save. Try again in a moment.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

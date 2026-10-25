@@ -12,6 +12,8 @@ export interface Renderer<P> {
   update(params: P): void;
   /** Draws one frame. Returns true to be called again on the next frame. */
   draw(ctx: Context2D, width: number, height: number): boolean;
+  /** Draw the displayed state without advancing it; apply queued params only to the export. */
+  drawExport?(ctx: Context2D, width: number, height: number, pendingParams?: P): void;
   /** Level and amount of geometry currently shown, for the iteration budget. */
   describe(): { level: number; work: number } | null;
   /** The parameters for another growth level; defaults to replacing `iterations`. */
@@ -22,6 +24,7 @@ export interface Renderer<P> {
 }
 
 export type HostEvent =
+  | { type: "png"; id: number; blob?: Blob; error?: string }
   | { type: "picked"; id: number; point: [number, number, number] | null }
   | { type: "snapshot"; id: number; state: unknown }
   | { type: "rendered"; level: number }
@@ -30,6 +33,7 @@ export type HostEvent =
   | { type: "error"; message: string };
 
 export type WorkerRequest =
+  | { type: "export-png"; id: number; ratio: number }
   | { type: "pick"; id: number; x: number; y: number }
   | { type: "snapshot"; id: number }
   | { type: "restore-view"; state: unknown }

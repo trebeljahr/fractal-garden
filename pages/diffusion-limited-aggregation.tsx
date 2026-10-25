@@ -9,6 +9,7 @@ import { applyCanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { registerPngExporter, renderCanvasPng } from "../utils/pngExport";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -83,10 +84,6 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
 
     let frameId = 0;
     let shouldStop = false;
-    const renderWidth = Math.max(1, ctx.canvas.width);
-    const renderHeight = Math.max(1, ctx.canvas.height);
-    const scaleX = renderWidth / width || 1;
-    const scaleY = renderHeight / height || 1;
 
     const fitHeight = Math.max(1, height - (framing?.top ?? 0) - (framing?.bottom ?? 0));
     const gridWidth = Math.max(16, Math.round(width / CELL_SIZE));
@@ -277,6 +274,10 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
     };
 
     const draw = () => {
+      const renderWidth = Math.max(1, ctx.canvas.width),
+        renderHeight = Math.max(1, ctx.canvas.height);
+      const scaleX = renderWidth / width,
+        scaleY = renderHeight / height;
       paintArrivals();
       offCtx.putImageData(image, 0, 0);
       ctx.resetTransform();
@@ -294,6 +295,10 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
       ctx.fillText(label, width - labelWidth - 18, 28);
     };
 
+    const unregister = registerPngExporter(ctx.canvas, (size) =>
+      renderCanvasPng(ctx.canvas, size, draw),
+    );
+    ctx.canvas.addEventListener("garden:redraw", draw);
     const tick = () => {
       if (shouldStop) return;
 
@@ -331,6 +336,8 @@ const DiffusionLimitedAggregation = ({ description }: Props) => {
     return () => {
       redraw.current = null;
       shouldStop = true;
+      unregister();
+      ctx.canvas.removeEventListener("garden:redraw", draw);
       cancelAnimationFrame(frameId);
     };
   }, [

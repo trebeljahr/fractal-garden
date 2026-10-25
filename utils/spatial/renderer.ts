@@ -1,4 +1,5 @@
 import type { FractalFrame } from "../fractalFrame";
+import { webglPixelRatio } from "../renderResolution";
 import { createShaderProgram } from "../shaders/compileShader";
 import { CAMERA_DISTANCE, FAR_PLANE, NEAR_PLANE, type SpatialFrameTransform } from "./camera";
 import type { SpatialGeometry, SpatialStyle } from "./geometry";
@@ -154,9 +155,10 @@ export function createSpatialRenderer(gl: WebGLRenderingContext) {
       fogDistanceScale = 1 / 96,
       reliefFront = 0,
       frame?: FractalFrame | null,
+      ratio = window.devicePixelRatio || 1,
     ) {
-      const canvas = gl.canvas as HTMLCanvasElement,
-        ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const canvas = gl.canvas as HTMLCanvasElement;
+      ratio = webglPixelRatio(gl, width, height, ratio);
       const w = Math.round(width * ratio),
         h = Math.round(height * ratio);
       if (canvas.width !== w || canvas.height !== h) {

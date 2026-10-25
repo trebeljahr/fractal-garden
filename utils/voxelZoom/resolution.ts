@@ -13,7 +13,7 @@ export function flightRenderSize(
   ratio: number,
   pixelBudget: number,
 ) {
-  const scale = Math.min(ratio, 2, Math.sqrt(pixelBudget / Math.max(1, width * height)));
+  const scale = Math.min(ratio, Math.sqrt(pixelBudget / Math.max(1, width * height)));
   return {
     width: Math.max(1, Math.round(width * scale)),
     height: Math.max(1, Math.round(height * scale)),

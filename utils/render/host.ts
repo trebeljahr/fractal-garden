@@ -1,3 +1,4 @@
+import { canvasToPng } from "../pngExport";
 import type { Context2D, HostEvent, Renderer } from "./types";
 
 type FrameCallback = (time: number) => void;
@@ -52,6 +53,7 @@ export class RenderHost<P> {
   private width = 0;
   private height = 0;
   private ratio = 1;
+  private latestParams: P | null = null;
   private pending: { params: P } | null = null;
   private dirty = false;
   private frameId: number | null = null;
@@ -81,8 +83,32 @@ export class RenderHost<P> {
   }
 
   setParams(params: P) {
+    this.latestParams = params;
     this.pending = { params };
     this.schedule();
+  }
+
+  exportPng(ratio: number, createRenderer: () => Renderer<P>) {
+    if (this.disposed || !this.width || !this.height || this.latestParams === null)
+      throw new Error("Drawing not ready");
+    const output =
+      typeof OffscreenCanvas !== "undefined"
+        ? new OffscreenCanvas(Math.round(this.width * ratio), Math.round(this.height * ratio))
+        : document.createElement("canvas");
+    output.width = Math.round(this.width * ratio);
+    output.height = Math.round(this.height * ratio);
+    const ctx = output.getContext("2d") as Context2D | null;
+    if (!ctx) throw new Error("Canvas unavailable");
+    ctx.setTransform(output.width / this.width, 0, 0, output.height / this.height, 0, 0);
+    if (this.renderer.drawExport) {
+      this.renderer.drawExport(ctx, this.width, this.height, this.pending?.params);
+    } else {
+      const renderer = createRenderer();
+      renderer.update(this.latestParams);
+      renderer.restoreView?.(this.renderer.snapshotView?.());
+      renderer.draw(ctx, this.width, this.height);
+    }
+    return canvasToPng(output);
   }
 
   pick(x: number, y: number) {

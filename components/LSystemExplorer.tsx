@@ -26,6 +26,7 @@ import { decodeSpec, encodeSpec, githubSubmitUrl, presetJson } from "../utils/ls
 import { dimensionOf, LIMITS, type LSystemSpec, type Rule, slugify } from "../utils/lsystem/spec";
 import type { WorkerRequest, WorkerResult, ZoomRequest, ZoomResult } from "../utils/lsystem/worker";
 import { MAX_ZOOM, type ZoomDetail, type ZoomView } from "../utils/lsystem/zoom";
+import { downloadPng, exportCanvasPng } from "../utils/pngExport";
 import { scrollToDescription } from "../utils/scrollToDescription";
 import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../utils/shouldZoomWheel";
 import { WebGLCanvas } from "./Canvas";
@@ -446,6 +447,17 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
     );
   }, [renderer, viewport, result, style, debouncedSpec.dimension]);
 
+  useEffect(() => {
+    if (!canvas) return;
+    const redraw = (event: Event) => {
+      if (!renderer || !viewport || !result) return;
+      draw();
+      event.preventDefault();
+    };
+    canvas.addEventListener("garden:redraw", redraw);
+    return () => canvas.removeEventListener("garden:redraw", redraw);
+  }, [canvas, draw, renderer, viewport, result]);
+
   const requestDraw = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(draw);
@@ -561,14 +573,10 @@ export const LSystemExplorer = ({ presets, viewControlsHost, editorControlsHost 
   const shareLink = () =>
     `${window.location.origin}${window.location.pathname}#s=${encodeSpec(spec)}`;
 
-  const savePng = () => {
+  const savePng = async () => {
     try {
       if (!canvas) throw new Error("Drawing not ready");
-      // Redraw and capture before WebGL clears its default drawing buffer.
-      draw();
-      const url = canvas.toDataURL("image/png");
-      if (url === "data:,") throw new Error("Empty drawing");
-      download(`${slugify(spec.name)}.png`, url);
+      downloadPng(await exportCanvasPng(canvas), `${slugify(spec.name)}.png`);
       flash("PNG ready.");
     } catch {
       flash("The drawing is not ready to save. Try again in a moment.");
