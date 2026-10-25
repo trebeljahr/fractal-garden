@@ -51,11 +51,9 @@ test("reduced flight resolution cannot request geometry below its own sampling f
   }
 });
 
-test("a stationary Retina view restores native pixels after an adaptive flight frame", () => {
-  const moving = flightRenderSize(1440, 900, 2, 160_000);
-  const still = flightRenderSize(1440, 900, 2, 8_000_000);
-  assert.ok(moving.width < 1440 && moving.height < 900);
-  assert.deepEqual(still, { width: 2880, height: 1800 });
+test("a fixed framebuffer retains native pixels across desktop and phone views", () => {
+  const size = flightRenderSize(1440, 900, 2, 8_000_000);
+  assert.deepEqual(size, { width: 2880, height: 1800 });
   assert.deepEqual(flightRenderSize(390, 844, 2, 8_000_000), { width: 780, height: 1688 });
   const capped = flightRenderSize(4000, 3000, 2, 8_000_000);
   assert.ok(capped.width * capped.height < 8_010_000);

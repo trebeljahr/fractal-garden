@@ -17,6 +17,7 @@ const {
   PATTERNS,
 } = require("../utils/voxelZoom/camera.ts");
 const { flightAtmosphere } = require("../utils/voxelZoom/atmosphere.ts");
+const { specializeVoxelShader } = require("../utils/voxelZoom/shader.ts");
 const { flightResolution, flightDetailDepth } = require("../utils/voxelZoom/resolution.ts");
 const {
   generateMengerSponge,
@@ -405,6 +406,8 @@ async function check(payload) {
     gl.texParameteri(gl.TEXTURE_2D, p, gl.CLAMP_TO_EDGE);
   const u = (name) => gl.getUniformLocation(program, "u_" + name);
   gl.uniform2f(u("resolution"), 65, 65);
+  gl.uniform2f(u("viewCenter"), 32.5, 32.5);
+  gl.uniform1f(u("viewSide"), 65);
   gl.uniform1i(u("grid"), 0);
   gl.uniform3f(u("fill"), 1, 1, 1);
   gl.uniform3f(u("background"), 0, 0, 0);
@@ -518,7 +521,15 @@ async function check(payload) {
     canvas.remove();
   }
 }
+const specialization = process.argv[3]?.replace(/^--specialize=/, "");
+if (specialization && !PATTERNS.includes(specialization)) throw Error("Unknown specialization");
 writeFileSync(
   process.argv[2] ?? "/private/tmp/check-voxel-flight-gpu.js",
-  `async(page)=>await page.evaluate(${check.toString()},${JSON.stringify({ vertex, fragment, fixtures })})`,
+  `async(page)=>await page.evaluate(${check.toString()},${JSON.stringify({
+    vertex,
+    fragment: specialization ? specializeVoxelShader(fragment, specialization) : fragment,
+    fixtures: specialization
+      ? fixtures.filter((fixture) => fixture.pattern === PATTERNS.indexOf(specialization))
+      : fixtures,
+  })})`,
 );

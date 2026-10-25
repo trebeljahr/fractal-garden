@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 
-// Actual input and draw records catch a low-resolution frame left on screen.
+// Actual input and draw records require unchanged native resolution under load.
 // The Retina context is owned by this callback and closed even on failure.
 async function check(page, baseURL, captures) {
   const context = await page
@@ -114,18 +114,22 @@ async function check(page, baseURL, captures) {
       const movingPixels = await view.evaluate(() =>
         Math.min(...window.__settleFrames.map((frame) => frame.width * frame.height)),
       );
-      assert(movingPixels < initial.width * initial.height * 0.7, `${name}: no resolution drop`);
+      const frames = await view.evaluate(() => window.__settleFrames);
+      assert(
+        frames.every((frame) => frame.width === initial.width && frame.height === initial.height),
+        `${name}: framebuffer resolution changed during movement`,
+      );
       await view.waitForTimeout(400);
       const settled = await state();
       assert(
         settled.width === initial.width && settled.height === initial.height,
-        `${name}: low-resolution frame persisted`,
+        `${name}: stationary resolution differs from moving resolution`,
       );
       assert(
         JSON.stringify(settled.camera) === JSON.stringify(released.camera),
         `${name}: camera moved while settling`,
       );
-      assert(settled.draws - released.draws <= 2, `${name}: repeated refinement draws`);
+      assert(settled.draws - released.draws <= 2, `${name}: repeated stationary draws`);
       if (captures) await canvas.screenshot({ path: `${captures}/${name}-settled.png` });
       await view.waitForTimeout(250);
       const idle = await state();
@@ -161,6 +165,6 @@ async function check(page, baseURL, captures) {
 const baseURL = process.argv[3];
 if (!baseURL) throw Error("Pass the owned preview URL after the output filename.");
 writeFileSync(
-  process.argv[2] ?? "/private/tmp/check-voxel-flight-settling.js",
+  process.argv[2] ?? "/private/tmp/check-voxel-flight-quality.js",
   `async(page)=>await (${check.toString()})(page,${JSON.stringify(baseURL)},${JSON.stringify(process.argv[4] ?? null)})`,
 );

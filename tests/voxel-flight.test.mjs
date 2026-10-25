@@ -419,6 +419,44 @@ test("view-bounded render grids skip only ancestors constant throughout visible 
   }
 });
 
+test("ancestor pruning preserves near planes and falls back for enormous fixed-point addresses", () => {
+  for (const bits of [600, 1200]) {
+    const one = 1n << BigInt(bits);
+    for (const level of [40, 150, 244]) {
+      const scale = 3n ** BigInt(level);
+      for (const pattern of PATTERNS) {
+        const camera = {
+          position: [one - one / scale, one - one / scale, one + (2n * one) / scale],
+          bits,
+          level,
+          viewLevel: level,
+          yaw: 0,
+          pitch: 0,
+        };
+        const full = { ...buildGridFrame(camera, pattern, Math.min(256, level + 12)), pattern };
+        for (const horizon of [32, 1000, 1e28, 1e29]) {
+          const bounded = {
+            ...buildGridFrame(camera, pattern, Math.min(256, level + 12), horizon),
+            pattern,
+          };
+          for (let sample = 0; sample < 12; sample++) {
+            const point = [
+              Math.sin(sample * 1.7),
+              Math.cos(sample * 2.3),
+              Math.sin(sample * 0.7),
+            ].map((v) => v * horizon);
+            assert.equal(
+              occupancy(bounded, point),
+              occupancy(full, point),
+              `${pattern}/${level}/${bits}/${horizon}`,
+            );
+          }
+        }
+      }
+    }
+  }
+});
+
 const passageCamera = (pattern, depth, viewLevel = 0) => {
   const parent = pattern === "menger" ? [2, 2, 2] : pattern === "vicsek" ? [1, 1, 2] : [1, 2, 2];
   const gap = pattern === "vicsek" || pattern === "mosely-heavy" ? [2, 2, 2] : [1, 1, 1];

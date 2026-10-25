@@ -28,9 +28,11 @@ const baseline = execFileSync(
 );
 const instrument = (source) =>
   source
-    .replace("precision highp float;", "precision highp float; uniform int u_checkMode;")
-    .replace("void main() {", "void main() { float lookupCount = 0.0;")
-    .replace("vec4 grid = texture2D", "lookupCount += 1.0; vec4 grid = texture2D")
+    .replace(
+      "precision highp float;",
+      "precision highp float; uniform int u_checkMode; float lookupCount = 0.0;",
+    )
+    .replaceAll("vec4 grid = texture2D", "lookupCount += 1.0; vec4 grid = texture2D")
     .replace(
       "gl_FragColor = vec4(color, 1.0);",
       `if (u_checkMode == 0) gl_FragColor = vec4(color, 1.0);

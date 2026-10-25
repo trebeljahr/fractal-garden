@@ -21,6 +21,9 @@ const options = Object.fromEntries(
 );
 const known = new Set([
   "baseline",
+  "baseline-mode",
+  "specialize",
+  "modes",
   "sizes",
   "rounds",
   "warmup",
@@ -41,8 +44,8 @@ function size(value) {
   const match = /^(\d+)x(\d+)$/.exec(value);
   if (!match) throw Error(`Invalid framebuffer size: ${value}`);
   const [width, height] = match.slice(1).map(Number);
-  if (width < 32 || height < 32 || width * height > 1920 * 1080)
-    throw Error(`Framebuffer must be at least 32x32 and at most 2073600 pixels: ${value}`);
+  if (width < 32 || height < 32 || width * height > 8_000_000)
+    throw Error(`Framebuffer must be at least 32x32 and at most 8000000 pixels: ${value}`);
   return { width, height };
 }
 const settings = {
@@ -66,14 +69,20 @@ require.extensions[".ts"] = (module, filename) =>
   );
 const { buildGridFrame, flightBasis, PATTERNS } = require("../utils/voxelZoom/camera.ts");
 const { fixedFromNumber } = require("../utils/deepZoom/math.ts");
+const { specializeVoxelShader } = require("../utils/voxelZoom/shader.ts");
 const { flightAtmosphere } = require("../utils/voxelZoom/atmosphere.ts");
 const { flightDetailDepth, flightResolution } = require("../utils/voxelZoom/resolution.ts");
 const root = new URL("../", import.meta.url);
 const vertex = readFileSync(new URL("../utils/shaders/mandelbrot.vert", import.meta.url), "utf8");
-const fragment = readFileSync(
+const rawFragment = readFileSync(
   new URL("../utils/shaders/voxel-flight.frag", import.meta.url),
   "utf8",
 );
+if (options.specialize && !PATTERNS.includes(options.specialize))
+  throw Error("Unknown specialization");
+const fragment = options.specialize
+  ? specializeVoxelShader(rawFragment, options.specialize)
+  : rawFragment;
 for (const uniform of ["u_lighting", "u_aoMode"])
   if (!fragment.includes(uniform)) throw Error(`Current shader lacks ${uniform}`);
 const baselineRef = execFileSync("git", ["rev-parse", "--verify", options.baseline ?? "HEAD"], {
@@ -85,13 +94,24 @@ const baseline = execFileSync("git", ["show", `${baselineRef}:utils/shaders/voxe
   encoding: "utf8",
 });
 const hash = (source) => createHash("sha256").update(source).digest("hex");
-const modes = [
+let modes = [
   { name: "baseline", program: 0, lighting: 0, aoMode: 0 },
   { name: "classic", program: 1, lighting: 0, aoMode: 0 },
   { name: "depth-only", program: 1, lighting: 1, aoMode: 0 },
   { name: "depth", program: 1, lighting: 1, aoMode: 1 },
   { name: "minecraft", program: 1, lighting: 1, aoMode: 2 },
 ];
+const baselineMode = modes.find((mode) => mode.name === (options["baseline-mode"] ?? "classic"));
+if (!baselineMode || baselineMode.name === "baseline") throw Error("Invalid baseline-mode");
+modes[0].lighting = baselineMode.lighting;
+modes[0].aoMode = baselineMode.aoMode;
+if (options.modes) {
+  const requested = options.modes.split(",");
+  if (requested.some((name) => !modes.some((mode) => mode.name === name)))
+    throw Error("Unknown mode");
+  modes = modes.filter((mode) => requested.includes(mode.name));
+  if (modes[0]?.name !== "baseline") throw Error("Selected modes must include baseline");
+}
 const fixtures = [];
 // Retained ancestor addresses end in an empty child. The named near-wall
 // camera sits beside a retained sibling, looking straight at that wall.
@@ -185,9 +205,16 @@ const payload = {
   modes,
   settings,
   fixtures: fixtures.filter(
-    (fixture) => !requestedFixtures || requestedFixtures.includes(fixture.name),
+    (fixture) =>
+      (!requestedFixtures || requestedFixtures.includes(fixture.name)) &&
+      (!options.specialize || fixture.pattern === PATTERNS.indexOf(options.specialize)),
   ),
-  source: { baselineRef, baselineSha256: hash(baseline), currentSha256: hash(fragment) },
+  source: {
+    baselineRef,
+    baselineSha256: hash(baseline),
+    currentSha256: hash(fragment),
+    specialization: options.specialize ?? null,
+  },
 };
 
 async function benchmark(payload) {
@@ -292,6 +319,8 @@ async function benchmark(payload) {
         gl.useProgram(program.handle);
         const u = (name) => program.uniforms[name] ?? null;
         gl.uniform2f(u("resolution"), canvas.width, canvas.height);
+        gl.uniform2f(u("viewCenter"), canvas.width / 2, canvas.height / 2);
+        gl.uniform1f(u("viewSide"), Math.min(canvas.width, canvas.height));
         for (const [name, value] of Object.entries({ ...fixture.atmosphere, ...detail }))
           gl.uniform1f(u(name), value);
         for (const [name, value] of Object.entries({
@@ -484,8 +513,11 @@ async function benchmark(payload) {
           };
         });
         const baselineMedian = outputs[0].primary.medianMs;
-        const depthOnlyMedian = outputs.find((output) => output.mode === "depth-only").primary
-          .medianMs;
+        const depthReference =
+          outputs.find((output) => output.mode === "depth-only") ??
+          outputs.find((output) => output.mode === "depth") ??
+          outputs[0];
+        const depthOnlyMedian = depthReference.primary.medianMs;
         function pairedComparison(samples, reference) {
           const metric = useGpu ? "gpuMs" : "wallMs";
           const ratios = [],
@@ -516,7 +548,7 @@ async function benchmark(payload) {
               }
             : null;
         }
-        const depthOnlySamples = outputs.find((output) => output.mode === "depth-only").samples;
+        const depthOnlySamples = depthReference.samples;
         for (const output of outputs) {
           output.relativeToBaseline =
             baselineMedian > 0 ? output.primary.medianMs / baselineMedian : null;
@@ -563,11 +595,13 @@ async function benchmark(payload) {
       },
       queryRejections,
       results,
-      classicMatchesBaseline: results.every(
-        (result) =>
-          result.outputs.find((output) => output.mode === "classic").pixels.maxChannelDifference <=
-          2,
-      ),
+      classicMatchesBaseline: payload.modes.some((mode) => mode.name === "classic")
+        ? results.every(
+            (result) =>
+              result.outputs.find((output) => output.mode === "classic").pixels
+                .maxChannelDifference <= 2,
+          )
+        : null,
       caveats: [
         "Isolated production shader draws at fixed framebuffer size; excludes app CPU work, adaptive sizing, input and compositing.",
         "Warmups excluded; modes interleaved. p95 is nearest-rank over individual draw samples, not a gameplay frame-time estimate.",

@@ -14,13 +14,7 @@ import {
   type Vec3,
   type VoxelPattern,
 } from "../utils/voxelZoom/camera";
-import {
-  createFlightFrameBudget,
-  FLIGHT_SETTLE_MS,
-  MAX_STILL_FLIGHT_PIXELS,
-} from "../utils/voxelZoom/frameBudget";
 import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/renderer";
-import { flightRenderSize } from "../utils/voxelZoom/resolution";
 
 import {
   FlightTouchControls,
@@ -109,16 +103,10 @@ export function VoxelFlight({
     let frame = 0,
       previous = performance.now(),
       disposed = false;
-    const budget = createFlightFrameBudget();
-    let renderedLastFrame = false;
-    let needsRefinement = false;
-    let refineAt = 0;
     const pointers = new Map<number, { x: number; y: number }>();
     let pointerType = "";
     const release = () => {
       previous = performance.now();
-      renderedLastFrame = false;
-      budget.pause();
       held.current.clear();
       resetFlightTouch(touch.current);
       pointers.clear();
@@ -181,27 +169,19 @@ export function VoxelFlight({
         dirty.current = true;
       }
     };
-    const draw = (pixelBudget?: number) => {
+    const draw = () => {
       if (!renderer || gl.isContextLost()) return;
-      const { pattern, style, width, height, framing } = latest.current;
+      const { style, width, height, framing } = latest.current;
       if (!framing) return;
       renderer.draw(
         cameraRef.current,
-        pattern,
         style,
         width,
         height,
         window.devicePixelRatio || 1,
-        pixelBudget,
+        undefined,
         framing,
       );
-      const stillSize = flightRenderSize(
-        width,
-        height,
-        window.devicePixelRatio || 1,
-        MAX_STILL_FLIGHT_PIXELS,
-      );
-      needsRefinement = canvas.width < stillSize.width || canvas.height < stillSize.height;
       dirty.current = false;
     };
     const render = (now: number) => {
@@ -223,21 +203,8 @@ export function VoxelFlight({
           (dt * 0.75 * (keys.has("shift") || input.boost ? 4 : 1)) / Math.max(1, magnitude);
         move(motion.map((component) => component * speed) as Vec3, dt);
       }
-      if (renderedLastFrame && dirty.current)
-        budget.sample(dt * 1000, canvas.width * canvas.height);
-      else budget.pause();
-      renderedLastFrame = false;
       try {
-        if (dirty.current) {
-          draw(budget.pixels);
-          renderedLastFrame = true;
-          refineAt = now + FLIGHT_SETTLE_MS;
-        } else if (needsRefinement && now >= refineAt && !document.hidden) {
-          // Movement may lower the pixel budget. Replace the last enlarged
-          // flight frame once input stops, then leave the sharp view idle.
-          // This draw must not feed the moving-frame budget.
-          draw();
-        }
+        if (dirty.current) draw();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");
         release();
@@ -249,7 +216,7 @@ export function VoxelFlight({
     };
     const start = () => {
       try {
-        renderer = createFlightRenderer(gl);
+        renderer = createFlightRenderer(gl, latest.current.pattern);
         dirty.current = true;
         setError("");
         frame = requestAnimationFrame(render);

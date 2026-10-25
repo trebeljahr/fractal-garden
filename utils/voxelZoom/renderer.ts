@@ -9,11 +9,11 @@ import {
   flightBasis,
   flightRootBounds,
   MAX_VOXEL_DEPTH,
-  PATTERNS,
   type VoxelPattern,
 } from "./camera";
-import { MAX_STILL_FLIGHT_PIXELS } from "./frameBudget";
+import { MAX_FLIGHT_PIXELS } from "./frameBudget";
 import { flightDetailDepth, flightRenderSize, flightResolution } from "./resolution";
+import { specializeVoxelShader } from "./shader";
 import { flightProjection, flightScreenBounds } from "./view";
 
 export type FlightStyle = {
@@ -32,12 +32,12 @@ const rgb = (hex: string) =>
     number,
     number,
   ];
-export function createFlightRenderer(gl: WebGLRenderingContext) {
+export function createFlightRenderer(gl: WebGLRenderingContext, pattern: VoxelPattern) {
   if (!gl.getExtension("OES_texture_float"))
     throw new Error(
       "Explore needs floating-point WebGL textures. The whole-shape view is still available.",
     );
-  const shader = createShaderProgram(gl, vertex, fragment);
+  const shader = createShaderProgram(gl, vertex, specializeVoxelShader(fragment, pattern));
   if (!shader) throw new Error("Could not start the Explore renderer.");
   const buffer = gl.createBuffer(),
     texture = gl.createTexture();
@@ -74,7 +74,6 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
     "fogDensity",
     "grid",
     "levels",
-    "pattern",
     "low",
     "high",
     "forward",
@@ -92,20 +91,19 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
   const u = Object.fromEntries(
     names.map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
   );
-  let previous: FlightCamera | undefined, previousPattern: VoxelPattern | undefined;
+  let previous: FlightCamera | undefined;
   let frame: ReturnType<typeof buildGridFrame> | undefined;
   return {
     draw(
       camera: FlightCamera,
-      pattern: VoxelPattern,
       style: FlightStyle,
       width: number,
       height: number,
       ratio: number,
-      pixelBudget = MAX_STILL_FLIGHT_PIXELS,
+      pixelBudget = MAX_FLIGHT_PIXELS,
       framing?: FractalFrame | null,
     ) {
-      // Frame cadence adjusts the pixel budget without changing camera units.
+      // The same framebuffer size is used during movement, at rest and for export.
       const { width: w, height: h } = flightRenderSize(width, height, ratio, pixelBudget);
       if (gl.canvas.width !== w || gl.canvas.height !== h) {
         gl.canvas.width = w;
@@ -154,8 +152,7 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
         previous?.viewLevel !== camera.viewLevel ||
         previous?.navigationLevel !== camera.navigationLevel ||
         previous?.atmosphereLevel !== camera.atmosphereLevel ||
-        previous?.bits !== camera.bits ||
-        previousPattern !== pattern
+        previous?.bits !== camera.bits
       ) {
         frame = buildGridFrame(
           camera,
@@ -176,7 +173,6 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
           frame.texture,
         );
         previous = camera;
-        previousPattern = pattern;
       }
       gl.uniform2f(u.viewCenter, projection.centerX, projection.centerY);
       gl.uniform1f(u.viewSide, projection.side);
@@ -198,7 +194,6 @@ export function createFlightRenderer(gl: WebGLRenderingContext) {
       gl.uniform1f(u.fogDensity, nextAtmosphere.fogDensity);
       gl.uniform1i(u.grid, 0);
       gl.uniform1i(u.levels, frame.levels.length);
-      gl.uniform1i(u.pattern, PATTERNS.indexOf(pattern));
       gl.uniform3f(u.low, ...frame.low);
       gl.uniform3f(u.high, ...frame.high);
       gl.uniform3f(u.forward, ...basis.forward);

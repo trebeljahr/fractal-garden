@@ -239,8 +239,8 @@ async function check(page, baseURL) {
     }
     if (slow)
       assert(
-        frames.at(-1).pixels < frames[0].pixels * 0.6,
-        `${name}: render workload did not adapt to slow frames`,
+        frames.every((frame) => frame.pixels === frames[0].pixels),
+        `${name}: render resolution changed during slow frames`,
       );
     assert(
       maxSpeedError < 1e-5,

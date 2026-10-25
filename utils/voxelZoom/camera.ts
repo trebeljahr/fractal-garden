@@ -220,7 +220,41 @@ function gridFrame(
       continue;
     const digit: Vec3 = [0, 0, 0];
     const cameraDigit: Vec3 = [0, 0, 0];
+    let relativePlanes: bigint[] | undefined;
+    if (geometry && exactWidth > viewDistance * 4 && viewDistance < LOCAL_COORDINATE_LIMIT / 4) {
+      // Reject constant distant ancestors before their expensive fixed-point
+      // plane conversion. A wider margin makes this a subset of the GPU-plane
+      // pruning below; uncertain/overflowed estimates take the original path.
+      const denominatorNumber = Number(denominator);
+      relativePlanes = camera.position.map((p, axis) => {
+        const numerator = (p + one) * powers[depth];
+        const index = floorDiv(numerator, denominator);
+        const remainder = numerator - index * denominator;
+        const boundary = index + (remainder * BigInt(2) >= denominator ? BigInt(1) : BigInt(0));
+        digit[axis] = modulo3(boundary);
+        cameraDigit[axis] = modulo3(index);
+        return boundary * denominator - numerator;
+      });
+      if (
+        keepVoxel(pattern, cameraDigit) &&
+        relativePlanes.every(
+          (delta, axis) =>
+            digit[axis] === 0 ||
+            Math.abs((Number(delta) / denominatorNumber) * exactWidth) > viewDistance * 3,
+        )
+      )
+        continue;
+    }
     const plane = camera.position.map((p, axis) => {
+      if (relativePlanes)
+        return Math.max(
+          -width / 2,
+          Math.min(
+            width / 2,
+            coordinate((relativePlanes[axis] * localScale) / powers[depth], camera.bits + 1),
+          ),
+        );
+
       const numerator = (p + one) * powers[depth];
       const index = floorDiv(numerator, denominator);
       const remainder = numerator - index * denominator;
