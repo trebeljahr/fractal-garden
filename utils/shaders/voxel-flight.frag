@@ -241,10 +241,14 @@ void main() {
         // Fully resolved faces use their exact hit normal; the smallest
         // visible subdivision reveals its lighting gradually.
         vec3 litNormal = length(shadingNormal) > 0.001 ? normalize(shadingNormal) : normal;
+        // Mosely's left/right faces use a second, slightly darker material.
+        // Follow the same detail fade as lighting so tiny new faces ease in.
+        float faceTint = u_pattern >= 2 && u_faces ? 1.0 - 0.22 * abs(shadingNormal.x) : 1.0;
+        vec3 material = u_fill * faceTint;
         float diffuse = max(0.0, dot(litNormal, normalize(vec3(-0.5, 0.8, 0.6))));
         float facing = 0.15 * max(0.0, dot(litNormal, -ray));
         float light = 0.38 + 0.62 * diffuse + facing;
-        color = u_fill * light;
+        color = material * light;
         float occlusion = 0.0;
         if (u_aoMode > 0 && u_faces && surfaceLevel >= 0) {
             float resolved = detailVisibility * smoothstep(2.0, 8.0, occlusionGrid.w / max(u_nearFootprint, t * u_pixelAngle));
@@ -256,9 +260,9 @@ void main() {
         if (u_lighting == 1 && u_faces) {
             vec3 ambient = mix(vec3(0.29, 0.34, 0.43), vec3(0.43, 0.43, 0.40), 0.5 + 0.5 * litNormal.y);
             vec3 illumination = ambient * ambientVisibility + 0.62 * diffuse * vec3(1.08, 1.0, 0.88) + facing * 0.75;
-            color = u_fill * illumination;
+            color = material * illumination;
         } else if (u_aoMode > 0) {
-            color = u_fill * (0.38 * ambientVisibility + 0.62 * diffuse + facing);
+            color = material * (0.38 * ambientVisibility + 0.62 * diffuse + facing);
         }
         vec3 faceEdges = min(local, 1.0 - local);
         // Ignore the surface-normal axis when finding edges on this face.

@@ -99,6 +99,7 @@ PATTERNS.forEach((pattern, index) => {
                 0.62 * Math.max(0, (normal * key[axis]) / Math.hypot(...key)) +
                 0.15 * Math.max(0, -normal * ray[axis]),
             );
+            if (index >= 2 && axis === 0) brightness *= 0.78;
           }
         }
       }
@@ -270,9 +271,10 @@ for (const pattern of ["mosely-light", "mosely-heavy"]) {
               hit: true,
               distance: 0.2,
               brightness:
-                0.38 +
-                0.62 * Math.max(0, (sign * [-0.5, 0.8, 0.6][axis]) / Math.hypot(-0.5, 0.8, 0.6)) +
-                0.15,
+                (0.38 +
+                  0.62 * Math.max(0, (sign * [-0.5, 0.8, 0.6][axis]) / Math.hypot(-0.5, 0.8, 0.6)) +
+                  0.15) *
+                (axis === 0 ? 0.78 : 1),
             },
           ],
         });
