@@ -4,8 +4,11 @@
   justify-content: center;
   min-width: 28px;
   min-height: 28px;
-  margin-left: 0.2em;
+  margin-left: 0.5em;
+  border: 1px solid rgba(245, 204, 117, 0.35);
   border-radius: 4px;
+  color: var(--explorer-accent);
+  background: rgba(245, 204, 117, 0.06);
   font: 18px / 1 sans-serif;
   vertical-align: baseline;
   text-decoration: none;
@@ -14,7 +17,8 @@
 .footnoteReturn:hover,
 .footnoteReturn:focus-visible {
   color: var(--yellow-white);
-  background: rgba(245, 241, 209, 0.09);
+  border-color: var(--explorer-accent);
+  background: rgba(245, 204, 117, 0.14);
 }
 
 .footnoteReturn:focus-visible,

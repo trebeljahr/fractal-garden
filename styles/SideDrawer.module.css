@@ -68,11 +68,11 @@
   margin-top: 0.4rem;
 }
 
-.drawerContent a {
+.drawerContent a:where(:not([role="doc-backlink"])) {
   color: var(--bright-grey);
 }
 
-.drawerContent a:hover {
+.drawerContent a:where(:not([role="doc-backlink"])):hover {
   color: var(--yellow-white);
 }
 
