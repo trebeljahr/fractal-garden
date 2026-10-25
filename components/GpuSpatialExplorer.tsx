@@ -84,7 +84,7 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
     let animation = 0;
     const init = () => {
       try {
-        renderer.current = createSpatialGpuRenderer(gl);
+        renderer.current = createSpatialGpuRenderer(gl, { kind: spec.kind });
         setError("");
         dirty.current = true;
       } catch (cause) {
@@ -156,7 +156,7 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
         if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
       });
     };
-  }, [canvas]);
+  }, [canvas, spec.kind]);
   useEffect(() => {
     if (!style.autoRotate) return;
     let animation = 0;

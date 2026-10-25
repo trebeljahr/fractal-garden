@@ -24,6 +24,7 @@ import {
   normalize,
   packOrderedChildren,
 } from "./model";
+import { specializeSpatialShader } from "./shader";
 
 const screenFragment = `#version 300 es
 precision highp float;
@@ -66,7 +67,10 @@ export type GpuDiagnosticOptions = {
 };
 
 /** One ray-traversal pass produces color and surface data; contact shading is a cheap screen pass. */
-export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
+export function createSpatialGpuRenderer(
+  gl: WebGL2RenderingContext,
+  spec?: Pick<GpuSpatialSpec, "kind">,
+) {
   const owned: Array<() => void> = [];
   const release = () => {
     for (const dispose of owned.splice(0).reverse()) dispose();
@@ -83,7 +87,7 @@ export function createSpatialGpuRenderer(gl: WebGL2RenderingContext) {
       gl.deleteShader(p.frag);
     });
   try {
-    const shader = program(fragment),
+    const shader = program(specializeSpatialShader(fragment, spec)),
       screen = program(screenFragment);
     const vao = allocate(gl.createVertexArray(), (r) => gl.deleteVertexArray(r)),
       buffer = allocate(gl.createBuffer(), (r) => gl.deleteBuffer(r));

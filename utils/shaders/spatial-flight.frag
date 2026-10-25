@@ -49,11 +49,63 @@ Transform readTransform(sampler2D source, int index) {
                 texelFetch(source, ivec2(3, index), 0).xyz);
   return Transform(c.xyz, m, c.w, length(m[0]));
 }
+#ifdef QUADRATIC_KOCH
+// Keep the octant in the existing cursor: 13 children fit in four bits.
+// This avoids recalculating the same order at every child and normal unwind.
+int childCursor(vec3 direction) {
+  int octant = (direction.x >= 0.0 ? 1 : 0) + (direction.y >= 0.0 ? 2 : 0) + (direction.z >= 0.0 ? 4 : 0);
+  return u_orderedChildren ? octant * 16 : 0;
+}
+Transform readChild(int index, vec3 direction) {
+  int at = (index >> 4) * 13 + (index & 15);
+  // The center identifies all 13 quadratic transforms. Reconstructing their
+  // signed axes saves three texture reads without changing the float operations.
+  vec4 c = texelFetch(u_children, ivec2(0, at), 0);
+  const float third = 1.0 / 3.0;
+  mat3 m = mat3(third);
+  if (c.z > 0.0 && c.z < 0.5) {
+    if (c.x != 0.0) {
+      float s = sign(c.x) * third;
+      m = mat3(vec3(0,0,-s), vec3(0,third,0), vec3(s,0,0));
+    } else {
+      float s = sign(c.y) * third;
+      m = mat3(vec3(third,0,0), vec3(0,0,-s), vec3(0,s,0));
+    }
+  }
+  return Transform(c.xyz, m, c.w, length(m[0]));
+}
+#else
 Transform readChild(int index, vec3 direction) {
   int octant = (direction.x >= 0.0 ? 1 : 0) + (direction.y >= 0.0 ? 2 : 0) + (direction.z >= 0.0 ? 4 : 0);
   return readTransform(u_children, index + (u_orderedChildren ? octant * u_childCount : 0));
 }
+#endif
 vec3 inverseVector(Transform t, vec3 v) { return transpose(t.axes) * v / (t.size * t.size); }
+#ifdef QUADRATIC_KOCH
+// Same six plane divisions and parallel tolerance as the generic hull. Strict
+// x/y/z entry comparisons retain its tie order at touching edges and corners.
+bool quadraticHullInterval(vec3 o, vec3 d, float limit, out float nearAt, out float farAt, out vec3 normal) {
+  bvec3 parallel = lessThan(abs(d), vec3(1e-20));
+  vec3 upper = vec3(1.0) - o, lower = vec3(1.0, 1.0, 0.0) + o;
+  if (any(bvec3(parallel.x && min(upper.x,lower.x) < -1e-6,
+                parallel.y && min(upper.y,lower.y) < -1e-6,
+                parallel.z && min(upper.z,lower.z) < -1e-6))) return false;
+  vec3 velocity = mix(d, vec3(1.0), parallel);
+  vec3 a = upper / velocity, b = lower / -velocity;
+  bvec3 positive = greaterThan(d, vec3(0.0));
+  vec3 starts = mix(mix(a, b, positive), vec3(-1e30), parallel);
+  vec3 ends = mix(mix(b, a, positive), vec3(limit), parallel);
+  nearAt = -1e30; normal = vec3(0.0);
+  if (starts.x > nearAt) { nearAt = starts.x; normal = vec3(d.x < 0.0 ? 1.0 : -1.0,0,0); }
+  if (starts.y > nearAt) { nearAt = starts.y; normal = vec3(0,d.y < 0.0 ? 1.0 : -1.0,0); }
+  if (starts.z > nearAt) { nearAt = starts.z; normal = vec3(0,0,d.z < 0.0 ? 1.0 : -1.0); }
+  farAt = min(limit, min(ends.x, min(ends.y, ends.z)));
+  return farAt >= max(0.0, nearAt);
+}
+bool hullInterval(vec3 o, vec3 d, float limit, out float nearAt, out float farAt, out vec3 normal) {
+  return quadraticHullInterval(o, d, limit, nearAt, farAt, normal);
+}
+#else
 bool hullInterval(vec3 o, vec3 d, float limit, out float nearAt, out float farAt, out vec3 normal) {
   nearAt = -1e30; farAt = limit; normal = vec3(0.0);
   for (int i = 0; i < 20; i++) {
@@ -69,10 +121,15 @@ bool hullInterval(vec3 o, vec3 d, float limit, out float nearAt, out float farAt
   }
   return farAt >= max(0.0, nearAt);
 }
+#endif
 float hullDistance(vec3 o) {
+#ifdef QUADRATIC_KOCH
+  return max(0.0, max(max(abs(o.x) - 1.0, abs(o.y) - 1.0), max(-o.z, o.z - 1.0)));
+#else
   float distance = 0.0;
   for (int i = 0; i < 20; i++) { if (i >= u_hullCount) break; distance = max(distance, dot(u_hull[i].xyz, o) - u_hull[i].w); }
   return distance;
+#endif
 }
 bool leaf(vec3 o, vec3 d, float limit, out float hit, out vec3 normal, out float edge) {
   edge = 1e30;
@@ -129,14 +186,14 @@ bool trace(vec3 ray, float detail, bool envelope, out float hit, out vec3 normal
           else intersects = leaf(origins[level], directions[level], hit, t, n, e);
           if (intersects) {
             vec3 smoothNormal = n;
-            for (int j = 39; j > 0; j--) if (j <= level) {
+            float childFootprint = max(u_nearFootprint, t * u_pixelAngle) * detail;
+            for (int j = level; j > 0; j--) {
               Transform child = readChild(cursors[j - 1] - 1, directions[j - 1]);
               n = child.axes * n / child.size;
               smoothNormal = child.axes * smoothNormal / child.size;
               if (u_kind > 0 && !envelope) {
                 // A newly resolved bump starts with its enclosing patch's light.
                 // Reveal its own normal only as its feature gains pixel samples.
-                float childFootprint = max(u_nearFootprint, t * u_pixelAngle) * detail;
                 float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize / max(childFootprint, 1e-20));
                 vec3 parentNormal = vec3(0.0, 0.0, directions[j - 1].z < 0.0 ? 1.0 : -1.0);
                 smoothNormal = mix(parentNormal, smoothNormal, reveal);
@@ -148,10 +205,19 @@ bool trace(vec3 ray, float detail, bool envelope, out float hit, out vec3 normal
           }
           level--; continue;
         }
+#ifdef QUADRATIC_KOCH
+        cursors[level] = childCursor(directions[level]);
+#else
         cursors[level] = 0;
+#endif
       }
       int childIndex = cursors[level]++;
-      if (childIndex >= u_childCount) { level--; continue; }
+#ifdef QUADRATIC_KOCH
+      bool finished = (childIndex & 15) >= u_childCount;
+#else
+      bool finished = childIndex >= u_childCount;
+#endif
+      if (finished) { level--; continue; }
       Transform child = readChild(childIndex, directions[level]);
       origins[level + 1] = inverseVector(child, origins[level] - child.center);
       directions[level + 1] = inverseVector(child, directions[level]);
@@ -182,10 +248,19 @@ float clearance() {
         if (sizes[level] * u_radius <= max(0.00002, lower * 0.03) || level == 39 || ranks[level] >= u_maxRank) {
           nearest = min(nearest, lower); level--; continue;
         }
+#ifdef QUADRATIC_KOCH
+        cursors[level] = childCursor(-origins[level]);
+#else
         cursors[level] = 0;
+#endif
       }
       int childIndex = cursors[level]++;
-      if (childIndex >= u_childCount) { level--; continue; }
+#ifdef QUADRATIC_KOCH
+      bool finished = (childIndex & 15) >= u_childCount;
+#else
+      bool finished = childIndex >= u_childCount;
+#endif
+      if (finished) { level--; continue; }
       Transform child = readChild(childIndex, -origins[level]);
       origins[level + 1] = inverseVector(child, origins[level] - child.center);
       sizes[level + 1] = sizes[level] * child.size; ranks[level + 1] = ranks[level] + child.rank; cursors[level + 1] = -1; level++;
