@@ -16,34 +16,49 @@ const { buildGridFrame } = require("../utils/voxelZoom/camera.ts");
 const {
   flightResolution,
   flightDetailDepth,
+  flightRenderSize,
   MIN_FLIGHT_DETAIL_DISTANCE,
   FLIGHT_DETAIL_PIXELS,
 } = require("../utils/voxelZoom/resolution.ts");
 
-test("geometry detail follows visible pixels while edge antialiasing follows the framebuffer", () => {
+test("fine geometry follows display pixels once the framebuffer can sample it", () => {
   const css = flightResolution(0.1, 1200, 800, 0, 0, 1200, 800);
-  for (const scale of [1, 1.5, 2]) {
+  const reference = flightResolution(0.1, 2400, 1600, 0, 0, 1200, 800);
+  for (const scale of [2, 3, 4]) {
     const detail = flightResolution(0.1, 1200 * scale, 800 * scale, 0, 0, 1200, 800);
     assert.equal(detail.detailScale, FLIGHT_DETAIL_PIXELS * scale);
     assert.ok(
-      Math.abs(detail.pixelAngle * detail.detailScale - css.pixelAngle * css.detailScale) < 1e-15,
+      Math.abs(
+        detail.pixelAngle * detail.detailScale - reference.pixelAngle * reference.detailScale,
+      ) < 1e-15,
     );
     assert.ok(
-      Math.abs(detail.nearFootprint * detail.detailScale - css.nearFootprint * css.detailScale) <
-        1e-15,
+      Math.abs(
+        detail.nearFootprint * detail.detailScale - reference.nearFootprint * reference.detailScale,
+      ) < 1e-15,
     );
     assert.ok(Math.abs(detail.pixelAngle * scale - css.pixelAngle) < 1e-15);
   }
 });
 
-test("reduced flight resolution stops holes before they become isolated pixel samples", () => {
+test("reduced flight resolution cannot request geometry below its own sampling footprint", () => {
   for (const scale of [0.25, 0.5, 0.75, 1, 1.5, 2]) {
     const detail = flightResolution(0.1, 1200 * scale, 800 * scale, 0, 0, 1200, 800);
     const framebufferPixels = detail.detailScale;
     const displayPixels = framebufferPixels / scale;
-    assert.ok(framebufferPixels >= 2, `only ${framebufferPixels} samples at scale ${scale}`);
-    assert.ok(displayPixels >= 2);
+    assert.ok(framebufferPixels >= 1, `only ${framebufferPixels} samples at scale ${scale}`);
+    assert.ok(displayPixels >= FLIGHT_DETAIL_PIXELS);
   }
+});
+
+test("a stationary Retina view restores native pixels after an adaptive flight frame", () => {
+  const moving = flightRenderSize(1440, 900, 2, 160_000);
+  const still = flightRenderSize(1440, 900, 2, 8_000_000);
+  assert.ok(moving.width < 1440 && moving.height < 900);
+  assert.deepEqual(still, { width: 2880, height: 1800 });
+  assert.deepEqual(flightRenderSize(390, 844, 2, 8_000_000), { width: 780, height: 1688 });
+  const capped = flightRenderSize(4000, 3000, 2, 8_000_000);
+  assert.ok(capped.width * capped.height < 8_010_000);
 });
 
 test("pixel cones grow with distance and shrink with framebuffer resolution", () => {

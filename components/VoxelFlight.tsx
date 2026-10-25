@@ -13,8 +13,13 @@ import {
   type Vec3,
   type VoxelPattern,
 } from "../utils/voxelZoom/camera";
-import { createFlightFrameBudget } from "../utils/voxelZoom/frameBudget";
+import {
+  createFlightFrameBudget,
+  FLIGHT_SETTLE_MS,
+  MAX_STILL_FLIGHT_PIXELS,
+} from "../utils/voxelZoom/frameBudget";
 import { createFlightRenderer, type FlightStyle } from "../utils/voxelZoom/renderer";
+import { flightRenderSize } from "../utils/voxelZoom/resolution";
 
 import {
   FlightTouchControls,
@@ -104,6 +109,8 @@ export function VoxelFlight({
       disposed = false;
     const budget = createFlightFrameBudget();
     let renderedLastFrame = false;
+    let needsRefinement = false;
+    let refineAt = 0;
     const pointers = new Map<number, { x: number; y: number }>();
     let pointerType = "";
     const release = () => {
@@ -184,6 +191,13 @@ export function VoxelFlight({
         window.devicePixelRatio || 1,
         pixelBudget,
       );
+      const stillSize = flightRenderSize(
+        width,
+        height,
+        window.devicePixelRatio || 1,
+        MAX_STILL_FLIGHT_PIXELS,
+      );
+      needsRefinement = canvas.width < stillSize.width || canvas.height < stillSize.height;
       dirty.current = false;
     };
     const render = (now: number) => {
@@ -213,6 +227,12 @@ export function VoxelFlight({
         if (dirty.current) {
           draw(budget.pixels);
           renderedLastFrame = true;
+          refineAt = now + FLIGHT_SETTLE_MS;
+        } else if (needsRefinement && now >= refineAt && !document.hidden) {
+          // Movement may lower the pixel budget. Replace the last enlarged
+          // flight frame once input stops, then leave the sharp view idle.
+          // This draw must not feed the moving-frame budget.
+          draw();
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not draw this view.");

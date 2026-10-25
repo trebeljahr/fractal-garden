@@ -1,4 +1,7 @@
 export const MAX_FLIGHT_PIXELS = 2_500_000;
+// A stationary view gets one sharper draw without paying for it every frame.
+export const MAX_STILL_FLIGHT_PIXELS = 8_000_000;
+export const FLIGHT_SETTLE_MS = 120;
 const MIN_FLIGHT_PIXELS = 160_000;
 const TARGET_FRAME_MS = 1000 / 60;
 
