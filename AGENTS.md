@@ -41,6 +41,37 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
 - The shared construction player has no stock heading or injected summary.
   Construction explanations belong in the article, in the relevant sequence.
 
+### Choose fewer facts — the Mosely example
+
+Rico's correction, 2026-10-25: short sentences can still add up to a wordy,
+uninteresting explanation. Choose what earns the reader's attention before
+polishing the wording. The aim is “huh, interesting, I didn't know that.”
+
+He rejected six paragraphs that stacked volume ratios, surface-area totals,
+a dimension tutorial, logarithms and finite-model caveats. The useful core was:
+
+> Its volume still approaches zero, while its surface area grows without bound.
+
+Keep that discovery and explain its concrete cause. For example:
+
+> Removing cubes exposes new faces inside the holes. Repeat forever and the
+> volume approaches zero, while the surface area grows without bound. This
+> happens with either center option.
+
+- Cut side lessons that do not help explain the discovery. A true fact does not
+  automatically belong in the article. Do not add a dimension tutorial to every
+  fractal or retain numbers merely because they were researched.
+- Keep the few steps needed to understand why it happens. Do not replace them
+  with lyrical language, slogans, generic wonder or claims that it is surprising.
+- Accuracy is required; exhaustive coverage is not. Put necessary calculation
+  detail in a source note. Keep essential qualifications beside the claim, once.
+- Before finishing, name the discovery in one plain sentence. Read the passage
+  aloud against this example. Remove any sentence that neither helps the reader
+  understand the discovery nor prevents a real misunderstanding.
+
+This example guides article and lesson prose. Do not turn it into a stock
+paragraph or remove a useful construction step just to meet a word count.
+
 ### Accuracy and sources
 
 - Explain the exact construction implemented here. Check the generator, seed,
