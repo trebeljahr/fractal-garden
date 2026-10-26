@@ -4,12 +4,10 @@
   justify-content: center;
   min-width: 28px;
   min-height: 28px;
-  margin-left: 0.5em;
-  border: 1px solid rgba(245, 204, 117, 0.35);
-  border-radius: 4px;
-  color: var(--explorer-accent);
-  background: rgba(245, 204, 117, 0.06);
-  font: 18px / 1 sans-serif;
+  margin-left: 0.35em;
+  border-radius: 2px;
+  color: #c5b88f;
+  font: 16px / 1 sans-serif;
   vertical-align: baseline;
   text-decoration: none;
 }
@@ -17,8 +15,6 @@
 .footnoteReturn:hover,
 .footnoteReturn:focus-visible {
   color: var(--yellow-white);
-  border-color: var(--explorer-accent);
-  background: rgba(245, 204, 117, 0.14);
 }
 
 .footnoteReturn:focus-visible,
