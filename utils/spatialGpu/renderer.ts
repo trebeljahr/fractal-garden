@@ -17,6 +17,7 @@ import { spatialProjection } from "../spatial/projection";
 import { MAX_FLIGHT_PIXELS } from "../voxelZoom/frameBudget";
 import { packGpuChildBounds } from "./childBounds";
 import { createGpuClearanceCache } from "./clearance";
+import { romanescoCpuClearance } from "./cpuClearance";
 import {
   applyPoint,
   buildGpuFrame,
@@ -322,12 +323,7 @@ export function createSpatialGpuRenderer(
       gl.uniform1i(at.useSeed, 0);
       gl.uniform1i(at.seed, 5);
     };
-    const prepare = (
-      camera: SpatialCamera,
-      spec: GpuSpatialSpec,
-      style: SpatialStyle,
-      stackOptions: GpuStackOptions = {},
-    ) => {
+    const frameFor = (camera: SpatialCamera, spec: GpuSpatialSpec, style: SpatialStyle) => {
       if (initialSpec && spec.kind !== initialSpec.kind)
         throw new Error("A specialized renderer cannot draw a different construction.");
       const rotation = rotationOf(style),
@@ -336,6 +332,15 @@ export function createSpatialGpuRenderer(
         frame = buildGpuFrame(buildGpuShape(spec), camera, style, { previous: frame });
         cachedKey = key;
       }
+      return frame;
+    };
+    const prepare = (
+      camera: SpatialCamera,
+      spec: GpuSpatialSpec,
+      style: SpatialStyle,
+      stackOptions: GpuStackOptions = {},
+    ) => {
+      frame = frameFor(camera, spec, style);
       const depth = specialized ? spatialShaderStackDepth(frame, stackOptions) : 40;
       if (depth !== stackDepth) {
         let variant = variants.get(depth);
@@ -731,9 +736,9 @@ export function createSpatialGpuRenderer(
           const key = `${JSON.stringify(spec)}|${options.maxRank ?? 1000}|${Math.max(0, Math.min(1, options.growth ?? 1))}`;
           const cached = clearanceCache.read(camera, style, key);
           if (cached !== null) return cached;
-          // Query prepares its own frame. Reused safe balls avoid both that CPU
-          // work and a synchronous readback behind the previous full draw.
-          const raw = decode(query(camera, spec, style, 2, [0, 0, -1], options));
+          // Collision checks must not wait behind a full-resolution GPU draw.
+          // Unfinished CPU branches retain their enclosing hull in the bound.
+          const raw = romanescoCpuClearance(frameFor(camera, spec, style), options).distance;
           const distance = Number.isFinite(raw) ? Math.max(0, raw) : 0;
           clearanceCache.write(camera, style, key, distance);
           return distance;

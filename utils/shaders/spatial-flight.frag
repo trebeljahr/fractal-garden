@@ -227,6 +227,24 @@ int nextRayChild(inout int cursor, vec3 o, vec3 d, float limit) {
   }
   return -1;
 }
+// A union extension must cross the current endpoint, rather than any earlier
+// part of the eye ray. Bounds ending before it can never extend the union.
+int nextExitChild(inout int cursor, vec3 o, vec3 d, float endpoint) {
+  if (!usesChildBounds()) return nextLinearChild(cursor);
+  int position = cursor & 65535, offset = boundsOctant(d) * u_childBoundsCount;
+  float error = 0.0000005 * max(abs(o.x), max(abs(o.y), abs(o.z)));
+  vec3 inverse = 1.0 / mix(vec3(1e-30), d, greaterThan(abs(d), vec3(1e-30)));
+  while (position < u_childBoundsCount) {
+    vec3 low, high; int child, escape;
+    readChildBounds(offset + position, low, high, child, escape);
+    vec3 a = (low - vec3(error) - o) * inverse, b = (high + vec3(error) - o) * inverse;
+    vec3 enter = min(a, b), leave = max(a, b);
+    if (max(0.0, max(enter.x, max(enter.y, enter.z))) > endpoint || min(leave.x, min(leave.y, leave.z)) <= endpoint) { position = escape; continue; }
+    if (child >= 0) { cursor = ((child + 1) << 16) | escape; return child; }
+    position++;
+  }
+  return -1;
+}
 int nextClearanceChild(inout int cursor, vec3 o, float size, float nearest) {
   if (!usesChildBounds()) return nextLinearChild(cursor);
   int position = cursor & 65535, offset = boundsOctant(-o) * u_childBoundsCount;
@@ -846,10 +864,12 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
 
 // Merge all ray intervals connected to the eye. A later extension can expose
 // an earlier branch, so only a complete unchanged pass proves the union exit.
-bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out float cell, out bool complete) {
+// Keep interval extension cheap. Replay only the final winner's normal after
+// the complete search, including when its traversal budget has expired.
+bool traceUnionExitRaw(vec3 ray, float detail, out float hit, out vec3 normal, out float cell, out bool complete, out int bestRootIndex, out int bestLevel, out vec3 bestNormal, out int bestPath[SPATIAL_STACK_DEPTH]) {
   hit = 0.0; normal = vec3(0.0); cell = 0.0; complete = true;
   vec3 origins[SPATIAL_STACK_DEPTH]; vec3 directions[SPATIAL_STACK_DEPTH]; float sizes[SPATIAL_STACK_DEPTH]; float ranks[SPATIAL_STACK_DEPTH]; int cursors[SPATIAL_STACK_DEPTH];
-  int visits = 0;
+  int visits = 0; bestRootIndex = -1; bestLevel = 0; bestNormal = vec3(0.0);
   for (int pass = 0; pass < 64; pass++) {
     float previous = hit;
     for (int rootIndex = 0; rootIndex < 512; rootIndex++) {
@@ -857,7 +877,7 @@ bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out 
       if (texelFetch(u_roots, ivec2(3, rootIndex), 0).w > 0.5) {
         float enter, leave; vec3 n;
         if (ancestorSegment(rootIndex, ray, enter, leave, n) && enter <= hit && leave > hit) {
-          hit = leave; normal = n; cell = 1e30;
+          hit = leave; normal = n; cell = 1e30; bestRootIndex = -1;
         }
         continue;
       }
@@ -877,16 +897,16 @@ bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out 
           float enter, leave;
           if (!continuation && coneSegment(origins[level], directions[level], enter, leave, n) && enter <= hit && leave > hit) {
             hit = leave; cell = sizes[level];
-            for (int j = level; j > 0; j--) {
-              Transform child = readNormalChild(cursors[j - 1], directions[j - 1]);
-              n = child.axes * n / child.size;
+            bestRootIndex = rootIndex; bestLevel = level; bestNormal = n;
+            for (int j = 0; j < SPATIAL_STACK_DEPTH; j++) {
+              if (j >= level) break;
+              bestPath[j] = cursors[j];
             }
-            normal = normalize(root.axes * n);
           }
           if (terminal) { level--; continue; }
           cursors[level] = 0;
         }
-        int childIndex = nextRayChild(cursors[level], origins[level], directions[level], hit);
+        int childIndex = nextExitChild(cursors[level], origins[level], directions[level], hit);
         if (childIndex < 0) { level--; continue; }
         Transform child = growChild(readChild(childIndex, directions[level]), ranks[level]);
         if (continuation && (child.flags & 2) != 0) continue;
@@ -900,6 +920,27 @@ bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out 
     if (hit == previous || hit >= u_far) return hit > 0.0 && hit < u_far;
   }
   complete = false; return hit > 0.0 && hit < u_far;
+}
+bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out float cell, out bool complete) {
+  int bestRootIndex, bestLevel, bestPath[SPATIAL_STACK_DEPTH]; vec3 bestNormal;
+  bool found = traceUnionExitRaw(ray, detail, hit, normal, cell, complete, bestRootIndex, bestLevel, bestNormal, bestPath);
+  if (found && bestRootIndex >= 0) {
+    Transform root = readTransform(u_roots, bestRootIndex);
+    vec3 directions[SPATIAL_STACK_DEPTH]; float ranks[SPATIAL_STACK_DEPTH];
+    directions[0] = inverseVector(root, ray); ranks[0] = root.rank;
+    for (int j = 0; j < SPATIAL_STACK_DEPTH; j++) {
+      if (j >= bestLevel) break;
+      Transform child = growChild(readNormalChild(bestPath[j], directions[j]), ranks[j]);
+      directions[j + 1] = inverseVector(child, directions[j]); ranks[j + 1] = ranks[j] + child.rank;
+    }
+    vec3 n = bestNormal;
+    for (int j = bestLevel; j > 0; j--) {
+      Transform child = readNormalChild(bestPath[j - 1], directions[j - 1]);
+      n = child.axes * n / child.size;
+    }
+    normal = normalize(root.axes * n);
+  }
+  return found;
 }
 bool trace(vec3 ray, float detail, bool envelope, out float hit, out vec3 normal, out vec3 shadingNormal, out float edge, out float cell, out bool complete) {
   bool inside;

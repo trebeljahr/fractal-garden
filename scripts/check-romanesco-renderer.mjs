@@ -1,10 +1,13 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { require } from "../tests/helpers/spatial-gpu-fixtures.mjs";
 
 // Generate a Playwright CLI callback comparing exact color and surface bytes.
 // Run with run-code --filename; compare accelerated and original traversal.
 const output = process.argv[2] ?? "/private/tmp/check-romanesco-renderer.js";
 const baseUrl = process.argv[3] ?? "http://127.0.0.1:56716";
+const baselineSource = process.env.ROMANESCO_BASELINE_SHADER
+  ? readFileSync(process.env.ROMANESCO_BASELINE_SHADER, "utf8")
+  : null;
 const viewport = {
   width: Number(process.env.ROMANESCO_WIDTH ?? 640),
   height: Number(process.env.ROMANESCO_HEIGHT ?? 480),
@@ -76,7 +79,7 @@ const fixtures = definitions
   });
 if (!fixtures.length) throw Error("ROMANESCO_FILTER matched no fixtures");
 
-async function check(outerPage, fixtures, viewport) {
+async function check(outerPage, fixtures, viewport, baselineSource) {
   const contexts = [],
     views = [];
   try {
@@ -90,63 +93,78 @@ async function check(outerPage, fixtures, viewport) {
         });
       contexts.push(context);
       const page = await context.newPage();
-      await page.addInitScript((mode) => {
-        const p = WebGL2RenderingContext.prototype,
-          get = p.getUniformLocation,
-          ui = p.uniform1i,
-          uf = p.uniform1f,
-          shader = p.shaderSource,
-          draw = p.drawArrays,
-          locations = new WeakMap();
-        p.shaderSource = function (target, source) {
-          const text =
-            mode === "baseline"
-              ? source
-                  .replace(/^#define ROMANESCO_UNIFORM_GEOMETRY.*$/m, "")
-                  .replace(/^#define ROMANESCO_DEFER_NORMALS.*$/m, "")
-              : source;
-          return shader.call(this, target, text);
-        };
-        p.getUniformLocation = function (...args) {
-          const loc = get.apply(this, args);
-          if (loc) locations.set(loc, args[1]);
-          return loc;
-        };
-        p.uniform1i = function (loc, value) {
-          const name = locations.get(loc),
-            override = window.romanOverride;
-          return ui.call(
-            this,
-            loc,
-            mode === "baseline" && name === "u_useSeed"
-              ? 0
-              : override?.customTail && name === "u_childCount"
-                ? 1
-                : override?.customTail && name === "u_childBoundsCount"
-                  ? 0
+      await page.addInitScript(
+        ({ mode, baselineSource }) => {
+          const p = WebGL2RenderingContext.prototype,
+            get = p.getUniformLocation,
+            ui = p.uniform1i,
+            uf = p.uniform1f,
+            shader = p.shaderSource,
+            draw = p.drawArrays,
+            locations = new WeakMap();
+          p.shaderSource = function (target, source) {
+            if (mode === "baseline" && baselineSource && source.includes("bool traceNearest(")) {
+              const depth = source.match(/#define SPATIAL_STACK_DEPTH (8|12|16|24|40)/)?.[1] ?? 40;
+              const seed = source.includes("#define ROMANESCO_SEED_PASS")
+                ? "\n#define ROMANESCO_SEED_PASS"
+                : "";
+              source = baselineSource
+                .replace(
+                  "#version 300 es",
+                  `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}${seed}`,
+                )
+                .replace("uniform int u_kind;", "const int u_kind = 3;");
+            }
+            const text =
+              mode === "baseline"
+                ? source
+                    .replace(/^#define ROMANESCO_UNIFORM_GEOMETRY.*$/m, "")
+                    .replace(/^#define ROMANESCO_DEFER_NORMALS.*$/m, "")
+                : source;
+            return shader.call(this, target, text);
+          };
+          p.getUniformLocation = function (...args) {
+            const loc = get.apply(this, args);
+            if (loc) locations.set(loc, args[1]);
+            return loc;
+          };
+          p.uniform1i = function (loc, value) {
+            const name = locations.get(loc),
+              override = window.romanOverride;
+            return ui.call(
+              this,
+              loc,
+              mode === "baseline" && name === "u_useSeed"
+                ? 0
+                : override?.customTail && name === "u_childCount"
+                  ? 1
+                  : override?.customTail && name === "u_childBoundsCount"
+                    ? 0
+                    : value,
+            );
+          };
+          p.uniform1f = function (loc, value) {
+            const name = locations.get(loc),
+              override = window.romanOverride;
+            return uf.call(
+              this,
+              loc,
+              name === "u_maxRank" && override?.rank !== undefined
+                ? override.rank
+                : name === "u_growth" && override?.growth !== undefined
+                  ? override.growth
                   : value,
-          );
-        };
-        p.uniform1f = function (loc, value) {
-          const name = locations.get(loc),
-            override = window.romanOverride;
-          return uf.call(
-            this,
-            loc,
-            name === "u_maxRank" && override?.rank !== undefined
-              ? override.rank
-              : name === "u_growth" && override?.growth !== undefined
-                ? override.growth
-                : value,
-          );
-        };
-        p.drawArrays = function (...args) {
-          const fb = this.getParameter(this.FRAMEBUFFER_BINDING);
-          if (fb && this.getParameter(this.DRAW_BUFFER1) === this.COLOR_ATTACHMENT1)
-            window.romanSurface = fb;
-          return draw.apply(this, args);
-        };
-      }, mode);
+            );
+          };
+          p.drawArrays = function (...args) {
+            const fb = this.getParameter(this.FRAMEBUFFER_BINDING);
+            if (fb && this.getParameter(this.DRAW_BUFFER1) === this.COLOR_ATTACHMENT1)
+              window.romanSurface = fb;
+            return draw.apply(this, args);
+          };
+        },
+        { mode, baselineSource },
+      );
       views.push({ mode, page });
     }
     const results = [];
@@ -258,5 +276,5 @@ async function check(outerPage, fixtures, viewport) {
 
 writeFileSync(
   output,
-  `async page => await (${check.toString()})(page, ${JSON.stringify(fixtures)}, ${JSON.stringify(viewport)})`,
+  `async page => await (${check.toString()})(page, ${JSON.stringify(fixtures)}, ${JSON.stringify(viewport)}, ${JSON.stringify(baselineSource)})`,
 );
