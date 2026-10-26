@@ -88,7 +88,7 @@ export class RenderHost<P> {
     this.schedule();
   }
 
-  exportPng(ratio: number, createRenderer: () => Renderer<P>) {
+  async exportPng(ratio: number, createRenderer: () => Renderer<P>) {
     if (this.disposed || !this.width || !this.height || this.latestParams === null)
       throw new Error("Drawing not ready");
     const output =
@@ -101,7 +101,7 @@ export class RenderHost<P> {
     if (!ctx) throw new Error("Canvas unavailable");
     ctx.setTransform(output.width / this.width, 0, 0, output.height / this.height, 0, 0);
     if (this.renderer.drawExport) {
-      this.renderer.drawExport(ctx, this.width, this.height, this.pending?.params);
+      await this.renderer.drawExport(ctx, this.width, this.height, this.pending?.params);
     } else {
       const renderer = createRenderer();
       renderer.update(this.latestParams);

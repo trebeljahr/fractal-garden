@@ -24,6 +24,13 @@ export interface GpuEncoder {
   beginComputePass(): GpuPass;
   beginRenderPass(descriptor: unknown): GpuPass;
   copyTextureToBuffer(source: unknown, target: unknown, size: unknown): void;
+  copyBufferToBuffer(
+    source: GpuBuffer,
+    sourceOffset: number,
+    target: GpuBuffer,
+    targetOffset: number,
+    size: number,
+  ): void;
   finish(): unknown;
 }
 export interface GpuDevice extends EventTarget {

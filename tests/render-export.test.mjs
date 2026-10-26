@@ -267,42 +267,66 @@ test("3D export keeps the last displayed rotation rather than the next animation
   }
 });
 
-test("Buddhabrot exports the last painted sample count and preserves live accumulation", () => {
-  const original = BuddhabrotRenderer.prototype.sampleOrbit;
-  BuddhabrotRenderer.prototype.sampleOrbit = (state) => {
-    state.rng++;
+test("Buddhabrot exports cumulative samples and pending settings without mutating the live drawing", async () => {
+  const renderer = new BuddhabrotRenderer();
+  const params = {
+    maxIterations: 10,
+    minOrbitLength: 2,
+    samplesPerFrame: 50000,
+    exposure: 1,
+    background: "#000000",
+    color: "#ffffff",
+    paused: false,
   };
-  try {
-    const renderer = new BuddhabrotRenderer();
-    const params = {
-      maxIterations: 10,
-      minOrbitLength: 2,
-      samplesPerFrame: 5,
-      exposure: 1,
-      background: "#000000",
-      color: "#ffffff",
-      paused: false,
-    };
-    renderer.update(params);
-    for (let i = 0; i < 3; i++) renderer.draw(context(), 32, 24);
-    assert.equal(renderer.state.samples, 12010);
-    assert.equal(renderer.state.paintedSamples, 12005);
-    const before = structuredClone(renderer.state);
-    const exported = context(128, 96);
-    renderer.drawExport(exported, 32, 24, { ...params, color: "#ffaa00" });
-    assert.equal(
-      exported.calls.find(([name]) => name === "fillText")[1],
-      `Samples: ${(12005).toLocaleString()}`,
-    );
-    assert.deepEqual(renderer.state, before);
-    const changedOrbit = context(128, 96);
-    renderer.drawExport(changedOrbit, 32, 24, { ...params, maxIterations: 11 });
-    assert.equal(
-      changedOrbit.calls.find(([name]) => name === "fillText")[1],
-      `Samples: ${(12000).toLocaleString()}`,
-    );
-    assert.deepEqual(renderer.state, before);
-  } finally {
-    BuddhabrotRenderer.prototype.sampleOrbit = original;
-  }
+  renderer.update(params);
+  for (let i = 0; i < 10; i++) renderer.draw(context(), 32, 24);
+  assert.equal(renderer.samples, 500000);
+  const before = structuredClone(renderer.state);
+  const rng = renderer.rng.value;
+  const exported = context(128, 96);
+  await renderer.drawExport(exported, 32, 24, { ...params, color: "#ffaa00" });
+  const pixels = exported.calls.find(([name]) => name === "putImageData")[1].data;
+  assert.ok(pixels.some((value, i) => i % 4 === 0 && value > 0));
+  assert.ok(pixels.every((value, i) => i % 4 !== 2 || value === 0));
+  assert.deepEqual(renderer.state, before);
+  assert.equal(renderer.rng.value, rng);
+  assert.equal(renderer.samples, 500000);
+  const changedOrbit = context(128, 96);
+  await renderer.drawExport(changedOrbit, 32, 24, { ...params, maxIterations: 11 });
+  assert.ok(changedOrbit.calls.some(([name]) => name === "putImageData"));
+  assert.deepEqual(renderer.state, before);
+  assert.equal(renderer.samples, 500000);
 });
+
+test("PNG encoding waits for asynchronous renderer reconstruction", () =>
+  hostHarness(async (h) => {
+    let finish;
+    const renderer = {
+      update() {},
+      draw() {
+        return false;
+      },
+      describe() {
+        return null;
+      },
+      drawExport() {
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      },
+    };
+    const host = h.create(renderer);
+    host.setParams({});
+    h.tick();
+    let encoded = false;
+    const pending = host
+      .exportPng(1, () => renderer)
+      .then(() => {
+        encoded = true;
+      });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(encoded, false);
+    finish();
+    await pending;
+    assert.equal(encoded, true);
+  }));

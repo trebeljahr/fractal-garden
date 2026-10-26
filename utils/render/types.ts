@@ -13,7 +13,12 @@ export interface Renderer<P> {
   /** Draws one frame. Returns true to be called again on the next frame. */
   draw(ctx: Context2D, width: number, height: number): boolean;
   /** Draw the displayed state without advancing it; apply queued params only to the export. */
-  drawExport?(ctx: Context2D, width: number, height: number, pendingParams?: P): void;
+  drawExport?(
+    ctx: Context2D,
+    width: number,
+    height: number,
+    pendingParams?: P,
+  ): void | Promise<void>;
   /** Level and amount of geometry currently shown, for the iteration budget. */
   describe(): { level: number; work: number } | null;
   /** The parameters for another growth level; defaults to replacing `iterations`. */

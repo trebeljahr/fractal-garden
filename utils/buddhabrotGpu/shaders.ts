@@ -1,5 +1,5 @@
 // A fixed one-pixel tent reconstructs sampled density at every resolution and
-// camera state. Peak normalization and display must use exactly the same kernel.
+// camera state. The raw cumulative histogram remains unchanged.
 const RECONSTRUCT_DENSITY = /* wgsl */ `
 fn reconstructedDensity(pixel: vec2u) -> f32 {
   var sum = 0.0;
@@ -23,8 +23,10 @@ struct Params {
   batch: vec4u, // first sample id, count, cache capacity, replay count
   colors: vec4f, // foreground RGB, exposure
   background: vec4f,
+  identity: vec4u, // high word of the first sample ID
 }
 struct Seed { c: vec2f, length: u32, weight: u32 }
+struct ProposedSeed { seed: Seed, cell: u32 }
 struct Statistics {
   peak: atomic<u32>,
   padding0: u32,
@@ -74,7 +76,7 @@ fn escape(c: vec2f) -> u32 {
   }
   return 0u;
 }
-fn visit(z: vec2f, weight: u32, subtract: bool) -> u32 {
+fn visit(z: vec2f, weight: u32) -> u32 {
   // The portrait rotates the usual complex plane clockwise: (imaginary, -real).
   let position = vec2f(z.y, -z.x);
   let uv = vec2f((position.x-p.bounds.x)/(p.bounds.y-p.bounds.x),
@@ -83,36 +85,27 @@ fn visit(z: vec2f, weight: u32, subtract: bool) -> u32 {
   let pixel = vec2u(uv * vec2f(p.image.xy));
   let index = pixel.y * p.image.x + pixel.x;
   // Two words preserve exact fixed-point sums, even for long, concentrated paths.
-  // Addition/subtraction commute modulo 2^64, including concurrent carries.
-  if subtract {
-    let before = atomicSub(&low[index], weight);
-    if before < weight { atomicSub(&high[index], 1u); }
-  } else {
-    let before = atomicAdd(&low[index], weight);
-    if before > 0xffffffffu-weight { atomicAdd(&high[index], 1u); }
-  }
+  // Evidence is cumulative: replacing a cached seed never removes its visits.
+  let before = atomicAdd(&low[index], weight);
+  if before > 0xffffffffu-weight { atomicAdd(&high[index], 1u); }
   return 1u;
 }
-fn trace(seed: Seed, subtract: bool) -> u32 {
+fn trace(seed: Seed) -> u32 {
   var z = vec2f(0.0);
   var hits = 0u;
   // Only positions before crossing radius two belong to the recorded orbit.
   // Including the final escaped value draws the square source-domain boundary.
   for (var i = 1u; i < seed.length; i++) {
     z = advance(z, seed.c);
-    hits += visit(z, seed.weight, subtract);
-    hits += visit(vec2f(z.x, -z.y), seed.weight, subtract);
+    hits += visit(z, seed.weight);
+    hits += visit(vec2f(z.x, -z.y), seed.weight);
   }
   return hits;
 }
-@compute @workgroup_size(64)
-fn sample(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) groups: vec3u) {
-  let index = gid.x + gid.y*groups.x*64u;
-  if index >= p.batch.y { return; }
+fn proposedSeed(index: u32) -> ProposedSeed {
   let id = p.batch.x + index;
-  let slot = id % p.batch.z;
-  if p.batch.w >= p.batch.z || id >= p.batch.z { trace(seeds[slot], true); }
-  var rng = hash(id + 42u);
+  let highId = p.identity.x + select(0u, 1u, id < p.batch.x);
+  var rng = hash(id + 42u) ^ hash(highId);
   var cell = min(255u, u32(random(&rng)*256.0));
   // Half the proposals remain uniform: every part of the source plane stays reachable.
   if random(&rng) >= 0.5 {
@@ -131,17 +124,32 @@ fn sample(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) gr
   // Stochastic rounding keeps the finite fixed-point estimator unbiased.
   let weight = u32(floor(scaledWeight + random(&rng)));
   let seed = Seed(c, escape(c), weight);
+  return ProposedSeed(seed, cell);
+}
+@compute @workgroup_size(64)
+fn sample(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) groups: vec3u) {
+  let index = gid.x + gid.y*groups.x*64u;
+  if index >= p.batch.y { return; }
+  let id = p.batch.x + index;
+  let slot = id % p.batch.z;
+  let proposed = proposedSeed(index);
+  let seed = proposed.seed;
   seeds[slot] = seed;
-  let hits = trace(seed, false);
+  let hits = trace(seed);
   // This score only guides proposals; clipping it never changes the estimator.
   // Its bound also keeps statistics within u32 even for very long paths.
-  atomicAdd(&statistics.hits[cell], min(hits, 256u));
-  atomicAdd(&statistics.tries[cell], 1u);
+  atomicAdd(&statistics.hits[proposed.cell], min(hits, 256u));
+  atomicAdd(&statistics.tries[proposed.cell], 1u);
 }
 @compute @workgroup_size(64)
 fn replay(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) groups: vec3u) {
   let index = gid.x + gid.y*groups.x*64u;
-  if index < p.batch.w { trace(seeds[index], false); }
+  if index < p.batch.w { trace(seeds[index]); }
+}
+@compute @workgroup_size(64)
+fn history(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) groups: vec3u) {
+  let index = gid.x + gid.y*groups.x*64u;
+  if index < p.batch.y { trace(proposedSeed(index).seed); }
 }
 // One thread builds this tiny CDF only after a complete sampling batch.
 // The half-uniform mixture prevents zero-probability cells and caps weights at two.
@@ -163,22 +171,6 @@ fn proposal() {
     atomicStore(&statistics.tries[i], atomicLoad(&statistics.tries[i])/2u);
   }
 }
-var<workgroup> maxima: array<f32, 256>;
-@compute @workgroup_size(256)
-fn peak(@builtin(global_invocation_id) gid: vec3u, @builtin(local_invocation_index) lane: u32, @builtin(num_workgroups) groups: vec3u) {
-  let index = gid.x + gid.y*groups.x*256u;
-  var value = 0.0;
-  if index < p.image.x*p.image.y {
-    value = reconstructedDensity(vec2u(index % p.image.x, index / p.image.x));
-  }
-  maxima[lane] = value;
-  workgroupBarrier();
-  for (var stride=128u; stride>0u; stride/=2u) {
-    if lane < stride { maxima[lane] = max(maxima[lane], maxima[lane+stride]); }
-    workgroupBarrier();
-  }
-  if lane == 0u { atomicMax(&statistics.peak, bitcast<u32>(maxima[0])); }
-}
 `;
 
 export const BUDDHABROT_DISPLAY = /* wgsl */ `
@@ -188,11 +180,11 @@ struct Params {
   batch: vec4u,
   colors: vec4f,
   background: vec4f,
+  identity: vec4u,
 }
 @group(0) @binding(0) var<uniform> p: Params;
 @group(0) @binding(1) var<storage, read> low: array<u32>;
 @group(0) @binding(2) var<storage, read> high: array<u32>;
-@group(0) @binding(3) var<storage, read> statistics: array<u32>;
 fn pixelCount(index: u32) -> f32 {
   return f32(high[index])*4294967296.0 + f32(low[index]);
 }
@@ -204,11 +196,10 @@ ${RECONSTRUCT_DENSITY}
 @fragment fn fragment(@builtin(position) position: vec4f) -> @location(0) vec4f {
   let pixel = vec2u(position.xy);
   let count = reconstructedDensity(pixel) / 256.0;
-  let maximum = bitcast<f32>(statistics[0]) / 256.0;
-  var light = 0.0;
-  if count > 0.0 && maximum > 0.0 {
-    light = pow(count/maximum, 1.0/p.colors.w);
-  }
+  // Normalize by the attempts represented in this view and its pixel area,
+  // not by a changing brightest pixel. Accumulation converges without flashes.
+  let density = count * p.background.w;
+  let light = 1.0-exp(-0.25*p.colors.w*density);
   return vec4f(mix(p.background.rgb, p.colors.rgb, clamp(light,0.0,1.0)), 1.0);
 }
 `;

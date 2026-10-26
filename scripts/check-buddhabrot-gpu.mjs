@@ -74,7 +74,7 @@ async function check(sources) {
   const frame = async () => {
     const start = performance.now();
     renderer.draw();
-    await device.queue.onSubmittedWorkDone();
+    await renderer.whenIdle();
     return performance.now() - start;
   };
   const identical = (a, b) => a.length === b.length && a.every((n, i) => n === b[i]);
@@ -130,21 +130,88 @@ async function check(sources) {
     const oracleRelativeError = difference / mass;
     assert(maxLength === 20 && mass > 0, "20-step sampling produced no usable picture");
     assert(oracleRelativeError < 0.005, `CPU/GPU density mismatch: ${oracleRelativeError}`);
-    while (renderer.stats.samples <= renderer.stats.cacheCapacity + 262144) await frame();
+    let previous = actual;
+    let previousSamples = renderer.stats.samples;
+    const changes = [];
+    while (renderer.stats.samples <= renderer.stats.cacheCapacity * 3) {
+      for (let n = 0; n < 8; n++) await frame();
+      const current = new Uint32Array(await read(renderer.target.low));
+      assert(
+        current.every((count, i) => count >= previous[i]),
+        "Accumulated visits disappeared after cache eviction",
+      );
+      assert(
+        current.some((count, i) => count > previous[i]),
+        "Accumulation stopped at cache capacity",
+      );
+      changes.push(
+        current.reduce(
+          (sum, count, i) =>
+            sum + Math.abs(count / renderer.stats.samples - previous[i] / previousSamples),
+          0,
+        ) / current.length,
+      );
+      previous = current;
+      previousSamples = renderer.stats.samples;
+    }
+    assert(
+      changes.at(-1) < changes[0] / 4,
+      "Density fluctuations did not diminish with accumulated evidence",
+    );
     renderer.update({ ...params, paused: true });
     await frame();
     const before = new Uint32Array(await read(renderer.target.low));
     const saved = renderer.stats;
     renderer.update({ ...params, paused: true, viewport: { x: 0.13, y: -0.1, zoom: 4 } });
     await frame();
+    let replayFrames = 0;
+    while (renderer.stats.replayRemaining > 0) {
+      await frame();
+      assert(++replayFrames < 1000, "Paused history reconstruction never completed");
+    }
     renderer.update({ ...params, paused: true });
     await frame();
+    while (renderer.stats.replayRemaining > 0) await frame();
     const after = new Uint32Array(await read(renderer.target.low));
     assert(
       identical(before, after),
-      "Cache replay differs from accumulated density after replacement",
+      "History replay differs from cumulative density after cache replacement",
     );
     assert(renderer.stats.samples === saved.samples, "Paused movement added or discarded samples");
+    assert(renderer.stats.projectedSamples === saved.samples, "Reconstruction lost history");
+    const sameSizeExport = await renderer.exportPng(1);
+    const sameSizeBitmap = await createImageBitmap(sameSizeExport);
+    const decoded = new OffscreenCanvas(192, 160);
+    const ctx = decoded.getContext("2d");
+    ctx.drawImage(sameSizeBitmap, 0, 0);
+    sameSizeBitmap.close();
+    const pixels = ctx.getImageData(0, 0, 192, 160).data;
+    const area = ((bounds.maxX - bounds.minX) * (bounds.maxY - bounds.minY)) / (192 * 160);
+    let exportMaxError = 0;
+    for (let y = 0; y < 160; y++) {
+      for (let x = 0; x < 192; x++) {
+        let density = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const px = Math.max(0, Math.min(191, x + dx));
+            const py = Math.max(0, Math.min(159, y + dy));
+            density +=
+              (after[py * 192 + px] * (2 - Math.abs(dx)) * (2 - Math.abs(dy))) / (16 * 256);
+          }
+        }
+        const expectedLevel = Math.round(
+          255 * -Math.expm1((-0.25 * params.exposure * density * 8) / (saved.samples * area)),
+        );
+        exportMaxError = Math.max(
+          exportMaxError,
+          Math.abs(pixels[(y * 192 + x) * 4] - expectedLevel),
+        );
+      }
+    }
+    assert(
+      exportMaxError <= 1,
+      `Export omitted cumulative history or changed brightness: ${exportMaxError}`,
+    );
     const exported = await renderer.exportPng(2);
     const bitmap = await createImageBitmap(exported);
     assert(bitmap.width === 384 && bitmap.height === 320, "Incorrect high-resolution export size");
@@ -197,6 +264,12 @@ async function check(sources) {
       adapter: adapter?.info,
       oracleRelativeError,
       cacheCapacity: saved.cacheCapacity,
+      accumulatedSamples: saved.samples,
+      monotonicBeyondCapacity: true,
+      densityChangeEarly: changes[0],
+      densityChangeLate: changes.at(-1),
+      replayFrames,
+      exportMaxError,
       replayExact: true,
       exportSize: [384, 320],
       performance: performanceResults,

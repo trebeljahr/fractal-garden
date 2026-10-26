@@ -41,7 +41,7 @@ test("20-step paths are accepted and non-escaping paths contribute nothing", () 
     ctx = context();
   renderer.update(settings);
   renderer.draw(ctx, 160, 120);
-  const expected = new Int32Array(160 * 120);
+  const expected = new Float64Array(160 * 120);
   const viewport = getBuddhabrotViewport(160, 120);
   let rng = 42;
   const random = () => {
@@ -79,7 +79,7 @@ test("20-step paths are accepted and non-escaping paths contribute nothing", () 
   assert.ok(renderer.cached > 1000);
 });
 
-test("paused zoom and resize retain seeds; returning to the same view returns identical pixels", () => {
+test("paused zoom and resize retain seeds; returning to the same view returns identical pixels", async () => {
   const renderer = new BuddhabrotRenderer(),
     ctx = context();
   renderer.update(settings);
@@ -98,25 +98,91 @@ test("paused zoom and resize retain seeds; returning to the same view returns id
   renderer.draw(ctx, 160, 120);
   assert.deepEqual(ctx.pixels, original);
   const output = context(320, 240);
-  renderer.drawExport(output, 160, 120);
+  await renderer.drawExport(output, 160, 120);
   assert.equal(output.pixels.length, 320 * 240 * 4);
   assert.equal(renderer.cached, count);
   renderer.draw(ctx, 160, 120);
   assert.deepEqual(ctx.pixels, original);
 });
 
-test("replacing a full cache and replaying it produce identical nonnegative counts", () => {
+test("counts keep accumulating beyond cache capacity; paused navigation and export recover all history", async () => {
   const renderer = new BuddhabrotRenderer(),
     ctx = context(64, 48);
   renderer.update({ ...settings, paused: false, samplesPerFrame: 50000 });
-  for (let n = 0; n < 10; n++) renderer.draw(ctx, 64, 48);
+  let previous = new Float64Array(64 * 48);
+  for (let n = 0; n < 20; n++) {
+    renderer.draw(ctx, 64, 48);
+    assert.ok(
+      renderer.state.counts.every((count, i) => count >= previous[i]),
+      "visits never disappear",
+    );
+    assert.ok(
+      renderer.state.counts.some((count, i) => count > previous[i]),
+      "sampling never freezes",
+    );
+    previous = renderer.state.counts.slice();
+  }
   const counts = renderer.state.counts.slice();
+  const pixels = ctx.pixels.slice();
+  const samples = renderer.samples;
   assert.equal(renderer.cached, 262144);
-  assert.ok(counts.every((n) => n >= 0));
+  assert.equal(samples, 1000000);
+  const output = context(64, 48);
+  await renderer.drawExport(output, 64, 48);
+  assert.deepEqual(output.pixels, pixels, "export includes uncached history");
+  assert.equal(renderer.samples, samples);
+  renderer.update({ ...settings, viewport: { x: 0.2, y: 0.1, zoom: 3 } });
+  let frames = 0;
+  while (renderer.draw(ctx, 64, 48)) assert.ok(++frames < 100);
+  assert.notDeepEqual(renderer.state.counts, counts);
   renderer.update(settings);
-  renderer.state = null;
-  renderer.draw(ctx, 64, 48);
+  frames = 0;
+  while (renderer.draw(ctx, 64, 48)) assert.ok(++frames < 100);
+  assert.equal(renderer.samples, samples, "paused reconstruction does not generate new attempts");
+  assert.equal(renderer.state.projectedSamples, samples);
   assert.deepEqual(renderer.state.counts, counts);
+  assert.deepEqual(ctx.pixels, pixels);
+});
+
+test("brightness is stable under equivalent sampling and independent of a remote bright outlier", () => {
+  const renderer = new BuddhabrotRenderer(),
+    ctx = context(64, 48);
+  renderer.update(settings);
+  renderer.draw(ctx, 64, 48);
+  const original = ctx.pixels.slice();
+  renderer.state.counts = renderer.state.counts.map((count) => count * 2);
+  renderer.state.projectedSamples *= 2;
+  renderer.paint(ctx, renderer.state, settings);
+  assert.deepEqual(ctx.pixels, original);
+  renderer.state.counts[0] += 1000000;
+  renderer.paint(ctx, renderer.state, settings);
+  assert.deepEqual(ctx.pixels.slice(64 * 4 * 2), original.slice(64 * 4 * 2));
+});
+
+test("live sampling during reconstruction and asynchronous export preserve exact history", async () => {
+  const renderer = new BuddhabrotRenderer(),
+    ctx = context(64, 48);
+  const active = { ...settings, paused: false, samplesPerFrame: 50000 };
+  renderer.update(active);
+  for (let n = 0; n < 20; n++) renderer.draw(ctx, 64, 48);
+  renderer.update({ ...active, viewport: { x: 0.12, y: -0.1, zoom: 2 } });
+  let frames = 0;
+  do {
+    renderer.draw(ctx, 64, 48);
+    assert.ok(++frames < 100);
+  } while (renderer.state.replayRemaining > 0);
+  const expected = ctx.pixels.slice();
+  const samples = renderer.samples;
+  const output = context(64, 48);
+  const exporting = renderer.drawExport(output, 64, 48);
+  renderer.draw(ctx, 64, 48);
+  assert.equal(renderer.samples, samples + 50000);
+  await exporting;
+  assert.deepEqual(
+    output.pixels,
+    expected,
+    "export freezes its history while live sampling continues",
+  );
 });
 
 test("zoom stays anchored under the pointer with asymmetric header/footer framing", () => {
