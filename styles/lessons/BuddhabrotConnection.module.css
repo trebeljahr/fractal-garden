@@ -1,0 +1,50 @@
+.plot {
+  position: relative;
+  margin-top: 1rem;
+  background: var(--lesson-bg);
+}
+.plot canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.35;
+}
+.loading {
+  position: absolute;
+  inset: 45% 0 auto;
+  text-align: center;
+  font-size: 1.4rem;
+}
+.rotation {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.rotation label {
+  flex: 1;
+  min-width: 0;
+}
+.slice {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  min-height: 44px;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.slice input {
+  accent-color: var(--lesson-accent);
+  width: 18px;
+  height: 18px;
+}
+.caption {
+  min-height: 5.2em;
+}
+@media (max-width: 600px) {
+  .plot canvas {
+    aspect-ratio: 1;
+  }
+  .rotation {
+    gap: 0.8rem;
+  }
+}
