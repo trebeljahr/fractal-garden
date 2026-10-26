@@ -1,5 +1,11 @@
-import { type CanvasViewport, INITIAL_CANVAS_VIEW } from "../canvasViewport";
+import type { CanvasViewport } from "../canvasViewport";
 import type { FractalFrame } from "../fractalFrame";
+import {
+  buddhabrotOrbitKey,
+  getBuddhabrotViewport,
+  isInsideCardioidOrBulb,
+  normalizeBuddhabrotParams,
+} from "./buddhabrotMath";
 import type { Context2D, Renderer } from "./types";
 
 export type BuddhabrotParams = {
@@ -14,264 +20,190 @@ export type BuddhabrotParams = {
   color: string;
 };
 
-const VIEWPORT = {
-  minX: -2,
-  maxX: 1,
-  minY: -1.5,
-  maxY: 1.5,
-};
-
-function getViewportForAspect(aspect: number) {
-  const centerX = (VIEWPORT.minX + VIEWPORT.maxX) / 2;
-  const centerY = (VIEWPORT.minY + VIEWPORT.maxY) / 2;
-  const baseWidth = VIEWPORT.maxX - VIEWPORT.minX;
-  const baseHeight = VIEWPORT.maxY - VIEWPORT.minY;
-
-  let viewportWidth = baseWidth;
-  let viewportHeight = baseHeight;
-
-  if (aspect > baseWidth / baseHeight) {
-    viewportWidth = viewportHeight * aspect;
-  } else {
-    viewportHeight = viewportWidth / aspect;
-  }
-
-  return {
-    minX: centerX - viewportWidth / 2,
-    maxX: centerX + viewportWidth / 2,
-    minY: centerY - viewportHeight / 2,
-    maxY: centerY + viewportHeight / 2,
-  };
-}
-
-function getZoomedViewport(
-  width: number,
-  height: number,
-  view: CanvasViewport,
-  framing?: FractalFrame,
-) {
-  const top = framing?.top ?? 0,
-    bottom = framing?.bottom ?? 0;
-  const fitHeight = Math.max(1, height - top - bottom);
-  const base = getViewportForAspect(width / fitHeight);
-  const units = (base.maxY - base.minY) / fitHeight;
-  base.maxY += top * units;
-  base.minY -= bottom * units;
-  const side = Math.min(base.maxX - base.minX, base.maxY - base.minY);
-  const centerX = (base.minX + base.maxX) / 2 + view.x * side;
-  const centerY = (base.minY + base.maxY) / 2 - view.y * side;
-  const halfWidth = (base.maxX - base.minX) / (2 * view.zoom);
-  const halfHeight = (base.maxY - base.minY) / (2 * view.zoom);
-  return {
-    minX: centerX - halfWidth,
-    maxX: centerX + halfWidth,
-    minY: centerY - halfHeight,
-    maxY: centerY + halfHeight,
-  };
-}
-
-function isInsideCardioidOrBulb(cx: number, cy: number) {
-  const q = (cx - 0.25) * (cx - 0.25) + cy * cy;
-  if (q * (q + (cx - 0.25)) <= 0.25 * cy * cy) return true;
-  return (cx + 1) * (cx + 1) + cy * cy <= 0.0625;
-}
-
-function parseHexColor(hex: string) {
-  const clean = hex.replace("#", "");
-
-  return {
-    r: Number.parseInt(clean.slice(0, 2), 16),
-    g: Number.parseInt(clean.slice(2, 4), 16),
-    b: Number.parseInt(clean.slice(4, 6), 16),
-  };
-}
-
-type Accumulation = {
+type Histogram = {
   key: string;
   width: number;
   height: number;
-  viewport: ReturnType<typeof getViewportForAspect>;
-  histogram: Float32Array;
+  viewport: ReturnType<typeof getBuddhabrotViewport>;
+  counts: Int32Array;
+  horizontal: Float32Array;
+  density: Float32Array;
   image: ImageData;
-  maxVisits: number;
-  samples: number;
-  paintedSamples: number;
-  frames: number;
-  rng: number;
 };
 
-function orbitKey(params: BuddhabrotParams) {
-  const view = params.viewport ?? INITIAL_CANVAS_VIEW;
-  return `${params.maxIterations}:${params.minOrbitLength}:${view.x}:${view.y}:${view.zoom}:${params.framing?.top}:${params.framing?.bottom}`;
-}
+const CACHE_SIZE = 262144;
+const color = (hex: string) => [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
 
-/**
- * Accumulates random escaping orbits into a histogram, a frame at a time.
- * Colour and exposure changes repaint the same histogram; only the orbit
- * settings or the canvas size start over.
- */
+/** CPU fallback. Retain orbit seeds so a camera change never discards the drawing. */
 export class BuddhabrotRenderer implements Renderer<BuddhabrotParams> {
   private params: BuddhabrotParams | null = null;
-  private state: Accumulation | null = null;
-  private orbit = new Float64Array(0);
+  private key = "";
+  private state: Histogram | null = null;
+  private seeds = new Float64Array(CACHE_SIZE * 3);
+  private cached = 0;
+  private cursor = 0;
+  private samples = 0;
+  private rng = 42;
 
   update(params: BuddhabrotParams) {
-    this.params = params;
-    if (this.orbit.length < params.maxIterations * 2) {
-      this.orbit = new Float64Array(params.maxIterations * 2);
+    this.params = normalizeBuddhabrotParams(params);
+    const key = buddhabrotOrbitKey(this.params);
+    if (key !== this.key) {
+      this.key = key;
+      this.cached = this.cursor = this.samples = 0;
+      this.rng = 42;
+      this.state = null;
     }
+  }
+
+  private histogram(
+    ctx: Context2D,
+    width: number,
+    height: number,
+    params: BuddhabrotParams,
+  ): Histogram {
+    const viewport = getBuddhabrotViewport(width, height, params.viewport, params.framing);
+    const w = ctx.canvas.width,
+      h = ctx.canvas.height;
+    return {
+      key: JSON.stringify([w, h, viewport]),
+      width: w,
+      height: h,
+      viewport,
+      counts: new Int32Array(w * h),
+      horizontal: new Float32Array(w * h),
+      density: new Float32Array(w * h),
+      image: ctx.createImageData(w, h),
+    };
   }
 
   draw(ctx: Context2D, width: number, height: number) {
     const params = this.params;
     if (!params) return false;
-
-    const renderWidth = Math.max(1, ctx.canvas.width);
-    const renderHeight = Math.max(1, ctx.canvas.height);
-    const view = params.viewport ?? INITIAL_CANVAS_VIEW;
-    const key = `${orbitKey(params)}:${renderWidth}x${renderHeight}`;
+    const viewport = getBuddhabrotViewport(width, height, params.viewport, params.framing);
+    const key = JSON.stringify([ctx.canvas.width, ctx.canvas.height, viewport]);
     if (this.state?.key !== key) {
-      this.state = {
-        key,
-        width: renderWidth,
-        height: renderHeight,
-        viewport: getZoomedViewport(width, height, view, params.framing),
-        histogram: new Float32Array(renderWidth * renderHeight),
-        image: ctx.createImageData(renderWidth, renderHeight),
-        maxVisits: 1,
-        samples: 0,
-        paintedSamples: 0,
-        frames: 0,
-        rng: 42,
-      };
+      this.state = this.histogram(ctx, width, height, params);
+      this.replay(this.state);
     }
-
-    const state = this.state;
-    // Populate the opening still without starting the playback loop.
-    const samples =
-      state.frames === 0
-        ? Math.max(12000, params.samplesPerFrame)
-        : params.paused
-          ? 0
-          : params.samplesPerFrame;
-    for (let i = 0; i < samples; i++) {
-      this.sampleOrbit(state, params);
-    }
-    state.samples += samples;
-    state.frames++;
-
-    if (params.paused || state.frames % 2 === 0 || state.frames === 1) {
-      this.paint(ctx, state, params, width, height);
-    }
+    // Bound CPU work at high escape limits, independently of camera motion.
+    const count =
+      params.paused && this.samples > 0
+        ? 0
+        : Math.min(
+            this.samples === 0 ? Math.max(12000, params.samplesPerFrame) : params.samplesPerFrame,
+            Math.max(32, Math.floor(1000000 / params.maxIterations)),
+          );
+    for (let n = 0; n < count; n++) this.sample(this.state, params);
+    this.samples += count;
+    this.paint(ctx, this.state, params);
     return !params.paused;
   }
 
-  drawExport(ctx: Context2D, width: number, height: number, pendingParams?: BuddhabrotParams) {
-    const params = pendingParams ?? this.params;
+  drawExport(ctx: Context2D, width: number, height: number, pending?: BuddhabrotParams) {
+    const params = pending ? normalizeBuddhabrotParams(pending) : this.params;
     if (!params) return;
-    const sameOrbit = this.params && orbitKey(params) === orbitKey(this.params);
-    const samples = sameOrbit ? this.state?.paintedSamples : undefined;
-    const renderer = new BuddhabrotRenderer();
-    // Replay the same seeded samples at the new resolution without resetting the live histogram.
-    renderer.update({
-      ...params,
-      paused: true,
-      samplesPerFrame: samples || params.samplesPerFrame,
-    });
-    renderer.draw(ctx, width, height);
+    if (buddhabrotOrbitKey(params) !== this.key) {
+      const fresh = new BuddhabrotRenderer();
+      fresh.update({ ...params, paused: true });
+      fresh.draw(ctx, width, height);
+      return;
+    }
+    const state = this.histogram(ctx, width, height, params);
+    this.replay(state);
+    this.paint(ctx, state, params);
   }
 
   describe() {
-    return null;
+    return this.params ? { level: this.params.maxIterations, work: this.cached } : null;
   }
 
-  private sampleOrbit(state: Accumulation, params: BuddhabrotParams) {
-    const viewport = getViewportForAspect(state.width / state.height);
-    const random = () => {
-      state.rng ^= state.rng << 13;
-      state.rng ^= state.rng >>> 17;
-      state.rng ^= state.rng << 5;
-      return (state.rng >>> 0) / 4294967296;
-    };
-    const cx = viewport.minX + random() * (viewport.maxX - viewport.minX);
-    const cy = random() * viewport.maxY;
+  private random() {
+    this.rng ^= this.rng << 13;
+    this.rng ^= this.rng >>> 17;
+    this.rng ^= this.rng << 5;
+    return (this.rng >>> 0) / 4294967296;
+  }
 
+  private sample(state: Histogram, params: BuddhabrotParams) {
+    const cx = -2 + 4 * this.random(),
+      cy = 2 * this.random();
     if (isInsideCardioidOrBulb(cx, cy)) return;
+    let zx = 0,
+      zy = 0;
+    for (let n = 1; n <= params.maxIterations; n++) {
+      const x = zx * zx - zy * zy + cx;
+      zy = 2 * zx * zy + cy;
+      zx = x;
+      if (zx * zx + zy * zy <= 4) continue;
+      if (n < params.minOrbitLength) return;
+      const offset = this.cursor * 3;
+      if (this.cached === CACHE_SIZE)
+        this.plot(state, this.seeds[offset], this.seeds[offset + 1], this.seeds[offset + 2], -1);
+      else this.cached++;
+      this.seeds.set([cx, cy, n], offset);
+      this.plot(state, cx, cy, n, 1);
+      this.cursor = (this.cursor + 1) % CACHE_SIZE;
+      return;
+    }
+  }
 
-    const orbit = this.orbit;
-    let zx = 0;
-    let zy = 0;
+  private replay(state: Histogram) {
+    for (let i = 0; i < this.cached; i++)
+      this.plot(state, this.seeds[i * 3], this.seeds[i * 3 + 1], this.seeds[i * 3 + 2], 1);
+  }
 
-    for (let i = 0; i < params.maxIterations; i++) {
-      const nextX = zx * zx - zy * zy + cx;
-      const nextY = 2 * zx * zy + cy;
-      zx = nextX;
-      zy = nextY;
-      orbit[i * 2] = zx;
-      orbit[i * 2 + 1] = zy;
-
-      if (zx * zx + zy * zy > 4) {
-        if (i + 1 >= params.minOrbitLength) this.addOrbit(state, i + 1);
-        return;
+  private plot(state: Histogram, cx: number, cy: number, length: number, delta: number) {
+    const { minX, maxX, minY, maxY } = state.viewport;
+    let zx = 0,
+      zy = 0;
+    // The first point outside the escape circle does not contribute a visit.
+    for (let i = 0; i < length - 1; i++) {
+      const next = zx * zx - zy * zy + cx;
+      zy = 2 * zx * zy + cy;
+      zx = next;
+      const py = Math.floor(((maxY + zx) / (maxY - minY)) * state.height);
+      if (py < 0 || py >= state.height) continue;
+      for (const x of [zy, -zy]) {
+        const px = Math.floor(((x - minX) / (maxX - minX)) * state.width);
+        if (px >= 0 && px < state.width) state.counts[py * state.width + px] += delta;
       }
     }
   }
 
-  private addOrbit(state: Accumulation, length: number) {
-    const { viewport, histogram, width, height } = state;
-    const orbit = this.orbit;
-    const toPixelX = (width - 1) / (viewport.maxX - viewport.minX);
-    const toPixelY = (height - 1) / (viewport.maxY - viewport.minY);
-
-    for (let i = 0; i < length; i++) {
-      const x = orbit[i * 2];
-      const y = orbit[i * 2 + 1];
-
-      if (x < viewport.minX || x > viewport.maxX) continue;
-      const px = Math.min(width - 1, Math.floor((x - viewport.minX) * toPixelX));
-      for (const sampleY of [y, -y]) {
-        if (sampleY < viewport.minY || sampleY > viewport.maxY) continue;
-        const py = Math.min(height - 1, Math.floor((viewport.maxY - sampleY) * toPixelY));
-        const index = py * width + px;
-        const next = histogram[index] + 1;
-        histogram[index] = next;
-        if (next > state.maxVisits) state.maxVisits = next;
+  private paint(ctx: Context2D, state: Histogram, params: BuddhabrotParams) {
+    const bg = color(params.background),
+      fg = color(params.color);
+    const { counts, horizontal, density, width, height } = state;
+    // Fixed one-pixel tent reconstruction at rest and in motion. No resized preview.
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        horizontal[i] =
+          (counts[y * width + Math.max(0, x - 1)] +
+            2 * counts[i] +
+            counts[y * width + Math.min(width - 1, x + 1)]) /
+          4;
       }
     }
-  }
-
-  private paint(
-    ctx: Context2D,
-    state: Accumulation,
-    params: BuddhabrotParams,
-    width: number,
-    height: number,
-  ) {
-    state.paintedSamples = state.samples;
-    const { histogram, image } = state;
-    const { data } = image;
-    const background = parseHexColor(params.background);
-    const foreground = parseHexColor(params.color);
-    const logMax = Math.log(1 + state.maxVisits * params.exposure);
-
-    for (let i = 0; i < histogram.length; i++) {
-      const count = histogram[i];
-      const normalized =
-        count === 0 || logMax === 0 ? 0 : Math.log(1 + count * params.exposure) / logMax;
-
-      const idx = i * 4;
-      data[idx] = Math.round(background.r + (foreground.r - background.r) * normalized);
-      data[idx + 1] = Math.round(background.g + (foreground.g - background.g) * normalized);
-      data[idx + 2] = Math.round(background.b + (foreground.b - background.b) * normalized);
-      data[idx + 3] = 255;
+    let maximum = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        density[i] =
+          (horizontal[Math.max(0, y - 1) * width + x] +
+            2 * horizontal[i] +
+            horizontal[Math.min(height - 1, y + 1) * width + x]) /
+          4;
+        maximum = Math.max(maximum, density[i]);
+      }
     }
-
-    ctx.putImageData(image, 0, 0);
-    ctx.setTransform(state.width / width, 0, 0, state.height / height, 0, 0);
-    ctx.font = "14px monospace";
-    ctx.fillStyle = params.color;
-    const label = `Samples: ${state.samples.toLocaleString()}`;
-    const labelWidth = ctx.measureText(label).width;
-    ctx.fillText(label, width - labelWidth - 18, 28);
+    for (let i = 0; i < state.counts.length; i++) {
+      const level = maximum > 0 ? (Math.max(0, density[i]) / maximum) ** (1 / params.exposure) : 0;
+      for (let c = 0; c < 3; c++)
+        state.image.data[i * 4 + c] = Math.round(bg[c] + (fg[c] - bg[c]) * level);
+      state.image.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(state.image, 0, 0);
   }
 }

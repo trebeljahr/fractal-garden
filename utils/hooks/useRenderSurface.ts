@@ -8,7 +8,7 @@ import type { CalibrationRequest, HostEvent } from "../render/types";
 import { useExplorerPart } from "./useExplorerPart";
 import { useFractalFrame } from "./useFractalFrame";
 
-type Channel = {
+export type RenderChannel = {
   exportPng: (ratio: number) => Promise<Blob>;
   setParams: (params: unknown) => void;
   pick: (x: number, y: number) => Promise<[number, number, number] | null>;
@@ -37,11 +37,11 @@ type Params<P> = {
   shareView?: boolean;
 };
 
-function openWorkerChannel(
+export function openWorkerChannel(
   canvas: HTMLCanvasElement,
   kind: RendererKind,
   onEvent: (event: HostEvent) => void,
-): Channel | null {
+): RenderChannel | null {
   if (typeof Worker === "undefined" || typeof canvas.transferControlToOffscreen !== "function") {
     return null;
   }
@@ -156,7 +156,7 @@ export function useRenderSurface<P>({
 }: Params<P>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const channelRef = useRef<Channel | null>(null);
+  const channelRef = useRef<RenderChannel | null>(null);
   const frame = useFractalFrame(width, height);
   const framing = shareView && canvas?.closest("[data-fractal-viewport]") ? frame : null;
   const framingRef = useRef(framing);
@@ -197,7 +197,7 @@ export function useRenderSurface<P>({
       if (event.type === "error") console.error(`[${kind}] ${event.message}`);
       onEventRef.current?.(event);
     };
-    const connect = (channel: Channel) => {
+    const connect = (channel: RenderChannel) => {
       channelRef.current = channel;
       const { width: w, height: h } = latestSize.current;
       if (w && h) channel.resize(w, h, window.devicePixelRatio || 1);
