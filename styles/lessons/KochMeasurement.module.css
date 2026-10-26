@@ -1,0 +1,28 @@
+.rounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.areaViews {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+.areaReadout {
+  min-width: 0;
+}
+.areaTitle {
+  font-weight: 600;
+}
+.label {
+  fill: #eee8ce;
+  font:
+    13px "Montserrat",
+    sans-serif;
+}
+@media (max-width: 600px) {
+  .areaViews {
+    grid-template-columns: 1fr;
+  }
+}

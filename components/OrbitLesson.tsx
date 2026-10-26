@@ -302,7 +302,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           aria-labelledby={`${id}-diagram-title ${id}-diagram-desc`}
         >
           <title id={`${id}-diagram-title`}>
-            {stage}: {coordinates(current.point)}
+            {`${stage}: ${coordinates(current.point)}`}
           </title>
           <desc id={`${id}-diagram-desc`}>
             White dots show completed calculations. The amber point shows the current result. The

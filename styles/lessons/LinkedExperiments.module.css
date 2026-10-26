@@ -1,0 +1,63 @@
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-block: 1.5rem;
+}
+.pair h3,
+.readout h3 {
+  font:
+    600 1.5rem / 1.5 "Montserrat",
+    sans-serif;
+  margin: 0 0 0.6rem;
+}
+.pair > div {
+  min-width: 0;
+}
+.pair button.map {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  touch-action: none;
+}
+.map canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.map svg {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: none;
+  pointer-events: none;
+}
+.readout {
+  font-variant-numeric: tabular-nums;
+}
+.readout p {
+  margin: 0.5rem 0;
+}
+.coordinates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.coordinates label {
+  font-size: 1.4rem;
+  min-width: 0;
+}
+.coordinates output {
+  display: block;
+}
+.sequence {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .pair {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

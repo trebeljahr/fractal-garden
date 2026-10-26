@@ -8,6 +8,10 @@ Every line, including the sides of the bumps, gets the same treatment on the nex
 
 Four lines replace one. Each is one third as long, so their combined length is four thirds of the old length. The edge gets a third longer every round.
 
+Straighten the pieces below to compare them with the original edge. Then try another round. The ruler stays the same size.
+
+<figure data-lesson="koch-measurement"></figure>
+
 Each new triangle has one ninth of the area of a triangle added in the previous round. There are four times as many of them on each round after the first. The total area added that round is only four ninths of the previous addition.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
 
 That is how the edge can grow forever while the enclosed area stays finite. Add all the new triangles and the final snowflake has 60% more area than the starting triangle.
@@ -23,4 +27,4 @@ The [anti-snowflake](/l-system/koch-anti-snowflake) places those bumps inward. T
 
 ## Sources and notes
 
-1. <span id="koch-snowflake-source-1"></span> Francis Su and collaborators, [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/), Harvey Mudd College, Math Fun Facts. Perimeter and geometric-series area argument; the length and area values here follow that calculation. [Back](#koch-snowflake-ref-1)
+1. <span id="koch-snowflake-source-1"></span> [Koch Snowflake](https://math.hmc.edu/funfacts/koch-snowflake/). [Back](#koch-snowflake-ref-1)

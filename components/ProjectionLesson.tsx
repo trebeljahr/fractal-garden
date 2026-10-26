@@ -1,6 +1,7 @@
 import { useId, useMemo, useState } from "react";
 import styles from "../styles/ProjectionLesson.module.css";
 import { type ProjectionKind, projectionPolygons } from "../utils/fractalProjections";
+import MengerSliceLesson from "./MengerSliceLesson";
 import TetrahedronShadows from "./TetrahedronShadows";
 
 const COPY = {
@@ -18,7 +19,13 @@ export function isProjectionKind(value: unknown): value is ProjectionKind {
 }
 
 export default function ProjectionLesson({ kind }: { kind: ProjectionKind }) {
-  return kind === "tetrahedron" ? <TetrahedronShadows /> : <CubeProjectionLesson kind={kind} />;
+  return kind === "tetrahedron" ? (
+    <TetrahedronShadows />
+  ) : kind === "menger" ? (
+    <MengerSliceLesson />
+  ) : (
+    <CubeProjectionLesson kind={kind} />
+  );
 }
 
 function CubeProjectionLesson({ kind }: { kind: "menger" | "vicsek" }) {

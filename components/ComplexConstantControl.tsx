@@ -5,21 +5,23 @@ export type ComplexConstant = { cReal: number; cImag: number };
 
 type Props = {
   value: ComplexConstant;
+  extent?: number;
   onChange: (value: ComplexConstant) => void;
 };
-
-const clamp = (value: number) => Math.max(-1, Math.min(1, value));
-const snap = (value: number) => Number(clamp(value).toFixed(3));
 
 function CoordinateInput({
   label,
   value,
   onChange,
+  extent,
 }: {
   label: string;
+  extent: number;
   value: number;
   onChange: (value: number) => void;
 }) {
+  const clamp = (value: number) => Math.max(-extent, Math.min(extent, value));
+  const snap = (value: number) => Number(clamp(value).toFixed(3));
   const labelId = useId();
   const [draft, setDraft] = useState(String(value));
   const editing = useRef(false);
@@ -47,7 +49,7 @@ function CoordinateInput({
           const next = event.target.value;
           setDraft(next);
           const parsed = next.trim() === "" ? NaN : Number(next);
-          if (Number.isFinite(parsed) && parsed >= -1 && parsed <= 1) onChange(parsed);
+          if (Number.isFinite(parsed) && parsed >= -extent && parsed <= extent) onChange(parsed);
         }}
         onFocus={() => {
           editing.current = true;
@@ -70,19 +72,21 @@ function CoordinateInput({
   );
 }
 
-export function ComplexConstantControl({ value, onChange }: Props) {
+export function ComplexConstantControl({ value, onChange, extent = 1 }: Props) {
+  const clamp = (value: number) => Math.max(-extent, Math.min(extent, value));
+  const snap = (value: number) => Number(clamp(value).toFixed(3));
   const hintId = useId();
   const valueId = useId();
   const pointerId = useRef<number | null>(null);
-  const pointX = ((clamp(value.cReal) + 1) / 2) * 100;
-  const pointY = ((1 - clamp(value.cImag)) / 2) * 100;
+  const pointX = ((clamp(value.cReal) + extent) / (2 * extent)) * 100;
+  const pointY = ((extent - clamp(value.cImag)) / (2 * extent)) * 100;
 
   const movePoint = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     onChange({
-      cReal: snap(((event.clientX - rect.left) / rect.width) * 2 - 1),
-      cImag: snap(1 - ((event.clientY - rect.top) / rect.height) * 2),
+      cReal: snap(((event.clientX - rect.left) / rect.width) * 2 * extent - extent),
+      cImag: snap(extent - ((event.clientY - rect.top) / rect.height) * 2 * extent),
     });
   };
 
@@ -159,25 +163,27 @@ export function ComplexConstantControl({ value, onChange }: Props) {
             <span className={styles.point} style={{ left: `${pointX}%`, top: `${pointY}%` }} />
           </div>
           <span className={styles.topTick} aria-hidden="true">
-            +1
+            +{extent}
           </span>
           <span className={styles.bottomTick} aria-hidden="true">
-            −1
+            −{extent}
           </span>
           <div className={styles.realAxis} aria-hidden="true">
-            <span>−1</span>
+            <span>−{extent}</span>
             <span>Real (x)</span>
-            <span>+1</span>
+            <span>+{extent}</span>
           </div>
         </div>
       </div>
       <div className={styles.coordinates}>
         <CoordinateInput
+          extent={extent}
           label="Real (x)"
           value={value.cReal}
           onChange={(cReal) => onChange({ cReal, cImag: value.cImag })}
         />
         <CoordinateInput
+          extent={extent}
           label="Imaginary (y)"
           value={value.cImag}
           onChange={(cImag) => onChange({ cReal: value.cReal, cImag })}
@@ -187,8 +193,8 @@ export function ComplexConstantControl({ value, onChange }: Props) {
         Drag the point or use arrow keys. Shift moves faster.
       </p>
       <span className={styles.srOnly} id={valueId} aria-live="polite" aria-atomic="true">
-        Real {value.cReal}, imaginary {value.cImag}. Range −1 to +1 on each axis. Home resets to
-        zero.
+        Real {value.cReal}, imaginary {value.cImag}. Range −{extent} to +{extent} on each axis. Home
+        resets to zero.
       </span>
     </li>
   );

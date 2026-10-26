@@ -19,6 +19,12 @@ const {
   tetrahedronProjection,
 } = require("../utils/fractalProjections.ts");
 const { generateMengerSponge } = require("../utils/voxelFractals.ts");
+const {
+  liftSlice,
+  clipAtSlice,
+  mengerSliceGeometry,
+  tunnelSection,
+} = require("../utils/lessons/mengerSlice.ts");
 const area = (p) =>
   Math.abs(
     p.reduce((s, v, i) => {
@@ -116,4 +122,42 @@ test("viewing arrows follow directions that disappear in the matching shadows", 
     const b = tetrahedronProjection(shifted, triangular);
     assert.ok(a.every((value, axis) => Math.abs(value - b[axis]) < 1e-10));
   }
+});
+
+test("the solid caps and flat view describe the same moving diagonal plane", () => {
+  for (const offset of [-2.8, -1.2, 0, 0.64, 2.8]) {
+    const data = mengerSliceGeometry(2, offset);
+    assert.ok(data.sections.length > 0);
+    for (const section of data.sections)
+      for (const point of section) {
+        const lifted = liftSlice(point, offset);
+        assert.ok(Math.abs(lifted.reduce((sum, v) => sum + v, 0) - offset) < 1e-9);
+        assert.ok(lifted.every((v) => Math.abs(v) <= 1 + 1e-9));
+      }
+    for (const face of data.faces)
+      for (const point of face) assert.ok(point.reduce((sum, v) => sum + v, 0) <= offset + 1e-9);
+  }
+  const clipped = clipAtSlice(
+    [
+      [-1, -1, 0],
+      [1, -1, 0],
+      [1, 1, 0],
+      [-1, 1, 0],
+    ],
+    0,
+  );
+  assert.equal(clipped.length, 3);
+  assert.ok(clipped.every((p) => p[0] + p[1] + p[2] <= 1e-9));
+});
+
+test("the central star hole is exactly the union of the three first-round tunnel sections", () => {
+  const data = mengerSliceGeometry(1, 0);
+  const tunnels = [0, 1, 2].map((axis) => tunnelSection(axis, 0));
+  for (let x = -1.4; x <= 1.4; x += 0.073)
+    for (let y = -1.4; y <= 1.4; y += 0.081) {
+      if (!inside(data.boundary, x, y)) continue;
+      const inHole = tunnels.some((p) => inside(p, x, y));
+      const inSolid = data.sections.some((p) => inside(p, x, y));
+      assert.notEqual(inHole, inSolid, `solid/tunnel mismatch at ${x},${y}`);
+    }
 });

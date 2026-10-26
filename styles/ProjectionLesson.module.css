@@ -68,6 +68,30 @@
 .lesson p {
   margin: 1rem 0;
 }
+.planeControl {
+  display: grid;
+  gap: 0.3rem;
+  margin: 1rem 0;
+  font-size: 1.5rem;
+}
+.planeControl span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.planeControl input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: #f5c56d;
+}
+.planeControl input:focus-visible {
+  outline: 2px solid #f5c56d;
+  outline-offset: 3px;
+}
+.copyControls legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
 @media (prefers-reduced-motion: reduce) {
   .controls button,
   .copyControls button {

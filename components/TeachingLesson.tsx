@@ -1,6 +1,11 @@
 import dynamic from "next/dynamic";
 
 // Load a lesson only on the pages that include its figure marker.
+const DragonFoldLesson = dynamic(() => import("./lessons/DragonFoldLesson"));
+const HilbertJoinLesson = dynamic(() => import("./lessons/HilbertJoinLesson"));
+const KochMeasurementLesson = dynamic(() => import("./lessons/KochMeasurementLesson"));
+const DlaContactsLesson = dynamic(() => import("./lessons/DlaContactsLesson"));
+const LinkedJuliaLesson = dynamic(() => import("./lessons/LinkedJuliaLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
 const DragonTilingLesson = dynamic(() => import("./lessons/DragonTilingLesson"));
 const NewtonLesson = dynamic(() => import("./lessons/NewtonLesson"));
@@ -20,6 +25,11 @@ const CellularTriangleLesson = dynamic(() =>
 const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
 
 const LESSONS = [
+  "linked-julia",
+  "koch-measurement",
+  "dragon-fold",
+  "hilbert-join",
+  "dla-contacts",
   "lsystem-koch",
   "lsystem-dragon",
   "dragon-tiling",
@@ -42,6 +52,16 @@ export function isTeachingLessonKind(value: unknown): value is TeachingLessonKin
 
 export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
   switch (kind) {
+    case "dragon-fold":
+      return <DragonFoldLesson />;
+    case "hilbert-join":
+      return <HilbertJoinLesson />;
+    case "koch-measurement":
+      return <KochMeasurementLesson />;
+    case "dla-contacts":
+      return <DlaContactsLesson />;
+    case "linked-julia":
+      return <LinkedJuliaLesson />;
     case "lsystem-koch":
       return <LSystemLesson preset="koch" />;
     case "lsystem-dragon":

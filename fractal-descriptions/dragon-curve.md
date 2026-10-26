@@ -4,6 +4,10 @@ Fold a paper strip in half repeatedly, always in the same direction. Unfold it u
 
 Each additional fold doubles the number of sections in the strip. The new crease directions determine whether each connection turns left or right.
 
+Open the strip below. Choose a crease to follow the two sections it joins.
+
+<figure data-lesson="dragon-fold"></figure>
+
 <figure data-construction-player="lsystem-dragon"></figure>
 
 The computer makes this path with two drawing instructions, F and G. Both mean draw forward, but they have different replacement rules:
@@ -32,7 +36,7 @@ Four copies meet at their starting point, rotated by 0, 90, 180 and 270 degrees.
 
 ## Sources and notes
 
-1. <span id="dragon-curve-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021, section 1. Describes the Heighway dragon’s paper-folding origin. [Back](#dragon-curve-ref-1)
+1. <span id="dragon-curve-source-1"></span> [Paperfolding morphisms, planefilling curves, and fractal tiles](https://arxiv.org/pdf/1011.5788). [Back](#dragon-curve-ref-1)
 2. <span id="dragon-curve-source-2"></span> Sze-Man Ngai and Nhu Nguyen, [The Heighway Dragon Revisited](https://link.springer.com/article/10.1007/s00454-003-0778-7), Discrete & Computational Geometry 29 (2003), 603–623. Proves a decomposition into disk-like pieces with open interiors. Nonempty interior implies positive area and Hausdorff dimension 2. The [author repository](https://digitalcommons.georgiasouthern.edu/math-sci-facpubs/602/) provides the abstract freely. [Back](#dragon-curve-ref-2)
 3. <span id="dragon-curve-source-3"></span> Michel Dekking, [Paperfolding morphisms, planefilling curves, and fractal tiles](https://arxiv.org/pdf/1011.5788), Theoretical Computer Science 414, no. 1 (2012), 20–37, sections 8–10. Discusses four quarter-turned folding curves and their limiting tiles. [Back](#dragon-curve-ref-3)
 4. <span id="dragon-curve-source-4"></span> Diagram construction. With the path’s endpoints one unit apart, the four-copy groups repeat at shifts of (1, 1) and (1, −1). Each path segment is the diagonal of a filled square. [Back](#dragon-curve-ref-4)

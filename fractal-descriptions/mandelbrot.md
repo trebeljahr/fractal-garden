@@ -26,6 +26,10 @@ The round bulb left of the main body contains choices that settle toward a two-v
 
 The [Julia explorer](/julia-set) changes the test: every pixel uses the same number to add, but starts from a different position. That is why choosing a new $c$ there changes the whole picture.
 
+Move a point in the Mandelbrot picture below. Its coordinates become the number added at every pixel in the Julia picture. Then choose a starting point in the Julia picture and follow its results.
+
+<figure data-lesson="linked-julia"></figure>
+
 ## Further reading
 
 - [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)

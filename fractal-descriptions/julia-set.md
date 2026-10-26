@@ -18,6 +18,10 @@ The [Mandelbrot set](/mandelbrot) tells you whether a choice of $c$ gives a conn
 
 Dark pixels have not escaped before the computer's step limit. Some may escape later. Raising the limit can resolve those slow cases.
 
+Move the amber point below to change the number every pixel adds. Move the teal point to change only the starting position being followed.
+
+<figure data-lesson="linked-julia"></figure>
+
 ## Further reading
 
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)

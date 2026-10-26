@@ -21,8 +21,8 @@ type Config = EscapeTimeColoring & {
 };
 
 const presets = JULIA_PRESETS;
-const presetOptions = Object.keys(presets);
-const presetLabels = JULIA_PRESET_LABELS;
+const presetOptions = [...Object.keys(presets), "Custom"];
+const presetLabels: Record<string, string> = { ...JULIA_PRESET_LABELS, Custom: "Custom number" };
 
 const JuliaSet = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(() => ({
@@ -39,7 +39,9 @@ const JuliaSet = ({ description }: Props) => {
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => {
-      if (newData.preset && newData.preset !== old.preset) {
+      if (newData.preset === "Custom" && old.preset !== "Custom")
+        return { ...old, preset: "Custom" };
+      if (newData.preset && newData.preset !== "Custom" && newData.preset !== old.preset) {
         return {
           ...old,
           preset: newData.preset,
@@ -59,14 +61,14 @@ const JuliaSet = ({ description }: Props) => {
       description={description}
       config={config}
       onUpdate={handleUpdate}
-      onRestore={setConfig}
+      onRestore={(saved) => setConfig({ ...saved, preset: "Custom" })}
       initialCenter={[0, 0]}
       initialZoomSize={1.8}
       c={[config.cReal, config.cImag]}
       views={JULIA_PLACES}
       shareRules={[
-        { path: "cReal", kind: "number", min: -1, max: 1 },
-        { path: "cImag", kind: "number", min: -1, max: 1 },
+        { path: "cReal", kind: "number", min: -2, max: 2 },
+        { path: "cImag", kind: "number", min: -2, max: 2 },
       ]}
       lines={["Drag to pan. Scroll or pinch to zoom."]}
     >
@@ -77,8 +79,9 @@ const JuliaSet = ({ description }: Props) => {
         options={presetOptions}
       />
       <ComplexConstantControl
+        extent={2}
         value={config}
-        onChange={(point) => setConfig((current) => ({ ...current, ...point }))}
+        onChange={(point) => setConfig((current) => ({ ...current, ...point, preset: "Custom" }))}
       />
     </EscapeTimeFractal>
   );

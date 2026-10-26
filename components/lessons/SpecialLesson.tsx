@@ -1,109 +1,10 @@
 import { useMemo, useState } from "react";
 import extra from "../../styles/lessons/Investigations.module.css";
 import styles from "../../styles/lessons/Lesson.module.css";
-import { buddhaSamples, bulbPower, histogramOrbit } from "../../utils/lessons/specialLessons";
+import { bulbPower } from "../../utils/lessons/specialLessons";
 import { contractingProjection, tribonacciWord } from "../../utils/rauzy";
+import BuddhabrotAccumulation from "./BuddhabrotAccumulation";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
-
-function BuddhabrotLesson() {
-  const [step, setStep] = useState(0);
-  const [preset, setPreset] = useState(2);
-  const samples = useMemo(() => buddhaSamples(), []);
-  const constants = [
-    { x: 0, y: 0 },
-    { x: -1, y: 0 },
-    { x: 0.3, y: 0.6 },
-  ];
-  const orbit = histogramOrbit(constants[preset]);
-  const cells = new Uint32Array(80 * 60);
-  let escaped = 0;
-  for (const sample of samples.slice(0, step * 100)) {
-    if (!sample.escaped) continue;
-    escaped++;
-    for (const p of sample.points) {
-      const x = Math.floor(((p.x + 2) / 4) * 80),
-        y = Math.floor(((1.5 - p.y) / 3) * 60);
-      if (x >= 0 && x < 80 && y >= 0 && y < 60) cells[y * 80 + x]++;
-    }
-  }
-  const peak = Math.max(1, ...Array.from(cells));
-  const plot = (p: { x: number; y: number }) => [40 + (p.x + 2) * 100, 10 + (1.5 - p.y) * 100];
-  const path = orbit.points
-    .filter((p) => Math.abs(p.x) <= 2 && Math.abs(p.y) <= 1.5)
-    .map((p, i) => `${i ? "L" : "M"}${plot(p).join(",")}`)
-    .join(" ");
-  return (
-    <LessonFrame title="Plot the route of an escaping calculation" kind="buddhabrot">
-      <p>
-        Choose a number below. Follow the results of squaring and adding it. If they escape, their
-        positions add dots to the second picture.
-      </p>
-      <div className={styles.options}>
-        {["c = 0", "c = −1", "c = 0.3 + 0.6i"].map((name, i) => (
-          <button type="button" key={name} aria-pressed={preset === i} onClick={() => setPreset(i)}>
-            {name}
-          </button>
-        ))}
-      </div>
-      <svg
-        viewBox="0 0 480 320"
-        role="img"
-        aria-label={`One orbit: ${orbit.escaped ? "escapes and contributes visits" : "does not escape within 80 updates and contributes nothing"}`}
-      >
-        <path d="M40 160H440M240 10V310" className={styles.axis} />
-        <path d={path} className={orbit.escaped ? styles.accent : extra.reference} />
-        {Array.from(new Map(orbit.points.slice(0, 12).map((p) => [`${p.x}:${p.y}`, p])).values())
-          .filter((p) => Math.abs(p.x) <= 2 && Math.abs(p.y) <= 1.5)
-          .map((p) => (
-            <circle
-              key={`${p.x}:${p.y}`}
-              cx={plot(p)[0]}
-              cy={plot(p)[1]}
-              r="3"
-              className={styles.point}
-            />
-          ))}
-      </svg>
-      <p>
-        {orbit.escaped
-          ? `This orbit escapes after ${orbit.points.length} updates. The positions shown here add dots to the picture below.`
-          : "The results have not escaped after 80 steps. They add no dots to the picture below."}
-      </p>
-      <svg
-        viewBox="0 0 480 320"
-        role="img"
-        aria-label={`${escaped} escaping orbits contribute to a visit histogram from ${step * 100} samples.`}
-      >
-        {Array.from(cells, (value, index) => ({
-          value,
-          x: index % 80,
-          y: Math.floor(index / 80),
-        })).map(({ value, x, y }) =>
-          value ? (
-            <rect
-              key={`${x}:${y}`}
-              x={40 + x * 5}
-              y={10 + y * 5}
-              width="5"
-              height="5"
-              fill="#f5c56d"
-              opacity={Math.log1p(value) / Math.log1p(peak)}
-            />
-          ) : null,
-        )}
-      </svg>
-      <LessonSteps step={step} max={20} onChange={setStep} label="Orbit accumulation" />
-      <p aria-live="polite">
-        {step * 100} numbers tested · {escaped} escaped. A square gets brighter each time a
-        calculation visits it.
-      </p>
-      <p>
-        Some calculations take many steps before escaping. They can add dots in many parts of the
-        picture.
-      </p>
-    </LessonFrame>
-  );
-}
 
 function MandelbulbLesson() {
   const [step, setStep] = useState(0);
@@ -307,7 +208,7 @@ export const isSpecialLessonKind = (value: unknown): value is SpecialLessonKind 
   value === "buddhabrot" || value === "mandelbulb" || value === "rauzy";
 export default function SpecialLesson({ kind }: { kind: SpecialLessonKind }) {
   return kind === "buddhabrot" ? (
-    <BuddhabrotLesson />
+    <BuddhabrotAccumulation />
   ) : kind === "mandelbulb" ? (
     <MandelbulbLesson />
   ) : (

@@ -1,0 +1,42 @@
+.pathConnections .creaseButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+.creaseButtons legend {
+  margin-bottom: 0.6rem;
+  font-size: 1.4rem;
+}
+.creaseButtons button {
+  min-width: 44px;
+}
+.hilbertLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+.routeLabel {
+  fill: #eee8ce;
+  font:
+    600 17px "Montserrat",
+    sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  stroke: #10151a;
+  stroke-width: 5px;
+  paint-order: stroke;
+}
+.swatch {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.5em;
+}
+@media (max-width: 650px) {
+  .hilbertLayout {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

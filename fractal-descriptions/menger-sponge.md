@@ -14,9 +14,11 @@ From straight in front, the square holes line up to make a [Sierpinski carpet](/
 
 Now take a thin, flat slice through the middle of the sponge. Tilt the slice so that it faces one corner of the original cube. Its outline is a hexagon, and the holes are six-pointed stars. The square tunnels meet the slice at an angle.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
 
+Move the plane below. The sponge and the flat picture show the same slice. Highlight a tunnel to see which part of the hole it makes.
+
 <figure data-projection="menger"></figure>
 
-The two buttons show different things. **Shadow** includes cubes behind one another. A hole disappears if another cube blocks the view through it. **Cross-section** shows only the thin slice, so cubes in front of or behind it don't fill its holes.
+**Shadow** includes cubes behind one another. **Cross-section** shows only the thin slice. Moving the slice changes its holes, but leaves the shadow alone.
 
 ## Further reading
 
@@ -25,4 +27,4 @@ The two buttons show different things. **Shadow** includes cubes behind one anot
 
 ## Sources and notes
 
-1. <span id="menger-sponge-source-1"></span> George Hart, [Mathematical Impressions: The Surprising Menger Sponge Slice](https://www.simonsfoundation.org/news/mathematical-impressions-the-surprising-menger-sponge-slice/), Simons Foundation, 10 December 2012. Original video demonstration of the diagonal section. [Back](#menger-sponge-ref-1)
+1. <span id="menger-sponge-source-1"></span> [Mathematical Impressions: The Surprising Menger Sponge Slice](https://www.simonsfoundation.org/news/mathematical-impressions-the-surprising-menger-sponge-slice/). [Back](#menger-sponge-ref-1)

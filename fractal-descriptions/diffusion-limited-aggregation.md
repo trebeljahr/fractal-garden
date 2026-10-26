@@ -10,6 +10,10 @@ The diagram shows the individual moves. Each step goes up, down, left or right. 
 
 In this diagram the particle sticks on its first contact. In the full explorer, **Sticking chance** can be lower. A particle may then move again after touching the cluster.
 
+The next experiment holds a fork still and counts first contacts. Then let those contacts become new particles and watch the branches extend.
+
+<figure data-lesson="dla-contacts"></figure>
+
 A point seed lets the cluster extend in all directions. A line seed gives it an extended base. Coloring by arrival time shows which parts formed first and where particles are attaching now.
 
 ## Further reading
@@ -19,4 +23,4 @@ A point seed lets the cluster extend in all directions. A line seed gives it an 
 
 ## Sources and notes
 
-1. <span id="diffusion-limited-aggregation-source-1"></span> T. A. Witten Jr. and L. M. Sander, [Diffusion-Limited Aggregation, a Kinetic Critical Phenomenon](https://doi.org/10.1103/PhysRevLett.47.1400), *Physical Review Letters* 47 (1981), 1400–1403. Original random-walk construction and shielding explanation. [Back](#diffusion-limited-aggregation-ref-1)
+1. <span id="diffusion-limited-aggregation-source-1"></span> [Diffusion-limited aggregation: a kinetic critical phenomenon?](https://www.thp.uni-koeln.de/krug/teaching-Dateien/SS2012/Sander2000.pdf) [Back](#diffusion-limited-aggregation-ref-1)
