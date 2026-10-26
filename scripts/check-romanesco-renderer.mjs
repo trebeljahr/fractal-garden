@@ -3,8 +3,15 @@ import { require } from "../tests/helpers/spatial-gpu-fixtures.mjs";
 
 // Generate a Playwright CLI callback comparing exact color and surface bytes.
 // Run with run-code --filename; compare accelerated and original traversal.
-const output = process.argv[2] ?? "/private/tmp/check-romanesco-beam.js";
+const output = process.argv[2] ?? "/private/tmp/check-romanesco-renderer.js";
 const baseUrl = process.argv[3] ?? "http://127.0.0.1:56716";
+const viewport = {
+  width: Number(process.env.ROMANESCO_WIDTH ?? 640),
+  height: Number(process.env.ROMANESCO_HEIGHT ?? 480),
+  dpr: Number(process.env.ROMANESCO_DPR ?? 1),
+};
+for (const value of Object.values(viewport))
+  if (!Number.isFinite(value) || value <= 0) throw Error("Invalid comparison viewport");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
 const { ROMANESCO_ROOT, ROMANESCO_RADIUS } = require("../../utils/romanesco.ts");
 const { ROMANESCO_UNIFORM_CHILD_CAPACITY } = require("../../utils/spatialGpu/uniformGeometry.ts");
@@ -69,15 +76,18 @@ const fixtures = definitions
   });
 if (!fixtures.length) throw Error("ROMANESCO_FILTER matched no fixtures");
 
-async function check(outerPage, fixtures) {
+async function check(outerPage, fixtures, viewport) {
   const contexts = [],
     views = [];
   try {
-    for (const mode of ["baseline", "beam"]) {
+    for (const mode of ["baseline", "accelerated"]) {
       const context = await outerPage
         .context()
         .browser()
-        .newContext({ viewport: { width: 640, height: 480 }, deviceScaleFactor: 1 });
+        .newContext({
+          viewport: { width: viewport.width, height: viewport.height },
+          deviceScaleFactor: viewport.dpr,
+        });
       contexts.push(context);
       const page = await context.newPage();
       await page.addInitScript((mode) => {
@@ -108,7 +118,7 @@ async function check(outerPage, fixtures) {
           return ui.call(
             this,
             loc,
-            mode === "baseline" && name === "u_useBeam"
+            mode === "baseline" && name === "u_useSeed"
               ? 0
               : override?.customTail && name === "u_childCount"
                 ? 1
@@ -131,10 +141,8 @@ async function check(outerPage, fixtures) {
           );
         };
         p.drawArrays = function (...args) {
-          const fb = this.getParameter(this.FRAMEBUFFER_BINDING),
-            beam = this.getParameter(this.DRAW_BUFFER3) === this.COLOR_ATTACHMENT3;
-          if (beam && mode === "baseline") return;
-          if (fb && !beam && this.getParameter(this.DRAW_BUFFER1) === this.COLOR_ATTACHMENT1)
+          const fb = this.getParameter(this.FRAMEBUFFER_BINDING);
+          if (fb && this.getParameter(this.DRAW_BUFFER1) === this.COLOR_ATTACHMENT1)
             window.romanSurface = fb;
           return draw.apply(this, args);
         };
@@ -146,7 +154,9 @@ async function check(outerPage, fixtures) {
       const snapshots = [];
       for (const { mode, page } of views) {
         await page.setViewportSize(
-          fixture.inside ? { width: 320, height: 300 } : { width: 640, height: 480 },
+          fixture.inside
+            ? { width: 320, height: 300 }
+            : { width: viewport.width, height: viewport.height },
         );
         await page.goto(fixture.url);
         await page.waitForFunction(async (expected) => {
@@ -186,7 +196,7 @@ async function check(outerPage, fixtures) {
           }
         }, fixture);
         await page.waitForTimeout(80);
-        const snapshot = await page.evaluate(() => {
+        const snapshot = await page.evaluate(async () => {
           window.dispatchEvent(new Event("garden:before-export"));
           const c = document.querySelector("[data-gpu-spatial-explorer]"),
             gl = c.getContext("webgl2"),
@@ -197,10 +207,14 @@ async function check(outerPage, fixtures) {
           gl.readBuffer(gl.COLOR_ATTACHMENT1);
           gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, surface);
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          const hash = async (bytes) =>
+            Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), (value) =>
+              value.toString(16).padStart(2, "0"),
+            ).join("");
           return {
             size: [c.width, c.height],
-            color: Array.from(color),
-            surface: Array.from(surface),
+            color: await hash(color),
+            surface: await hash(surface),
             error: gl.getError(),
             alerts: Array.from(
               document.querySelectorAll("[role=alert]"),
@@ -221,24 +235,10 @@ async function check(outerPage, fixtures) {
       }
       const compare = (key) => {
         const a = snapshots[0][key],
-          b = snapshots[1][key],
-          examples = [];
-        let changedBytes = 0,
-          maximum = 0;
-        for (let i = 0; i < a.length; i++)
-          if (a[i] !== b[i]) {
-            changedBytes++;
-            maximum = Math.max(maximum, Math.abs(a[i] - b[i]));
-            if (examples.length < 8)
-              examples.push({
-                x: Math.floor(i / 4) % snapshots[0].size[0],
-                y: Math.floor(i / 4 / snapshots[0].size[0]),
-                channel: i % 4,
-                a: a[i],
-                b: b[i],
-              });
-          }
-        return { changedBytes, maximum, examples };
+          b = snapshots[1][key];
+        // Keep full Retina buffers inside their browser contexts. Serializing
+        // tens of millions of boxed numbers can exhaust the test driver.
+        return { equal: a === b, baselineSha256: a, acceleratedSha256: b };
       };
       results.push({
         name: fixture.name,
@@ -248,7 +248,7 @@ async function check(outerPage, fixtures) {
       });
     }
     return {
-      passed: results.every((r) => !r.color.changedBytes && !r.surface.changedBytes),
+      passed: results.every((r) => r.color.equal && r.surface.equal),
       results,
     };
   } finally {
@@ -258,5 +258,5 @@ async function check(outerPage, fixtures) {
 
 writeFileSync(
   output,
-  `async page => await (${check.toString()})(page, ${JSON.stringify(fixtures)})`,
+  `async page => await (${check.toString()})(page, ${JSON.stringify(fixtures)}, ${JSON.stringify(viewport)})`,
 );

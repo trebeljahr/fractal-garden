@@ -4,7 +4,7 @@
 #endif
 precision highp float;
 precision highp int;
-#if defined(ROMANESCO_DEFER_NORMALS) && !defined(ROMANESCO_BEAM_PASS)
+#if defined(ROMANESCO_DEFER_NORMALS) && !defined(ROMANESCO_SEED_PASS)
 #define ROMANESCO_DELAYED_NORMALS
 #endif
 uniform highp sampler2D u_roots;
@@ -64,59 +64,21 @@ uniform float u_reliefFront;
 // Queries share the exact rendered construction. 1 = ray, 2 = clearance.
 uniform int u_query;
 uniform vec3 u_queryRay;
-#ifdef ROMANESCO_BEAM_PASS
-layout(location=0) out highp uvec4 outBeam0;
-layout(location=1) out highp uvec4 outBeam1;
-layout(location=2) out highp uvec4 outBeam2;
-layout(location=3) out highp uvec4 outBeam3;
-uvec4 beamWinningPath = uvec4(0u);
-void storeBeamPathRow(inout uvec4 path, int at, uint row) {
+#ifdef ROMANESCO_SEED_USE
+uniform highp usampler2D u_seed;
+uniform bool u_useSeed;
+#endif
+#ifdef ROMANESCO_SEED_PASS
+layout(location=0) out highp uvec4 outSeed;
+uvec4 seedWinningPath = uvec4(0u);
+void storeSeedPathRow(inout uvec4 path, int at, uint row) {
   int bit = 14 + at * 10, word = bit / 32, shift = bit % 32;
   path[word] |= row << uint(shift);
   if (shift > 22) path[word + 1] |= row >> uint(32 - shift);
 }
-uint readBeamPathRow(uvec4 path, int at) {
-  int bit = 14 + at * 10, word = bit / 32, shift = bit % 32;
-  uint row = path[word] >> uint(shift);
-  if (shift > 22) row |= path[word + 1] << uint(32 - shift);
-  return row & 1023u;
-}
 #else
 layout(location=0) out vec4 outColor;
 layout(location=1) out vec4 outSurface;
-#endif
-#ifdef ROMANESCO_BEAM_USE
-uniform highp usampler2D u_beam0;
-uniform highp usampler2D u_beam1;
-uniform highp usampler2D u_beam2;
-uniform highp usampler2D u_beam3;
-uniform bool u_useBeam;
-bool beamForceBaseline = false, beamAmbiguous = false;
-uint beamDescriptor(ivec2 tile, int index) {
-  int at = index + 1;
-  if (at < 4) return texelFetch(u_beam0, tile, 0)[at];
-  if (at < 8) return texelFetch(u_beam1, tile, 0)[at - 4];
-  if (at < 12) return texelFetch(u_beam2, tile, 0)[at - 8];
-  return texelFetch(u_beam3, tile, 0)[at - 12];
-}
-#endif
-#if defined(ROMANESCO_BEAM_USE) || defined(ROMANESCO_BEAM_PASS)
-// A variable-length base-N code stores three invariant child rows in 21 bits.
-// Appending child i maps code c to c*N+i+1; zero is the empty root prefix.
-int beamRootIndex(uint descriptor) { return int(descriptor & 511u); }
-uint beamCode(uint descriptor) { return (descriptor >> 9u) & 2097151u; }
-int beamDepth(uint code) {
-  uint n = uint(u_childCount);
-  return code > n * (n + 1u) ? 3 : code > n ? 2 : code > 0u ? 1 : 0;
-}
-int beamChildRow(uint code, int depth, int at) {
-  uint n = uint(u_childCount);
-  for (int i = 0; i < 2; i++) {
-    if (i >= depth - at - 1) break;
-    code = (code - 1u) / n;
-  }
-  return int((code - 1u) % n);
-}
 #endif
 
 #ifdef TRAVERSAL_DIAGNOSTICS
@@ -215,10 +177,6 @@ int boundsOctant(vec3 direction) {
 }
 bool usesChildBounds() { return u_kind == 3 && u_childBoundsCount > 0; }
 Transform readNormalChild(int cursor, vec3 direction) {
-#ifdef ROMANESCO_BEAM_USE
-  // Prefixes replay a globally indexed row; the fine ray can use another octant.
-  if ((cursor & 1073741824) != 0) return readCanonicalChild(cursor & 1023);
-#endif
   return readChild(usesChildBounds() ? (cursor >> 16) - 1 : cursor - 1, direction);
 }
 void readChildBounds(int index, out vec3 low, out vec3 high, out int child, out int escape) {
@@ -578,33 +536,67 @@ bool leaf(vec3 o, vec3 d, float limit, out float hit, out vec3 normal, out float
   return true;
 }
 
+#ifdef ROMANESCO_SEED_USE
+uint seedPathRow(uvec4 path, int at) {
+  int bit = 14 + at * 10, word = bit / 32, shift = bit % 32;
+  uint row = path[word] >> uint(shift);
+  if (shift > 22) row |= path[word + 1] << uint(32 - shift);
+  return row & 1023u;
+}
+float seedUpperBound(vec3 ray, float detail, uvec4 path) {
+  if ((path.x & 1u) == 0u) return u_far;
+  int rootIndex = int((path.x >> 1u) & 511u);
+  int pathDepth = int((path.x >> 10u) & 15u);
+  if (rootIndex >= u_rootCount || pathDepth > 11) return u_far;
+  float cap = u_far;
+  if (texelFetch(u_roots, ivec2(3, rootIndex), 0).w > 0.5) {
+    float t; vec3 n;
+    if (ancestorLeaf(rootIndex, ray, cap, t, n) && t > 1e-20) cap = t;
+  } else {
+    Transform root = readTransform(u_roots, rootIndex);
+    vec3 origin = inverseVector(root, -root.center), direction = inverseVector(root, ray);
+    float size = root.size, rank = root.rank;
+    bool continuation = (root.flags & 1) != 0;
+    for (int level = 0; level < SPATIAL_STACK_DEPTH; level++) {
+      float nearAt, farAt; vec3 n;
+      if (!boundInterval(origin, direction, cap, nearAt, farAt, n)) break;
+      float footprint = max(u_nearFootprint, max(0.0, nearAt) * u_pixelAngle) * detail;
+      if (!continuation) {
+        float t, edge;
+        if (coneLeaf(origin, direction, cap, t, n, edge) && t > 1e-20) cap = t;
+      }
+      if (level >= pathDepth || rank >= u_maxRank || size * u_featureSize <= footprint || level == SPATIAL_STACK_DEPTH - 1) break;
+      int row = int(seedPathRow(path, level));
+      if (row >= u_childCount * 8) break;
+      Transform child = growChild(readChildTransform(row), rank);
+      if (child.size <= 0.0 || (continuation && (child.flags & 2) != 0)) break;
+      origin = inverseVector(child, origin - child.center);
+      direction = inverseVector(child, direction);
+      size *= child.size;
+      float parentRank = rank; rank += child.rank;
+      continuation = rank == parentRank;
+    }
+  }
+  // A positive, actually intersected retained cone is a valid upper bound.
+  // One outward ULP keeps the canonical strict-hit test able to rediscover it.
+  return cap > 1e-20 && cap < u_far ? uintBitsToFloat(floatBitsToUint(cap) + 1u) : u_far;
+}
+#endif
+
 // A stack stores only rays and cursors, never a mesh or expanded child tree.
 // Bounds may overlap, so every surviving branch competes for the nearest hit.
 bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3 normal, out vec3 shadingNormal, out float edge, out float cell, out bool complete, out bool inside) {
   hit = u_far; normal = vec3(0.0); shadingNormal = vec3(0.0); edge = 0.0; cell = 0.0; complete = true;
   inside = false;
   bool found = false;
-#ifdef ROMANESCO_BEAM_PASS
-  beamWinningPath = uvec4(0u);
-#endif
-#ifdef ROMANESCO_BEAM_USE
-  ivec2 tile = ivec2(gl_FragCoord.xy) / 8;
-  uint header = u_useBeam ? texelFetch(u_beam0, tile, 0).x : 256u;
-  bool useFrontier = u_useBeam && !beamForceBaseline && u_query == 0 && detail == u_detailScale && !envelope && (header & 256u) == 0u;
-  int frontierCount = int(header & 31u);
-  if (useFrontier && frontierCount > 0) {
-    // The prepass proved a retained convex core hits every ray in this tile.
-    // Its perspective-depth cap is an upper bound, not a substituted surface:
-    // this pixel still traces all competing geometry and its own exact hit.
-    float depthLimit = uintBitsToFloat(header & 4294966784u);
-    hit = min(hit, depthLimit / max(dot(ray, u_forward), 1e-8));
+#ifdef ROMANESCO_SEED_USE
+  if (u_useSeed && u_query == 0 && !envelope && detail == u_detailScale) {
+    uvec4 path = texelFetch(u_seed, ivec2(gl_FragCoord.xy) / 8, 0);
+    hit = min(hit, seedUpperBound(ray, detail, path));
   }
-  Transform cachedRoot;
-  int cachedRootIndex = -1, cachedFirstRow = -1;
-  bool testedRootCore = false, cachedRootBound = false, cachedFirstBound = false;
-  bool rootBoundValid = false, firstBoundValid = false;
-  float rootNear = 0.0, firstNear = 0.0;
-  uint testedFirstCore = 4294967295u, testedSecondCore = 4294967295u;
+#endif
+#ifdef ROMANESCO_SEED_PASS
+  seedWinningPath = uvec4(0u);
 #endif
   vec3 origins[SPATIAL_STACK_DEPTH]; vec3 directions[SPATIAL_STACK_DEPTH]; float sizes[SPATIAL_STACK_DEPTH]; float ranks[SPATIAL_STACK_DEPTH]; int cursors[SPATIAL_STACK_DEPTH];
 #ifdef QUADRATIC_KOCH
@@ -624,133 +616,27 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
   for (int rootSlot = 0; rootSlot < 512; rootSlot++) {
     int rootIndex = rootSlot, baseLevel = 0;
     bool coreOnly = false;
-#ifdef ROMANESCO_BEAM_USE
-    uint descriptor = 0u;
-    if (useFrontier) {
-      if (rootSlot >= frontierCount) break;
-      descriptor = beamDescriptor(tile, rootSlot);
-      rootIndex = beamRootIndex(descriptor);
-      baseLevel = beamDepth(beamCode(descriptor));
-      coreOnly = (descriptor & 2147483648u) != 0u;
-    } else
-#endif
     if (rootSlot >= u_rootCount) break;
     if (u_kind == 3 && texelFetch(u_roots, ivec2(3, rootIndex), 0).w > 0.5) {
       vec4 equation = texelFetch(u_roots, ivec2(0, rootIndex), 0), clips = texelFetch(u_roots, ivec2(2, rootIndex), 0);
       inside = inside || (equation.w <= 0.0 && clips.x >= 0.0 && clips.y >= 0.0);
       float t; vec3 n;
       float limit = hit;
-#ifdef ROMANESCO_BEAM_USE
-      if (useFrontier && found) limit = uintBitsToFloat(floatBitsToUint(hit) + 1u);
-#endif
       if (ancestorLeaf(rootIndex, ray, limit, t, n)) {
-#ifdef ROMANESCO_BEAM_USE
-        if (useFrontier && found && t == hit) { beamAmbiguous = true; return found; }
-#endif
         hit = t; normal = n; shadingNormal = n; edge = 1e30; cell = 1e30; found = true;
 #ifdef ROMANESCO_DELAYED_NORMALS
         bestRootIndex = -1; // This ancestor already supplied a world-space normal.
 #endif
-#ifdef ROMANESCO_BEAM_PASS
-        beamWinningPath = uvec4(1u | (uint(rootIndex) << 1u), 0u, 0u, 0u);
+#ifdef ROMANESCO_SEED_PASS
+        seedWinningPath = uvec4(1u | (uint(rootIndex) << 1u), 0u, 0u, 0u);
 #endif
       }
       continue;
     }
     Transform root;
-#ifdef ROMANESCO_BEAM_USE
-    if (useFrontier && cachedRootIndex == rootIndex) root = cachedRoot;
-    else {
-#endif
       root = readTransform(u_roots, rootIndex);
       origins[0] = inverseVector(root, -root.center); directions[0] = inverseVector(root, ray); sizes[0] = root.size; ranks[0] = root.rank;
-#ifdef ROMANESCO_BEAM_USE
-      cachedRoot = root; cachedRootIndex = rootIndex; cachedFirstRow = -1;
-      testedRootCore = false; testedFirstCore = testedSecondCore = 4294967295u;
-      cachedRootBound = cachedFirstBound = false;
-    }
-#endif
     cursors[0] = -1;
-#ifdef ROMANESCO_BEAM_USE
-    // A subtree cannot change its ancestors' ray frames. Adjacent descriptors
-    // can therefore share the root and their first prefix without recomputing
-    // either transform. A whole-root traversal can overwrite that prefix.
-    if (baseLevel == 0) { cachedFirstRow = -1; cachedFirstBound = false; }
-    bool prefixValid = true;
-    for (int depth = 0; depth < 3; depth++) {
-      if (depth >= baseLevel) break;
-      float nearAt, farAt; vec3 n;
-      bool valid;
-      if (depth == 0 && cachedRootBound) { nearAt = rootNear; valid = rootBoundValid; }
-      else if (depth == 1 && cachedFirstBound) { nearAt = firstNear; valid = firstBoundValid; }
-      else {
-        // The unbounded entry and LOD do not change when another subtree finds
-        // a nearer surface. Cache them, then apply only the current hit cutoff.
-        valid = boundInterval(origins[depth], directions[depth], u_far, nearAt, farAt, n);
-        if (depth == 0) { rootNear = nearAt; rootBoundValid = valid; cachedRootBound = true; }
-        else if (depth == 1) { firstNear = nearAt; firstBoundValid = valid; cachedFirstBound = true; }
-      }
-      if (!valid || max(0.0, nearAt) > hit) { prefixValid = false; break; }
-      float footprint = max(u_nearFootprint, max(0.0, nearAt) * u_pixelAngle) * detail;
-      bool continuation = depth == 0 ? (root.flags & 1) != 0 : ranks[depth] == ranks[depth - 1];
-      uint prefixCode = beamCode(descriptor);
-      for (int i = 0; i < 3; i++) {
-        if (i >= baseLevel - depth) break;
-        prefixCode = (prefixCode - 1u) / uint(u_childCount);
-      }
-      bool tested = depth == 0 ? testedRootCore : depth == 1 ? testedFirstCore == prefixCode : testedSecondCore == prefixCode;
-      if (!tested && !continuation) {
-        // Prefix cores belong to the same retained union even when this pixel
-        // stops at an ancestor. Test each once; descriptors need only subtrees.
-        vec3 o = origins[depth]; float r = u_coneSlope * (1.0 - o.y);
-        inside = inside || (o.y >= -1.0 && o.y <= 1.0 && dot(o.xz, o.xz) <= r * r);
-        float t, e, limit = found ? uintBitsToFloat(floatBitsToUint(hit) + 1u) : hit;
-        if (coneLeaf(o, directions[depth], limit, t, n, e)) {
-          if (found && t == hit) { beamAmbiguous = true; return found; }
-          COUNT_HIT;
-#ifdef ROMANESCO_DELAYED_NORMALS
-          bestRootIndex = rootIndex; bestLevel = depth; bestNormal = n;
-          for (int j = 0; j < depth; j++) bestPath[j] = cursors[j];
-#else
-          vec3 smoothNormal = n;
-          float childFootprint = max(u_nearFootprint, t * u_pixelAngle) * detail;
-          for (int j = depth; j > 0; j--) {
-            COUNT_NORMAL;
-            Transform child = readNormalChild(cursors[j - 1], directions[j - 1]);
-            n = child.axes * n / child.size;
-            smoothNormal = child.axes * smoothNormal / child.size;
-            vec3 p = origins[j - 1] + directions[j - 1] * t;
-            float k2 = u_coneSlope * u_coneSlope;
-            vec3 parentNormal = p.y <= -1.0 ? vec3(0.0, -1.0, 0.0)
-                : normalize(vec3(p.x, max(0.0, k2 * (1.0 - p.y)), p.z));
-            float reveal = smoothstep(2.0, 14.0, sizes[j] * 4.0 * u_coneSlope / max(childFootprint, 1e-20));
-            smoothNormal = mix(parentNormal, smoothNormal, reveal);
-          }
-          normal = normalize(root.axes * n);
-          shadingNormal = length(smoothNormal) > 1e-5 ? normalize(root.axes * smoothNormal) : normal;
-#endif
-          hit = t; edge = e * sizes[depth]; cell = sizes[depth]; found = true;
-        }
-      }
-      if (depth == 0) testedRootCore = true;
-      else if (depth == 1) testedFirstCore = prefixCode;
-      else testedSecondCore = prefixCode;
-      if (ranks[depth] >= u_maxRank || sizes[depth] * u_featureSize <= footprint || depth == SPATIAL_STACK_DEPTH - 1) { prefixValid = false; break; }
-      int row = beamChildRow(beamCode(descriptor), baseLevel, depth);
-      if (depth == 0 && cachedFirstRow == row) {
-        cursors[0] = 1073741824 | row; cursors[1] = -1;
-        continue;
-      }
-      Transform child = growChild(readCanonicalChild(row), ranks[depth]);
-      if (child.size <= 0.0 || (continuation && (child.flags & 2) != 0)) { prefixValid = false; break; }
-      cursors[depth] = 1073741824 | row;
-      origins[depth + 1] = inverseVector(child, origins[depth] - child.center);
-      directions[depth + 1] = inverseVector(child, directions[depth]);
-      sizes[depth + 1] = sizes[depth] * child.size; ranks[depth + 1] = ranks[depth] + child.rank; cursors[depth + 1] = -1;
-      if (depth == 0) { cachedFirstRow = row; cachedFirstBound = false; }
-    }
-    if (!prefixValid) continue;
-#endif
     int level = baseLevel;
 #ifdef QUADRATIC_KOCH
     pendingBound = false;
@@ -793,26 +679,18 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
           if (envelope && terminal) { t = max(0.0, nearAt); n = boundNormal; e = 1e30; intersects = true; }
           else {
             float limit = hit;
-#ifdef ROMANESCO_BEAM_USE
-            if (useFrontier && found) limit = uintBitsToFloat(floatBitsToUint(hit) + 1u);
-#endif
             intersects = leaf(origins[level], directions[level], limit, t, n, e);
           }
           if (intersects) {
-#ifdef ROMANESCO_BEAM_USE
-            // Different frontiers can encounter an exactly tied seam in another
-            // order. Repeat only that pixel in the canonical traversal order.
-            if (useFrontier && found && t == hit) { beamAmbiguous = true; return found; }
-#endif
             COUNT_HIT;
-#ifdef ROMANESCO_BEAM_PASS
-            beamWinningPath = uvec4(0u);
+#ifdef ROMANESCO_SEED_PASS
+            seedWinningPath = uvec4(0u);
             if (!envelope && level <= 11 && u_childCount * 8 <= 1024) {
-              beamWinningPath.x = 1u | (uint(rootIndex) << 1u) | (uint(level) << 10u);
+              seedWinningPath.x = 1u | (uint(rootIndex) << 1u) | (uint(level) << 10u);
               for (int j = 0; j < 11; j++) {
                 if (j >= level) break;
                 int childIndex = usesChildBounds() ? (cursors[j] >> 16) - 1 : cursors[j] - 1;
-                storeBeamPathRow(beamWinningPath, j, uint(childIndex + boundsOctant(directions[j]) * u_childCount));
+                storeSeedPathRow(seedWinningPath, j, uint(childIndex + boundsOctant(directions[j]) * u_childCount));
               }
             }
 #endif
@@ -938,7 +816,6 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
     sizes[0] = root.size; ranks[0] = root.rank;
     for (int j = 0; j < bestLevel; j++) {
       // Replay the same grown transforms and arithmetic used by traversal.
-      // Cursors also preserve canonical beam-prefix rows across octant changes.
       Transform child = growChild(readNormalChild(bestPath[j], directions[j]), ranks[j]);
       origins[j + 1] = inverseVector(child, origins[j] - child.center);
       directions[j + 1] = inverseVector(child, directions[j]);
@@ -1026,17 +903,7 @@ bool traceUnionExit(vec3 ray, float detail, out float hit, out vec3 normal, out 
 }
 bool trace(vec3 ray, float detail, bool envelope, out float hit, out vec3 normal, out vec3 shadingNormal, out float edge, out float cell, out bool complete) {
   bool inside;
-#ifdef ROMANESCO_BEAM_USE
-  beamAmbiguous = false;
-#endif
   bool found = traceNearest(ray, detail, envelope, hit, normal, shadingNormal, edge, cell, complete, inside);
-#ifdef ROMANESCO_BEAM_USE
-  if (beamAmbiguous) {
-    beamForceBaseline = true;
-    found = traceNearest(ray, detail, envelope, hit, normal, shadingNormal, edge, cell, complete, inside);
-    beamForceBaseline = false;
-  }
-#endif
   if (u_kind == 3 && inside && complete && !envelope) {
     found = traceUnionExit(ray, detail, hit, normal, cell, complete);
     shadingNormal = normal; edge = 1e30;
@@ -1094,185 +961,25 @@ vec4 encodeDistance(float distance, bool hit) {
   uint bits = floatBitsToUint(hit ? distance : -1.0);
   return vec4(float(bits & 255u), float((bits >> 8u) & 255u), float((bits >> 16u) & 255u), float((bits >> 24u) & 255u)) / 255.0;
 }
-#ifdef ROMANESCO_BEAM_PASS
-struct BeamNode { vec3 eye; vec3 right; vec3 up; vec3 forward; float size; float rank; int flags; };
-vec2 beamLow, beamHigh;
-vec3 beamCornerRays[4];
-float beamCornerLengths[4];
-float beamMinimumCosine, beamDepthLimit;
-vec2 beamCorner(int i) {
-  return vec2((i == 1 || i == 2) ? beamHigh.x : beamLow.x, i >= 2 ? beamHigh.y : beamLow.y);
-}
-BeamNode beamRoot(int index) {
-  Transform root = readTransform(u_roots, index);
-  return BeamNode(inverseVector(root, -root.center), inverseVector(root, u_right), inverseVector(root, u_up), inverseVector(root, u_forward), root.size, root.rank, root.flags);
-}
-BeamNode beamChild(BeamNode parent, Transform child) {
-  return BeamNode(inverseVector(child, parent.eye - child.center), inverseVector(child, parent.right), inverseVector(child, parent.up), inverseVector(child, parent.forward), parent.size * child.size, parent.rank + child.rank, child.flags);
-}
-BeamNode beamNode(uint descriptor) {
-  BeamNode node = beamRoot(beamRootIndex(descriptor));
-  uint code = beamCode(descriptor);
-  int depth = beamDepth(code);
-  for (int i = 0; i < 3; i++) {
-    if (i >= depth) break;
-    int row = beamChildRow(code, depth, i);
-    node = beamChild(node, growChild(readCanonicalChild(row), node.rank));
-  }
-  return node;
-}
-float beamSupport(vec3 n, bool coreOnly) {
-  float radial = length(n.xz);
-  if (coreOnly) return max(n.y, -n.y + 2.0 * u_coneSlope * radial);
-  float base = u_boundConeBase, baseRadius = u_boundConeSlope * (1.0 - base);
-  float support = n.y;
-  if (u_boundCylinderRadius > 0.0 && u_boundCylinderRadius < baseRadius) {
-    float join = 1.0 - u_boundCylinderRadius / u_boundConeSlope;
-    support = max(support, join * n.y + u_boundCylinderRadius * radial);
-    baseRadius = u_boundCylinderRadius;
-  }
-  return max(support, base * n.y + baseRadius * radial);
-}
-float beamError(vec3 n, BeamNode node) {
-  return 0.00002 * (abs(n.x) + abs(n.y) + abs(n.z)) * (1.0 + max(abs(node.eye.x), max(abs(node.eye.y), abs(node.eye.z))));
-}
-bool beamIntersects(BeamNode node, bool coreOnly) {
-  // Plane support is conservative for the complete curved envelope. No corner
-  // ray test is used for rejection: a small floret can lie between the corners.
-  for (int side = 0; side < 5; side++) {
-    vec3 n = side == 0 ? node.right - beamLow.x * node.forward
-      : side == 1 ? beamHigh.x * node.forward - node.right
-      : side == 2 ? node.up - beamLow.y * node.forward
-      : side == 3 ? beamHigh.y * node.forward - node.up : node.forward;
-    if (beamSupport(n, coreOnly) - dot(n, node.eye) < -beamError(n, node)) return false;
-  }
-  float lower = (-beamSupport(-node.forward, coreOnly) - dot(node.forward, node.eye)) * node.size * node.size;
-  return lower <= beamDepthLimit + beamError(node.forward, node) * node.size * node.size;
-}
-float beamCoreDepth(BeamNode node, float minimumAncestorFeature) {
-  if ((node.flags & 1) != 0) return u_far;
-  float depth = 0.0;
-  for (int corner = 0; corner < 4; corner++) {
-    vec2 slope = beamCorner(corner);
-    vec3 direction = (node.forward + slope.x * node.right + slope.y * node.up) / beamCornerLengths[corner];
-    float t, edge; vec3 normal;
-    if (!coneLeaf(node.eye, direction, u_far, t, normal, edge)) return u_far;
-    depth = max(depth, t * dot(beamCornerRays[corner], u_forward));
-  }
-  depth += max(0.00002, depth * 0.000004);
-  float furthest = depth / max(beamMinimumCosine, 1e-8);
-  float largestFootprint = max(u_nearFootprint, furthest * u_pixelAngle) * u_detailScale;
-  // Every prefix must remain resolved for every fine pixel. Otherwise a core
-  // hidden by that pixel's ordinary stopping rule cannot establish its cap.
-  return minimumAncestorFeature > largestFootprint ? min(u_far, depth) : u_far;
-}
-float beamCommonDepth() {
-  if ((beamWinningPath.x & 1u) == 0u) return u_far;
-  int rootIndex = int((beamWinningPath.x >> 1u) & 511u);
-  if (texelFetch(u_roots, ivec2(3, rootIndex), 0).w > 0.5) {
-    float depth = 0.0;
-    for (int corner = 0; corner < 4; corner++) {
-      float t; vec3 normal;
-      if (!ancestorLeaf(rootIndex, beamCornerRays[corner], u_far, t, normal)) return u_far;
-      depth = max(depth, t * dot(beamCornerRays[corner], u_forward));
-    }
-    return min(u_far, depth + max(0.00002, depth * 0.000004));
-  }
-  BeamNode node = beamRoot(rootIndex);
-  int length = int((beamWinningPath.x >> 10u) & 15u);
-  float depth = u_far, minimumFeature = 1e30;
-  for (int i = 0; i < 12; i++) {
-    depth = min(depth, beamCoreDepth(node, minimumFeature));
-    if (i >= length || node.rank >= u_maxRank) break;
-    minimumFeature = min(minimumFeature, node.size * u_featureSize);
-    Transform child = growChild(readChildTransform(int(readBeamPathRow(beamWinningPath, i))), node.rank);
-    if (child.size <= 0.0 || ((node.flags & 1) != 0 && (child.flags & 2) != 0)) break;
-    node = beamChild(node, child);
-  }
-  return depth;
-}
-vec2 beamSlope(vec2 pixel) {
+#ifdef ROMANESCO_SEED_PASS
+vec2 seedLow, seedHigh;
+vec2 seedSlope(vec2 pixel) {
   vec2 ndc = 2.0 * pixel / u_resolution - 1.0 - u_origin;
   return u_projection.x > 0.0 ? ndc / u_projection
     : (2.0 * pixel - u_resolution - u_origin * u_resolution) / (min(u_resolution.x, u_resolution.y) * u_focal);
 }
 void main() {
-  outBeam0 = outBeam1 = outBeam2 = outBeam3 = uvec4(0u);
+  outSeed = uvec4(0u);
   uint n = uint(u_childCount);
-  if (u_childCount * 8 > 1024 || n * (n * (n + 1u) + 1u) > 2097151u || u_rootCount > 512) { outBeam0.x = 256u; return; }
+  if (u_childCount * 8 > 1024 || n * (n * (n + 1u) + 1u) > 2097151u || u_rootCount > 512) { outSeed.x = 256u; return; }
   vec2 start = floor(gl_FragCoord.xy) * 8.0;
-  beamLow = beamSlope(start); beamHigh = beamSlope(min(start + vec2(8.0), u_resolution));
-  beamMinimumCosine = 1.0;
-  for (int corner = 0; corner < 4; corner++) {
-    vec2 slope = beamCorner(corner);
-    vec3 ray = u_forward + slope.x * u_right + slope.y * u_up;
-    beamCornerLengths[corner] = length(ray); beamCornerRays[corner] = ray / beamCornerLengths[corner];
-    beamMinimumCosine = min(beamMinimumCosine, dot(beamCornerRays[corner], u_forward));
-  }
-  vec2 middle = (beamLow + beamHigh) * 0.5;
+  seedLow = seedSlope(start); seedHigh = seedSlope(min(start + vec2(8.0), u_resolution));
+  vec2 middle = (seedLow + seedHigh) * 0.5;
   vec3 ray = normalize(u_forward + middle.x * u_right + middle.y * u_up);
   float hit, edge, cell; vec3 normal, shading; bool complete, inside;
   traceNearest(ray, u_detailScale, false, hit, normal, shading, edge, cell, complete, inside);
-  if (!complete) beamWinningPath = uvec4(0u);
-  beamDepthLimit = beamCommonDepth();
-  uint descriptors[15];
-  for (int i = 0; i < 15; i++) descriptors[i] = 0u;
-  int count = 0;
-  for (int root = 0; root < 512; root++) {
-    if (root >= u_rootCount) break;
-    bool ancestor = texelFetch(u_roots, ivec2(3, root), 0).w > 0.5;
-    if (!ancestor && !beamIntersects(beamRoot(root), false)) continue;
-    if (count == 15) { outBeam0.x = 256u; return; }
-    descriptors[count++] = uint(root) | (ancestor ? 2147483648u : 0u);
-  }
-  // Replacing a node is optional. If its children do not fit, retain its whole
-  // subtree rather than dropping geometry or overflowing a tile's storage.
-  for (int at = 0; at < 15; at++) {
-    if (at >= count) break;
-    uint descriptor = descriptors[at];
-    uint code = beamCode(descriptor);
-    int depth = beamDepth(code);
-    if ((descriptor & 2147483648u) != 0u || depth == 3) continue;
-    BeamNode node = beamNode(descriptor);
-    if (node.rank >= u_maxRank) continue;
-    uint replacement[15]; int added = 0, available = 16 - count;
-    vec3 centreDirection = node.forward + middle.x * node.right + middle.y * node.up;
-    int offset = boundsOctant(centreDirection) * u_childCount;
-    bool overflow = false;
-    for (int childIndex = 0; childIndex < 1024; childIndex++) {
-      if (childIndex >= u_childCount) break;
-      int row = offset + childIndex;
-      Transform child = growChild(readChildTransform(row), node.rank);
-      if (child.size <= 0.0 || ((node.flags & 1) != 0 && (child.flags & 2) != 0)) continue;
-      if (!beamIntersects(beamChild(node, child), false)) continue;
-      if (added >= available) { overflow = true; break; }
-      // Every octant stores the same transforms. Its fourth texel identifies
-      // the matching row in octant zero, so fine pixels need no tile-ray math.
-      uint invariantRow = u_orderedChildren ? uint(canonicalChildIndex(row)) : uint(childIndex);
-      uint childCode = code * uint(u_childCount) + invariantRow + 1u;
-      uint next = (descriptor & 511u) | (childCode << 9u);
-      replacement[added++] = next;
-    }
-    if (overflow) continue;
-    // This may be the last carrier of a visible ancestor core. Even if its own
-    // core and children miss the tile, preserve prefix replay with a core-only
-    // entry instead of deleting it and losing that ancestor's retained surface.
-    if (added == 0) replacement[added++] = descriptor | 2147483648u;
-    for (int j = 14; j >= 0; j--) if (j > at && j < count) descriptors[j + added - 1] = descriptors[j];
-    for (int j = 0; j < 15; j++) { if (j >= added) break; descriptors[at + j] = replacement[j]; }
-    count += added - 1;
-    // If the parent's core was culled, the first replacement is already a
-    // child subtree. Revisit it so the next optional split is not skipped.
-    if ((replacement[0] & 2147483648u) == 0u) at--;
-  }
-  // Positive Float32 values preserve order as integers. Rounding the low nine
-  // bits upward leaves room for the count and fallback flag without weakening
-  // the certified cap. Fine pixels divide perspective depth by their own cosine.
-  uint cap = (floatBitsToUint(beamDepthLimit) + 511u) & 4294966784u;
-  outBeam0 = uvec4(cap | uint(count), descriptors[0], descriptors[1], descriptors[2]);
-  outBeam1 = uvec4(descriptors[3], descriptors[4], descriptors[5], descriptors[6]);
-  outBeam2 = uvec4(descriptors[7], descriptors[8], descriptors[9], descriptors[10]);
-  outBeam3 = uvec4(descriptors[11], descriptors[12], descriptors[13], descriptors[14]);
+  if (!complete) seedWinningPath = uvec4(0u);
+  outSeed = seedWinningPath;
 }
 #else
 void main() {

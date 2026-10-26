@@ -101,13 +101,13 @@ export function createSpatialGpuRenderer(
     // A fixed Romanesco kind lets the driver eliminate the unrelated solid and
     // Koch paths, rather than keeping their branches and temporaries live.
     const specialized = initialSpec?.kind === "romanesco";
-    const sourceFor = (depth: StackDepth, beamPass = false) =>
+    const sourceFor = (depth: StackDepth, seedPass = false) =>
       specialized
         ? fragment
             .replace("uniform int u_kind;", "const int u_kind = 3;")
             .replace(
               "#version 300 es",
-              `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}\n#define ROMANESCO_UNIFORM_GEOMETRY\n#define ROMANESCO_DEFER_NORMALS\n#define ${beamPass ? "ROMANESCO_BEAM_PASS" : "ROMANESCO_BEAM_USE"}`,
+              `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}\n#define ROMANESCO_UNIFORM_GEOMETRY\n#define ROMANESCO_DEFER_NORMALS\n#define ${seedPass ? "ROMANESCO_SEED_PASS" : "ROMANESCO_SEED_USE"}`,
             )
         : specializeSpatialShader(fragment, initialSpec);
     let stackDepth: StackDepth = specialized ? 8 : 40;
@@ -126,10 +126,10 @@ export function createSpatialGpuRenderer(
       childBounds = newTexture(),
       queryTexture = newTexture(),
       surfaces = [newTexture(), newTexture()],
-      beams = specialized ? Array.from({ length: 4 }, newTexture) : [];
+      seeds = specialized ? [newTexture()] : [];
     const framebuffer = allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r)),
       queryFramebuffer = allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r)),
-      beamFramebuffer = specialized
+      seedFramebuffer = specialized
         ? allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r))
         : undefined;
     gl.bindVertexArray(vao);
@@ -152,7 +152,7 @@ export function createSpatialGpuRenderer(
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, 4, MAX_GPU_ROOTS, 0, gl.RGBA, gl.FLOAT, null);
     texture(queryTexture, 2);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    beams.forEach((target, index) => {
+    seeds.forEach((target, index) => {
       texture(target, index + 5);
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -216,11 +216,8 @@ export function createSpatialGpuRenderer(
       "reliefFront",
       "query",
       "queryRay",
-      "beam0",
-      "beam1",
-      "beam2",
-      "beam3",
-      "useBeam",
+      "seed",
+      "useSeed",
     ];
     const uniforms = (target: WebGLProgram) =>
       Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(target, `u_${name}`)]));
@@ -233,7 +230,7 @@ export function createSpatialGpuRenderer(
     };
     let active: Variant = { shader, uniforms: u };
     const variants = new Map<StackDepth, Variant>([[stackDepth, active]]);
-    const beamVariants = new Map<StackDepth, Variant>();
+    const seedVariants = new Map<StackDepth, Variant>();
     const screenNames = ["color", "surface", "resolution", "projection", "origin", "far", "ao"];
     const su = Object.fromEntries(
       screenNames.map((name) => [name, gl.getUniformLocation(screen.program, `u_${name}`)]),
@@ -245,8 +242,8 @@ export function createSpatialGpuRenderer(
     let childBoundsCount = 0;
     let frameWidth = 0,
       frameHeight = 0,
-      beamWidth = 0,
-      beamHeight = 0,
+      seedWidth = 0,
+      seedHeight = 0,
       lastDraw:
         | {
             camera: SpatialCamera;
@@ -322,10 +319,8 @@ export function createSpatialGpuRenderer(
       gl.uniform1f(at.pixelAngle, 1 / (FOCAL_SCALE * 720));
       gl.uniform1f(at.nearFootprint, 0.00002);
       gl.uniform1f(at.detailScale, 2);
-      gl.uniform1i(at.useBeam, 0);
-      beams.forEach((_, index) => {
-        gl.uniform1i(at[`beam${index}`], index + 5);
-      });
+      gl.uniform1i(at.useSeed, 0);
+      gl.uniform1i(at.seed, 5);
     };
     const prepare = (
       camera: SpatialCamera,
@@ -591,20 +586,20 @@ export function createSpatialGpuRenderer(
           y = Math.max(0, Math.floor(bottom) - 1);
         const sw = Math.max(0, Math.min(w, Math.ceil(right) + 1) - x),
           sh = Math.max(0, Math.min(h, Math.ceil(top) + 1) - y);
-        let beam = false;
+        let seed = false;
         if (sw && sh) {
           if (specialized && (options.maxRank ?? 1000) > 0) {
-            let variant = beamVariants.get(stackDepth);
+            let variant = seedVariants.get(stackDepth);
             if (!variant) {
               const next = program(sourceFor(stackDepth, true));
               variant = { shader: next, uniforms: uniforms(next.program) };
-              beamVariants.set(stackDepth, variant);
+              seedVariants.set(stackDepth, variant);
             }
             const bw = Math.ceil(w / 8),
               bh = Math.ceil(h / 8);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, beamFramebuffer!);
-            if (bw !== beamWidth || bh !== beamHeight) {
-              beams.forEach((target, index) => {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, seedFramebuffer!);
+            if (bw !== seedWidth || bh !== seedHeight) {
+              seeds.forEach((target, index) => {
                 texture(target, index + 5);
                 gl.texImage2D(
                   gl.TEXTURE_2D,
@@ -625,25 +620,14 @@ export function createSpatialGpuRenderer(
                   0,
                 );
               });
-              beamWidth = bw;
-              beamHeight = bh;
-              gl.drawBuffers([
-                gl.COLOR_ATTACHMENT0,
-                gl.COLOR_ATTACHMENT1,
-                gl.COLOR_ATTACHMENT2,
-                gl.COLOR_ATTACHMENT3,
-              ]);
+              seedWidth = bw;
+              seedHeight = bh;
+              gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
               if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
                 throw new Error("Could not prepare GPU tile traversal.");
             }
-            gl.drawBuffers([
-              gl.COLOR_ATTACHMENT0,
-              gl.COLOR_ATTACHMENT1,
-              gl.COLOR_ATTACHMENT2,
-              gl.COLOR_ATTACHMENT3,
-            ]);
-            for (let index = 0; index < 4; index++)
-              gl.clearBufferuiv(gl.COLOR, index, new Uint32Array(4));
+            gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+            gl.clearBufferuiv(gl.COLOR, 0, new Uint32Array(4));
             // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
             gl.useProgram(variant.shader.program);
             enablePosition(variant.shader.program);
@@ -665,8 +649,8 @@ export function createSpatialGpuRenderer(
             // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
             gl.useProgram(shader.program);
             enablePosition(shader.program);
-            gl.uniform1i(u.useBeam, 1);
-            beam = true;
+            gl.uniform1i(u.useSeed, 1);
+            seed = true;
           }
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(x, y, sw, sh);
@@ -713,7 +697,7 @@ export function createSpatialGpuRenderer(
           maxRank: options.maxRank,
           growth: options.growth,
         };
-        return { roots: data.roots.length, visited: data.visited, pixels: w * h, stackDepth, beam };
+        return { roots: data.roots.length, visited: data.visited, pixels: w * h, stackDepth, seed };
       },
       pick(x: number, y: number): Vec3 | null {
         if (!lastDraw) return null;

@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 
-async function check(page, baseURL, captures) {
+async function check(page, baseURL, captures, filter) {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.addInitScript(() => {
     window.__spatialWorkers = [];
@@ -22,7 +22,8 @@ async function check(page, baseURL, captures) {
     ["polyhedron-flake", "octahedron"],
     ["polyhedron-flake", "dodecahedron"],
     ["polyhedron-flake", "icosahedron"],
-  ];
+    ["romanesco", "default"],
+  ].filter(([path]) => !filter || new RegExp(filter).test(path));
   const errors = [],
     results = [];
   const capture = async () =>
@@ -82,11 +83,16 @@ async function check(page, baseURL, captures) {
     results.push({ path, variant, ...status });
   }
   const motion = [];
-  for (const path of ["jerusalem-cube", "quadratic-koch-3d"]) {
+  const flightPaths = ["jerusalem-cube", "quadratic-koch-3d", "romanesco"].filter(
+    (path) => !filter || new RegExp(filter).test(path),
+  );
+  for (const path of flightPaths) {
     await opening(path, "default");
     const canvas = page.locator("[data-gpu-spatial-explorer]");
     await canvas.click();
     await page.waitForFunction(() => document.pointerLockElement !== null);
+    // The pointerlockchange handler clears held keys; let that event finish.
+    await page.waitForTimeout(100);
     const before = await capture();
     await page.keyboard.down("w");
     await page.waitForTimeout(1800);
@@ -100,7 +106,7 @@ async function check(page, baseURL, captures) {
     await page.waitForTimeout(300);
     const settled = await canvas.evaluate((c) => {
       const rect = c.getBoundingClientRect(),
-        ratio = Math.min(devicePixelRatio, 2);
+        ratio = devicePixelRatio;
       return {
         actual: [c.width, c.height],
         expected: [Math.round(rect.width * ratio), Math.round(rect.height * ratio)],
@@ -157,7 +163,7 @@ async function check(page, baseURL, captures) {
   try {
     const mobile = await phoneContext.newPage();
     const touch = await phoneContext.newCDPSession(mobile);
-    for (const path of ["jerusalem-cube", "quadratic-koch-3d"]) {
+    for (const path of flightPaths) {
       await mobile.goto(baseURL + "/" + path);
       await mobile.waitForFunction(
         () =>
@@ -216,5 +222,5 @@ async function check(page, baseURL, captures) {
 }
 writeFileSync(
   process.argv[2] ?? "/private/tmp/check-spatial-flight-ui.js",
-  `async(page)=>await (${check.toString()})(page,${JSON.stringify(process.argv[3] ?? "http://127.0.0.1:55379")},${JSON.stringify(process.argv[4] ?? null)})`,
+  `async(page)=>await (${check.toString()})(page,${JSON.stringify(process.argv[3] ?? "http://127.0.0.1:55379")},${JSON.stringify(process.argv[4] ?? null)},${JSON.stringify(process.env.SPATIAL_UI_FILTER ?? null)})`,
 );

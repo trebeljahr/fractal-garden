@@ -117,7 +117,7 @@ export function GpuSpatialExplorer<T extends SpatialStyle>({
         canvas.dataset.renderZoom = String(camera.zoom);
         canvas.dataset.pixelBudget = String(pixels);
         canvas.dataset.stackDepth = String(statistics.stackDepth);
-        canvas.dataset.beam = String(statistics.beam);
+        canvas.dataset.seed = String(statistics.seed);
         setError("");
         return true;
       } catch (cause) {
