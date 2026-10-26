@@ -8,6 +8,15 @@ const LogisticLesson = dynamic(() => import("./lessons/LogisticLesson"));
 const AttractorLesson = dynamic(() => import("./lessons/AttractorLesson"));
 const DlaLesson = dynamic(() => import("./lessons/DlaLesson"));
 const SierpinskiSeedsLesson = dynamic(() => import("./lessons/SierpinskiSeedsLesson"));
+const ChaosGameLesson = dynamic(() =>
+  import("./lessons/SierpinskiConnections").then((m) => m.ChaosGameLesson),
+);
+const PascalTriangleLesson = dynamic(() =>
+  import("./lessons/SierpinskiConnections").then((m) => m.PascalTriangleLesson),
+);
+const CellularTriangleLesson = dynamic(() =>
+  import("./lessons/SierpinskiConnections").then((m) => m.CellularTriangleLesson),
+);
 const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
 
 const LESSONS = [
@@ -22,6 +31,9 @@ const LESSONS = [
   "dla",
   "penrose",
   "sierpinski-seeds",
+  "sierpinski-chaos",
+  "sierpinski-pascal",
+  "sierpinski-cells",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -50,6 +62,12 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <DlaLesson />;
     case "sierpinski-seeds":
       return <SierpinskiSeedsLesson />;
+    case "sierpinski-chaos":
+      return <ChaosGameLesson />;
+    case "sierpinski-pascal":
+      return <PascalTriangleLesson />;
+    case "sierpinski-cells":
+      return <CellularTriangleLesson />;
     case "penrose":
       return <PenroseLesson />;
   }

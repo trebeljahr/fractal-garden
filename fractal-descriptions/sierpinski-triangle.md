@@ -14,7 +14,35 @@ The same shape can be made without starting from a triangle. Take a square, circ
 
 The starting shape is visible in the early stages. Each replacement makes it smaller, so its effect on the overall picture decreases. These different starting shapes approach the same Sierpinski triangle.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
 
-The pattern also appears in Pascal's triangle. Color the odd numbers and leave the even numbers blank. The odd numbers form three smaller triangular patterns, with a blank triangle between them. The same arrangement repeats at larger sizes.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
+## Random dots
+
+The three corner moves also work on a single point. Choose a corner at random. Move halfway toward it and mark the new position. Repeat from there.
+
+<figure data-lesson="sierpinski-chaos"></figure>
+
+Each move shrinks the distance to the chosen corner by half. The same three moves made the smaller copies above. With enough random moves, the dots trace the triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
+
+This is called the **chaos game**. The [Barnsley fern](/barnsley-fern) uses it too, with four rules that shrink, turn and move the point into different parts of a fern.
+
+## A triangle made of numbers
+
+Start with a 1. Put a 1 at each edge of the next row. Between them, add the two numbers just above. These rows form **Pascal's triangle**.
+
+Color the odd numbers, then show more rows. The empty spaces form the same triangular holes.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup>
+
+<figure data-lesson="sierpinski-pascal"></figure>
+
+Two odd numbers add to an even number. Two even numbers do too. The result is odd only when one number is odd and the other is even.
+
+## A rule for each row
+
+We can use that addition rule without writing any numbers. Start with one filled cell in a blank row. Below it, fill a cell when its two diagonal neighbors above differ. Leave it blank when they match.
+
+This is called **Rule 90**. Its filled cells make the same pattern as the odd numbers in Pascal's triangle, with empty cells between neighboring entries.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-4">4</a></sup> Change one result below and see what happens to the next rows.
+
+<figure data-lesson="sierpinski-cells"></figure>
+
+The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) approaches this triangle by replacing pieces of one connected line. To try the corner-copy construction in three dimensions, open the [Sierpinski tetrahedron](/sierpinski-tetrahedron): four half-size pyramids, one at each corner.
 
 ## Further reading
 
@@ -23,5 +51,7 @@ The pattern also appears in Pascal's triangle. Color the odd numbers and leave t
 
 ## Sources and notes
 
-1. <span id="sierpinski-triangle-source-1"></span> Michael Barnsley, John E. Hutchinson and Örjan Stenflo, [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314), 2003 preprint, Figure 1 and introductory contraction discussion. Repeated smaller copies approach the same set regardless of the starting shape; Figure 1 uses a fish. [Back](#sierpinski-triangle-ref-1)
-2. <span id="sierpinski-triangle-source-2"></span> Andrew Granville, [Arithmetic Properties of Binomial Coefficients I: Binomial coefficients modulo prime powers](https://dms.umontreal.ca/~andrew/Binomial/intro.html), Canadian Mathematical Society Conference Proceedings 20 (1997), 253–276. Lucas’ theorem and its cellular-automaton interpretation. [Back](#sierpinski-triangle-ref-2)
+1. <span id="sierpinski-triangle-source-1"></span> [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314). [Back](#sierpinski-triangle-ref-1)
+2. <span id="sierpinski-triangle-source-2"></span> [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314). [Back](#sierpinski-triangle-ref-2)
+3. <span id="sierpinski-triangle-source-3"></span> [Pascal’s triangle and rule 90](https://www.wolframscience.com/nks/notes-2-1--pascals-triangle-and-rule-90/). [Back](#sierpinski-triangle-ref-3)
+4. <span id="sierpinski-triangle-source-4"></span> [Pascal’s triangle and rule 90](https://www.wolframscience.com/nks/notes-2-1--pascals-triangle-and-rule-90/). [Back](#sierpinski-triangle-ref-4)

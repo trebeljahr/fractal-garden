@@ -2,6 +2,8 @@
 
 This fern is made one dot at a time. Each dot starts where the last one landed. One of four rules moves it to a new position, and the computer draws another dot there.
 
+Try the [triangle's random-dot demo](/l-system/sierpinski-triangle#random-dots) to see this method with three halfway moves. The fern uses the same process with different moves.
+
 The rules shrink, turn and move coordinates. One sends a point onto the stem. One puts it into a smaller copy toward the fern's tip. The other two put it into copies on the left and right.<sup><a id="barnsley-fern-ref-1" href="#barnsley-fern-source-1">1</a></sup>
 
 <figure data-article-images="fern"></figure>
