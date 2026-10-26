@@ -112,6 +112,10 @@ async function benchmark(payload) {
   canvas.style.cssText = `width:${payload.width}px;height:${payload.height}px;display:block`;
   const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, antialias: false });
   if (!gl) throw Error("WebGL unavailable");
+  if (payload.disableTimers) {
+    const getExtension = gl.getExtension.bind(gl);
+    gl.getExtension = (name) => (name === "EXT_disjoint_timer_query" ? null : getExtension(name));
+  }
   const debug = gl.getExtension("WEBGL_debug_renderer_info"),
     gpu = gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
   const state = {
@@ -284,6 +288,7 @@ async function benchmark(payload) {
       css: [payload.width, payload.height],
       frames: payload.frames,
       synchronized: payload.synchronized,
+      timerQueries: Boolean(timer),
       setupMs,
       settleMs,
       gpuBatches,
@@ -314,6 +319,7 @@ async function benchmark(payload) {
       ),
       inputIntervalMedianMs: percentile(intervals, 0.5),
       inputIntervalP95Ms: percentile(intervals, 0.95),
+      inputIntervalsOver33ms: intervals.filter((ms) => ms > 33.4).length,
       errors: statuses.filter((s) => s.error),
       movingPNG,
       settledPNG,
@@ -336,6 +342,7 @@ const payload = {
   height: Number(option("--height", "600")),
   frames: Number(option("--frames", "24")),
   synchronized: !process.argv.includes("--async"),
+  disableTimers: process.argv.includes("--no-timers"),
   zoomTravel: Number(option("--zoom-travel", "0")),
 };
 const invocation = `await page.evaluate(${benchmark.toString()}, ${JSON.stringify(payload)})`;
