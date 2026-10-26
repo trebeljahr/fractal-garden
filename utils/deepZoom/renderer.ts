@@ -15,6 +15,7 @@ import {
   rescaleFixed,
   viewportDelta,
 } from "./math";
+import { createMandelbrotMotion } from "./motion";
 import type { EscapeFormula, ReferenceOrbit } from "./orbit";
 import type { PixelRepair } from "./pixelSummary";
 
@@ -54,7 +55,7 @@ export function createDeepZoomRenderer(
   formula: EscapeFormula,
   getState: () => RenderState,
   onStatus: (status: ZoomStatus) => void,
-  options: { pixelRatio?: number } = {},
+  options: { pixelRatio?: number; interactive?: boolean } = {},
 ) {
   const release: (() => void)[] = [];
   const sharpMotion = formula === "mandelbrot";
@@ -145,6 +146,7 @@ export function createDeepZoomRenderer(
         uniforms: Object.fromEntries(
           [
             "resolution",
+            "logPixelScale",
             "center",
             "zoomSize",
             "c",
@@ -192,6 +194,11 @@ export function createDeepZoomRenderer(
     let referenceDomain = Number.NEGATIVE_INFINITY;
     let renderedVersion = -1;
     let inspectedVersion = -1;
+    let moving = false;
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    let motion: ReturnType<typeof createMandelbrotMotion> | null = null;
+    let preparedState: RenderState | null = null;
+    let lastDirectFrame: { state: RenderState; width: number; height: number } | undefined;
 
     const report = (message: string, error = false) => {
       if (destroyed) return;
@@ -284,8 +291,8 @@ export function createDeepZoomRenderer(
     );
     const frameSize = () => {
       const { width, height } = getState();
-      // Each display pixel gets its own sample, at every zoom and during gestures.
-      // Hardware limits are the only reason to reduce the drawing buffer.
+      // Keep the display at native resolution. Interactive Mandelbrot sampling
+      // happens in separate offscreen surfaces; hardware limits cap this buffer.
       const ratio = Math.min(
         options.pixelRatio ?? (window.devicePixelRatio || 1),
         Math.min(maxSide, maxViewport[0]) / Math.max(1, width),
@@ -346,11 +353,16 @@ export function createDeepZoomRenderer(
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       return true;
     };
-    const draw = (orbit: ReferenceOrbit | null, orbitView: DeepViewport | null, tile?: Tile) => {
-      const state = getState();
-      const isDeep = state.view.logZoom < -7;
+    const draw = (
+      orbit: ReferenceOrbit | null,
+      orbitView: DeepViewport | null,
+      tile?: Tile,
+      target?: { state: RenderState; width: number; height: number; pixelRatio: number },
+    ) => {
+      const state = target?.state ?? getState();
+      const isDeep = Boolean(target && orbit) || state.view.logZoom < -7;
       if (isDeep && (!orbit || !orbitView)) return false;
-      const { w, h } = resize();
+      const { w, h } = target ? { w: target.width, h: target.height } : resize();
       const { program, coloring, position, uniforms: u } = programs[isDeep ? 1 : 0];
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook
       gl.useProgram(program);
@@ -363,56 +375,71 @@ export function createDeepZoomRenderer(
         gl.enable(gl.SCISSOR_TEST);
         gl.scissor(tile.x, tile.y, tile.width, tile.height);
       } else gl.disable(gl.SCISSOR_TEST);
-      gl.uniform2f(u.resolution, w, h);
-      gl.uniform2f(u.c, ...state.c);
-      setColoringUniforms(gl, coloring, {
-        ...state.config,
-        iterations:
-          state.view.logZoom < -7
+      // A sampled source uses one immutable camera/configuration. Display uses
+      // a separate program, so these uniforms survive between its tile batches.
+      if (!target || preparedState !== state || (isDeep && uploaded !== orbit)) {
+        gl.uniform2f(u.resolution, w, h);
+        gl.uniform1f(u.logPixelScale, target ? -Math.log2(target.pixelRatio) : 0);
+        gl.uniform2f(u.c, ...state.c);
+        setColoringUniforms(gl, coloring, {
+          ...state.config,
+          iterations: isDeep
             ? iterationBudget(state.view, state.config.iterations)
             : Math.min(MAX_RENDER_ITERATIONS, state.config.iterations),
-      });
-      if (isDeep && orbit && orbitView) {
-        upload(orbit);
-        const delta = viewportDelta(state.view, orbitView);
-        gl.uniform1i(u.reference, 0);
-        gl.uniform2f(u.referenceSize, textureWidth, textureHeight);
-        gl.uniform1f(u.referenceLength, orbit.length);
-        gl.uniform1f(u.criticalStart, orbit.length);
-        gl.uniform1f(u.criticalLength, orbit.critical?.length ?? 0);
-        gl.uniform1i(u.exactPixel, tile?.width === 1 && tile.height === 1 ? 1 : 0);
-        // A repair's reference is already at its tile center. Subtract that
-        // center in pixel coordinates instead of cancelling two large scaled
-        // offsets in the shader; otherwise tiny tiles retain full-frame error.
-        if (tile) gl.uniform4f(u.deltaCenter, 0, 0, 0, 0);
-        else gl.uniform4f(u.deltaCenter, ...delta.x, ...delta.y);
-        gl.uniform2f(
-          u.pixelOffset,
-          tile ? tile.x + tile.width / 2 - w / 2 : 0,
-          tile ? tile.y + tile.height / 2 - h / 2 : 0,
-        );
-        gl.uniform2f(u.scale, ...delta.scale);
-        gl.uniform1i(u.approximation, 2);
-        gl.uniform2f(u.approximationSize, approximationWidth, approximationHeight);
-        gl.uniform1f(u.approximationMaxLogRadius, approximationMaxLogRadius);
-        gl.uniform1f(u.approximationLogDeltaC, orbit.approximation?.logDeltaC ?? -1000000);
-        gl.uniform1i(u.hasApproximation, orbit.approximation?.maxSkip ? 1 : 0);
-        gl.uniform1f(u.nativeReferenceStart, nativeReferenceStart);
-        gl.uniform1i(u.hasNativeReference, hasNativeReference ? 1 : 0);
-      } else {
-        const zero: DeepViewport = {
-          x: BigInt(0),
-          y: BigInt(0),
-          bits: state.view.bits,
-          logZoom: 0,
-        };
-        const delta = viewportDelta(state.view, zero);
-        gl.uniform2f(u.center, delta.x[0] * 2 ** delta.x[1], delta.y[0] * 2 ** delta.y[1]);
-        gl.uniform1f(u.zoomSize, 2 ** state.view.logZoom);
+        });
+        if (isDeep && orbit && orbitView) {
+          upload(orbit);
+          const delta = viewportDelta(state.view, orbitView);
+          gl.uniform1i(u.reference, 0);
+          gl.uniform2f(u.referenceSize, textureWidth, textureHeight);
+          gl.uniform1f(u.referenceLength, orbit.length);
+          gl.uniform1f(u.criticalStart, orbit.length);
+          gl.uniform1f(u.criticalLength, orbit.critical?.length ?? 0);
+          gl.uniform1i(u.exactPixel, !target && tile?.width === 1 && tile.height === 1 ? 1 : 0);
+          // Repair references are at the tile center; motion tiles share the
+          // sampled source camera and must retain its full reference offset.
+          const repairTile = target ? undefined : tile;
+          if (repairTile) gl.uniform4f(u.deltaCenter, 0, 0, 0, 0);
+          else gl.uniform4f(u.deltaCenter, ...delta.x, ...delta.y);
+          gl.uniform2f(
+            u.pixelOffset,
+            repairTile ? repairTile.x + repairTile.width / 2 - w / 2 : 0,
+            repairTile ? repairTile.y + repairTile.height / 2 - h / 2 : 0,
+          );
+          gl.uniform2f(u.scale, ...delta.scale);
+          gl.uniform1i(u.approximation, 2);
+          gl.uniform2f(u.approximationSize, approximationWidth, approximationHeight);
+          gl.uniform1f(u.approximationMaxLogRadius, approximationMaxLogRadius);
+          gl.uniform1f(u.approximationLogDeltaC, orbit.approximation?.logDeltaC ?? -1000000);
+          gl.uniform1i(u.hasApproximation, orbit.approximation?.maxSkip ? 1 : 0);
+          gl.uniform1f(u.nativeReferenceStart, nativeReferenceStart);
+          gl.uniform1i(u.hasNativeReference, hasNativeReference ? 1 : 0);
+        } else {
+          const zero: DeepViewport = {
+            x: BigInt(0),
+            y: BigInt(0),
+            bits: state.view.bits,
+            logZoom: 0,
+          };
+          const delta = viewportDelta(state.view, zero);
+          gl.uniform2f(u.center, delta.x[0] * 2 ** delta.x[1], delta.y[0] * 2 ** delta.y[1]);
+          gl.uniform1f(u.zoomSize, 2 ** state.view.logZoom);
+        }
+        preparedState = target ? state : null;
       }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disable(gl.SCISSOR_TEST);
-      if (!tile) {
+      if (!tile && !target) {
+        lastDirectFrame = {
+          state: {
+            ...state,
+            view: { ...state.view },
+            config: { ...state.config },
+            c: [...state.c],
+          },
+          width: w,
+          height: h,
+        };
         rememberFrame();
         renderedVersion = version;
         inspectedVersion = -1;
@@ -636,9 +663,69 @@ export function createDeepZoomRenderer(
       frame = 0;
       if (destroyed) return;
       const state = getState();
-      if (state.view.logZoom >= -7) {
+      if (state.view.logZoom >= -7 && !(sharpMotion && options.interactive)) {
+        motion?.destroy();
+        motion = null;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         draw(null, null);
         report("Ready");
+        return;
+      }
+      if (sharpMotion && options.interactive) {
+        const { w, h } = resize();
+        const shallow = state.view.logZoom >= -7;
+        const canPaint = shallow || Boolean(validReference() && reference && referenceView);
+        if (canPaint && !motion) {
+          try {
+            motion = createMandelbrotMotion(gl, {
+              error: (error) =>
+                report(error instanceof Error ? error.message : String(error), true),
+              initialFrame: lastDirectFrame,
+              paint: (snapshot, target) => {
+                draw(snapshot.orbit, snapshot.orbitView, target.tile, {
+                  ...target,
+                  state: snapshot.state,
+                });
+              },
+              complete: (completedVersion) => {
+                if (completedVersion === version) {
+                  renderedVersion = version;
+                  inspectedVersion = version;
+                  report("Detail ready");
+                }
+              },
+            });
+            lastDirectFrame = undefined;
+          } catch (error) {
+            report(error instanceof Error ? error.message : String(error), true);
+            return;
+          }
+        }
+        if (motion) {
+          motion.update(
+            {
+              state: {
+                ...state,
+                view: { ...state.view },
+                c: [...state.c],
+                config: { ...state.config },
+              },
+              orbit: shallow ? null : reference,
+              orbitView: shallow ? null : referenceView,
+              version,
+              width: w,
+              height: h,
+              iterations: shallow
+                ? Math.min(MAX_RENDER_ITERATIONS, state.config.iterations)
+                : iterationBudget(state.view, state.config.iterations),
+            },
+            moving,
+            canPaint,
+          );
+        }
+        // Existing sampled sources remain usable while a distant jump waits for
+        // its reference. Do not calculate new pixels from an unusable reference.
+        if (!shallow && !pending && needsReference()) request();
         return;
       }
       if (sharpMotion) {
@@ -749,10 +836,24 @@ export function createDeepZoomRenderer(
       pending = null;
       report("Could not calculate this view. Reload to restart the renderer.", true);
     };
-    const update = () => {
+    const update = (interaction = false) => {
       version++;
+      if (sharpMotion && options.interactive) {
+        moving = interaction;
+        clearTimeout(settle);
+        if (moving)
+          settle = setTimeout(() => {
+            moving = false;
+            schedule();
+          }, 180);
+      }
       repairQueue = [];
-      schedule();
+      if (sharpMotion && options.interactive && motion) {
+        // Update the compositor's camera before its next RAF, without an extra
+        // frame of input latency. Pixel work stays in the bounded GPU scheduler.
+        if (frame) cancelAnimationFrame(frame);
+        render();
+      } else schedule();
     };
     const redraw = () => {
       // Export hooks are synchronous. Preserve the repaired framebuffer if ready.
@@ -761,8 +862,11 @@ export function createDeepZoomRenderer(
     return {
       update,
       redraw,
+      getMotionStats: () => motion?.getStats() ?? null,
       destroy() {
         destroyed = true;
+        clearTimeout(settle);
+        motion?.destroy();
         cancelAnimationFrame(frame);
         for (const dispose of release.splice(0).reverse()) dispose();
       },

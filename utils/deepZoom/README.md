@@ -29,24 +29,32 @@ Where the exponent range permits, a second reference texture region stores ordin
 
 ## Interaction and cost
 
-Mandelbrot, Julia, and Burning Ship use device-pixel framebuffer resolution during both movement and rest. Only hardware texture, renderbuffer, and viewport limits can reduce the drawing buffer. Movement does not reduce the iteration budget or change the arithmetic fallback policy. Invalid-pixel inspection and tile repairs have no movement flag or settling delay; camera versions prevent stale repairs from replacing a newer view.
+`createDeepZoomRenderer` accepts optional `{ pixelRatio, interactive }` settings. The live explorer opts into `interactive: true`; the default remains the direct renderer used by numeric checks and export. `pixelRatio` defaults to display DPR. Hardware texture, renderbuffer, and viewport limits can reduce the drawing buffer.
+
+Interactive Mandelbrot keeps the display canvas at native resolution while calculating moving sources at 0.8 of native sampling in each dimension. A measured moving GPU batch above 12 ms lowers subsequent sources to 0.75. Sources cover an 18% wider and taller span, adding a 9% border on each side for nearby pans. This intentionally trades some moving detail for responsiveness; movement does not reduce the iteration budget or change the arithmetic fallback policy. After 180 ms without another interaction, or an explicit `update(false)`, unfinished moving work is discarded and a fresh source begins at full native sampling. The renderer does not finish an obsolete moving source before starting native detail.
+
+`motion.ts` stores completed and partially calculated sources with their original cameras. Each display frame transforms those original textures to the latest camera; it never resamples the previous displayed image into another source. Newly calculated opaque tiles replace history where available. Reprojection can keep the camera responsive while fine detail is still old, and it cannot reveal detail outside the available sources. A source that no longer covers useful nearby space is discarded.
+
+Tile priority starts with newly exposed visible edges that history cannot cover, then the visible center, then the extra border. When `EXT_disjoint_timer_query` is available, asynchronous results adjust the next pixel budget toward 6 ms while moving and 48 ms at rest. The adaptive budget has a floor of 16,384 pixels so fixed draw overhead cannot shrink useful work toward zero; starting movement resets it to 32,768 pixels. Only one timed batch is outstanding; later animation frames poll without blocking or reading pixels back. These are adaptive targets, not hard duration guarantees: a first batch or an unusually costly tile can exceed them. Without timer queries, animation-frame intervals adjust a conservative budget from 16,384 pixels up to 65,536 while moving or 262,144 at rest; CPU submission duration is never treated as GPU time. Adjoining selected tiles are coalesced before drawing.
+
+Interactive Mandelbrot omits synchronous alpha-mask readback: its shader does not emit invalid-alpha pixels. Julia and Burning Ship retain their mask inspection and repair paths.
 
 References and approximation tables cover a region larger than the initial viewport and include spare iterations. Panning and zooming reuse them while their precision and iteration count suffice. The renderer requests a replacement before the viewport reaches the cached domain margin or exhausts the spare precision or iterations. Each pixel separately checks the table's parameter bound; outside it, ordinary perturbation continues without BLA. The first deep frame, or a change requiring more precision or iterations than the available reference, can wait for the worker.
 
-Julia and Burning Ship retain their existing perturbation and reference-repair methods. They do not use Mandelbrot's BLA tables or native arithmetic shortcut. An available reference renders the current camera; a cached-image preview is only a fallback while no usable reference is available, not a gesture-specific quality mode.
+Julia and Burning Ship retain native sampling during movement and rest, with their existing perturbation and reference-repair methods. They do not use Mandelbrot's motion compositor, BLA tables, or native arithmetic shortcut. An available reference renders the current camera; a cached-image preview is only a fallback while no usable reference is available. Camera versions prevent stale repairs from replacing a newer view.
 
-The framebuffer is retained for tile repairs. PNG export snapshots the view and coloring into an isolated renderer, waits for its repairs, then encodes the image. Its explicit `pixelRatio: 1` makes requested dimensions independent of display DPR, subject to the same hardware limits. Export does not resize or disturb the live explorer. Workers, textures and programs are released on unmount, context loss, or export completion/cancellation.
+The direct renderer retains its framebuffer for tile repairs. PNG export snapshots the view and coloring into an isolated, non-interactive renderer, waits for its repairs, then encodes the image. Its explicit `pixelRatio: 1` renders every requested output pixel independently of display DPR, subject to the same hardware limits. Export does not resize or disturb the live explorer. Workers, textures and programs are released on unmount, context loss, or export completion/cancellation. Full native sampling does not certify the underlying approximate arithmetic.
 
-The ordinary shader remains the fast path above a half-span of `2^-7`. Below that, the minimum iteration count grows with depth. The studio value is a minimum. Routine zoom, refinement and iteration status is not shown over the fractal; only renderer or graphics errors are displayed. Palette changes reuse reference data when possible.
+The ordinary shader remains the fast path above a half-span of `2^-7`; interactive Mandelbrot also schedules this shader in tiles. Below that, the minimum iteration count grows with depth. The studio value is a minimum. Routine zoom, refinement and iteration status is not shown over the fractal; only renderer or graphics errors are displayed. Palette changes reuse reference data when possible.
 
-There are explicit resource budgets: 16,384 depth bits (about `10^4932` magnification) and 8,192 iterations per pixel. There is no guarantee of a fixed frame rate, arbitrary-location correctness, or endless visible detail. A point that does not escape within the iteration budget is not proof of set membership. BigInt reference work, difficult orbit regions and tile repair can all take longer as depth increases. All saved coordinates must remain within the existing one-million-unit coordinate envelope.
+There are explicit resource budgets: 16,384 depth bits (about `10^4932` magnification) and 8,192 iterations per pixel. There is no guarantee of a fixed frame rate, arbitrary-location correctness, or endless visible detail. A point that does not escape within the iteration budget is not proof of set membership. Difficult views can still take seconds to calculate new detail even while the displayed camera responds smoothly. BigInt reference work, difficult orbit regions and tile repair can all take longer as depth increases. All saved coordinates must remain within the existing one-million-unit coordinate envelope.
 
 ## Validation
 
 Run the focused numeric and sharing tests:
 
 ```sh
-node --test tests/deep-zoom.test.mjs tests/deep-zoom-approximation.test.mjs tests/deep-zoom-renderer.test.mjs tests/explorer-share.test.mjs
+node --test tests/deep-zoom*.test.mjs tests/explorer-share.test.mjs
 ```
 
 Generate a browser check using the same shader recurrence and independent BigInt pixel calculations:
@@ -77,11 +85,15 @@ playwright-cli -s=deep-zoom --raw run-code --filename /private/tmp/mandelbrot-or
 Benchmark continuous camera movement through the production renderer and worker:
 
 ```sh
-node scripts/benchmark-mandelbrot-motion.mjs /private/tmp/mandelbrot-motion.js --fixture branches --width 960 --height 600 --dpr 1 --frames 24
+node scripts/benchmark-mandelbrot-motion.mjs /private/tmp/mandelbrot-motion.js --fixture branches --width 960 --height 600 --dpr 1 --frames 120 --async
 playwright-cli -s=deep-zoom --raw run-code --filename /private/tmp/mandelbrot-motion.js
 ```
 
-Repeat with `--fixture tail`, `boundary`, or `antenna`; use `--dpr 2` to exercise a larger physical framebuffer. The benchmark reports dimensions, current-camera versus preview draws, worker jobs, median/p95 timings, and moving/settled images. Its default timing synchronizes each draw with a pixel readback. `--async` measures submission without that synchronization and should not be interpreted as GPU frame time.
+Repeat with `--fixture whole`, `tail`, `boundary`, or `antenna`; use `--dpr 2` to exercise a larger physical framebuffer. `--zoom-travel 4` tests a continuous four-bit zoom instead of the default half-bit excursion. The benchmark opts into the interactive renderer and reports camera-input cadence, display draws, submitted detail tiles and pixels, source ages and effective densities, worker jobs, final settle time, and moving/settled images.
+
+Use `--async` for the production scheduling behavior. Per-draw times then measure CPU submission, not GPU completion. Omitting it synchronizes every draw with a pixel readback, which changes scheduling and is useful only as a separate diagnostic. Timer-query results report GPU batches when supported; `motionGpuBatches` isolates movement, while the aggregate `gpuBatches` statistics also include setup and settling.
+
+Camera-input median/p95 intervals and display cadence measure responsiveness, not the rate of fresh full-frame detail. Inspect `motionStats` alongside them: completed source counts, source age, effective density, submitted fraction, and final native completion show how much detail has caught up. `currentDraws` counts calculation draws, including individual tiles; it is not a count of complete current-camera frames. Submitted pixels can belong to an earlier sampled camera and are not necessarily finished when recorded. Moving/settled images and `settleMs` remain necessary checks of the quality tradeoff.
 
 Also check continuous scrolling, pointer anchoring, touch pinch, resize, parameter edits during refinement, share restoration, PNG export and WebGL context recovery in the actual pages. The Mandelbrot “Deep branches” place uses a decimal-string approximation of the preperiodic point near `-0.101096 + 0.956287 i`, calculated from `z5(c) = z4(c)`, at a half-span of `1e-30`.
 

@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform vec2 u_resolution;
+uniform float u_logPixelScale;
 uniform vec2 u_center;
 uniform float u_zoomSize;
 uniform vec2 u_c;
@@ -105,7 +106,7 @@ vec3 paletteColor(float t) {
 
 void main() {
     vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-    float pixelSize = 2.0 * u_zoomSize / min(u_resolution.x, u_resolution.y);
+    float pixelSize = 2.0 * u_zoomSize / min(u_resolution.x, u_resolution.y) * exp2(-u_logPixelScale);
 
 #ifdef FORMULA_BURNING_SHIP
     // Flip the imaginary axis so the ship sails upright.
@@ -124,6 +125,20 @@ void main() {
     vec2 dz = vec2(0.0);
 #endif
 
+#ifdef FORMULA_MANDELBROT
+    // Strictly inside the main cardioid or period-two bulb, non-trap modes
+    // always use the interior color. Leave a rounding margin at both borders.
+    if (u_colorMode < MODE_TRAP_POINT) {
+        float x = c.x - 0.25;
+        float q = x*x + c.y*c.y;
+        float bulb = (c.x+1.0)*(c.x+1.0) + c.y*c.y;
+        if (q*(q+x) < 0.25*c.y*c.y - 0.000002 || bulb < 0.0625 - 0.000002) {
+            gl_FragColor = vec4(u_interior,1.0);
+            return;
+        }
+    }
+#endif
+
     float iteration = 0.0;
     bool escaped = false;
     float trap = 1e10;
@@ -136,13 +151,13 @@ void main() {
 #ifdef FORMULA_BURNING_SHIP
         vec2 fold = sign(z);
         vec2 az = abs(z);
-        dz = 2.0 * complexMultiply(az, dz * fold) + vec2(1.0, 0.0);
+        if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(az, dz * fold) + vec2(1.0, 0.0);
         z = complexSquare(az) + c;
 #elif defined(FORMULA_JULIA)
-        dz = 2.0 * complexMultiply(z, dz);
+        if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(z, dz);
         z = complexSquare(z) + c;
 #else
-        dz = 2.0 * complexMultiply(z, dz) + vec2(1.0, 0.0);
+        if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(z, dz) + vec2(1.0, 0.0);
         z = complexSquare(z) + c;
 #endif
 

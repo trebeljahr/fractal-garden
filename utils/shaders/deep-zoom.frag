@@ -325,7 +325,7 @@ void main() {
         // derivative is scaled by the view half-span, so no tiny pixel size or
         // huge derivative is ever converted to an ordinary float.
         float logPixels = log2(max(0.5*length(z)*logZ,1e-30)) - cxLogLength(derivative)
-            + log2(min(u_resolution.x,u_resolution.y)/2.0);
+            + log2(min(u_resolution.x,u_resolution.y)/2.0) + u_logPixelScale;
         t=1.0-clamp(log2(1.0+exp2(clamp(logPixels,-100.0,100.0)))/10.0,0.0,1.0);
     } else if (u_colorMode == MODE_STRIPES) {
         float count=max(iteration+1.0,1.0);

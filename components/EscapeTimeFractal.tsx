@@ -91,10 +91,23 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   const viewportRef = useRef(createViewport(initialCenter, initialZoomSize));
   const rendererRef = useRef<ReturnType<typeof createDeepZoomRenderer> | null>(null);
   const [viewport, setViewport] = useState(viewportRef.current);
-  const updateViewport = useCallback(() => {
-    setViewport(viewportRef.current);
-    rendererRef.current?.update();
+  const viewportUiFrame = useRef(0);
+  const updateViewport = useCallback((interaction = false) => {
+    // Apply every input to the renderer; update the Places menu once per frame.
+    rendererRef.current?.update(interaction);
+    if (interaction) {
+      if (!viewportUiFrame.current)
+        viewportUiFrame.current = requestAnimationFrame(() => {
+          viewportUiFrame.current = 0;
+          setViewport(viewportRef.current);
+        });
+    } else {
+      cancelAnimationFrame(viewportUiFrame.current);
+      viewportUiFrame.current = 0;
+      setViewport(viewportRef.current);
+    }
   }, []);
+  useEffect(() => () => cancelAnimationFrame(viewportUiFrame.current), []);
   useEffect(() => {
     if (matchesDeepViewport(viewportRef.current, previousOpening.current)) {
       viewportRef.current = opening;
@@ -137,6 +150,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           height: stateRef.current.height || 1,
         }),
         (status) => setRenderError(status.error ? status.message : ""),
+        { interactive: true },
       );
     } catch (error) {
       setRenderError(error instanceof Error ? error.message : String(error));

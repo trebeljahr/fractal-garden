@@ -23,7 +23,7 @@ export function useDeepZoomControls({
   viewportRef: MutableRefObject<DeepViewport>;
   maxZoomSize: number;
   flipY: boolean;
-  onChange: () => void;
+  onChange: (interaction?: boolean) => void;
 }) {
   const change = useRef(onChange);
   change.current = onChange;
@@ -84,7 +84,7 @@ export function useDeepZoomControls({
         );
       }
       viewportRef.current = moveViewport(view, before.x - after.x, before.y - after.y);
-      change.current();
+      change.current(true);
     };
     const up = (event: PointerEvent) => {
       pointers.delete(event.pointerId);
@@ -102,7 +102,7 @@ export function useDeepZoomControls({
           Math.max(-2, Math.min(2, zoomWheelDelta(event, canvas) / Math.LN2)),
       );
       viewportRef.current = zoomViewport(viewportRef.current, next, anchor.x, anchor.y);
-      change.current();
+      change.current(true);
     };
     canvas.style.touchAction = "none";
     canvas.style.cursor = "grab";

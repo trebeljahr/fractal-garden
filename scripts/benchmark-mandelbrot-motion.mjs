@@ -88,6 +88,7 @@ async function benchmark(payload) {
   const { createViewportAtLog, moveViewport, zoomViewport } = load("utils/deepZoom/math.ts");
   const { createDeepZoomRenderer } = load("utils/deepZoom/renderer.ts");
   const fixtures = {
+    whole: { center: [-0.5, 0], depth: 1, iterations: 200 },
     tail: { center: [-0.7435669, 0.1314023], depth: Math.log2(0.0006), iterations: 1400 },
     branches: {
       center: [
@@ -129,14 +130,56 @@ async function benchmark(payload) {
     },
   };
   const draws = [],
+    gpuBatches = [],
+    gpuBatchRecords = [],
+    motionStats = [],
     draw = gl.drawArrays.bind(gl),
     use = gl.useProgram.bind(gl),
-    syncPixel = new Uint8Array(4);
-  let preview = false,
-    frame = -1;
+    bindFramebuffer = gl.bindFramebuffer.bind(gl),
+    viewport = gl.viewport.bind(gl),
+    scissor = gl.scissor.bind(gl),
+    syncPixel = new Uint8Array(4),
+    kinds = new WeakMap();
+  const timer = gl.getExtension("EXT_disjoint_timer_query");
+  if (timer) {
+    const queryResult = timer.getQueryObjectEXT.bind(timer);
+    timer.getQueryObjectEXT = (query, pname) => {
+      const value = queryResult(query, pname);
+      if (pname === timer.QUERY_RESULT_EXT) {
+        gpuBatches.push(value / 1e6);
+        gpuBatchRecords.push({ frame, ms: value / 1e6 });
+      }
+      return value;
+    };
+  }
+  let kind = "full",
+    frame = -1,
+    offscreen = false,
+    targetSize = [0, 0],
+    tile = null;
+  gl.bindFramebuffer = (target, framebuffer) => {
+    offscreen = Boolean(framebuffer);
+    bindFramebuffer(target, framebuffer);
+  };
+  gl.viewport = (x, y, w, h) => {
+    targetSize = [w, h];
+    viewport(x, y, w, h);
+  };
+  gl.scissor = (x, y, w, h) => {
+    tile = [x, y, w, h];
+    scissor(x, y, w, h);
+  };
   gl.useProgram = (program) => {
     use(program);
-    preview = gl.getUniformLocation(program, "u_frame") !== null;
+    if (!kinds.has(program))
+      kinds.set(
+        program,
+        gl.getUniformLocation(program, "u_reference") !== null ||
+          gl.getUniformLocation(program, "u_zoomSize") !== null
+          ? "full"
+          : "display",
+      );
+    kind = kinds.get(program);
   };
   gl.drawArrays = (...args) => {
     const t = performance.now();
@@ -146,9 +189,11 @@ async function benchmark(payload) {
       frame,
       ms: performance.now() - t,
       time: performance.now(),
-      width: canvas.width,
-      height: canvas.height,
-      preview,
+      width: targetSize[0],
+      height: targetSize[1],
+      preview: kind === "display",
+      kind: offscreen ? "tile" : kind,
+      tile: offscreen ? tile : null,
     });
   };
   const statuses = [],
@@ -165,11 +210,12 @@ async function benchmark(payload) {
       "mandelbrot",
       () => state,
       (status) => statuses.push({ ...status, time: performance.now() }),
+      { interactive: true },
     );
     const start = performance.now();
     renderer.update();
     while (
-      !statuses.some((s) => s.message === "Detail ready" || s.error) &&
+      !statuses.some((s) => s.message === "Detail ready" || s.message === "Ready" || s.error) &&
       performance.now() < start + 30000
     )
       await delay(25);
@@ -178,8 +224,13 @@ async function benchmark(payload) {
       initialStatus = statuses.at(-1),
       startJobs = jobs.length,
       starts = [];
-    if (initialStatus?.message !== "Detail ready" || statuses.some((status) => status.error))
-      throw new Error(`Renderer setup failed: ${JSON.stringify(statuses)}`);
+    if (
+      !["Detail ready", "Ready"].includes(initialStatus?.message) ||
+      statuses.some((status) => status.error)
+    )
+      throw new Error(
+        `Renderer setup failed: ${JSON.stringify({ statuses, stats: renderer.getMotionStats?.(), gpuBatches: gpuBatches.slice(-20), draws: draws.slice(-5) })}`,
+      );
     await raf();
     for (frame = 0; frame < payload.frames; frame++) {
       starts.push(performance.now());
@@ -190,18 +241,36 @@ async function benchmark(payload) {
           0.2 * Math.sin(t * 3),
           0.08 * t,
         ),
-        fixture.depth - 0.5 * Math.sin(t * Math.PI),
+        fixture.depth - (payload.zoomTravel ? payload.zoomTravel * t : 0.5 * Math.sin(t * Math.PI)),
         0,
         0,
       );
-      renderer.update();
+      renderer.update(true);
       await raf();
+      if (renderer.getMotionStats)
+        motionStats.push({ frame, time: performance.now(), ...renderer.getMotionStats() });
     }
     gl.finish();
     const movingPNG = canvas.toDataURL("image/png"),
       motionDraws = draws.filter((d) => d.frame >= 0 && d.frame < payload.frames);
     frame = payload.frames;
-    await delay(350);
+    const settleStart = performance.now();
+    renderer.update(false);
+    while (
+      !statuses.some(
+        (s) => ["Detail ready", "Ready"].includes(s.message) && s.time >= settleStart,
+      ) &&
+      performance.now() < settleStart + 30000
+    )
+      await delay(25);
+    const settled = statuses.some(
+      (s) => ["Detail ready", "Ready"].includes(s.message) && s.time >= settleStart,
+    );
+    if (!settled)
+      throw Error(
+        `Final detail did not complete: ${JSON.stringify({ stats: renderer.getMotionStats?.(), gpuBatches: gpuBatches.slice(-20) })}`,
+      );
+    const settleMs = performance.now() - settleStart;
     gl.finish();
     const settledPNG = canvas.toDataURL("image/png");
     const current = motionDraws.filter((d) => !d.preview),
@@ -216,6 +285,19 @@ async function benchmark(payload) {
       frames: payload.frames,
       synchronized: payload.synchronized,
       setupMs,
+      settleMs,
+      gpuBatches,
+      motionStats,
+      motionGpuBatches: gpuBatchRecords.filter((q) => q.frame >= 0 && q.frame < payload.frames),
+      gpuBatchMedianMs: percentile(gpuBatches, 0.5),
+      gpuBatchP95Ms: percentile(gpuBatches, 0.95),
+      gpuBatchMaxMs: gpuBatches.length ? Math.max(...gpuBatches) : null,
+      displayFrames: new Set(motionDraws.filter((d) => d.kind === "display").map((d) => d.frame))
+        .size,
+      detailTiles: motionDraws.filter((d) => d.kind === "tile").length,
+      detailPixels: motionDraws
+        .filter((d) => d.kind === "tile")
+        .reduce((sum, d) => sum + d.tile[2] * d.tile[3], 0),
       initialStatus,
       motionJobs: jobs.length - startJobs,
       workerMs: jobs.slice(startJobs).reduce((a, b) => a + b, 0),
@@ -254,6 +336,7 @@ const payload = {
   height: Number(option("--height", "600")),
   frames: Number(option("--frames", "24")),
   synchronized: !process.argv.includes("--async"),
+  zoomTravel: Number(option("--zoom-travel", "0")),
 };
 const invocation = `await page.evaluate(${benchmark.toString()}, ${JSON.stringify(payload)})`;
 const dpr = Number(option("--dpr", "1"));
