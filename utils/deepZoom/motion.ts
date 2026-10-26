@@ -298,13 +298,13 @@ export function createMandelbrotMotion(
       work.receivedAt = receivedAt;
       work.submittedPixels = 0;
       work.tiles = [];
-      for (let y = 0; y < work.height; y += 128)
-        for (let x = 0; x < work.width; x += 128)
+      for (let y = 0; y < work.height; y += 64)
+        for (let x = 0; x < work.width; x += 64)
           work.tiles.push({
             x,
             y,
-            width: Math.min(128, work.width - x),
-            height: Math.min(128, work.height - y),
+            width: Math.min(64, work.width - x),
+            height: Math.min(64, work.height - y),
           });
       const distance = (tile: Tile) =>
         (tile.x + tile.width / 2 - work.width / 2) ** 2 +
@@ -490,9 +490,15 @@ export function createMandelbrotMotion(
         work = swap;
         discardWork();
       }
+      // A native pass can outlive a short pause and a resumed gesture. Once
+      // stopped, refine the final camera directly instead of finishing an old
+      // native view and then restarting another visible sweep.
       if (
         work.snapshot &&
-        (staleWork() || (!moving && !work.native && work.cursor < work.tiles.length))
+        (staleWork() ||
+          (!moving &&
+            work.cursor < work.tiles.length &&
+            (!work.native || !work.origin || !sameCamera(latest, work.origin))))
       ) {
         discardedSources++;
         discardWork();

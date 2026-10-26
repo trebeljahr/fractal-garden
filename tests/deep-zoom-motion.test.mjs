@@ -237,6 +237,67 @@ function harness(
   }
 }
 
+test("stopping at a new camera replaces an unfinished native pass with one final exact pass", () =>
+  harness((h) => {
+    h.update(false);
+    h.tick();
+    const originalSource = h.paints[0].source;
+    const state = {
+      ...h.snapshot.state,
+      view: moveViewport(h.snapshot.state.view, 0.05, 0),
+    };
+    h.update(true, { state, version: 2 });
+    h.tick();
+    const beforeStop = h.paints.length;
+    h.update(false);
+    const firstSettledBatch = h.tick();
+    assert.ok(firstSettledBatch.length > 0);
+    assert.ok(firstSettledBatch.every(({ source }) => source !== originalSource));
+    for (const { source, target } of firstSettledBatch) {
+      assert.deepEqual(source.state.view, state.view);
+      assert.deepEqual([target.width, target.height, target.pixelRatio], [640, 360, 1]);
+    }
+    h.flush();
+    const settled = h.paints.slice(beforeStop);
+    assert.equal(
+      new Set(settled.map(({ source }) => source)).size,
+      1,
+      "only one final source is painted",
+    );
+    assert.equal(
+      settled.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0),
+      640 * 360,
+      "the final camera is painted exactly once",
+    );
+    assert.ok(settled.every(({ source }) => source !== originalSource));
+    assert.deepEqual(h.completions, [2]);
+    assert.equal(h.motion.getStats().completedSources, 1);
+  }));
+
+test("same-camera version changes retain native work and never repaint its completed source", () =>
+  harness((h) => {
+    h.update(false);
+    h.tick();
+    const originalSource = h.paints[0].source;
+    h.update(false, { version: 2 });
+    h.tick();
+    h.flush();
+    assert.ok(h.paints.every(({ source }) => source === originalSource));
+    assert.equal(h.clears, 1);
+    assert.equal(
+      h.paints.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0),
+      640 * 360,
+    );
+    assert.deepEqual(h.completions, [2]);
+    const paintCount = h.paints.length;
+    h.update(false, { version: 3 });
+    h.flush();
+    assert.equal(h.paints.length, paintCount);
+    assert.equal(h.clears, 1);
+    assert.equal(h.motion.getStats().completedSources, 1);
+    assert.deepEqual(h.completions, [2, 3]);
+  }));
+
 test("newly revealed visible edges outrank the center and preserve submitted coverage", () =>
   harness(
     (h) => {
@@ -553,7 +614,7 @@ test("coalesced batches cover every native pixel once with fewer paint calls", (
         }
       }
       assert.ok(counts.every((count) => count === 1));
-      assert.ok(h.paints.length < Math.ceil(640 / 128) * Math.ceil(360 / 128));
+      assert.ok(h.paints.length < Math.ceil(640 / 64) * Math.ceil(360 / 64));
       const stats = h.motion.getStats();
       assert.equal(stats.submittedPixels, 640 * 360);
       assert.equal(stats.paintCalls, h.paints.length);

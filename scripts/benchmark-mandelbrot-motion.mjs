@@ -254,19 +254,31 @@ async function benchmark(payload) {
       if (renderer.getMotionStats)
         motionStats.push({ frame, time: performance.now(), ...renderer.getMotionStats() });
     }
+    if (payload.pauseBeforeStop) {
+      // A short pause starts a native pass, then a final wheel nudge changes the
+      // camera before that pass has finished. This used to cause two settle sweeps.
+      await delay(payload.pauseBeforeStop);
+      state.view = zoomViewport(state.view, state.view.logZoom - 0.05, 0, 0);
+      renderer.update(true);
+      await raf();
+    }
     gl.finish();
     const movingPNG = canvas.toDataURL("image/png"),
       motionDraws = draws.filter((d) => d.frame >= 0 && d.frame < payload.frames);
     frame = payload.frames;
     const settleStart = performance.now();
+    const settleStats = [];
     renderer.update(false);
     while (
       !statuses.some(
         (s) => ["Detail ready", "Ready"].includes(s.message) && s.time >= settleStart,
       ) &&
       performance.now() < settleStart + 30000
-    )
+    ) {
+      if (renderer.getMotionStats)
+        settleStats.push({ time: performance.now() - settleStart, ...renderer.getMotionStats() });
       await delay(25);
+    }
     const settled = statuses.some(
       (s) => ["Detail ready", "Ready"].includes(s.message) && s.time >= settleStart,
     );
@@ -288,6 +300,8 @@ async function benchmark(payload) {
       css: [payload.width, payload.height],
       frames: payload.frames,
       synchronized: payload.synchronized,
+      pauseBeforeStop: payload.pauseBeforeStop,
+      settleStats,
       timerQueries: Boolean(timer),
       setupMs,
       settleMs,
@@ -344,6 +358,7 @@ const payload = {
   synchronized: !process.argv.includes("--async"),
   disableTimers: process.argv.includes("--no-timers"),
   zoomTravel: Number(option("--zoom-travel", "0")),
+  pauseBeforeStop: Number(option("--pause-before-stop", "0")),
 };
 const invocation = `await page.evaluate(${benchmark.toString()}, ${JSON.stringify(payload)})`;
 const dpr = Number(option("--dpr", "1"));

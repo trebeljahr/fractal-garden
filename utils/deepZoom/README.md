@@ -35,6 +35,8 @@ Interactive Mandelbrot keeps the display canvas at native resolution while calcu
 
 `motion.ts` stores completed and partially calculated sources with their original cameras. Each display frame transforms those original textures to the latest camera; it never resamples the previous displayed image into another source. Newly calculated opaque tiles replace history where available. Reprojection can keep the camera responsive while fine detail is still old, and it cannot reveal detail outside the available sources. A source that no longer covers useful nearby space is discarded.
 
+The refinement grid uses 64 × 64 source-texture pixels. Adjacent cells can share a draw, so reducing the visible grid does not require one draw call per cell. After a pause followed by a small gesture, stopping also replaces any unfinished native pass for the earlier camera; only the final camera is refined. Same-camera updates retain already calculated work.
+
 Tile priority starts with newly exposed visible edges that history cannot cover, then the visible center, then the extra border. When `EXT_disjoint_timer_query` is available, asynchronous results adjust the next pixel budget toward 6 ms while moving and 48 ms at rest. The adaptive budget has a floor of 16,384 pixels so fixed draw overhead cannot shrink useful work toward zero; starting movement caps the next batch at 32,768 pixels. Only one timed batch is outstanding; later animation frames poll without blocking or reading pixels back. These are adaptive targets, not hard duration guarantees: a first batch or an unusually costly tile can exceed them. Without timer queries, animation-frame intervals adjust a conservative budget from 16,384 pixels up to 65,536 while moving or 262,144 at rest; CPU submission duration is never treated as GPU time. Adjoining selected tiles are coalesced before drawing.
 
 Interactive Mandelbrot omits synchronous alpha-mask readback: its shader does not emit invalid-alpha pixels. Julia and Burning Ship retain their mask inspection and repair paths.
@@ -90,6 +92,8 @@ playwright-cli -s=deep-zoom --raw run-code --filename /private/tmp/mandelbrot-mo
 ```
 
 Repeat with `--fixture whole`, `tail`, `boundary`, or `antenna`; use `--dpr 2` to exercise a larger physical framebuffer. `--zoom-travel 4` tests a continuous four-bit zoom instead of the default half-bit excursion. The benchmark opts into the interactive renderer and reports camera-input cadence, display draws, submitted detail tiles and pixels, source ages and effective densities, worker jobs, final settle time, and moving/settled images.
+
+Use `--pause-before-stop 260 --fixture boundary` to reproduce a brief pause followed by a final wheel nudge. `settleStats` records whether an obsolete source continues advancing before the final native pass.
 
 Use `--no-timers` to exercise the frame-pacing fallback. Use `--async` for the production scheduling behavior. Per-draw times then measure CPU submission, not GPU completion. Omitting it synchronizes every draw with a pixel readback, which changes scheduling and is useful only as a separate diagnostic. Timer-query results report GPU batches when supported; `motionGpuBatches` isolates movement, while the aggregate `gpuBatches` statistics also include setup and settling.
 
