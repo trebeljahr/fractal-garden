@@ -27,6 +27,7 @@ for (const extension of [".frag", ".vert"])
 const { createDeepZoomRenderer, iterationBudget } = require("../utils/deepZoom/renderer.ts");
 const { createViewportAtLog, moveViewport, zoomViewport } = require("../utils/deepZoom/math.ts");
 const { buildReference } = require("../utils/deepZoom/orbit.ts");
+const { summarizeShipPixels } = require("../utils/deepZoom/pixelSummary.ts");
 const { exportDeepZoomPng } = require("../utils/deepZoom/export.ts");
 const { buildApproximation } = require("../utils/deepZoom/approximation.ts");
 
@@ -164,21 +165,35 @@ async function harness(run, { isolatedExport = false, formula = "mandelbrot" } =
           id: job.id,
           ...(error
             ? { error }
-            : {
-                references: (job.tiles?.map((repair) => repair.view) ?? [job.view]).map((view) => {
-                  const reference = buildReference(view, job.formula, job.c, job.iterations);
-                  if (
-                    job.formula === "mandelbrot" &&
-                    !job.tiles &&
-                    Number.isFinite(job.logDeltaC)
-                  ) {
-                    reference.approximation = buildApproximation(reference, {
-                      logDeltaC: job.logDeltaC,
-                    });
-                  }
-                  return reference;
+            : job.pixelRepairs
+              ? {
+                  summaries: job.pixelRepairs.map((tile) =>
+                    summarizeShipPixels(
+                      job.view,
+                      job.iterations,
+                      job.frameWidth,
+                      job.frameHeight,
+                      tile,
+                    ),
+                  ),
+                }
+              : {
+                  references: (job.tiles?.map((repair) => repair.view) ?? [job.view]).map(
+                    (view) => {
+                      const reference = buildReference(view, job.formula, job.c, job.iterations);
+                      if (
+                        job.formula === "mandelbrot" &&
+                        !job.tiles &&
+                        Number.isFinite(job.logDeltaC)
+                      ) {
+                        reference.approximation = buildApproximation(reference, {
+                          logDeltaC: job.logDeltaC,
+                        });
+                      }
+                      return reference;
+                    },
+                  ),
                 }),
-              }),
         },
       });
       return job;
@@ -457,6 +472,161 @@ test("partial edge cells and invalid pixels late in a cell are retained", () =>
     assert.equal(tile.x + tile.width, h.canvas.width);
     assert.equal(tile.y + tile.height, h.canvas.height);
   }));
+
+for (const formula of ["mandelbrot", "julia", "burning-ship"]) {
+  test(`${formula}: repairs shrink coordinate error around the tile reference without moving pixels`, () =>
+    harness(
+      (h) => {
+        h.state = {
+          ...h.state,
+          width: 57,
+          height: 31,
+          config: { ...h.state.config, colorMode: "stripes" },
+        };
+        h.renderer.update();
+        h.tick();
+        let reads = 0;
+        h.gl.readPixels = (_x, _y, width, height, _format, _type, data) => {
+          data.fill(255);
+          if (reads++ === 0) data[(width * height - 1) * 4 + 3] = 0;
+        };
+        h.completeReference();
+        const [{ tile, view: repairView }] = h.worker.jobs[0].tiles;
+        h.worker.complete();
+        const repaired = h.draws.at(-1);
+        const [offsetX, offsetY] = repaired.uniforms.u_pixelOffset;
+        const width = h.canvas.width;
+        const height = h.canvas.height;
+        const size = Math.min(width, height);
+        assert.deepEqual(repaired.uniforms.u_deltaCenter, [0, 0, 0, 0]);
+        assert.deepEqual(
+          [offsetX, offsetY],
+          [tile.x + tile.width / 2 - width / 2, tile.y + tile.height / 2 - height / 2],
+        );
+        const [mantissa, exponent] = repaired.uniforms.u_scale;
+        const scale = mantissa * 2 ** exponent;
+        const flipY = formula === "burning-ship" ? -1 : 1;
+        const referenceX = Number(repairView.x - h.state.view.x) / 2 ** repairView.bits;
+        const referenceY = Number(repairView.y - h.state.view.y) / 2 ** repairView.bits;
+        for (const [x, y] of [
+          [tile.x + 0.5, tile.y + 0.5],
+          [tile.x + tile.width - 0.5, tile.y + tile.height - 0.5],
+        ]) {
+          const localX = (2 * x - width - 2 * offsetX) / size;
+          const localY = ((2 * y - height - 2 * offsetY) / size) * flipY;
+          assert.ok(Math.abs(localX) < tile.width / size);
+          assert.ok(Math.abs(localY) < tile.height / size);
+          assert.ok(
+            Math.abs(referenceX + localX * scale - ((2 * x - width) / size) * scale) < 1e-16,
+          );
+          assert.ok(
+            Math.abs(referenceY + localY * scale - ((2 * y - height) / size) * scale * flipY) <
+              1e-16,
+          );
+        }
+        h.state = { ...h.state, view: moveViewport(h.state.view, 0.001, 0) };
+        h.renderer.update();
+        h.tick();
+        assert.deepEqual(h.draws.at(-1).uniforms.u_pixelOffset, [0, 0]);
+        assert.notEqual(h.draws.at(-1).uniforms.u_deltaCenter[0], 0);
+      },
+      { formula },
+    ));
+}
+
+test("Burning Ship repairs sparse invalid masks in bounded tiles without per-pixel GPU draws", () =>
+  harness(
+    (h) => {
+      h.state = { ...h.state, width: 34, height: 18 };
+      h.gl.readPixels = (_x, _y, width, height, _format, _type, data) => {
+        data.fill(255);
+        data[3] = 0;
+        data[(width * height - 1) * 4 + 3] = 0;
+      };
+      h.renderer.update();
+      h.tick();
+      h.completeReference();
+      const job = h.worker.jobs[0];
+      assert.equal(job.tiles, undefined, "summary jobs do not build unused orbit views");
+      assert.deepEqual([job.frameWidth, job.frameHeight], [68, 36]);
+      assert.equal(job.pixelRepairs.length, 2);
+      for (const tile of job.pixelRepairs) {
+        assert.ok(tile.width <= 32 && tile.height <= 32);
+        assert.equal(
+          tile.mask.reduce((sum, value) => sum + value, 0),
+          1,
+        );
+      }
+      const draws = h.draws.length;
+      h.worker.complete();
+      assert.equal(h.draws.length, draws + 2, "one draw per tile, even with many repaired pixels");
+      assert.ok(h.draws.slice(-2).every((draw) => "u_pixelSummary" in draw.uniforms));
+      assert.equal(h.worker.jobs.length, 0);
+      assert.equal(h.statuses.at(-1).message, "Detail ready");
+    },
+    { formula: "burning-ship" },
+  ));
+
+test("Burning Ship discards summaries after a palette or camera change", () =>
+  harness(
+    (h) => {
+      h.glitch();
+      h.renderer.update();
+      h.tick();
+      h.completeReference();
+      assert.ok(h.worker.jobs[0].pixelRepairs);
+      h.state = { ...h.state, config: { ...h.state.config, palette: "fire" } };
+      h.renderer.update();
+      h.tick();
+      const draws = h.draws.length;
+      h.worker.complete();
+      assert.equal(h.draws.length, draws, "old colors cannot replace the new frame");
+      h.worker.complete();
+      assert.deepEqual(h.draws.at(-1).uniforms.u_palette, [2]);
+    },
+    { formula: "burning-ship" },
+  ));
+
+for (const [logZoom, colorMode] of [
+  [-65, "smooth"],
+  [-10, "stripes"],
+  [-10, "distance"],
+]) {
+  test(`Burning Ship keeps orbit repairs at ${logZoom} in ${colorMode} mode`, () =>
+    harness(
+      (h) => {
+        h.state = {
+          ...h.state,
+          view: createViewportAtLog([-2, 0], logZoom),
+          config: { ...h.state.config, colorMode },
+        };
+        h.glitch();
+        h.renderer.update();
+        h.tick();
+        h.completeReference();
+        assert.ok(h.worker.jobs[0].tiles);
+        assert.equal(h.worker.jobs[0].pixelRepairs, undefined);
+        h.worker.complete();
+        assert.ok("u_reference" in h.draws.at(-1).uniforms);
+      },
+      { formula: "burning-ship" },
+    ));
+}
+
+test("pixel summaries preserve unmarked pixels and distinguish escaping from bounded orbits", () => {
+  const summary = summarizeShipPixels(createViewportAtLog([-2, 0], Math.log2(0.01)), 100, 3, 1, {
+    x: 0,
+    y: 0,
+    width: 3,
+    height: 1,
+    mask: new Uint8Array([1, 0, 1]),
+  });
+  assert.ok(summary[0] < 100);
+  assert.ok(summary[1] > Math.log(256));
+  assert.deepEqual([...summary.slice(2, 4)], [1, 1]);
+  assert.deepEqual([...summary.slice(4, 8)], [0, 0, 0, 0]);
+  assert.deepEqual([...summary.slice(8)], [100, 0, 0, 1]);
+});
 
 test("expensive deep repair batches stay small and stale batches are discarded", () =>
   harness((h) => {

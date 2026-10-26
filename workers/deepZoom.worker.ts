@@ -1,10 +1,21 @@
 import { buildApproximation } from "../utils/deepZoom/approximation";
 import type { DeepViewport } from "../utils/deepZoom/math";
 import { buildReference } from "../utils/deepZoom/orbit";
+import { type PixelRepair, summarizeShipPixels } from "../utils/deepZoom/pixelSummary";
 
 self.onmessage = (event) => {
   const { id, view, formula, c, iterations, tiles, logDeltaC } = event.data;
   try {
+    if (event.data.pixelRepairs) {
+      const summaries = event.data.pixelRepairs.map((tile: PixelRepair) =>
+        summarizeShipPixels(view, iterations, event.data.frameWidth, event.data.frameHeight, tile),
+      );
+      self.postMessage(
+        { id, summaries },
+        { transfer: summaries.map((summary: Float32Array<ArrayBuffer>) => summary.buffer) },
+      );
+      return;
+    }
     const views: DeepViewport[] = tiles
       ? tiles.map((repair: { view: DeepViewport }) => repair.view)
       : [view];

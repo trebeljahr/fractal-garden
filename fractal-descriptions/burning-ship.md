@@ -18,6 +18,8 @@ The sequence of points is called an orbit. After each step, an orbit trap measur
 
 Zoom along a mast to find smaller ship-shaped regions. At their centers, the calculation returns to zero after a fixed number of steps. The same sequence then repeats without escaping.<sup><a id="burning-ship-ref-4" href="#burning-ship-source-4">4</a></sup>
 
+The thin branches around smaller ships can form shapes that resemble [Julia sets](/julia-set). These are called **embedded quasi-Julia sets**.<sup><a id="burning-ship-ref-5" href="#burning-ship-source-5">5</a></sup> **Places to explore** includes three views from Heiland-Allen’s gallery under **Embedded Julia shapes**.<sup><a id="burning-ship-ref-6" href="#burning-ship-source-6">6</a></sup>
+
 ## Further reading
 
 - [Burning Ship fractal — Wikipedia](https://en.wikipedia.org/wiki/Burning_Ship_fractal)
@@ -29,3 +31,5 @@ Zoom along a mast to find smaller ship-shaped regions. At their centers, the cal
 2. <span id="burning-ship-source-2"></span> Background: [Smooth Shading for the Mandelbrot Exterior](https://linas.org/art-gallery/escape/smooth.html). [Back](#burning-ship-ref-2)
 3. <span id="burning-ship-source-3"></span> [Orbit Traps](https://www.ultrafractal.com/help/coloring/standard/orbittraps.html). [Back](#burning-ship-ref-3)
 4. <span id="burning-ship-source-4"></span> [At the Helm of the Burning Ship](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf). [Back](#burning-ship-ref-4)
+5. <span id="burning-ship-source-5"></span> [At the Helm of the Burning Ship](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf). [Back](#burning-ship-ref-5)
+6. <span id="burning-ship-source-6"></span> [Burning Ship embedded Julia sets](https://mathr.co.uk/bs/2018-01-11_burning_ship_embedded_julia_sets/). [Back](#burning-ship-ref-6)

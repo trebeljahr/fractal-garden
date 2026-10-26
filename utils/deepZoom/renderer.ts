@@ -7,6 +7,7 @@ import { createShaderProgram } from "../shaders/compileShader";
 import deepShader from "../shaders/deep-zoom.frag";
 import escapeShader from "../shaders/escape-time.frag";
 import vertexShader from "../shaders/mandelbrot.vert";
+import pixelSummaryShader from "../shaders/pixel-summary.frag";
 import {
   type DeepViewport,
   moveViewport,
@@ -15,6 +16,7 @@ import {
   viewportDelta,
 } from "./math";
 import type { EscapeFormula, ReferenceOrbit } from "./orbit";
+import type { PixelRepair } from "./pixelSummary";
 
 export const MAX_RENDER_ITERATIONS = 8192;
 export type RenderState = {
@@ -25,7 +27,7 @@ export type RenderState = {
   height: number;
 };
 export type ZoomStatus = { logZoom: number; iterations: number; message: string; error?: boolean };
-type Tile = { x: number; y: number; width: number; height: number };
+type Tile = { x: number; y: number; width: number; height: number; mask?: Uint8Array };
 type Job = {
   id: number;
   version: number;
@@ -34,6 +36,9 @@ type Job = {
   c: [number, number];
   logDeltaC?: number;
   tiles?: { tile: Tile; view: DeepViewport }[];
+  pixelRepairs?: PixelRepair[];
+  frameWidth?: number;
+  frameHeight?: number;
 };
 
 export function iterationBudget(view: DeepViewport, requested: number) {
@@ -70,6 +75,8 @@ export function createDeepZoomRenderer(
     const shared = escapeShader.slice(0, escapeShader.indexOf("void main()"));
     const deep = compile(define + shared + deepShader);
     const shallow = compile(define + escapeShader);
+    const pixelSummary =
+      formula === "burning-ship" ? compile(define + shared + pixelSummaryShader) : null;
     const preview = compile(
       `
     precision highp float;
@@ -130,34 +137,40 @@ export function createDeepZoomRenderer(
     let frameView: DeepViewport | null = null;
     let frameWidth = 0;
     let frameHeight = 0;
-    const programs = [shallow, deep].map(({ program }) => ({
-      program,
-      coloring: getColoringLocations(gl, program),
-      position: gl.getAttribLocation(program, "aPosition"),
-      uniforms: Object.fromEntries(
-        [
-          "resolution",
-          "center",
-          "zoomSize",
-          "c",
-          "reference",
-          "referenceSize",
-          "referenceLength",
-          "criticalStart",
-          "criticalLength",
-          "exactPixel",
-          "deltaCenter",
-          "scale",
-          "approximation",
-          "approximationSize",
-          "approximationLogDeltaC",
-          "approximationMaxLogRadius",
-          "hasApproximation",
-          "nativeReferenceStart",
-          "hasNativeReference",
-        ].map((name) => [name, gl.getUniformLocation(program, `u_${name}`)]),
-      ),
-    }));
+    const programs = [shallow, deep, ...(pixelSummary ? [pixelSummary] : [])].map(
+      ({ program }) => ({
+        program,
+        coloring: getColoringLocations(gl, program),
+        position: gl.getAttribLocation(program, "aPosition"),
+        uniforms: Object.fromEntries(
+          [
+            "resolution",
+            "center",
+            "zoomSize",
+            "c",
+            "reference",
+            "referenceSize",
+            "referenceLength",
+            "criticalStart",
+            "criticalLength",
+            "exactPixel",
+            "deltaCenter",
+            "scale",
+            "pixelOffset",
+            "pixelSummary",
+            "tileOrigin",
+            "tileSize",
+            "approximation",
+            "approximationSize",
+            "approximationLogDeltaC",
+            "approximationMaxLogRadius",
+            "hasApproximation",
+            "nativeReferenceStart",
+            "hasNativeReference",
+          ].map((name) => [name, gl.getUniformLocation(program, `u_${name}`)]),
+        ),
+      }),
+    );
     const worker = new Worker(new URL("../../workers/deepZoom.worker.ts", import.meta.url));
     release.push(() => worker.terminate());
     let destroyed = false;
@@ -292,6 +305,10 @@ export function createDeepZoomRenderer(
       }
       return { w, h };
     };
+    const canSummarizePixels = () =>
+      pixelSummary &&
+      getState().view.logZoom >= -64 &&
+      ["smooth", "log", "banded"].includes(getState().config.colorMode);
     const rememberFrame = () => {
       if (sharpMotion) return;
       gl.activeTexture(gl.TEXTURE1);
@@ -350,9 +367,10 @@ export function createDeepZoomRenderer(
       gl.uniform2f(u.c, ...state.c);
       setColoringUniforms(gl, coloring, {
         ...state.config,
-        iterations: isDeep
-          ? iterationBudget(state.view, state.config.iterations)
-          : Math.min(MAX_RENDER_ITERATIONS, state.config.iterations),
+        iterations:
+          state.view.logZoom < -7
+            ? iterationBudget(state.view, state.config.iterations)
+            : Math.min(MAX_RENDER_ITERATIONS, state.config.iterations),
       });
       if (isDeep && orbit && orbitView) {
         upload(orbit);
@@ -363,7 +381,16 @@ export function createDeepZoomRenderer(
         gl.uniform1f(u.criticalStart, orbit.length);
         gl.uniform1f(u.criticalLength, orbit.critical?.length ?? 0);
         gl.uniform1i(u.exactPixel, tile?.width === 1 && tile.height === 1 ? 1 : 0);
-        gl.uniform4f(u.deltaCenter, ...delta.x, ...delta.y);
+        // A repair's reference is already at its tile center. Subtract that
+        // center in pixel coordinates instead of cancelling two large scaled
+        // offsets in the shader; otherwise tiny tiles retain full-frame error.
+        if (tile) gl.uniform4f(u.deltaCenter, 0, 0, 0, 0);
+        else gl.uniform4f(u.deltaCenter, ...delta.x, ...delta.y);
+        gl.uniform2f(
+          u.pixelOffset,
+          tile ? tile.x + tile.width / 2 - w / 2 : 0,
+          tile ? tile.y + tile.height / 2 - h / 2 : 0,
+        );
         gl.uniform2f(u.scale, ...delta.scale);
         gl.uniform1i(u.approximation, 2);
         gl.uniform2f(u.approximationSize, approximationWidth, approximationHeight);
@@ -392,7 +419,43 @@ export function createDeepZoomRenderer(
       }
       return true;
     };
-    const request = (tiles?: Tile[]) => {
+    const drawPixelSummary = (tile: Tile, summary: Float32Array) => {
+      const { program, coloring, position, uniforms: u } = programs[2];
+      const state = getState();
+      // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+      gl.disable(gl.BLEND);
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(tile.x, tile.y, tile.width, tile.height);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        tile.width,
+        tile.height,
+        0,
+        gl.RGBA,
+        gl.FLOAT,
+        summary,
+      );
+      uploaded = null;
+      gl.uniform1i(u.pixelSummary, 0);
+      gl.uniform2f(u.tileOrigin, tile.x, tile.y);
+      gl.uniform2f(u.tileSize, tile.width, tile.height);
+      setColoringUniforms(gl, coloring, {
+        ...state.config,
+        iterations: iterationBudget(state.view, state.config.iterations),
+      });
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disable(gl.SCISSOR_TEST);
+    };
+    const request = (tiles?: Tile[], summarize = false) => {
       if (destroyed || pending) return;
       const state = getState();
       const bits = precisionForZoom(state.view.logZoom);
@@ -402,26 +465,28 @@ export function createDeepZoomRenderer(
         x: rescaleFixed(state.view.x, state.view.bits, bits),
         y: rescaleFixed(state.view.y, state.view.bits, bits),
       };
-      const repairs = tiles?.map((tile) => {
-        const size = Math.min(gl.canvas.width, gl.canvas.height);
-        const x = (2 * (tile.x + tile.width / 2) - gl.canvas.width) / size;
-        const y =
-          ((2 * (tile.y + tile.height / 2) - gl.canvas.height) / size) *
-          (formula === "burning-ship" ? -1 : 1);
-        let tileView = moveViewport(view, x, y);
-        if (tile.width === 1 && tile.height === 1) {
-          // Tangencies can depend on squared offsets. An exact-pixel orbit
-          // gets twice the depth precision and bypasses GPU coordinate rounding.
-          const exactBits = Math.max(bits, 2 * Math.ceil(Math.max(0, -view.logZoom)) + 128);
-          tileView = {
-            ...tileView,
-            x: rescaleFixed(tileView.x, bits, exactBits),
-            y: rescaleFixed(tileView.y, bits, exactBits),
-            bits: exactBits,
-          };
-        }
-        return { tile, view: tileView };
-      });
+      const repairs = summarize
+        ? undefined
+        : tiles?.map((tile) => {
+            const size = Math.min(gl.canvas.width, gl.canvas.height);
+            const x = (2 * (tile.x + tile.width / 2) - gl.canvas.width) / size;
+            const y =
+              ((2 * (tile.y + tile.height / 2) - gl.canvas.height) / size) *
+              (formula === "burning-ship" ? -1 : 1);
+            let tileView = moveViewport(view, x, y);
+            if (tile.width === 1 && tile.height === 1) {
+              // Tangencies can depend on squared offsets. An exact-pixel orbit
+              // gets twice the depth precision and bypasses GPU coordinate rounding.
+              const exactBits = Math.max(bits, 2 * Math.ceil(Math.max(0, -view.logZoom)) + 128);
+              tileView = {
+                ...tileView,
+                x: rescaleFixed(tileView.x, bits, exactBits),
+                y: rescaleFixed(tileView.y, bits, exactBits),
+                bits: exactBits,
+              };
+            }
+            return { tile, view: tileView };
+          });
       pending = {
         id: ++nextId,
         version,
@@ -444,20 +509,55 @@ export function createDeepZoomRenderer(
               2
             : undefined,
         tiles: repairs,
+        pixelRepairs: summarize
+          ? tiles?.map((tile) => {
+              if (tile.mask) return { ...tile, mask: tile.mask };
+              const rgba = new Uint8Array(tile.width * tile.height * 4);
+              gl.readPixels(
+                tile.x,
+                tile.y,
+                tile.width,
+                tile.height,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                rgba,
+              );
+              const mask = new Uint8Array(tile.width * tile.height);
+              for (let pixel = 0; pixel < mask.length; pixel++)
+                mask[pixel] = rgba[pixel * 4 + 3] === 0 ? 1 : 0;
+              return { ...tile, mask };
+            })
+          : undefined,
+        frameWidth: summarize ? gl.canvas.width : undefined,
+        frameHeight: summarize ? gl.canvas.height : undefined,
       };
       worker.postMessage({ ...pending, formula });
     };
     const inspect = (tile: Tile) => {
       const data = new Uint8Array(tile.width * tile.height * 4);
       gl.readPixels(tile.x, tile.y, tile.width, tile.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
-      const stepX = Math.max(1, Math.ceil(tile.width / 4));
-      const stepY = Math.max(1, Math.ceil(tile.height / 4));
-      // Each cell needs one repair regardless of how many invalid pixels it has.
-      // Stop on its first invalid pixel; allocate at most sixteen tiles per read.
+      const summaries = canSummarizePixels();
+      const stepX = summaries ? 32 : Math.max(1, Math.ceil(tile.width / 4));
+      const stepY = summaries ? 32 : Math.max(1, Math.ceil(tile.height / 4));
+      // Summary tiles retain their sparse masks. Ordinary reference repairs
+      // subdivide into at most sixteen cells, stopping at each first invalid pixel.
       for (let cy = 0; cy < tile.height; cy += stepY) {
         for (let cx = 0; cx < tile.width; cx += stepX) {
           const width = Math.min(stepX, tile.width - cx);
           const height = Math.min(stepY, tile.height - cy);
+          if (summaries) {
+            const mask = new Uint8Array(width * height);
+            let invalid = false;
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                if (data[((cy + y) * tile.width + cx + x) * 4 + 3] !== 0) continue;
+                mask[y * width + x] = 1;
+                invalid = true;
+              }
+            }
+            if (invalid) repairQueue.push({ x: tile.x + cx, y: tile.y + cy, width, height, mask });
+            continue;
+          }
           cell: for (let y = cy; y < cy + height; y++) {
             for (let x = cx; x < cx + width; x++) {
               if (data[(y * tile.width + x) * 4 + 3] !== 0) continue;
@@ -479,7 +579,7 @@ export function createDeepZoomRenderer(
           iterationBudget(state.view, state.config.iterations);
         const count = Math.max(1, Math.min(8, Math.floor(1_000_000 / work)));
         report("Refining detail…");
-        request(repairQueue.splice(0, count));
+        request(repairQueue.splice(0, count), Boolean(canSummarizePixels()));
       } else {
         rememberFrame();
         report("Detail ready");
@@ -581,7 +681,7 @@ export function createDeepZoomRenderer(
       }
       if (
         !sameParameters(job.c) ||
-        (job.tiles && job.version !== version) ||
+        ((job.tiles || job.pixelRepairs) && job.version !== version) ||
         job.view.bits < Math.ceil(-getState().view.logZoom) + 64
       ) {
         // Never let an old tile or parameter edit overwrite the current view.
@@ -592,7 +692,13 @@ export function createDeepZoomRenderer(
         return;
       }
       if (getState().view.logZoom >= -7) return;
-      if (job.tiles) {
+      if (job.pixelRepairs) {
+        for (let i = 0; i < job.pixelRepairs.length; i++)
+          drawPixelSummary(job.pixelRepairs[i], event.data.summaries[i]);
+        // Every marked pixel was calculated directly, so no further GPU
+        // uncertainty test or recursive per-pixel reference draw is needed.
+        repairNext();
+      } else if (job.tiles) {
         // Queue every disjoint draw before reading masks, so one GPU wait covers
         // the batch instead of serializing each reference upload, draw and read.
         for (let i = 0; i < job.tiles.length; i++) {

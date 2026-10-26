@@ -474,4 +474,34 @@ export const BURNING_SHIP_PLACES = places("burning-ship", [
     iterations: 900,
     group: "Smaller ships",
   },
+  // Centers and published scales from Claude Heiland-Allen's gallery, images 26–28.
+  // Framing verified in this renderer:
+  // https://mathr.co.uk/bs/2018-01-11_burning_ship_embedded_julia_sets/
+  {
+    id: "julia-frame",
+    label: "Julia frame",
+    detail: "Two branching rows surround a narrow opening.",
+    center: [0.9698602594389115, -1.681547187115921],
+    zoomSize: 4.587660401070052e-7,
+    iterations: 1500,
+    group: "Embedded Julia shapes",
+  },
+  {
+    id: "julia-branches",
+    label: "Julia branches",
+    detail: "Paired branches repeat inside a larger web of threads.",
+    center: [0.9708577230059467, -1.6822569449061373],
+    zoomSize: 9.175320802140104e-7,
+    iterations: 1500,
+    group: "Embedded Julia shapes",
+  },
+  {
+    id: "julia-sprig",
+    label: "Julia sprig",
+    detail: "Smaller forks line both sides of a thin central branch.",
+    center: [0.971494536995786, -1.6822661159791057],
+    zoomSize: 9.175320802140104e-7,
+    iterations: 1500,
+    group: "Embedded Julia shapes",
+  },
 ]);

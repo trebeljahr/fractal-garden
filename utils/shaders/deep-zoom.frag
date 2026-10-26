@@ -9,6 +9,7 @@ uniform float u_criticalLength;
 uniform bool u_exactPixel;
 uniform vec4 u_deltaCenter;
 uniform vec2 u_scale;
+uniform vec2 u_pixelOffset;
 uniform sampler2D u_approximation;
 uniform vec2 u_approximationSize;
 uniform float u_approximationLogDeltaC;
@@ -118,7 +119,9 @@ bool nativeRebase(vec2 z, vec2 d) {
 }
 
 void main() {
-    vec2 uv = (2.0*gl_FragCoord.xy-u_resolution)/min(u_resolution.x,u_resolution.y);
+    // Repair tiles measure from their own reference pixel. Subtract in pixel
+    // coordinates, before scaling, so shrinking tiles also shrink input error.
+    vec2 uv = (2.0*gl_FragCoord.xy-u_resolution-2.0*u_pixelOffset)/min(u_resolution.x,u_resolution.y);
 #ifdef FORMULA_BURNING_SHIP
     uv.y = -uv.y;
 #endif

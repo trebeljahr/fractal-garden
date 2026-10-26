@@ -13,6 +13,8 @@
 
 The derivation, rescaling exceptions, absolute differences and glitch criteria follow [mathr's deep-zoom notes](https://mathr.co.uk/blog/2021-05-14_deep_zoom_theory_and_practice.html). Perturbation uses approximate GPU arithmetic; these are practical error controls, not certified interval bounds.
 
+Burning Ship smooth, logarithmic, and banded coloring use batched pixel repairs at half-spans of `2^-64` and wider. The initial GPU validity mask is divided into tiles of at most 32 by 32 pixels. The worker calculates only invalid pixels with the independent fixed-point recurrence, using at least twice the depth bits plus 128 guard bits. It returns each pixel's iteration, final log-magnitude, and escape flag. One texture upload and draw colors the whole tile; valid pixels are preserved. This avoids a separate reference texture and draw for every difficult pixel. Deeper views and coloring modes that need the full orbit retain reference repairs. Reference repair coordinates are measured from each tile's center before scaling, so small tiles do not cancel two full-frame offsets.
+
 ## Mandelbrot acceleration
 
 The worker builds bivariate linear approximations (BLA) alongside the Mandelbrot reference. Each map replaces several recurrence steps with `deltaOut = A deltaIn + B deltaC`. Coefficients retain separate component exponents. The construction follows [mathr's current BLA notes](https://mathr.co.uk/web/deep-zoom.html); the older validity formula in the 2022 article is not used.
@@ -82,3 +84,12 @@ playwright-cli -s=deep-zoom --raw run-code --filename /private/tmp/mandelbrot-mo
 Repeat with `--fixture tail`, `boundary`, or `antenna`; use `--dpr 2` to exercise a larger physical framebuffer. The benchmark reports dimensions, current-camera versus preview draws, worker jobs, median/p95 timings, and moving/settled images. Its default timing synchronizes each draw with a pixel readback. `--async` measures submission without that synchronization and should not be interpreted as GPU frame time.
 
 Also check continuous scrolling, pointer anchoring, touch pinch, resize, parameter edits during refinement, share restoration, PNG export and WebGL context recovery in the actual pages. The Mandelbrot “Deep branches” place uses a decimal-string approximation of the preperiodic point near `-0.101096 + 0.956287 i`, calculated from `z5(c) = z4(c)`, at a half-span of `1e-30`.
+
+Check Burning Ship repairs against independent fixed-point colors for the reported mast views and embedded Julia destinations:
+
+```sh
+node scripts/check-burning-ship-renderer.mjs /private/tmp/check-burning-ship.js
+playwright-cli -s=deep-zoom --raw run-code --filename /private/tmp/check-burning-ship.js
+```
+
+Use `--mode=log` or `--mode=banded` for the other batched coloring modes, and `--width=256 --height=160` for a larger grid. The check requires no invalid pixels, mean RGB-channel error below 1, and at most 0.5% of pixels with a channel difference above 16. It reports first-frame missing pixels, completed repairs, and worker-job count separately.
