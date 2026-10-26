@@ -30,6 +30,7 @@ export function LessonSteps({
   onChange,
   label,
   duration,
+  stepDescription,
   disabled = false,
 }: {
   step: number;
@@ -37,6 +38,7 @@ export function LessonSteps({
   onChange: (step: number) => void;
   label: string;
   duration?: number;
+  stepDescription?: string;
   disabled?: boolean;
 }) {
   const playback = useLessonPlayback(
@@ -66,9 +68,7 @@ export function LessonSteps({
         {playback.playing ? "Pause" : "Play"}
       </button>
       <label className={styles.step}>
-        <span>
-          Step {step} of {max}
-        </span>
+        <span>{stepDescription ?? `Step ${step} of ${max}`}</span>
         <input
           type="range"
           aria-label={`${label} step`}

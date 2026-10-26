@@ -4,9 +4,11 @@ A pattern of square tiles repeats: slide it one tile-width and the squares line 
 
 The explorer offers two tile pairs: **kites and darts**, or **thick and thin rhombi**. The tiles must follow matching rules along their edges. Using the two shapes without those rules does not guarantee a nonrepeating tiling.
 
-<figure data-lesson="penrose"></figure>
+Divide a kite or dart down its middle to get one of the triangles below. Choose **Narrow triangle** or **Wide triangle**, then step through the divisions. Each step divides every triangle into smaller ones while keeping the original outside edges in place.
 
-The diagram starts with half a kite or half a dart. These triangles are divided using the golden ratio, about 1.618. Each division keeps the outside edges in place.
+The marked points show where the first dividing lines go. They split an edge so one part is about 1.618 times the other. This ratio is called the **golden ratio**.
+
+<figure data-lesson="penrose"></figure>
 
 ## Further reading
 
@@ -15,4 +17,4 @@ The diagram starts with half a kite or half a dart. These triangles are divided 
 
 ## Sources and notes
 
-1. <span id="penrose-tiling-source-1"></span> Tilings Encyclopedia, Bielefeld University, [Penrose Rhomb](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/), Matching rules, substitution, golden-ratio inflation and Fibonacci matrix entries. [Back](#penrose-tiling-ref-1)
+1. <span id="penrose-tiling-source-1"></span> [Penrose Rhomb](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/). [Back](#penrose-tiling-ref-1)

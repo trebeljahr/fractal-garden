@@ -12,15 +12,17 @@ The results increase without limit. Choose $-1$ instead and you get $0,-1,0,-1,\
 
 <figure data-article-images="mandelbrot"></figure>
 
-The Mandelbrot picture applies this test to complex numbers. A complex number has two coordinates, which lets us place each choice on the screen. Each pixel's coordinates supply a different number to add.
+To make a picture, give each pixel two coordinates: horizontal and vertical. A pair such as $(1,0)$ means one unit right of zero. These pairs represent **complex numbers**. Each pixel supplies a different number to add, called $c$.
 
-A choice belongs to the Mandelbrot set if its results stay within some fixed distance of zero, however many steps are taken. The computer repeats the calculation a limited number of times. If the results escape, it colors the pixel by how long that took. If they haven't escaped yet, it leaves the pixel black.
+Squaring changes a point's distance and direction. Multiply its distance from zero by itself, and double its angle measured from the line pointing right. Adding $c$ then shifts it horizontally and vertically by the chosen coordinates.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-The calculation is usually written as $z_{n+1}=z_n^2+c$. Here $c$ is the number that pixel chooses, and $z_n$ is the current result.
+The small image below lets you choose a pixel and follow its calculation. Compare **Repeating** and **Escaping**, using the two numbers above. The ring marks the chosen pixel. The moving point shows the results used to decide that pixel's color.
 
 <figure data-orbit="mandelbrot"></figure>
 
-The round bulb to the left of the main body contains choices that settle toward a two-value repeat. At its center, $c=-1$ gives the exact $0,-1$ repeat above. Inside the heart-shaped body, the results instead settle toward one value.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
+A choice belongs to the Mandelbrot set if its results stay within a fixed distance of zero forever. The computer can only test a limited number of steps. Escaping results give the chosen pixel a color based on how long escape took. Black means it hasn't escaped yet.
+
+The round bulb left of the main body contains choices that settle toward a two-value repeat. At its center, $c=-1$ gives the exact $0,-1$ repeat above. Inside the heart-shaped body, the results settle toward one value.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
 
 The [Julia explorer](/julia-set) changes the test: every pixel uses the same number to add, but starts from a different position. That is why choosing a new $c$ there changes the whole picture.
 
@@ -31,4 +33,5 @@ The [Julia explorer](/julia-set) changes the test: every pixel uses the same num
 
 ## Sources and notes
 
-1. <span id="mandelbrot-source-1"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), especially section 5 on the main cardioid and limbs. The two-cycle at $-1$ follows by substitution. [Back](#mandelbrot-ref-1)
+1. <span id="mandelbrot-source-1"></span> [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). [Back](#mandelbrot-ref-1)
+2. <span id="mandelbrot-source-2"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-2)

@@ -13,7 +13,7 @@ import {
   kochEdge,
 } from "../utils/constructionDiagrams.ts";
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
-import { traceTeachingOrbit } from "../utils/orbitLesson.ts";
+import { teachingFrames, teachingPixelEscape, traceTeachingOrbit } from "../utils/orbitLesson.ts";
 import { pythagorasFork } from "../utils/pythagorasFork.ts";
 import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket.ts";
 
@@ -124,6 +124,61 @@ test("Julia changes the starting point while Burning Ship folds both components 
   close(folded.point.imaginary, 0.456);
   assert.deepEqual(folded.folded, { real: 0.5, imaginary: 0.3 });
   assert.deepEqual(traceTeachingOrbit(c, start)[0].point, start);
+});
+
+test("Ship stages name the actual input and output of each operation", () => {
+  const frames = teachingFrames(
+    traceTeachingOrbit({ real: -1.76, imaginary: -0.03 }, { real: 0, imaginary: 0 }, true, 2),
+  );
+  assert.deepEqual(
+    frames.map((frame) => frame.operation),
+    ["start", "fold", "square", "add", "fold", "square", "add"],
+  );
+  assert.deepEqual(frames[4].before, { real: -1.76, imaginary: -0.03 });
+  assert.deepEqual(frames[4].point, { real: 1.76, imaginary: 0.03 });
+  close(frames[5].point.real, 3.0967);
+  close(frames[5].point.imaginary, 0.1056);
+  close(frames[6].point.real, 1.3367);
+  close(frames[6].point.imaginary, 0.0756);
+  for (let i = 1; i < frames.length; i++) {
+    assert.deepEqual(frames[i].before, frames[i - 1].point);
+  }
+});
+
+test("a square outside the escape circle can return inside after addition", () => {
+  const c = { real: -1, imaginary: 0 };
+  const start = { real: 2.1, imaginary: 0 };
+  const frames = teachingFrames(traceTeachingOrbit(c, start));
+  close(frames[1].point.real, 4.41);
+  close(frames[2].point.real, 3.41);
+  assert.equal(frames.at(-1).iteration, 2);
+  assert.equal(teachingPixelEscape("julia", start, c), 2);
+});
+
+test("pixel map colors agree with lesson escape counts for all three formulas", () => {
+  const zero = { real: 0, imaginary: 0 };
+  const examples = [
+    ["mandelbrot", { real: -1, imaginary: 0 }, zero, null],
+    ["mandelbrot", { real: 1, imaginary: 0 }, zero, 3],
+    ["julia", { real: 0.5, imaginary: 0 }, zero, null],
+    ["julia", { real: 1.25, imaginary: 0 }, zero, 3],
+    ["burning-ship", { real: -1.76, imaginary: -0.03 }, zero, 14],
+    ["burning-ship", { real: -1.8, imaginary: -0.03 }, zero, 9],
+  ];
+  for (const [kind, pixel, c, expected] of examples) {
+    assert.equal(teachingPixelEscape(kind, pixel, c), expected);
+    const orbit = traceTeachingOrbit(
+      kind === "julia" ? c : pixel,
+      kind === "julia" ? pixel : zero,
+      kind === "burning-ship",
+    );
+    const last = orbit.at(-1);
+    assert.equal(
+      Math.hypot(last.point.real, last.point.imaginary) > 4 ? last.iteration : null,
+      expected,
+    );
+    assert.equal(teachingFrames(orbit).at(-1).operation, "add");
+  }
 });
 
 test("Menger layers remove seven cubes and preserve the rule under axis permutations", () => {

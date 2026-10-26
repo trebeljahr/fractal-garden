@@ -6,7 +6,9 @@ $$
 x_{n+1}=rx_n(1-x_n).
 $$
 
-For $r=2$, starting at $0.2$ gives $0.32$, then $0.4352$, then about $0.492$. The answers approach $0.5$. Putting $0.5$ into the rule gives $0.5$ again.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
+The example below starts at $0.5$ with $r=2.8$. Its first answers are $0.7$, then $0.588$, then about $0.678$. They approach about $0.643$. Putting that value into the rule gives nearly the same answer again.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
+
+In the left graph, go up to the curve to find the next answer. Go across to the diagonal to use that answer as the next input. The right graph plots the same answers in order. Try **Two-cycle** to see them approach an alternating pair.
 
 <figure data-lesson="logistic"></figure>
 
@@ -25,5 +27,5 @@ The branches in the picture show these lasting cycles. A limited calculation can
 
 ## Sources and notes
 
-1. <span id="logistic-map-source-1"></span> Robert M. May, [Simple Mathematical Models with Very Complicated Dynamics](https://ned.ipac.caltech.edu/level5/Sept01/May/May_contents.html), *Nature* 261 (1976), 459–467. Original review, reproduced by Caltech's NASA/IPAC Extragalactic Database. [Back](#logistic-map-ref-1)
-2. <span id="logistic-map-source-2"></span> May, [section 3](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html) and [section 4](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). Gives stability tests, period doubling, and the three-cycle window. [Back](#logistic-map-ref-2)
+1. <span id="logistic-map-source-1"></span> [Simple Mathematical Models with Very Complicated Dynamics — Dynamic Properties](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html). [Back](#logistic-map-ref-1)
+2. <span id="logistic-map-source-2"></span> [Simple Mathematical Models with Very Complicated Dynamics — Dynamic Properties](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html) and [Fine Structure of the Chaotic Regime](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). [Back](#logistic-map-ref-2)

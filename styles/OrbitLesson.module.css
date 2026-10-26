@@ -1,0 +1,195 @@
+.lesson {
+  --lesson-accent: #f5c56d;
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  border-block: 1px solid #eee8ce40;
+  color: #eee8ce;
+}
+.lesson .title {
+  font:
+    600 1.8rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.lesson h3,
+.lesson h4,
+.parameters legend {
+  margin: 0 0 0.8rem;
+  font:
+    600 1.5rem / 1.5 "Montserrat",
+    sans-serif;
+}
+.lesson p {
+  margin: 0.8rem 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+}
+.lesson .examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0 1.5rem;
+}
+.lesson button {
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce70;
+  padding: 0.6rem 0.8rem;
+  min-height: 44px;
+  cursor: pointer;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.examples button:hover,
+.examples button[aria-pressed="true"] {
+  background: #f5c56d22;
+  border-color: #f5c56d;
+}
+.lesson button:focus-visible,
+.lesson input:focus-visible {
+  outline: 2px solid #f5c56d;
+  outline-offset: 4px;
+}
+.selection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+.lesson .pixelMap {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  touch-action: manipulation;
+}
+.pixelMap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.selectedPixel {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px #10151a;
+  pointer-events: none;
+}
+.lesson fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.parameters label {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+  font-size: 1.5rem;
+}
+.parameters label span {
+  display: flex;
+  justify-content: space-between;
+}
+.parameters input {
+  width: 100%;
+  min-height: 28px;
+  accent-color: #f5c56d;
+  cursor: pointer;
+}
+.lesson .mapCaption,
+.lesson .caption {
+  font-size: 1.4rem;
+  line-height: 1.5;
+}
+.calculation {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.calculation svg {
+  display: block;
+  width: 100%;
+  background: #10151a;
+}
+.axis,
+.guide {
+  fill: none;
+  stroke: #eee8ce60;
+  stroke-width: 1;
+}
+.guide {
+  stroke-dasharray: 4 5;
+}
+.axisLabel {
+  fill: #eee8ce99;
+  font:
+    13px "Montserrat",
+    sans-serif;
+}
+.trail {
+  fill: none;
+  stroke: #eee8ce66;
+  stroke-width: 1.5;
+}
+.change {
+  fill: none;
+  stroke: #f5c56d;
+  stroke-width: 2;
+}
+.before {
+  fill: #10151a;
+  stroke: #eee8ce;
+  stroke-width: 2;
+}
+.summary {
+  min-height: 23rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.calculation > fieldset {
+  grid-column: 1;
+  grid-row: 2;
+}
+.summary dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.summary dt {
+  color: #eee8ce99;
+}
+.outcome {
+  border-left: 2px solid #f5c56d;
+  padding-left: 1rem;
+}
+@media (max-width: 600px) {
+  .selection,
+  .calculation {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .pixelMap {
+    max-width: 32rem;
+    margin: auto;
+  }
+  .summary {
+    min-height: 0;
+    grid-column: 1;
+    grid-row: 3;
+  }
+}

@@ -1,18 +1,18 @@
 # Julia Set
 
-Every pixel starts a calculation from its own position. Square that position, add a fixed number $c$, then repeat using the result.
+Choose one number to add, called $c$. Every pixel starts a calculation from its own position. Square the position, add $c$, then repeat using the result.
 
-Some starting points escape farther and farther away. Others stay within a fixed distance of zero. The picture colors the starting points according to what their calculations do.
+A position has two coordinates: horizontal and vertical. Squaring multiplies its distance from zero by itself and doubles its angle from the line pointing right. Adding $c$ shifts the result by the same horizontal and vertical amounts each time.
 
 <figure data-article-images="julia"></figure>
 
-For $c=0$, you only square. Squaring a distance smaller than one makes it smaller: $0.5$ becomes $0.25$, then $0.0625$. A distance larger than one grows. The dividing line is a circle of radius one.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
+Start with $c=0$, so nothing is added. A point half a unit from zero gets closer with each squaring: $0.5$, then $0.25$, then $0.0625$. A point more than one unit away gets farther away. The dividing line is a circle of radius one.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
-The points inside that circle form the **filled Julia set**. Its edge is the **Julia set**. Other choices of $c$ can stretch that simple edge into the shapes shown here.
+The example below starts with this circle. Choose a pixel inside it, then one outside it, and follow each calculation. The ring marks the starting pixel. Its color comes from whether the results escape, and how long that takes.
 
 <figure data-orbit="julia"></figure>
 
-In the diagram, $c$ stays fixed while you change the starting point. Two nearby starts can have very different outcomes. Try moving a start across the boundary and follow where it goes.
+The points that stay within a fixed distance of zero forever form the **filled Julia set**. Its edge is the **Julia set**. For $c=0$, the filled set includes the circle and everything inside it. Choose **Add −1** to see what changing $c$ does to the shape.
 
 The [Mandelbrot set](/mandelbrot) tells you whether a choice of $c$ gives a connected Julia set. Inside the Mandelbrot set, the Julia set is connected. Outside, it breaks into separated dust.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
 
@@ -25,5 +25,5 @@ Dark pixels have not escaped before the computer's step limit. Some may escape l
 
 ## Sources and notes
 
-1. <span id="julia-set-source-1"></span> Chris Lipa, [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html), Cornell Math Explorers' Club, undated teaching notes. Defines filled Julia sets and explains the unit-circle example. [Back](#julia-set-ref-1)
-2. <span id="julia-set-source-2"></span> John H. Hubbard, [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf), *Topological Methods in Modern Mathematics* (1993), 467–511, introduction. States the equivalence between bounded critical orbit and connected filled Julia set. Lipa's notes also explain the Cantor alternative. [Back](#julia-set-ref-2)
+1. <span id="julia-set-source-1"></span> [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). [Back](#julia-set-ref-1)
+2. <span id="julia-set-source-2"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#julia-set-ref-2)
