@@ -6,15 +6,19 @@ A point left of the vertical axis flips to the right. A point below the horizont
 
 <figure data-article-images="burning-ship"></figure>
 
-Start at zero. Fold, square, add the number chosen by the pixel, and repeat. Some choices send the results away without bound. The color shows how long the escape takes.
+Start at zero. Fold, square, add the number chosen by the pixel, and repeat. Some choices send the results away without bound.
+
+Count the steps until the result passes the escape limit, then use that count to choose a color from the palette. Pixels with the same count form bands. Smooth coloring also uses how far the result went beyond the limit, so colors blend between bands.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
 
 <figure data-orbit="burning-ship"></figure>
 
 The small diagram uses the usual upward direction for positive vertical coordinates. The main image flips that display direction, which puts the hull below the masts.
 
-Zoom along a mast to find smaller ship-shaped regions. At their centers, the calculation returns to zero after a fixed number of steps. The same sequence then repeats without escaping.<sup><a id="burning-ship-ref-2" href="#burning-ship-source-2">2</a></sup>
+The sequence of points is called an orbit. After each step, an orbit trap measures the new point's distance from a chosen shape. The smallest distance chooses the pixel's color.<sup><a id="burning-ship-ref-3" href="#burning-ship-source-3">3</a></sup> Here, the point trap measures distance from zero. The cross trap measures distance from the nearer axis. These can reveal patterns in regions that escape-time coloring leaves black.
 
-A black pixel means the calculation hasn't escaped within the chosen limit. The computer cannot wait forever, so slowly escaping points can still look black.
+Zoom along a mast to find smaller ship-shaped regions. At their centers, the calculation returns to zero after a fixed number of steps. The same sequence then repeats without escaping.<sup><a id="burning-ship-ref-4" href="#burning-ship-source-4">4</a></sup>
+
+With escape-time coloring, points that haven't escaped within the chosen step limit use the interior color, black by default. The computer cannot wait forever, so slowly escaping points can still look black.
 
 ## Further reading
 
@@ -23,5 +27,7 @@ A black pixel means the calculation hasn't escaped within the chosen limit. The 
 
 ## Sources and notes
 
-1. <span id="burning-ship-source-1"></span> Michael Michelitsch and Otto E. Rössler, [The “burning ship” and its quasi-Julia sets](https://www.sciencedirect.com/science/article/pii/009784939290032Q), *Computers & Graphics* 16(4) (1992), 435–438. Original paper's public abstract confirms the nonanalytic construction and quasi-Julia family. [Back](#burning-ship-ref-1)
-2. <span id="burning-ship-source-2"></span> Claude Heiland-Allen, [At the Helm of the Burning Ship](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf), *Electronic Visualisation and the Arts* (2019), 402–408. Gives the real-coordinate recurrence, axis convention, periodic mini-ships and Jacobian methods. [Back](#burning-ship-ref-2)
+1. <span id="burning-ship-source-1"></span> [The “burning ship” and its quasi-Julia sets](https://www.sciencedirect.com/science/article/pii/009784939290032Q). [Back](#burning-ship-ref-1)
+2. <span id="burning-ship-source-2"></span> Background: [Smooth Shading for the Mandelbrot Exterior](https://linas.org/art-gallery/escape/smooth.html). [Back](#burning-ship-ref-2)
+3. <span id="burning-ship-source-3"></span> [Orbit Traps](https://www.ultrafractal.com/help/coloring/standard/orbittraps.html). [Back](#burning-ship-ref-3)
+4. <span id="burning-ship-source-4"></span> [At the Helm of the Burning Ship](https://mathr.co.uk/helm/AtTheHelmOfTheBurningShip-Paper.pdf). [Back](#burning-ship-ref-4)
