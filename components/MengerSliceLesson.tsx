@@ -47,11 +47,11 @@ export default function MengerSliceLesson() {
       data-projection-lesson="menger"
     >
       <figcaption id={`${id}-title`} className={styles.title}>
-        Slide a plane through the tunnels
+        A slice through square tunnels
       </figcaption>
       <p>
-        The amber shapes touch the plane. Move it to see a different slice. The front of the sponge
-        is hidden so you can see inside.
+        Move the slice and watch the holes change. The amber faces show where the sponge meets it;
+        the front part of the sponge is hidden. Highlight a tunnel to see its opening in teal.
       </p>
       <div className={styles.controls}>
         <label htmlFor={`${id}-depth`}>
@@ -67,12 +67,12 @@ export default function MengerSliceLesson() {
           onChange={(e) => setDepth(Number(e.target.value))}
         />
         <button type="button" onClick={() => setOffset(0)} disabled={offset === 0}>
-          Center the plane
+          Center the slice
         </button>
       </div>
       <label className={styles.planeControl}>
         <span>
-          Plane position{" "}
+          Slice position{" "}
           <output>
             {offset === 0
               ? "Center"
@@ -82,7 +82,7 @@ export default function MengerSliceLesson() {
           </output>
         </span>
         <input
-          aria-label="Slice plane position"
+          aria-label="Slice position"
           type="range"
           min={-2.8}
           max={2.8}
@@ -93,7 +93,7 @@ export default function MengerSliceLesson() {
       </label>
       <div className={styles.views}>
         <div>
-          <div className={styles.viewLabel}>Sponge and slice plane</div>
+          <div className={styles.viewLabel}>Sponge and slice</div>
           <svg
             viewBox="0 0 400 360"
             role="img"
@@ -201,12 +201,12 @@ export default function MengerSliceLesson() {
       )}
       <p aria-live="polite">
         {shadow
-          ? "A shadow includes every cube along the line of sight. Moving the slice plane does not change it."
+          ? "The shadow includes cubes at every depth. Moving the slice changes which cubes it meets, but leaves this shadow unchanged."
           : depth === 0
-            ? "Before any cubes are removed, the central slice is a solid hexagon."
+            ? "No tunnels yet. Move the slice to the center to see a solid six-sided shape."
             : Math.abs(offset) < 0.001
-              ? "At the center, the three square tunnels overlap in the plane to make the star-shaped hole."
-              : "The tunnels meet this plane at a different place. Center the plane to find the star-shaped hole again."}
+              ? "At the center, the three tunnel openings overlap to make the star-shaped hole."
+              : "The slice now meets a different part of each tunnel. Center the slice to find the star-shaped hole again."}
       </p>
     </figure>
   );

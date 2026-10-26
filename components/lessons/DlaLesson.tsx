@@ -38,12 +38,12 @@ export default function DlaLesson() {
   const location = `(${current.point.x}, ${current.point.y})`;
   const description =
     current.status === "stuck"
-      ? `Contact at ${location}, ${diagonal ? "across a diagonal" : "along an edge"}. The walker freezes here. Its walk ends at this first contact.`
+      ? `The particle touches ${diagonal ? "a corner" : "an edge"} of the fixed square at ${location}. It sticks here. The next particle could stick to either square.`
       : current.status === "discarded"
-        ? `Discarded at ${location}. The walker left this small window without touching the seed. This replay stops here.`
+        ? `The particle left the picture at ${location} without touching the fixed square. This walk adds nothing to the cluster.`
         : current.status === "limit"
-          ? `Stopped at ${location} after the step limit. The walker has not touched the frozen seed.`
-          : `Walker at ${location}. No frozen cell touches it yet. Take another step to move up, down, left or right.`;
+          ? `The walk reached its move limit at ${location} without touching the fixed square.`
+          : `The particle is at ${location}. It has not touched the fixed square yet. Take another step to see where it moves.`;
   const chooseReplay = (next: number) => {
     setReplay(next);
     setStep(0);
@@ -51,8 +51,8 @@ export default function DlaLesson() {
   return (
     <LessonFrame title="Follow one particle until it sticks" kind="dla">
       <p>
-        The cream square stays fixed. Each step moves the amber particle one square up, down, left
-        or right, chosen randomly.
+        The cream square stays fixed. Press Next step to move the amber particle one square in a
+        random direction. Watch for its first touch.
       </p>
       <fieldset className={common.options} aria-label="Random walk replay">
         {REPLAYS.map((item, index) => (
@@ -78,7 +78,7 @@ export default function DlaLesson() {
         >
           <title
             id={`${id}-title`}
-          >{`Seeded random walk ${replay + 1}, step ${step}, ${current.status}`}</title>
+          >{`Random walk ${replay + 1}, step ${step}, ${current.status}`}</title>
           {neighbors.map((point) => (
             <rect
               key={`${point.x}:${point.y}`}
@@ -162,20 +162,20 @@ export default function DlaLesson() {
             The particle stops when it touches the cream square. Touching at a corner counts too.
           </p>
           <p className={styles.legend}>
-            <span>Cream square: frozen seed</span>
+            <span>Cream square: fixed particle</span>
             <span>Dashed amber line: past moves</span>
             <span>
               {current.status === "stuck"
-                ? "Amber square: new frozen cell"
-                : "Outlined amber dot: walker"}
+                ? "Amber square: newly stuck particle"
+                : "Outlined amber dot: moving particle"}
             </span>
           </p>
         </div>
       </div>
       <LessonSteps label="DLA walker" step={step} max={frames.length - 1} onChange={setStep} />
       <p>
-        Each Walk button replays one set of random moves. One of the three particles leaves the
-        picture before touching the cream square.
+        Try another walk. Random moves can carry a particle out of the picture before it touches
+        anything. That particle adds nothing; we release another and try again.
       </p>
     </LessonFrame>
   );

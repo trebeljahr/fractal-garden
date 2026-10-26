@@ -6,7 +6,7 @@ The Burning Ship adds one operation before each squaring. A point left of the ve
 
 <figure data-article-images="burning-ship"></figure>
 
-The example below separates the fold, square and addition. Step through them to see how one result becomes the next. Choose another pixel in the small ship image to change $c$. The ring stays on that pixel while its calculation moves the other point.
+Follow the calculation below. Whenever a coordinate is negative, the **Fold** step reflects it across an axis before squaring. Compare **Little ship** with **Nearby pixel** to see how a small change affects the route.
 
 <figure data-orbit="burning-ship"></figure>
 
@@ -14,11 +14,11 @@ Count the steps until the result passes the escape limit, then use that count to
 
 With escape-time coloring, points that haven't escaped within the chosen step limit use the interior color, black by default. The computer cannot wait forever, so slowly escaping points can still look black.
 
-The sequence of points is called an orbit. After each step, an orbit trap measures the new point's distance from a chosen shape. The smallest distance chooses the pixel's color.<sup><a id="burning-ship-ref-3" href="#burning-ship-source-3">3</a></sup> Here, the point trap measures distance from zero. The cross trap measures distance from the nearer axis. These can reveal patterns in regions that escape-time coloring leaves black.
+There is another way to color the same calculation. Follow its route, called an **orbit**, and measure how close it gets to a chosen shape. The closest visit sets the pixel's color. This is an **orbit trap**.<sup><a id="burning-ship-ref-3" href="#burning-ship-source-3">3</a></sup> Here, the point trap measures distance from zero. The cross trap measures distance from the nearer axis. These can reveal patterns in regions that escape-time coloring leaves black.
 
 Zoom along a mast to find smaller ship-shaped regions. At their centers, the calculation returns to zero after a fixed number of steps. The same sequence then repeats without escaping.<sup><a id="burning-ship-ref-4" href="#burning-ship-source-4">4</a></sup>
 
-The thin branches around smaller ships can form shapes that resemble [Julia sets](/julia-set). These are called **embedded quasi-Julia sets**.<sup><a id="burning-ship-ref-5" href="#burning-ship-source-5">5</a></sup> **Places to explore** includes three views from Heiland-Allen’s gallery under **Embedded Julia shapes**.<sup><a id="burning-ship-ref-6" href="#burning-ship-source-6">6</a></sup>
+Look between the smaller ships for thin, branching shapes that resemble [Julia sets](/julia-set). These are called **embedded quasi-Julia sets**.<sup><a id="burning-ship-ref-5" href="#burning-ship-source-5">5</a></sup> **Places to explore** includes three views from Heiland-Allen’s gallery under **Embedded Julia shapes**.<sup><a id="burning-ship-ref-6" href="#burning-ship-source-6">6</a></sup>
 
 ## Further reading
 

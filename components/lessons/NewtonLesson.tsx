@@ -27,9 +27,9 @@ const format = (point: NewtonPoint) =>
 
 function stopDescription(state: NewtonState, step: number) {
   if (state.reason === "root")
-    return `This guess is within 0.0008 of root ${state.root + 1}. The calculation stops here.`;
+    return `The guess is within 0.0008 of root ${state.root + 1}, close enough to stop this demonstration.`;
   if (state.reason === "slope")
-    return "The calculation would divide by zero or a number too close to it, so it stops here.";
+    return "The slope is zero or too close to zero. Dividing by it cannot give us the next guess, so this calculation stops.";
   if (state.reason === "unstable")
     return "The numbers are too large for this diagram to keep calculating. It stops without finding a root.";
   if (state.reason === "limit")
@@ -221,8 +221,8 @@ export default function NewtonLesson() {
       </fieldset>
       <p>
         {mode === "real"
-          ? "The straight line touches the curve at your guess and follows its slope. Where it meets the bottom axis is your next guess."
-          : "Choose a starting point. Each step gives a new guess at one of the three roots marked in the picture."}
+          ? "The answer is where the curve crosses the horizontal axis. The straight line follows the curve's slope at your guess. Use the line's crossing as the next guess, then draw a new line there."
+          : "Each marked root is an answer to the same equation. Choose a starting point, then follow its guesses. Which root do they approach?"}
       </p>
       {mode === "real" ? (
         <RealPlot state={current} next={next} id={id} />
@@ -238,13 +238,14 @@ export default function NewtonLesson() {
           </strong>
           {mode === "real" ? `, f(x${step}) = ${tangent.value.toFixed(5)}.` : ""}
           {mode === "real" && next && tangent.intercept !== null
-            ? ` The tangent crosses at ${tangent.intercept.toFixed(5)}.`
+            ? ` The line crosses zero at ${tangent.intercept.toFixed(5)}: our next guess.`
             : ""}
         </p>
         <p>{stopDescription(current, step)}</p>
         {mode === "complex" && current.reason === "active" && (
           <p>
-            Nearest root now: {nearest.root + 1}, at distance {nearest.distance.toFixed(5)}.
+            Root {nearest.root + 1} is closest to this guess, at a distance of{" "}
+            {nearest.distance.toFixed(5)}. A later guess may be closer to another root.
           </p>
         )}
       </div>
@@ -261,7 +262,7 @@ export default function NewtonLesson() {
                 setStep(0);
               }}
             >
-              {value === 0 ? "Flat tangent (0)" : `Start at ${value}`}
+              {value === 0 ? "Start at 0 (flat)" : `Start at ${value}`}
             </button>
           ))}
         </fieldset>
@@ -285,7 +286,7 @@ export default function NewtonLesson() {
           {(["real", "imaginary"] as const).map((part) => (
             <label className={common.parameter} key={part}>
               <span>
-                {part === "real" ? "Starting point real" : "Starting point imaginary"}
+                {part === "real" ? "Horizontal starting position" : "Vertical starting position"}
                 <output>{complexStart[part].toFixed(2)}</output>
               </span>
               <input
@@ -300,8 +301,8 @@ export default function NewtonLesson() {
             </label>
           ))}
           <p>
-            A large jump can leave the plotted window. An amber point at its edge represents the
-            full coordinate shown above.
+            A guess can jump outside the picture. When that happens, the amber point stays at the
+            edge and the numbers above give its position.
           </p>
         </>
       )}

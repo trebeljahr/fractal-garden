@@ -1,40 +1,40 @@
 # Buddhabrot
 
-For a Mandelbrot picture, each pixel's coordinates provide the fixed number used in an escape test. A Buddhabrot records the route taken by the calculations that do escape.
+Choose a number. Start at zero, square, add your chosen number, and repeat. This is the same calculation used for the [Mandelbrot set](/mandelbrot).
 
-Start at zero, square, add the chosen number, and repeat. Save the intermediate positions. If the sequence escapes, add a faint dot at each saved position. Otherwise, discard the route and try another number.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
+The Mandelbrot picture colors the pixel you chose. A Buddhabrot records the places the calculation visits along the way. If the results escape, put a faint dot at each saved position. If they don't, leave that route out.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
+
+Record the route below twice. Then add other routes. Watch how their separate dots build up a picture.
 
 <figure data-investigation="buddhabrot"></figure>
 
-Each recorded visit increases a pixel's counter. A pixel with more visits is displayed more brightly. Accumulating many escaping sequences produces the image.
+A bright pixel has been visited often. A dark pixel has few or no recorded visits. Changing **Exposure** brightens the dots already collected; it does not add any new visits.
 
-**Min orbit length** filters out short routes. **Max iterations** sets how long the computer waits for an escape. Routes that haven't escaped by then add nothing to the picture.
+In the full explorer, **Min orbit length** leaves out short routes. **Max iterations** sets how long to wait for an escape. Routes that haven't escaped by then contribute nothing.
 
-**Exposure** changes how bright the accumulated dots appear. It doesn't change which routes were recorded.
-
-Melinda Green developed the method in 1993. Lori Gardi later supplied the name.
+Melinda Green developed this method in 1993. Lori Gardi later supplied the name.
 
 ## A branching diagram inside
 
-Keep the routes that do not escape instead. This is the **Anti-Buddhabrot** idea. Melinda Green found the logistic map by changing which coordinates she plotted.<sup><a id="buddhabrot-ref-2" href="#buddhabrot-source-2">2</a></sup>
+What happens if we keep the routes that don't escape? This is the **Anti-Buddhabrot** idea. Green found a connection to the [logistic map](/logistic-map) by changing which coordinates she plotted.<sup><a id="buddhabrot-ref-2" href="#buddhabrot-source-2">2</a></sup>
 
-The figure below gives each dot three coordinates. Two locate the chosen number in the Mandelbrot plane. The third records the horizontal position of a later step along its route. Look straight at the plane and those later steps overlap. You see the Mandelbrot shape.
+The next picture puts these routes into a three-dimensional cloud. Each later answer becomes a dot. Two coordinates place it at the chosen number in the Mandelbrot picture. Its depth comes from the answer's horizontal coordinate.
 
-Press **Play turn**. The later positions rotate into view. At a quarter turn, the figure keeps only the amber dots: routes whose chosen numbers lie on the horizontal center line.<sup><a id="buddhabrot-ref-3" href="#buddhabrot-source-3">3</a></sup>
+Seen from the front, all those answers overlap at the number that produced them. Turn the cloud sideways to separate them. Press **Play turn** and follow the amber dots.
 
 <figure data-investigation="buddhabrot-connection"></figure>
 
-Each column shows the values one route keeps visiting. One branch means the values settle near one number. Two branches mean they alternate between two. Further left, the branches split again.
+At a quarter turn, only the amber slice remains: numbers chosen along the Mandelbrot picture's horizontal center line.<sup><a id="buddhabrot-ref-3" href="#buddhabrot-source-3">3</a></sup> Each column now shows the answers one calculation keeps approaching. One answer makes one branch; an alternating pair makes two.
 
-Choose **Logistic map** to change the axes to its usual coordinates. The branches now split toward the right. This view shows growth values $r$ from 1 to 4. You can follow a single calculation in the [logistic-map lesson](/logistic-map).
+Choose **Logistic map**. The same dots move to that map's usual coordinates, with branches splitting toward the right. This view covers its growth values from $1$ to $4$.
 
-The logistic rule is $x_{n+1}=rx_n(1-x_n)$. Change coordinates using
+The two calculations are connected by a change of coordinates. Writing the logistic rule as $x_{n+1}=rx_n(1-x_n)$, set
 
 $$
 z=r\left(\frac12-x\right),\qquad c=\frac{r(2-r)}4.
 $$
 
-Then the rule becomes $z_{n+1}=z_n^2+c$: the same square-and-add calculation used for Mandelbrot and Buddhabrot. Starting at $z=0$ corresponds to starting at $x=\frac12$.<sup><a id="buddhabrot-ref-4" href="#buddhabrot-source-4">4</a></sup>
+The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with. Starting at $x=\frac12$ in one is starting at $z=0$ in the other.<sup><a id="buddhabrot-ref-4" href="#buddhabrot-source-4">4</a></sup>
 
 ## Further reading
 

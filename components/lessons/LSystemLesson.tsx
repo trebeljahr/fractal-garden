@@ -58,8 +58,8 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
   return (
     <LessonFrame title={title} kind={`lsystem-${preset}`}>
       <p>
-        First replace the letters using the rules below. Then follow the new instructions one at a
-        time. The arrow shows where the next line starts and which way it points.
+        The symbols tell the dot when to draw and when to turn. Take one step at a time to match
+        each instruction with its effect on the picture.
       </p>
       <div className={styles.ruleRow}>
         <span>
@@ -71,11 +71,11 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
       </div>
       <label className={shared.parameter}>
         <span>
-          Rewrites <output>{rewrites}</output>
+          Replacement rounds <output>{rewrites}</output>
         </span>
         <input
           type="range"
-          aria-label="L-system rewrites"
+          aria-label="L-system replacement rounds"
           min={0}
           max={system.maxRewrites}
           step={1}
@@ -116,7 +116,8 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
         <div id={`${id}-summary`} aria-live="polite" aria-atomic="true">
           <p>{instructionDescription(preset, current)}</p>
           <p>
-            {current.drawn} of {full.length} segments drawn. Amber marks the last instruction.
+            {current.drawn} of {full.length} lines drawn. The amber instruction is the one just
+            used.
           </p>
         </div>
       </div>
@@ -128,16 +129,17 @@ export default function LSystemLesson({ preset = "koch" }: { preset?: LSystemPre
       />
       <p>
         {system.draw === "FG" ? "F and G both draw." : "F draws."}{" "}
-        {preset === "hilbert" && "V and W only guide the next rewrite. "}
+        {preset === "hilbert" &&
+          "V and W add instructions at the next replacement round; they do not draw. "}
         In this {system.name.toLowerCase()} rule, + turns {direction}; − turns the other way. Faint
-        lines show the completed path for this word.
+        lines show where the remaining instructions will draw.
       </p>
       <p>
         {preset === "koch"
-          ? "This follows one snowflake edge. The full explorer starts with three edges and counts that triangle as Iterations 1."
+          ? "Raise the replacement count. Each F becomes four drawing steps with turns between them, putting a smaller bump into every line."
           : preset === "hilbert"
-            ? "Rewrites 1 makes the first U. The full explorer labels it Iterations 2, because its starting W counts as Iterations 1."
-            : "The full Dragon explorer uses the same rewrite count for Iterations. Its first displayed stage has one rewrite and two segments."}
+            ? "One replacement makes a U. The next replaces V and W with smaller routes and keeps the F lines that join them."
+            : "F and G draw the same length, but their replacements turn in opposite directions. Raise the replacement count to see why both letters are needed."}
       </p>
     </LessonFrame>
   );

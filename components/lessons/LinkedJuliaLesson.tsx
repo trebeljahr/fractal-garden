@@ -179,8 +179,8 @@ export default function LinkedJuliaLesson() {
   return (
     <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
       <p>
-        Move the amber ring to choose the number to add. Every pixel in the Julia picture uses that
-        same number.
+        Drag the amber ring across the Mandelbrot picture. Watch the Julia shape change: every point
+        in it now adds the number you chose.
       </p>
       <div className={common.options}>
         {PRESETS.map((preset) => (
@@ -199,7 +199,7 @@ export default function LinkedJuliaLesson() {
           <h3>Mandelbrot · choose the number to add</h3>
           <LinkedMap mapKind="parameter" c={ZERO} value={c} onChange={chooseC} />
           <p data-selected-parameter={`${c.real},${c.imaginary}`}>
-            c = {text(c)}. Each pixel here starts at zero.
+            The amber ring chooses c = {text(c)}. Each test here starts at zero.
           </p>
           <div className={styles.coordinates}>
             {(["real", "imaginary"] as const).map((axis) => (
@@ -228,7 +228,7 @@ export default function LinkedJuliaLesson() {
             orbit={shown.map((item) => item.point)}
           />
           <p data-selected-start={`${start.real},${start.imaginary}`}>
-            Start at {text(start)}. Every pixel here adds c = {text(c)}.
+            The teal ring starts at {text(start)}. Every test here adds c = {text(c)}.
           </p>
           <div className={styles.coordinates}>
             {(["real", "imaginary"] as const).map((axis) => (
@@ -249,8 +249,8 @@ export default function LinkedJuliaLesson() {
         </div>
       </div>
       <p>
-        Move the teal ring to test another starting point. Next step squares the current point and
-        adds c.
+        Now move the teal ring. The Julia picture stays the same; you are choosing which point to
+        follow. Press Next step to square it and add c, then repeat with each answer.
       </p>
       <LessonSteps
         key={`${c.real}:${c.imaginary}:${start.real}:${start.imaginary}`}
@@ -263,15 +263,16 @@ export default function LinkedJuliaLesson() {
       <p aria-live="polite" data-linked-orbit={current.iteration}>
         After {current.iteration} calculation{current.iteration === 1 ? "" : "s"}:{" "}
         {text(current.point)}.{" "}
-        {escapeCount !== null && step >= escapeCount
-          ? "It has escaped. The rest of the route lies beyond the picture."
-          : step === max
-            ? "It has not escaped in 96 calculations. That does not prove it stays bounded forever."
-            : "The teal dots follow this starting point."}
+        {step > 0 &&
+          (escapeCount !== null && step >= escapeCount
+            ? "It has escaped. The rest of the route lies beyond the picture."
+            : step === max
+              ? "No escape after 96 calculations. A longer test might still find one."
+              : "Each new teal dot is the result of another square and addition.")}
       </p>
       <p>
-        Both pictures test {LINKED_LIMIT} calculations. Dark pixels have not escaped yet. In the
-        Julia picture, the dark region approximates the filled Julia set; its edge is the Julia set.
+        Dark pixels have not escaped in {LINKED_LIMIT} calculations. Try Circle, Two lobes and Dust
+        to compare three choices of c.
       </p>
       <p>
         <a href={juliaExplorerLink(c)}>Explore this Julia set</a>

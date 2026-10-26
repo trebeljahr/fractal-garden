@@ -27,6 +27,7 @@ test("every article has a resolved interactive teaching figure", () => {
     ...Object.keys(PATH_LESSONS),
     ...Object.keys(GEOMETRY_LESSONS),
     "buddhabrot",
+    "buddhabrot-connection",
     "mandelbulb",
     "rauzy",
   ]);

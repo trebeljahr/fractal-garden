@@ -26,8 +26,9 @@ export default function DlaContactsLesson() {
   return (
     <LessonFrame title="Where do the particles land?" kind="dla-contacts">
       <p>
-        Keep this fork still. Release particles around it and mark where they first touch. Brighter
-        squares received more particles.
+        {grow
+          ? "Press Play to release particles around the fork. This time they stay where they first touch. Watch which branches extend."
+          : "Press Play to release particles around the fork. Mark each first touch, then remove the particle so the fork stays the same. Where do the most marks collect?"}
       </p>
       <div className={common.options}>
         <button
@@ -112,20 +113,21 @@ export default function DlaContactsLesson() {
         stepDescription={`${released} particles released`}
       />
       <p aria-live="polite" data-contact-accounting={`${stuck},${discarded},${unfinished}`}>
-        {stuck} stuck · {discarded} discarded · {unfinished} reached the step limit.
+        {stuck} first contacts · {discarded} walks discarded · {unfinished} reached the move limit.
       </p>
       <p>
         {grow
-          ? "Each amber square is a new particle. It stays in place, so later particles can touch it too."
-          : "Look at the exposed tips and the gap between the branches. A particle must pass the outer branches before it can reach the deep gap."}
+          ? "This time, each amber particle stays where it first touches. Later particles can stick to it, extending the branch."
+          : "Brighter squares mark more contacts. Compare the exposed tips with the gap: particles that hit a branch stop before reaching farther inside."}
       </p>
       <p>
-        Particles start near the dotted border. Each move goes up, down, left or right; touching at
-        a corner counts. A walk ends at first contact, when it leaves the window, or after 2,048
-        moves. A start already covered by growth is discarded.
+        The cream fork is where we started. A teal ring appears around the last particle if it
+        sticks. Particles begin near the dotted border and move up, down, left or right; touching at
+        a corner counts.
       </p>
       <p>
-        Cream: original fork. Amber: contacts. The teal ring marks the last particle if it stuck.
+        Walks that leave the picture are discarded, as are starts already covered by growth. Each
+        walk stops after at most 2,048 moves.
       </p>
     </LessonFrame>
   );

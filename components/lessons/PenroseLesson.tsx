@@ -67,8 +67,11 @@ export default function PenroseLesson() {
     setStep(0);
   };
   return (
-    <LessonFrame title="Divide a triangle into smaller triangles" kind="penrose">
-      <p>Choose a narrow or wide triangle, then step through its divisions.</p>
+    <LessonFrame title="Find the same two shapes inside" kind="penrose">
+      <p>
+        Take one step and look for smaller copies of the starting triangle. Then try the other
+        shape.
+      </p>
       <fieldset className={common.options} aria-label="Penrose parent triangle">
         <button type="button" aria-pressed={kind === "acute"} onClick={() => choose("acute")}>
           Narrow triangle
@@ -81,7 +84,7 @@ export default function PenroseLesson() {
         <svg viewBox="0 0 500 330" role="img" aria-labelledby={`${id}-title ${id}-summary`}>
           <title
             id={`${id}-title`}
-          >{`P2 triangle subdivision, ${kind} parent, step ${step}`}</title>
+          >{`Penrose triangle division, ${kind === "acute" ? "narrow" : "wide"} starting triangle, step ${step}`}</title>
           <g key={`${kind}:${step}`} className={common.reveal}>
             {triangles.map((triangle) => (
               <polygon
@@ -129,8 +132,8 @@ export default function PenroseLesson() {
           {step > 0 && (
             <p>
               {kind === "acute"
-                ? "Mark P on AB, making AP about 1.618 times PB. Mark Q on CA, making CQ about 1.618 times QA. Join C to P, then P to Q."
-                : "Mark P on BC, making BP about 1.618 times PC. Join A to P."}{" "}
+                ? "The new edges run from C to P, then from P to Q. They divide the narrow triangle into three smaller triangles."
+                : "The line from A to P divides the wide triangle into two smaller triangles."}{" "}
               {step > 1 && "The marked points still show the first division."}
             </p>
           )}
@@ -138,8 +141,8 @@ export default function PenroseLesson() {
       </div>
       <LessonSteps label="Penrose subdivision" step={step} max={3} onChange={setStep} />
       <p>
-        A narrow triangle becomes two narrow triangles and one wide triangle. A wide triangle
-        becomes one of each. Repeat inside every new triangle.
+        Both starting shapes produce the same two kinds of smaller triangle. Each kind has its own
+        rule, so the next division depends on which shape it is.
       </p>
     </LessonFrame>
   );

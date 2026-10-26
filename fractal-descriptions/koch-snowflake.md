@@ -1,24 +1,22 @@
 # Koch Snowflake
 
-Start with a triangle. Divide each side into thirds. Replace the middle third with two sides of a little triangle pointing outward. You now have a triangular bump where there was a straight line.
+Draw a triangle with three equal sides. Divide each side into thirds. Replace the middle third with two sides of a small triangle, pointing outward. Each straight side now has a bump.
 
-Every line, including the sides of the bumps, gets the same treatment on the next round.
+Do the same to every line in the new outline, including the sides of the bumps.
 
 <figure data-construction-player="koch"></figure>
 
-Four lines replace one. Each is one third as long, so their combined length is four thirds of the old length. The edge gets a third longer every round.
+Going around a bump takes longer than going straight across. Four short lines now cover a distance that used to need three. The outline gets a third longer every round.
 
-Straighten the pieces below to compare them with the original edge. Then try another round. The ruler stays the same size.
+The figure below lets you straighten one edge to measure it. Compare that growing length with the area added by the new bumps.
 
 <figure data-lesson="koch-measurement"></figure>
 
-Each new triangle has one ninth of the area of a triangle added in the previous round. There are four times as many of them on each round after the first. The total area added that round is only four ninths of the previous addition.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
+There are more new triangles each round, but they are much smaller. After the first round, each batch has four times as many triangles, each with one ninth of the area. Together they add less than half as much area as the previous batch.
 
-That is how the edge can grow forever while the enclosed area stays finite. Add all the new triangles and the final snowflake has 60% more area than the starting triangle.
+The outline keeps getting longer without limit, while the area inside approaches a fixed size.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
 
-Its drawing rule is `F → F-F++F-F`. F draws forward and each turn is 60 degrees. Replacing every F puts a smaller copy of the bump into every line.
-
-The [anti-snowflake](/l-system/koch-anti-snowflake) places those bumps inward. The edge grows at the same rate while the enclosed area shrinks.
+Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake). They now remove area, while the outline still gets longer.
 
 ## Further reading
 

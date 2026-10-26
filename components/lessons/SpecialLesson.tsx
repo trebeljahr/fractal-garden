@@ -27,10 +27,10 @@ function MandelbulbLesson() {
     a = project(input),
     b = project(output);
   return (
-    <LessonFrame title="Move a point using the power rule" kind="mandelbulb">
+    <LessonFrame title="Change the distance and the angles" kind="mandelbulb">
       <p>
-        The hollow dot marks the starting point. Play the diagram to see how the power rule changes
-        its distance from the center and its direction.
+        The point starts 0.9 units from the center. Press Play to follow one power calculation: its
+        angles turn and that distance shrinks. The hollow dot marks where it began.
       </p>
       <svg
         viewBox="0 0 480 320"
@@ -69,11 +69,11 @@ function MandelbulbLesson() {
       </label>
       <label className={styles.parameter}>
         <span>
-          Starting polar angle <output>{latitude}°</output>
+          Starting angle from vertical <output>{latitude}°</output>
         </span>
         <input
           type="range"
-          aria-label="Starting polar angle"
+          aria-label="Starting angle from vertical"
           min={10}
           max={170}
           value={latitude}
@@ -84,13 +84,14 @@ function MandelbulbLesson() {
         />
       </label>
       <p>
-        Radius: 0.900 → {(radius ** power).toFixed(3)}. Polar angle: {latitude}° →{" "}
-        {latitude * power}°. Longitude: 34.4° → {(((phi * 180) / Math.PI) * power).toFixed(1)}°.
+        Distance from the center: 0.900 → {(radius ** power).toFixed(3)}. Angle from vertical:{" "}
+        {latitude}° → {latitude * power}°. Angle around the vertical axis: 34.4° →{" "}
+        {(((phi * 180) / Math.PI) * power).toFixed(1)}°.
       </p>
-      <p>The amber dot moves from the start to the result of one power calculation.</p>
       <p>
-        To make the full Mandelbulb, add the original point after this calculation. Repeat both
-        steps and check whether the results escape.
+        Try a different Power. It multiplies both angles and changes how much the distance shrinks.
+        These are the two changes shown here; the full calculation then adds the chosen position
+        before repeating.
       </p>
     </LessonFrame>
   );
@@ -132,8 +133,8 @@ function RauzyLesson() {
   return (
     <LessonFrame title="Look along the staircase" kind="rauzy">
       <p>
-        The digits give steps in three directions, making a staircase. This picture looks along the
-        staircase and marks each corner with a dot.
+        Choose First 80 steps and press Play to connect the corners in order. You are looking along
+        the staircase, so a step forward in space may go sideways in this view.
       </p>
       <p className={extra.readout}>
         {Array.from(data.word.slice(0, 36), (n) => n + 1).join(" ")} …
@@ -196,8 +197,8 @@ function RauzyLesson() {
         1, teal for 2, rose for 3.
       </p>
       <p>
-        Choose First 80 steps to follow the dots in order. Choose Fill the tile to add more dots and
-        see the whole shape.
+        Now choose Fill the tile. Thousands more corners reveal three colored regions. The next
+        step's direction decides which region a corner belongs to.
       </p>
     </LessonFrame>
   );

@@ -232,16 +232,16 @@ export default function BuddhabrotConnection() {
     setLogistic(coordinates);
   };
   const caption = logistic
-    ? "The same amber dots, with the axes changed to r and x. One branch splits into two, then four. At larger r, many values appear."
+    ? "These are the same amber dots in the logistic map's coordinates. Read from left to right: one branch splits into two, then four. Farther right, many values appear."
     : angle === 90 && sliceOnly
-      ? "Only the center slice remains. Each column shows the later values of one real-number route. These are the logistic map’s branches, in different coordinates."
+      ? "Each column now separates the later answers from one calculation. One lasting answer makes one branch; two alternating answers make two. Choose Logistic map to change the coordinates."
       : angle === 90
         ? "Other slices overlap the branches from this side. Keep only the center slice to see them clearly."
         : angle === 0 || angle === 180
           ? sliceOnly
-            ? "The center slice looks like a line from here. Turn the view to see the later positions along its routes."
-            : "Dots with the same chosen number overlap here, showing the Mandelbrot shape. Amber marks its horizontal center slice."
-          : "Each dot keeps the same chosen number on the horizontal axis. Turning brings the later positions into view. Amber marks the center slice.";
+            ? "From here, the center slice looks like a line. Turn the view to separate the answers hidden behind one another."
+            : "All the answers from one chosen number overlap at its position. Together they show the Mandelbrot shape. Press Play turn to see what is behind it."
+          : "The turn separates answers that overlapped in the front view. Follow the amber dots: they come from numbers on the Mandelbrot picture's horizontal center line.";
   return (
     <LessonFrame title="From Mandelbrot to the logistic map" kind="buddhabrot-connection">
       <div ref={container}>
@@ -330,7 +330,7 @@ export default function BuddhabrotConnection() {
               setSliceOnly(event.target.checked);
             }}
           />
-          Only the center slice (cᵢ = 0)
+          Only the amber center slice
         </label>
         <p id={`${id}-caption`} className={styles.caption} aria-live="polite">
           {caption}

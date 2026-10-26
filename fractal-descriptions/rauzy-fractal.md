@@ -1,6 +1,6 @@
 # Rauzy Fractal
 
-The Rauzy construction begins with a string. Start at `1` and replace every digit using:
+Start with `1`. Replace it with `12`. Then replace each digit again, using these three rules:
 
 ```text
 1 → 12
@@ -8,13 +8,13 @@ The Rauzy construction begins with a string. Start at `1` and replace every digi
 3 → 1
 ```
 
-The first strings are `1`, `12`, `1213` and `1213121`. Each replacement uses the whole previous string.
+This gives `1`, then `12`, then `1213`, then `1213121`. Always replace all the digits from the previous round at once.
 
-Read a `1` as a step along the x direction, a `2` along y and a `3` along z. This produces a staircase in three-dimensional space. Every digit adds one step and one new corner.
+Use each digit as a direction: `1` means step right, `2` means step forward, and `3` means step up. This produces a staircase in three-dimensional space. Every digit adds one step and one new corner.
 
 Look along the staircase, toward its far end. The steps now appear beside one another rather than stretching away into the distance. The diagram plots each corner as a dot in this end-on view. Those dots stay within a fixed area even as the staircase gets longer.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
 
-Choose **First 80 steps** below to connect the dots in order. Then choose **Fill the tile** to see how thousands of these corners fill out the shape. Each dot's color comes from the next digit in the string: one color for 1, another for 2, another for 3.
+Connect the first few dots below, then add thousands more. The route keeps changing direction, but its dots collect within the same outline.
 
 <figure data-investigation="rauzy"></figure>
 

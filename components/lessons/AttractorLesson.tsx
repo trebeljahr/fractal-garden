@@ -84,10 +84,18 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
   const yStart = fit.project(yStartPoint);
   const yEnd = fit.project(yEndPoint);
   return (
-    <LessonFrame title="Motion over time" kind={system}>
+    <LessonFrame
+      title={
+        system === "lorenz"
+          ? "How long do nearby starts stay together?"
+          : "A spiral seen from two sides"
+      }
+      kind={system}
+    >
       <p>
-        Each step adds {config.batchSteps * config.dt}{" "}
-        {config.batchSteps * config.dt === 1 ? "unit" : "units"} of time to the trail.
+        {system === "lorenz"
+          ? "Follow the cream point, then turn on Compare a nearby start. The amber point begins just 0.001 away. Both use the same rules. Watch where their trails start to separate."
+          : "Play the x–y view to follow the outward spiral. Pause, then switch to x–z view. Can you find where the point rises and turns back toward the center?"}
       </p>
       <fieldset className={shared.options} aria-label="View">
         <button
@@ -130,19 +138,17 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           )}
         </svg>
         <div id={`${id}-summary`} aria-live="polite" aria-atomic="true">
-          <p>
-            {index} updates. Time = {(index * config.dt).toFixed(2)}.
-          </p>
+          <p>Time elapsed: {(index * config.dt).toFixed(2)}.</p>
           {step > 0 && (
             <p>
-              Bold line: latest section, time = {(batchStart * config.dt).toFixed(2)} to{" "}
-              {(index * config.dt).toFixed(2)}.
+              The bold line shows the latest part of the trail. The faint line shows where the point
+              has already been.
             </p>
           )}
-          <p>First point (x, y, z) = ({coordinates(current)}).</p>
+          <p>The cream point is at ({coordinates(current)}).</p>
           {compare && (
             <p>
-              Distance between the two points in 3D:{" "}
+              Distance between the points in space:{" "}
               {distanceLabel(pointSeparation(current, nearby))}.
             </p>
           )}
@@ -160,15 +166,16 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           checked={compare}
           onChange={(event) => setCompare(event.target.checked)}
         />
-        Compare a nearby start: x₀ + 0.001
+        Compare a nearby start
       </label>
       <p>
-        Cream follows the first point. Dashed amber follows the nearby point. The bold lines show
-        the latest section. Fainter lines show the earlier trail.
+        Compare a nearby start adds a second point, just 0.001 away at the beginning. Its trail is
+        dashed amber. Their distance can shrink as well as grow, even though both follow the same
+        rules.
       </p>
       <p>
-        Each view shows two coordinates from the same three-coordinate calculation. Switch views to
-        see changes in the other direction.
+        The points move in three dimensions. The x–y view looks down on them; the x–z view shows
+        their height. Switch views to see a separation that one view may hide.
       </p>
     </LessonFrame>
   );

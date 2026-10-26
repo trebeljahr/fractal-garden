@@ -155,8 +155,8 @@ export function ChaosGameLesson() {
       </div>
       <p role="status" className={styles.caption}>
         {dots.length === 0
-          ? "The filled dot is your start. Make one move to see where halfway lands."
-          : `${dots.length.toLocaleString("en-US")} ${dots.length === 1 ? "dot" : "dots"}. The last move chose corner ${String.fromCharCode(65 + choices[choices.length - 1])}. The hollow dot marks the previous position; the filled dot is halfway to that corner.`}
+          ? "Start at the amber dot. Make one random move: a corner is chosen, and the dot moves halfway toward it."
+          : `${dots.length.toLocaleString("en-US")} ${dots.length === 1 ? "dot" : "dots"}. The last move chose corner ${String.fromCharCode(65 + choices[choices.length - 1])}. The amber dot stopped halfway there; the hollow dot shows where it started.`}
         {dots.length === MAX_CHAOS_POINTS && " Start again to try another path."}
       </p>
     </LessonFrame>
@@ -257,7 +257,10 @@ export function PascalTriangleLesson() {
               </>
             )}
           </div>
-          <p>Choose a number to see the two numbers added above it. Beyond the edges, use zero.</p>
+          <p>
+            Choose a number to highlight the two numbers added to make it. At either edge, the
+            missing number counts as zero.
+          </p>
         </>
       ) : (
         <>
@@ -270,8 +273,8 @@ export function PascalTriangleLesson() {
           </div>
           <p role="status">
             {odd
-              ? "Only odd numbers are filled. Add more rows to find larger copies of the triangle."
-              : "Each small triangle stands for a number. Color the odd numbers to reveal the gaps."}
+              ? "The odd numbers are filled; the even numbers leave gaps. Add more rows to see the gaps repeat."
+              : "Each small triangle stands for a number. Color the odd numbers and watch where the gaps appear."}
           </p>
         </>
       )}
@@ -302,7 +305,8 @@ export function CellularTriangleLesson() {
   return (
     <LessonFrame title="Draw it with a rule for cells" kind="sierpinski-cells">
       <p>
-        Each group shows three cells above and the result below. Flip a result to change the rule.
+        Read each small rule from top to bottom: three cells in one row decide the cell below.
+        Change a bottom cell to try a different rule.
       </p>
       <div className={styles.rules} role="group" aria-label="Cell rule results">
         {Array.from({ length: 8 }, (_, index) => 7 - index).map((pattern) => {
@@ -363,8 +367,8 @@ export function CellularTriangleLesson() {
       />
       <p role="status">
         {rule === 90
-          ? "Rule 90 fills a cell when its left and right neighbors above differ. The middle neighbor makes no difference."
-          : `Rule ${rule} uses the eight results above. Choose Rule 90 to return to the triangle.`}
+          ? "With Rule 90, compare the cells diagonally above each new cell. If one is filled and the other blank, fill it. Otherwise leave it blank."
+          : `Rule ${rule} uses your eight choices above. Choose Rule 90 to restore the triangle’s rule.`}
       </p>
     </LessonFrame>
   );

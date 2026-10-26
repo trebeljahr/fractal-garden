@@ -1,24 +1,22 @@
 # Menger Sponge
 
-Divide a cube into a three-by-three-by-three stack of 27 little cubes. Take out the middle cube of each face, then the cube at the very center. The seven removed cubes open three tunnels that meet inside.
+Build a cube from 27 little cubes: three across, three high and three deep. Remove the middle cube from each face, then the cube hidden at the center. This opens three square tunnels that meet inside.
 
-Twenty cubes remain. Give each of them the same three tunnels, then repeat inside their smaller cubes.
+Twenty cubes remain. Make the same three tunnels in each of those cubes, then repeat.
 
 <figure data-construction-player="menger"></figure>
 
-Each round keeps twenty cubes out of twenty-seven. Their combined volume is $20/27$ of the volume left before that round. Repeating the removals sends the remaining volume toward zero, although every finite drawing still contains solid cubes.
+Every round removes seven out of every twenty-seven cubes. Keep going forever and the volume approaches zero. Any drawing we stop at still contains solid cubes.
 
 <figure data-article-images="menger"></figure>
 
-From straight in front, the square holes line up to make a [Sierpinski carpet](/sierpinski-carpet). Each outside face has that pattern too.
+Look straight at one face. The holes line up through the depth of the sponge, giving the same pattern as the [Sierpinski carpet](/sierpinski-carpet).
 
-Now take a thin, flat slice through the middle of the sponge. Tilt the slice so that it faces one corner of the original cube. Its outline is a hexagon, and the holes are six-pointed stars. The square tunnels meet the slice at an angle.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
-
-Move the plane below. The sponge and the flat picture show the same slice. Highlight a tunnel to see which part of the hole it makes.
+Now look at a flat slice through the middle, facing one corner of the sponge. Its outline has six sides. Inside it, the square tunnels make a six-pointed star.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
 
 <figure data-projection="menger"></figure>
 
-**Shadow** includes cubes behind one another. **Cross-section** shows only the thin slice. Moving the slice changes its holes, but leaves the shadow alone.
+Each tunnel crosses the tilted slice at an angle. The three openings overlap to make the star. As you move the slice away from the center, it meets different parts of the tunnels, so the hole changes shape.
 
 ## Further reading
 

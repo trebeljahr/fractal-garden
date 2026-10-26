@@ -1,24 +1,26 @@
 # Julia Set
 
-Choose one number to add, called $c$. Every pixel starts a calculation from its own position. Square the position, add $c$, then repeat using the result.
+Start with $0.5$ and keep squaring it. You get $0.25$, then $0.0625$, then smaller and smaller numbers. Start with $2$ instead: $4$, $16$, $256$. The answers grow.
 
-A position has two coordinates: horizontal and vertical. Squaring multiplies its distance from zero by itself and doubles its angle from the line pointing right. Adding $c$ shifts the result by the same horizontal and vertical amounts each time.
+We can do the same with points on a plane. A point has a horizontal and a vertical coordinate; together they form a **complex number**. To square it, multiply its distance from zero by itself and double its angle from the line pointing right.
 
-<figure data-article-images="julia"></figure>
+Points less than one unit from zero move closer with every squaring. Points farther than one unit move away. The circle between them is the simplest Julia set.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
-Start with $c=0$, so nothing is added. A point half a unit from zero gets closer with each squaring: $0.5$, then $0.25$, then $0.0625$. A point more than one unit away gets farther away. The dividing line is a circle of radius one.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
-
-The example below starts with this circle. Choose a pixel inside it, then one outside it, and follow each calculation. The ring marks the starting pixel. Its color comes from whether the results escape, and how long that takes.
+Try a point inside the circle, then one outside. Next, choose **Add −1**. Subtracting one after every square changes the circle into a different shape.
 
 <figure data-orbit="julia"></figure>
 
-The points that stay within a fixed distance of zero forever form the **filled Julia set**. Its edge is the **Julia set**. For $c=0$, the filled set includes the circle and everything inside it. Choose **Add −1** to see what changing $c$ does to the shape.
+The number added each time is called $c$. Every starting point in one picture uses the same $c$. Change it, and you change the whole picture.
 
-The [Mandelbrot set](/mandelbrot) tells you whether a choice of $c$ gives a connected Julia set. Inside the Mandelbrot set, the Julia set is connected. Outside, it breaks into separated dust.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+<figure data-article-images="julia"></figure>
 
-Dark pixels have not escaped before the computer's step limit. Some may escape later. Raising the limit can resolve those slow cases.
+Starting points whose results stay within a fixed distance of zero forever make up the **filled Julia set**. Its edge is the **Julia set**. For $c=0$, these are a filled disk and its circular edge.
 
-Move the amber point below to change the number every pixel adds. Move the teal point to change only the starting position being followed.
+The computer tests only a limited number of steps. Dark pixels haven't escaped yet; some may escape later.
+
+Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+
+Try **Circle**, **Two lobes**, then **Dust** below. Watch where the amber ring sits in the Mandelbrot picture as the Julia shape changes.
 
 <figure data-lesson="linked-julia"></figure>
 

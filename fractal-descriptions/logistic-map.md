@@ -1,24 +1,24 @@
 # Logistic Map
 
-Take a number between zero and one. Multiply it by one minus itself, then multiply by a control value $r$. Use the answer as the next number and repeat:
+Start with $0.5$. Multiply it by $1-0.5$, then by $2.8$. The answer is $0.7$.
 
-$$
-x_{n+1}=rx_n(1-x_n).
-$$
+Do the same with that answer: $2.8\times0.7\times(1-0.7)=0.588$. Repeat and the answers swing back and forth, getting closer to about $0.643$. At that value, the calculation gives almost the same number back.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
 
-The example below starts at $0.5$ with $r=2.8$. Its first answers are $0.7$, then $0.588$, then about $0.678$. They approach about $0.643$. Putting that value into the rule gives nearly the same answer again.<sup><a id="logistic-map-ref-1" href="#logistic-map-source-1">1</a></sup>
-
-In the left graph, go up to the curve to find the next answer. Go across to the diagonal to use that answer as the next input. The right graph plots the same answers in order. Try **Two-cycle** to see them approach an alternating pair.
+The number $2.8$ controls the calculation. We call it $r$. Below, try changing it to $3.2$ with **Alternating**. Do the answers still settle toward one number?
 
 <figure data-lesson="logistic"></figure>
 
-The large picture repeats this experiment for many values of $r$. Each vertical column uses one value. It skips some early answers, then plots the later ones.
+With $r=3.2$, the answers approach a pair and alternate between them. Increase $r$ further and that pair splits into four values, then eight. The rule stays the same:
 
-Where the answers settle toward one value, the column has one band. Where they alternate between two values, it has two bands. Raise $r$ past the next split and the repeating cycle has four values, then eight.
+$$
+\text{next number}=r\times\text{current number}\times(1-\text{current number}).
+$$
 
-These doublings accumulate near $r=3.57$. Many settings beyond that produce chaos: nearby starting numbers eventually give very different sequences. Repeating cycles still return in some intervals. Near $r=3.83$, the rule settles into a three-value cycle.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup>
+The large branching picture puts many of these experiments side by side. Each column uses one value of $r$. We leave out the early answers and plot the later ones. One lasting value makes one branch; an alternating pair makes two.
 
-The branches in the picture show these lasting cycles. A limited calculation can also include values that have not settled yet, especially near a split.
+After enough splits, many settings produce **chaos**: nearby starting numbers eventually give very different answers. Repeating patterns still appear among them. Near $r=3.83$, the answers settle into a three-number cycle.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup>
+
+Near a split, answers can take a long time to settle. The picture may still include some of those early values.
 
 ## Further reading
 

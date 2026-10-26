@@ -38,8 +38,11 @@ export default function KochMeasurementLesson() {
   );
   const unfolded = straightenKoch(data.edge, straight / 100);
   return (
-    <LessonFrame title="Straighten the edge. Keep its length." kind="koch-measurement">
-      <p>Slide the control to lay the pieces along a ruler. None of them gets longer or shorter.</p>
+    <LessonFrame title="Measure the edge, then the area" kind="koch-measurement">
+      <p>
+        Move the slider to straighten the pieces without stretching them. Then choose the next
+        round.
+      </p>
       <div className={styles.options}>
         <fieldset className={extra.rounds} aria-label="Koch construction round">
           {[0, 1, 2, 3].map((n) => (
@@ -102,10 +105,10 @@ export default function KochMeasurementLesson() {
       </label>
       <p aria-live="polite">
         {round === 0
-          ? "One straight edge. Choose Round 1 to replace it with four pieces."
+          ? "This is the original edge. Round 1 replaces it with four shorter pieces."
           : round === 1
-            ? "Four pieces, each one third as long. Together they measure 1⅓ original edges."
-            : `${4 ** round} pieces now measure ${data.length.toFixed(3)} original edges. Each round multiplies the length by four thirds.`}
+            ? "Laid end to end, the four pieces reach a third farther than the original edge. Each piece is one third of its length."
+            : `The straightened pieces measure ${data.length.toFixed(3)} times the original edge. The extra bends add length each round.`}
       </p>
       <div className={extra.areaViews}>
         <svg
@@ -184,8 +187,8 @@ export default function KochMeasurementLesson() {
         </button>
       </div>
       <p>
-        The amber triangles are {inward ? "removed" : "added"} in the chosen round. After the first
-        round, each batch has four ninths of the area of the batch before it.
+        Amber marks the triangles {inward ? "removed" : "added"} in this round. Compare the bars as
+        you change rounds: each new batch changes the area less than the one before.
       </p>
     </LessonFrame>
   );

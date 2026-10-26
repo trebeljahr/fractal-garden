@@ -63,18 +63,18 @@ function instruction(frame: OrbitFrame, c: ComplexPoint, kind: OrbitKind) {
   switch (frame.operation) {
     case "start":
       return kind === "julia"
-        ? "Start at the selected pixel. Next, square this point."
-        : "Start at zero. The selected pixel supplies the number to add after every square.";
+        ? "Begin at the pixel inside the ring. Square this point to find the next position."
+        : "Begin at zero. The pixel inside the ring gives the number you will add after every square.";
     case "fold":
       return frame.before.real < 0 || frame.before.imaginary < 0
-        ? "Flip each negative coordinate to positive. A point on the left moves right; a point below zero moves up."
-        : "Both coordinates are already zero or positive. This fold leaves the point where it is.";
+        ? "Reflect a point on the left across the vertical axis. Reflect a point below the horizontal axis upward. The result has no negative coordinates."
+        : "Neither coordinate is negative, so this fold leaves the point in place.";
     case "square":
       return frame.before.real === 0 && frame.before.imaginary === 0
         ? "Zero squared is zero. The point stays at the center."
-        : "Square the distance from zero and double the angle from the right-hand axis.";
+        : "Multiply the distance from zero by itself. Double the angle measured from the line pointing right.";
     case "add":
-      return `${movement(c)} This completes one calculation. Use this result to begin the next.`;
+      return `${movement(c)} Now use this point for the next ${kind === "burning-ship" ? "fold" : "square"}.`;
   }
 }
 
@@ -188,7 +188,8 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     setValue(point);
     setStep(0);
   };
-  const title = kind === "julia" ? "Follow one starting point" : "Calculate one pixel";
+  const title =
+    kind === "julia" ? "Follow one starting point" : "Why does this pixel have this color?";
   const stage =
     current.operation === "start"
       ? "Start"
@@ -256,7 +257,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             onChange={update}
           />
           <p className={styles.mapCaption}>
-            Click a pixel to test it. The ring shows its color enlarged.
+            Choose a pixel. The ring marks the one whose calculation we will follow.
           </p>
         </div>
         <fieldset className={styles.parameters}>
@@ -281,19 +282,19 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           ))}
           <p>
             {kind === "julia"
-              ? `Every pixel in this example uses the same c = ${coordinates(c)}.`
-              : "Every pixel starts at zero. Its coordinates give the number to add each time."}
+              ? `Start at the chosen pixel. After each square, add c = ${coordinates(c)}.`
+              : "Start at zero. After each square, add the chosen pixel's coordinates."}
           </p>
           <p>
-            The small image tests each pixel for {TEACHING_LIMIT} calculations. Dark pixels have not
-            escaped yet. Lighter pixels took longer to escape.
+            This image tests each pixel for {TEACHING_LIMIT} calculations. Dark pixels have not
+            escaped. Among the others, lighter pixels took longer.
           </p>
         </fieldset>
       </div>
-      <h3>The calculation for this pixel</h3>
+      <h3>Follow the calculation</h3>
       <p>
         Press Next step to {kind === "burning-ship" ? "fold, square, then add" : "square, then add"}
-        . The amber arrow shows each change.
+        . The amber arrow shows where that operation moves the point.
       </p>
       <div className={styles.calculation}>
         <svg
@@ -301,9 +302,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           role="img"
           aria-labelledby={`${id}-diagram-title ${id}-diagram-desc`}
         >
-          <title id={`${id}-diagram-title`}>
-            {`${stage}: ${coordinates(current.point)}`}
-          </title>
+          <title id={`${id}-diagram-title`}>{`${stage}: ${coordinates(current.point)}`}</title>
           <desc id={`${id}-diagram-desc`}>
             White dots show completed calculations. The amber point shows the current result. The
             dashed circle is four units from zero. Points beyond the window are shown at its edge.
@@ -366,7 +365,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           <circle cx={after.x} cy={after.y} r="4" fill="#f5c56d" />
           {(after.clipped || before.clipped) && (
             <text x="200" y="353" textAnchor="middle" className={styles.axisLabel}>
-              Beyond the window; see coordinates.
+              The point is beyond the picture. Its coordinates are below.
             </text>
           )}
         </svg>
@@ -406,20 +405,21 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           {current.operation === "add" && (
             <p className={styles.outcome}>
               {escaped
-                ? `After ${current.iteration} calculations, the result is outside the dashed circle. It will keep escaping. This pixel gets a color.`
+                ? `After ${current.iteration} calculations, the point has passed the dashed circle. From here it will keep moving farther away. The escape count sets the pixel's color.`
                 : step === frames.length - 1
-                  ? `Still inside after ${current.iteration} calculations. This pixel stays dark in the small image. Some dark pixels escape with more calculations.`
-                  : "The result is inside the dashed circle. Repeat the calculation to see whether it escapes."}
+                  ? `Still inside after ${current.iteration} calculations, so this pixel stays dark. A longer test might still find an escape.`
+                  : `The point is still inside the dashed circle. ${kind === "burning-ship" ? "Fold, square and add" : "Square and add"} again to see what happens next.`}
             </p>
           )}
         </div>
       </div>
       <p className={styles.caption}>
-        Hollow point: before. Amber point: after. White dots mark completed calculations.
+        The hollow point shows where this step began. The amber point shows where it ended. White
+        dots mark the earlier answers.
       </p>
       <p className={styles.caption}>
-        The dashed circle is 4 units from zero. For these choices, a completed calculation outside
-        it will keep escaping.
+        The dashed circle is four units from zero. For the numbers you can choose here, crossing it
+        after an addition guarantees escape.
       </p>
       {kind === "burning-ship" && (
         <p className={styles.caption}>

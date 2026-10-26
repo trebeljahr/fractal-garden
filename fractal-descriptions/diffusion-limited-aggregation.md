@@ -1,20 +1,22 @@
 # Diffusion-Limited Aggregation
 
-Start with one fixed particle. Add another nearby and move it randomly. When it touches the fixed particle, it stays there. Add another moving particle and repeat.
+Place one particle and keep it still. Release a second particle nearby. Move it randomly until it touches the first, then leave it there too.
 
-The fixed particles form a cluster. New particles usually hit an exposed tip before reaching a deep gap. As a result, tips collect more particles and extend farther than the recessed parts.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup>
+In the diagram, each move goes one square up, down, left or right. A touch along an edge or at a corner makes the particle stick. Follow a few walks to see which particles reach the fixed square.
 
 <figure data-lesson="dla"></figure>
 
-The diagram shows the individual moves. Each step goes up, down, left or right. A particle counts as touching if it reaches any of the eight neighboring cells, including a diagonal neighbor.
+Keep releasing particles and they form a cluster. Why does it grow branches instead of filling the gaps between them?
 
-In this diagram the particle sticks on its first contact. In the full explorer, **Sticking chance** can be lower. A particle may then move again after touching the cluster.
-
-The next experiment holds a fork still and counts first contacts. Then let those contacts become new particles and watch the branches extend.
+The next experiment starts with a fork. Count where particles first touch it, without adding them to the fork. Compare the exposed tips with the gap between the branches.
 
 <figure data-lesson="dla-contacts"></figure>
 
-A point seed lets the cluster extend in all directions. A line seed gives it an extended base. Coloring by arrival time shows which parts formed first and where particles are attaching now.
+A particle heading into the gap may hit an outer branch first. It sticks there and never reaches the inside. Exposed tips collect more particles, extend farther, and block still more arrivals.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup>
+
+Choose **Let it grow** to see this happen. Each new particle becomes another place for the next one to stick.
+
+In the full explorer, lower **Sticking chance** to let some particles move on after touching the cluster. Try a line seed to grow from a base instead of a single point. Color by arrival time to see which parts formed first.
 
 ## Further reading
 

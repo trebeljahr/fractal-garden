@@ -9,9 +9,9 @@ import { LessonFrame } from "./LessonFrame";
 const COLORS = ["#f5c56d", "#7ec9bb", "#d68fa3", "#97ade0"];
 const VIEWS = ["One dragon", "Fit four together", "Tile the plane"];
 const EXPLANATIONS = [
-  "Each path segment joins opposite corners of a filled square. These squares form one tile.",
-  "The four copies start at one point. They are rotated by 0, 90, 180 and 270 degrees.",
-  "The four-tile groups repeat in diagonal rows, with no gaps between their boundaries.",
+  "Show the path to see how each line sits inside a small square. The squares together make the dragon tile.",
+  "These are four copies of the same tile, turned a quarter turn apart. Their starting points meet at the center.",
+  "Follow one color to find copies of the same dragon. Groups of four fit together across the picture.",
 ];
 
 export default function DragonTilingLesson() {
@@ -30,7 +30,7 @@ export default function DragonTilingLesson() {
   const size = view === 2 ? 4.6 : 3.1 + separation / 80;
   const spread = 1 + separation / 140;
   const explanation = separation
-    ? "The tiles are separated to show their boundaries. Set Pull apart to zero to join them."
+    ? "Follow a tile’s edge while the tiles are apart. Move Pull apart back to zero to see how the neighboring edge fits."
     : EXPLANATIONS[view];
   return (
     <LessonFrame title="Dragon tiles" kind="dragon-tiling">
@@ -119,8 +119,8 @@ export default function DragonTilingLesson() {
         {showPath ? "Hide the path" : "Show the path"}
       </button>
       <p>
-        Increasing Detail adds shorter path segments and smaller squares around them. The filled
-        regions approach the limiting dragon tile as their segment lengths decrease.
+        Lower the detail to see the squares around the path. As you raise it again, the squares get
+        smaller and the edge of the dragon becomes more detailed.
       </p>
     </LessonFrame>
   );

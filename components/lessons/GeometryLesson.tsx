@@ -103,7 +103,7 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
     kind === "vicsek-fractal-2d"
       ? ["Diagonal cross", "Greek cross"]
       : kind === "mosely-snowflake"
-        ? ["18 cubes", "19 cubes"]
+        ? ["Remove the center", "Keep the center"]
         : kind === "polyhedron-flake"
           ? ["Octahedron", "Dodecahedron", "Icosahedron"]
           : kind === "n-flake" && [4, 5, 6].includes(sides)
@@ -113,7 +113,7 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
     kind === "h-tree"
       ? `${2 ** step} newest segments · newest total length ${(2 * ratio) ** step < 100 ? ((2 * ratio) ** step).toFixed(2) : ((2 * ratio) ** step).toFixed(0)} × root length`
       : kind === "t-square-fractal"
-        ? `${4 ** step} newest squares · child side ${ratio.toFixed(2)} × parent`
+        ? `${4 ** step} new squares in this round`
         : kind === "vicsek-fractal-2d"
           ? `${5 ** step} squares · ${(100 * (5 / 9) ** step).toFixed(1)}% area remains`
           : kind === "mosely-snowflake"
@@ -127,7 +127,7 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
                   : kind === "quadratic-koch-3d"
                     ? `${6 * 13 ** step} square faces · ${((13 / 9) ** step).toFixed(2)} × starting area`
                     : kind === "jerusalem-cube"
-                      ? `${20 ** step} cubes · rank ${step} · two child scales`
+                      ? `${20 ** step} cubes after ${step} rounds`
                       : kind === "polyhedron-flake"
                         ? `${[6, 20, 12][variant] ** step} copies`
                         : `${(sides + ([4, 5, 6].includes(sides) && variant ? 1 : 0)) ** step} polygons`;
@@ -187,11 +187,11 @@ export default function GeometryLesson({ kind }: { kind: GeometryLessonKind }) {
       {["h-tree", "t-square-fractal"].includes(kind) && (
         <label className={styles.parameter}>
           <span>
-            Child scale <output>{ratio.toFixed(2)}</output>
+            Size of each new copy <output>{ratio.toFixed(2)}</output>
           </span>
           <input
             type="range"
-            aria-label="Child scale"
+            aria-label="Size of each new copy"
             min={0.3}
             max={0.8}
             step={0.01}

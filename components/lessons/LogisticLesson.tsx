@@ -12,8 +12,8 @@ import { LessonFrame, LessonSteps } from "./LessonFrame";
 
 const PRESETS = [
   { name: "Settling", r: 2.8 },
-  { name: "Two-cycle", r: 3.2 },
-  { name: "Irregular trace", r: 3.9 },
+  { name: "Alternating", r: 3.2 },
+  { name: "Irregular", r: 3.9 },
 ];
 
 const chart = (point: LogisticPoint) => ({ x: 42 + point.x * 274, y: 258 - point.y * 220 });
@@ -53,10 +53,11 @@ export default function LogisticLesson() {
     setStep(0);
   };
   return (
-    <LessonFrame title="Repeat the calculation" kind="logistic">
+    <LessonFrame title="One calculation, two pictures" kind="logistic">
       <p>
-        Start at a number on the bottom axis. Go up to the curve to find the answer. Go across to
-        the diagonal to use that answer as the next starting number.
+        The curve turns each starting number into the next answer. Press Next step to go to the
+        curve, then across to the diagonal. On that diagonal, height and width are equal: the answer
+        is now in place to become the next input.
       </p>
       <fieldset className={shared.options} aria-label="Logistic example">
         {PRESETS.map((preset) => (
@@ -85,7 +86,7 @@ export default function LogisticLesson() {
             next value
           </text>
           <text x="254" y="286" className={shared.label}>
-            input x
+            current value
           </text>
           <text x="27" y="274" className={shared.label}>
             0
@@ -118,10 +119,10 @@ export default function LogisticLesson() {
           })}
           <circle cx={timePosition.x} cy={timePosition.y} r="4" className={shared.point} />
           <text x="44" y="23" className={shared.label}>
-            orbit value x
+            answer
           </text>
           <text x="179" y="294" textAnchor="middle" className={shared.label}>
-            iteration n
+            step
           </text>
           <text x="37" y="274" className={shared.label}>
             0
@@ -136,9 +137,9 @@ export default function LogisticLesson() {
       </div>
       <p id={`${id}-summary`} aria-live="polite" aria-atomic="true">
         {step === 0
-          ? `Start at x₀ = ${start.toFixed(4)}. Step forward to evaluate r × x × (1 − x).`
+          ? `Start at ${start.toFixed(4)}. Press Next step to calculate r × x × (1 − x).`
           : `x${step} = ${r.toFixed(2)} × ${values[step - 1].toFixed(4)} × (1 − ${values[step - 1].toFixed(4)}) = ${current.toFixed(4)}.`}{" "}
-        Amber marks the same current value in both plots.
+        Both amber dots show this same answer. The right graph puts the answers in order.
       </p>
       <LessonSteps
         step={step}
@@ -149,7 +150,7 @@ export default function LogisticLesson() {
       <div className={styles.parameters}>
         <label className={shared.parameter}>
           <span>
-            Growth parameter r <output>{r.toFixed(2)}</output>
+            Multiplier r <output>{r.toFixed(2)}</output>
           </span>
           <input
             type="range"
@@ -163,7 +164,7 @@ export default function LogisticLesson() {
         </label>
         <label className={shared.parameter}>
           <span>
-            Starting value x₀ <output>{start.toFixed(2)}</output>
+            Starting number <output>{start.toFixed(2)}</output>
           </span>
           <input
             type="range"
@@ -177,12 +178,12 @@ export default function LogisticLesson() {
         </label>
       </div>
       <p>
-        The presets start at x₀ = 0.5. Compare a settling trace at r = 2.8 with the alternating pair
-        approached at r = 3.2. At r = 3.9, this short trace looks irregular.
+        Play Settling and watch the swings narrow. Then try Alternating: the answers approach two
+        different heights. Irregular uses the same rule, but this short sequence shows no repeat.
       </p>
       <p>
-        The large picture repeats this calculation for many values of r. It leaves out the early
-        answers and plots the later ones.
+        Each example starts at 0.5. Change the starting number to see whether its later answers
+        approach the same pattern.
       </p>
     </LessonFrame>
   );

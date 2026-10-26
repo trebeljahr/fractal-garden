@@ -1,16 +1,20 @@
 # Mandelbulb
 
-The Mandelbulb applies a repeated calculation to points in three dimensions. Each point supplies a fixed position to add, and the calculation starts at the origin.
+Choose a point in space. We will use its position in a calculation, repeating the same two steps: change the current point's distance and direction, then add the position we chose.
 
-At every step, measure the current point's distance from the origin and its two angles. The default rule raises the distance to the eighth power and multiplies both angles by eight. Convert that back to a position, add the fixed position, then repeat.
+Start at the center. Adding the chosen position takes us to that point. The next calculation can move somewhere else.
+
+To change the distance and direction, measure how far the point is from the center and the two angles that locate it. With **Power** set to $8$, multiply eight copies of the distance together and multiply each angle by eight.
+
+Follow that one operation below. The hollow dot stays at the start while the amber dot moves to the result.
 
 <figure data-investigation="mandelbulb"></figure>
 
-At the origin, the power step returns zero. The first addition therefore moves to the chosen point. Later positions either stay within a fixed distance of the origin or increase their distance without limit. The boundary between the two outcomes forms the bulb's surface.
+After this operation, add the chosen position again. Repeat. Some choices keep the results within a fixed distance of the center; others send them farther and farther away. The boundary between these outcomes forms the bulb's surface.
 
-The [Mandelbrot set](/mandelbrot) uses a related calculation in two dimensions. This spherical rule extends the distance-and-angle operation to three dimensions. **Power** changes both the distance calculation and the angle multipliers, so it changes the shape itself.
+The [Mandelbrot set](/mandelbrot) tests points in a plane this way. The Mandelbulb uses distance and two angles to extend the idea into space. Changing **Power** changes the operation, so the whole surface changes too.
 
-Daniel White published the construction in 2007. Paul Nylander's later higher-power experiments led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
+Daniel White published the construction in 2007. Paul Nylander's later experiments with higher powers led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
 ## Further reading
 
@@ -19,4 +23,4 @@ Daniel White published the construction in 2007. Paul Nylander's later higher-po
 
 ## Sources and notes
 
-1. <span id="mandelbulb-source-1"></span> Daniel White, [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), 8 November 2009, and his linked [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). Creator's history credits Nylander's higher-power experiments. [Back](#mandelbulb-ref-1)
+1. <span id="mandelbulb-source-1"></span> [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html) and [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). [Back](#mandelbulb-ref-1)

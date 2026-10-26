@@ -1,18 +1,20 @@
 # Newton Fractal
 
-Choose a starting guess. Draw a straight line that touches the curve there and follows its slope. Where the line crosses the bottom axis is your next guess. Repeat from there.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
+We want to find where a curve crosses zero. Start with a guess. Draw a straight line through the curve at that point, following its slope. Nearby, the line is a simple approximation of the curve.
 
-This is Newton's method for finding a **root**, where the curve meets zero. Near a root where the curve isn't flat, each step roughly doubles the number of correct digits.
+Where the line crosses zero gives us the next guess. Move there and repeat. This is **Newton's method**; the answer we are looking for is called a **root**.<sup><a id="newton-fractal-ref-1" href="#newton-fractal-source-1">1</a></sup>
+
+Try starting at $2$, then at $0.5$. Follow the guesses as they approach $1$. What happens if you start where the curve is flat?
 
 <figure data-lesson="newton"></figure>
 
-The main picture applies the same calculation to $z^3-1$. With complex numbers, there are three roots. Each pixel supplies a starting guess, and its color shows which root the calculation approaches.
+Now choose **Three roots**. The same rule works with complex numbers, which have horizontal and vertical coordinates. The equation $z^3-1=0$ has three roots. Changing the starting point can send the guesses toward a different one.
 
-Nearby guesses often reach the same root, making the broad patches of color. Along the borders, a tiny move can send a guess toward a different root.
+The large picture tries a starting point at every pixel. Each color stands for one root. Nearby starting points often reach the same root, making the broad patches of color.
 
-All three colored regions share a boundary. However closely you zoom at a boundary point, you can find starts leading to each of the three roots.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup> That is why a border between two colors keeps revealing pieces of the third.
+Zoom into a border between two colors. Pieces of the third keep appearing. All three regions share the same boundary: however closely you zoom at a boundary point, starts leading to all three roots remain nearby.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup>
 
-The computer stops after 48 steps. A guess that still hasn't reached a root gets the color of the nearest one. Some pixels near the borders can have the wrong color for this reason.
+The picture stops each calculation after 48 steps. If a guess has not reached a root, it uses the nearest root's color. Some pixels near a border can therefore have the wrong color.
 
 ## Further reading
 
@@ -21,5 +23,5 @@ The computer stops after 48 steps. A guess that still hasn't reached a root gets
 
 ## Sources and notes
 
-1. <span id="newton-fractal-source-1"></span> Marco Abate, [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf), lecture of 23 March 2013, sections 1–2. Explains tangent iteration, local quadratic convergence, and basins. [Back](#newton-fractal-ref-1)
-2. <span id="newton-fractal-source-2"></span> Abate, same lecture, section 3. Explains the common basin boundary and Fatou's work. See also Grant Sanderson, [Newton's Fractal](https://www.3blue1brown.com/lessons/newtons-fractal/), 3Blue1Brown video lesson, 12 October 2021, especially 17:56 onward. [Back](#newton-fractal-ref-2)
+1. <span id="newton-fractal-source-1"></span> [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf). [Back](#newton-fractal-ref-1)
+2. <span id="newton-fractal-source-2"></span> [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf), section 3. [Back](#newton-fractal-ref-2)

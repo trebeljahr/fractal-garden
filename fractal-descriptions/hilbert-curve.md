@@ -1,20 +1,18 @@
 # Hilbert Curve
 
-The first Hilbert path is a U connecting four points in a square. To make the next stage, divide the square into four smaller squares and put a smaller copy of the path in each.
+Place a dot at each corner of a square. Join them with three lines to make a U. You can follow it through all four dots without lifting your pen.
 
-Rotate the copies so that three short connecting lines join them into one route. Repeat this arrangement inside every smaller square.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
-
-<figure data-construction-player="lsystem-hilbert"></figure>
-
-Try joining four routes below. Each route has a start and an end. Turning a route moves both; reversing it swaps them.
+To visit more dots, divide the square into four smaller squares. Put a smaller U in each one. Their ends need to face one another so you can join them into a single path.
 
 <figure data-lesson="hilbert-join"></figure>
 
-The route visits every point in a square grid once. The first grid has $2\times2$ points. The next has $4\times4$, then $8\times8$. Adjacent points along the route are always one grid step apart.
+Once the four paths join, you have a route through sixteen dots. Repeat the arrangement with four copies of this new route. Each round visits four times as many dots, still without lifting the pen or visiting a dot twice.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
 
-Choose a spot anywhere in the square. As the grid gets finer, the path passes closer and closer to it. In the infinite limit, it reaches every spot. This is what **space-filling** means. Every drawing you can actually make still has gaps between its lines.
+<figure data-construction-player="lsystem-hilbert"></figure>
 
-The [3D version](/l-system/hilbert-curve-3d) uses eight smaller cubes instead of four squares. Their routes need to connect across shared faces as well as turn within a plane.
+Pick a spot in one of the gaps. As the grid gets finer, the path passes closer to it. In the infinite limit, the path reaches every spot in the square. That is what **space-filling** means. Every finite drawing still leaves gaps between its lines.
+
+The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube. It joins eight smaller paths, one in each of eight smaller cubes.
 
 ## Further reading
 
@@ -23,4 +21,4 @@ The [3D version](/l-system/hilbert-curve-3d) uses eight smaller cubes instead of
 
 ## Sources and notes
 
-1. <span id="hilbert-curve-source-1"></span> Herman Haverkort, [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf), Journal of Computational Geometry 8(1), 206–281, 2017. Introduction and section 2 describe nested subdivisions and continuous, surjective mappings. [Back](#hilbert-curve-ref-1)
+1. <span id="hilbert-curve-source-1"></span> [How many three-dimensional Hilbert curves are there?](https://pure.tue.nl/ws/portalfiles/portal/87535424/298_1389_1_PB.pdf). [Back](#hilbert-curve-ref-1)

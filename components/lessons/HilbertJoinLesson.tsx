@@ -25,8 +25,8 @@ export default function HilbertJoinLesson() {
   return (
     <LessonFrame title="Join four smaller routes" kind="hilbert-join">
       <p>
-        Choose a route and turn it. Join its filled end to the next route’s hollow start. Each
-        joining line must be one grid step long.
+        Try rotating route 1 until its filled end sits beside route 2’s hollow start. A join should
+        be as short as the other lines.
       </p>
       <div className={extra.hilbertLayout}>
         <svg
@@ -119,7 +119,7 @@ export default function HilbertJoinLesson() {
                 setRotations(rotations.map((n, i) => (i === selected ? (n + 1) % 4 : n)))
               }
             >
-              Turn a quarter
+              Rotate a quarter turn
             </button>
             <button
               type="button"
@@ -134,8 +134,8 @@ export default function HilbertJoinLesson() {
           <p aria-live="polite">
             {fit} of 3 links fit.
             {fit === 3
-              ? " One continuous route visits every grid point once."
-              : " A dashed line needs a shorter connection."}
+              ? " You can now follow one route through every dot, visiting each just once."
+              : " The dashed joins are too long. Turn a route or reverse its start and end."}
           </p>
           <button
             type="button"
@@ -144,7 +144,7 @@ export default function HilbertJoinLesson() {
               setReversed([false, false, false, false]);
             }}
           >
-            Fit the routes
+            Show a joined route
           </button>
           <fieldset className={styles.options} aria-label="Hilbert grid size">
             {[2, 3].map((n) => (
@@ -156,8 +156,8 @@ export default function HilbertJoinLesson() {
         </div>
       </div>
       <p>
-        Choose the finer grid. Each small route now contains four smaller routes of its own. The
-        drawing still has gaps between its lines.
+        Try the 8 × 8 grid. Each colored route now contains four smaller routes, joined in the same
+        way. Reverse one to see why the positions of its start and end matter.
       </p>
     </LessonFrame>
   );

@@ -103,8 +103,7 @@ export default function PathLesson({ kind }: { kind: PathLessonKind }) {
         )}
       </svg>
       <div className={motion.readout} aria-live="polite">
-        {count} / {projected.length} segments · {level}{" "}
-        {kind === "hilbert-curve-3d" ? "orders" : "rewrites"}
+        {count} of {projected.length} lines drawn · Round {level}
       </div>
       <LessonSteps
         key={`${level}-${angle}`}
@@ -116,11 +115,11 @@ export default function PathLesson({ kind }: { kind: PathLessonKind }) {
       />
       <label className={styles.parameter}>
         <span>
-          {kind === "hilbert-curve-3d" ? "Order" : "Rewrites"}
+          Round
           <output>{level}</output>
         </span>
         <input
-          aria-label={`${info.title} rewrites`}
+          aria-label={`${info.title} round`}
           type="range"
           min={kind === "hilbert-curve-3d" ? 1 : 0}
           max={info.max}
@@ -171,7 +170,7 @@ export default function PathLesson({ kind }: { kind: PathLessonKind }) {
             checked={branches}
             onChange={(e) => setBranches(e.target.checked)}
           />
-          {kind === "twindragon" ? "Distinguish the second dragon" : "Distinguish side branches"}
+          {kind === "twindragon" ? "Highlight the second dragon" : "Highlight side branches"}
         </label>
       )}
       <p>{info.detail}</p>

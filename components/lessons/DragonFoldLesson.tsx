@@ -33,8 +33,8 @@ export default function DragonFoldLesson() {
   return (
     <LessonFrame title="Open the folded strip" kind="dragon-fold" className={extra.pathConnections}>
       <p>
-        Fold a strip in half {folds} times, always in the same direction. The {2 ** folds} sections
-        lie on top of one another. Open the creases to see their turns.
+        After {folds} folds, {2 ** folds} sections lie on top of one another. Open the creases
+        slowly and follow the two amber sections as they separate.
       </p>
       <div className={styles.options}>
         <button type="button" disabled={folds === 1} onClick={() => changeFolds(folds - 1)}>
@@ -85,7 +85,7 @@ export default function DragonFoldLesson() {
         />
       </label>
       <fieldset className={extra.creaseButtons} aria-label="Choose a crease">
-        <legend>Turns along the opened strip</legend>
+        <legend>Choose a turn along the strip</legend>
         {turns.map((turn, i) => (
           <button
             key={i}
@@ -101,10 +101,13 @@ export default function DragonFoldLesson() {
       <p aria-live="polite">
         Crease {crease + 1}: turn {turns[crease] === 1 ? "left" : "right"}.{" "}
         {opening === 90
-          ? "Every crease now makes a right angle. This is the dragon path."
-          : "Keep opening until every crease makes a right angle."}
+          ? "Each crease is a right angle. Follow the left and right turns from the pale dot to trace the dragon."
+          : "Keep opening the strip until each crease makes a right angle."}
       </p>
-      <p>The highlighted crease joins the same two sections throughout the movement.</p>
+      <p>
+        L and R mean left and right as you follow the strip from the pale dot. Choose one to
+        highlight its crease.
+      </p>
     </LessonFrame>
   );
 }

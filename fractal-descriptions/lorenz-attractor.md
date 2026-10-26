@@ -1,14 +1,16 @@
 # Lorenz Attractor
 
-The Lorenz system calculates how three values change over time. Each value affects the others. Plotting the three values as coordinates produces the two-winged trail shown here.
+Follow the point as it circles one wing, then crosses to the other. The trail records three changing numbers, using them as coordinates. Each number affects how the other two change.
 
-These coordinates came from a simplified model of heat-driven fluid motion. One describes circulation; the other two describe temperature differences. The trail is a plot of those changing quantities, not the route of a particle through the fluid.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup>
+Turn on **Compare a nearby start** below. The second calculation begins just $0.001$ away in one coordinate. Both follow exactly the same rules. Watch for the moment they stop following the same wing.
 
 <figure data-lesson="lorenz"></figure>
 
-The comparison starts a second calculation just 0.001 away in one coordinate. Both calculations use exactly the same rules. They initially produce similar values, but later can circle different wings.
+A tiny difference at the start can lead to a large difference later. This is **sensitivity to starting conditions**. The points can move closer again, too; their distance does not grow at every step.
 
-This is sensitivity to the starting conditions. If the starting values are only approximately known, their later values can become difficult to predict. The separation doesn't increase at every moment: the two points can move closer together before separating again.
+If we know the starting numbers only approximately, we may soon lose track of which wing the point will visit next.
+
+Lorenz developed these rules from a simplified model of heated fluid. One number describes circulation, and two describe temperature differences. The trail plots those numbers; it does not trace a particle moving through the fluid.<sup><a id="lorenz-attractor-ref-1" href="#lorenz-attractor-source-1">1</a></sup>
 
 ## Further reading
 
@@ -17,4 +19,4 @@ This is sensitivity to the starting conditions. If the starting values are only 
 
 ## Sources and notes
 
-1. <span id="lorenz-attractor-source-1"></span> Edward N. Lorenz, [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf), *Journal of the Atmospheric Sciences* 20 (1963), 130–141, especially section 5. Derives the three-variable convection model and identifies its variables. [Back](#lorenz-attractor-ref-1)
+1. <span id="lorenz-attractor-source-1"></span> [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf). [Back](#lorenz-attractor-ref-1)

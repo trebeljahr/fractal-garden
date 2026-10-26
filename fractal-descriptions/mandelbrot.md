@@ -1,32 +1,30 @@
 # Mandelbrot Set
 
-Choose a number to add. Start at zero, square the current result, add your chosen number, and do it again.
-
-If you choose $1$, the results are:
+Start with zero. Square it, then add $1$. Use the answer as your next starting number and repeat:
 
 $$
 0\to1\to2\to5\to26\to\cdots
 $$
 
-The results increase without limit. Choose $-1$ instead and you get $0,-1,0,-1,\ldots$. It repeats forever without growing.
+The answers grow larger and larger. Now add $-1$ each time instead. You get $0,-1,0,-1,\ldots$: the same two numbers, forever.
+
+The Mandelbrot picture tests which numbers you can add without the answers growing beyond every limit.
 
 <figure data-article-images="mandelbrot"></figure>
 
-To make a picture, give each pixel two coordinates: horizontal and vertical. A pair such as $(1,0)$ means one unit right of zero. These pairs represent **complex numbers**. Each pixel supplies a different number to add, called $c$.
+Each pixel gives us a number to try. Its horizontal coordinate tells us how far to move left or right; its vertical coordinate tells us how far to move up or down. Together, these form a **complex number**, which we call $c$.
 
-Squaring changes a point's distance and direction. Multiply its distance from zero by itself, and double its angle measured from the line pointing right. Adding $c$ then shifts it horizontally and vertically by the chosen coordinates.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
+Adding $c$ moves the point by those two amounts. Squaring changes both its distance from zero and its direction: multiply the distance by itself and double the angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-The small image below lets you choose a pixel and follow its calculation. Compare **Repeating** and **Escaping**, using the two numbers above. The ring marks the chosen pixel. The moving point shows the results used to decide that pixel's color.
+Follow the two examples below, then choose another pixel. The ring stays on the number you chose. The amber point shows what happens when you keep squaring and adding it.
 
 <figure data-orbit="mandelbrot"></figure>
 
-A choice belongs to the Mandelbrot set if its results stay within a fixed distance of zero forever. The computer can only test a limited number of steps. Escaping results give the chosen pixel a color based on how long escape took. Black means it hasn't escaped yet.
+A number belongs to the Mandelbrot set if its results stay within a fixed distance of zero forever. The computer cannot wait forever, so black means “hasn't escaped yet.” Other colors show how long escape took.
 
-The round bulb left of the main body contains choices that settle toward a two-value repeat. At its center, $c=-1$ gives the exact $0,-1$ repeat above. Inside the heart-shaped body, the results settle toward one value.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
+Look at the round bulb on the left. Numbers inside it approach a two-number repeat, like the $0,-1$ example at its center. Numbers inside the heart-shaped body settle toward one value.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
 
-The [Julia explorer](/julia-set) changes the test: every pixel uses the same number to add, but starts from a different position. That is why choosing a new $c$ there changes the whole picture.
-
-Move a point in the Mandelbrot picture below. Its coordinates become the number added at every pixel in the Julia picture. Then choose a starting point in the Julia picture and follow its results.
+So far, every calculation has started at zero. Keep the number you add, but try a different starting point at every pixel. This makes a [Julia picture](/julia-set). A single choice in the Mandelbrot picture now gives us a whole new shape to explore.
 
 <figure data-lesson="linked-julia"></figure>
 

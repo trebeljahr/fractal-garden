@@ -1,48 +1,56 @@
 # Sierpinski Triangle
 
-Join the midpoints of a triangle's sides. This divides it into four equal triangles. Remove the inverted triangle in the center, then repeat inside the three remaining triangles.
+Mark the halfway point on each side of a triangle. Join the marks to make four equal triangles, then remove the upside-down one in the middle.
 
-The second round removes three smaller central triangles. The third removes nine. Each new hole is half as wide as a hole from the previous round.
+Three triangles remain. Remove the middle of each one in the same way. Then do it again inside every smaller triangle.
 
 <figure data-construction-player="sierpinski-triangle"></figure>
 
-Each step retains three quarters of the remaining area. Repeatedly multiplying by $3/4$ sends the area toward zero. The borders remain connected at their corners even though no filled patch survives in the infinite limit.
+Each round removes a quarter of the area that is left. Repeat forever and no filled patch survives, although the triangle borders still meet at their corners.
 
-The same shape can be made without starting from a triangle. Take a square, circle or fish. Make three half-size copies and move one toward each corner of a fixed triangle. Repeat on the whole result.
+## Start with a fish
+
+Look at the three triangles left after the first round. Each is a half-size copy of the original, moved toward one of its corners.
+
+Try those same moves with a different starting shape. Make three half-size copies of a square, a circle or a fish. Move them toward the same three corners, then repeat on the whole picture.
 
 <figure data-lesson="sierpinski-seeds"></figure>
 
-The starting shape is visible in the early stages. Each replacement makes it smaller, so its effect on the overall picture decreases. These different starting shapes approach the same Sierpinski triangle.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
+The fish stay fish. They just get smaller and more numerous. As each copy shrinks, its original outline becomes harder to distinguish. All four arrangements approach the same Sierpinski triangle.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
 
-## Random dots
+## Move one dot
 
-The three corner moves also work on a single point. Choose a corner at random. Move halfway toward it and mark the new position. Repeat from there.
+Instead of copying a whole picture, start with one dot. Pick a corner at random and move the dot halfway toward it. Mark that position. Then pick another corner and repeat from the new position.
+
+Try a few moves one at a time. Then add a thousand. Where do the dots collect?
 
 <figure data-lesson="sierpinski-chaos"></figure>
 
-Each move shrinks the distance to the chosen corner by half. The same three moves made the smaller copies above. With enough random moves, the dots trace the triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
+The dots collect in the same three half-size copies we made above. Each move uses one of the same three rules. After many random choices, the dots trace the Sierpinski triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
 
-This is called the **chaos game**. The [Barnsley fern](/barnsley-fern) uses it too, with four rules that shrink, turn and move the point into different parts of a fern.
+This is the **chaos game**. The [Barnsley fern](/barnsley-fern) also uses random choices, but its four moves shrink, turn and place the dot in different parts of a fern.
 
-## A triangle made of numbers
+## Add two numbers
 
-Start with a 1. Put a 1 at each edge of the next row. Between them, add the two numbers just above. These rows form **Pascal's triangle**.
+Start a row with just a 1. Put a 1 at each end of the next row. To fill each space between them, add the two numbers just above it. These rows form **Pascal's triangle**.
 
-Color the odd numbers, then show more rows. The empty spaces form the same triangular holes.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup>
+Choose a number below to see its addition. Then color the odd numbers and show more rows.
 
 <figure data-lesson="sierpinski-pascal"></figure>
 
-Two odd numbers add to an even number. Two even numbers do too. The result is odd only when one number is odd and the other is even.
+The even numbers leave the same triangular gaps.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup> We can find those gaps without calculating the large numbers: odd plus odd is even, and even plus even is even. A sum is odd only when one number is odd and the other is even.
 
-## A rule for each row
+## Replace the numbers with cells
 
-We can use that addition rule without writing any numbers. Start with one filled cell in a blank row. Below it, fill a cell when its two diagonal neighbors above differ. Leave it blank when they match.
+Let a filled cell stand for odd and a blank cell for even. The addition rule becomes a drawing rule: fill the cell below when the two cells above differ. Leave it blank when they match.
 
-This is called **Rule 90**. Its filled cells make the same pattern as the odd numbers in Pascal's triangle, with empty cells between neighboring entries.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-4">4</a></sup> Change one result below and see what happens to the next rows.
+In the square grid below, those two cells sit diagonally above the new one. The cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-4">4</a></sup>
 
 <figure data-lesson="sierpinski-cells"></figure>
 
-The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) approaches this triangle by replacing pieces of one connected line. To try the corner-copy construction in three dimensions, open the [Sierpinski tetrahedron](/sierpinski-tetrahedron): four half-size pyramids, one at each corner.
+The filled cells make the same pattern as the odd numbers, with an empty cell between neighboring entries. Change one result in the rule to see how the rows change.
+
+The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle another way, by repeatedly bending one connected line. The [Sierpinski tetrahedron](/sierpinski-tetrahedron) extends the corner-copy rule into three dimensions, with four half-size pyramids.
 
 ## Further reading
 

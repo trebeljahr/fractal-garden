@@ -43,10 +43,11 @@ export default function BuddhabrotAccumulation() {
     })
     .join(" ");
   return (
-    <LessonFrame title="Record a route in the picture" kind="buddhabrot">
+    <LessonFrame title="Why some pixels are brighter" kind="buddhabrot">
       <p>
-        Choose a number. The first picture follows its calculation. Record this route to add its
-        visits to the second picture.
+        {orbit.escaped
+          ? "The line follows one escaping calculation. Press Record this route: each position it visited adds a little light to the other picture. Record it again and watch those same squares brighten."
+          : "This calculation repeats without escaping, so we leave its route out. Choose the third number to try one that escapes."}
       </p>
       <div className={styles.options}>
         {LABELS.map((label, index) => (
@@ -68,8 +69,8 @@ export default function BuddhabrotAccumulation() {
             role="img"
             aria-label={
               orbit.escaped
-                ? `Selected orbit escapes after ${orbit.points.length} updates`
-                : "Selected orbit has not escaped after 80 updates"
+                ? `Selected route escapes after ${orbit.points.length} calculations`
+                : "Selected route has not escaped after 80 calculations"
             }
           >
             <path d="M40 160H440M240 10V310" className={styles.axis} />
@@ -90,8 +91,8 @@ export default function BuddhabrotAccumulation() {
           </svg>
           <p>
             {orbit.escaped
-              ? `Escapes after ${orbit.points.length} updates. It adds ${selected.visits} visits to ${selectedBins} squares in this window.`
-              : "No escape in 80 updates. This route adds no visits."}
+              ? `This route escapes after ${orbit.points.length} calculations. Recording it adds ${selected.visits} visits across ${selectedBins} squares.`
+              : "This route has not escaped after 80 calculations, so it adds no light."}
           </p>
         </div>
         <div>
@@ -134,7 +135,8 @@ export default function BuddhabrotAccumulation() {
             )}
           </svg>
           <p>
-            The outlined squares match the selected route. Each recording adds the visits again.
+            The outlines show where the selected route can add light. Choosing a route leaves the
+            picture unchanged until you record it.
           </p>
         </div>
       </div>
@@ -158,9 +160,8 @@ export default function BuddhabrotAccumulation() {
         </button>
       </div>
       <p aria-live="polite" data-recording-count={recordings.length}>
-        {recordings.length} manual recording{recordings.length === 1 ? "" : "s"} · {step * 100}{" "}
-        other numbers tested · {histogram.visits} visits recorded. More visits make a square
-        brighter, up to the display's brightest color.
+        {recordings.length} recording{recordings.length === 1 ? "" : "s"} · {step * 100} other
+        numbers tested · {histogram.visits} visits added.
       </p>
       <LessonSteps
         key={reset}
@@ -168,10 +169,15 @@ export default function BuddhabrotAccumulation() {
         max={20}
         onChange={setStep}
         label="Other sampled routes"
+        stepDescription={`${step * 100} other numbers tested`}
       />
       <p>
-        Next step tests 100 other numbers. Only routes that escape within 80 updates contribute.
-        Visits outside this window are not shown.
+        Now press Next step to try 100 other numbers. Their escaping routes add light in other
+        places. Squares visited more often become brighter.
+      </p>
+      <p>
+        Only routes that escape within 80 calculations are recorded. Visits outside the picture are
+        left out.
       </p>
     </LessonFrame>
   );
