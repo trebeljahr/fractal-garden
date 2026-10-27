@@ -20,6 +20,7 @@ export function useConstructionNavigation(
   view: ConstructionView,
   setView: Dispatch<SetStateAction<ConstructionView>>,
   onReset: () => void,
+  initialDistance = 7.5,
 ) {
   const latest = useRef({ view, onReset });
   latest.current = { view, onReset };
@@ -91,7 +92,9 @@ export function useConstructionNavigation(
       if (
         !guard.shouldZoom(
           e,
-          scene ? latest.current.view.cameraDistance >= 7.5 : latest.current.view.zoom <= 1,
+          scene
+            ? latest.current.view.cameraDistance >= initialDistance
+            : latest.current.view.zoom <= 1,
         )
       )
         return;
@@ -134,5 +137,5 @@ export function useConstructionNavigation(
       canvas.removeEventListener("dblclick", reset);
       canvas.removeEventListener("keydown", key);
     };
-  }, [canvas, scene, setView]);
+  }, [canvas, scene, setView, initialDistance]);
 }

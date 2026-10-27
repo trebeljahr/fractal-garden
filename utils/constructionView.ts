@@ -18,6 +18,8 @@ export type ConstructionView = CanvasViewport & {
   lineWidth: number;
   showFaces: boolean;
   showWireframe: boolean;
+  lighting: "classic" | "depth";
+  occlusion: "off" | "soft" | "minecraft";
   [key: string]: unknown;
 };
 
@@ -46,7 +48,7 @@ export function constructionIs3D(kind: string, params: unknown) {
   );
 }
 
-export function initialConstructionView(params: unknown): ConstructionView {
+export function initialConstructionView(params: unknown, cameraDistance = 7.5): ConstructionView {
   const root = isRecord(params) ? params : {};
   const paint = isRecord(root.view) ? root.view : isRecord(root.config) ? root.config : root;
   const value = (key: string, fallback: string) =>
@@ -60,7 +62,7 @@ export function initialConstructionView(params: unknown): ConstructionView {
     x: 0,
     y: 0,
     zoom: 1,
-    cameraDistance: 7.5,
+    cameraDistance,
     rotationX: typeof paint.rotationX === "number" ? paint.rotationX : 24,
     rotationY: typeof paint.rotationY === "number" ? paint.rotationY : 28,
     autoRotate: false,
@@ -74,6 +76,9 @@ export function initialConstructionView(params: unknown): ConstructionView {
     lineWidth: typeof paint.lineWidth === "number" ? paint.lineWidth : 1,
     showFaces: paint.showFaces !== false,
     showWireframe: paint.showWireframe === true,
+    lighting: paint.lighting === "depth" ? "depth" : "classic",
+    occlusion:
+      paint.occlusion === "off" || paint.occlusion === "minecraft" ? paint.occlusion : "soft",
     ...extras,
   };
 }

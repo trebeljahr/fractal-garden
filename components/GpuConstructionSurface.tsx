@@ -45,7 +45,7 @@ export function GpuConstructionSurface({
     latest.current = { spec, level, view, size, reducedMotion, onReady };
     dirty.current = true;
   }, [spec, level, view, size, reducedMotion, onReady]);
-  useConstructionNavigation(canvas, true, view, setView, onReset);
+  useConstructionNavigation(canvas, true, view, setView, onReset, CAMERA_DISTANCE);
 
   useEffect(() => {
     if (!container.current) return;

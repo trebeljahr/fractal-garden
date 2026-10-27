@@ -52,6 +52,27 @@ test("construction cameras and material edits remain independent from the explor
   assert.deepEqual(source, original);
 });
 
+test("GPU construction starts at the flight distance and copies its shading independently", () => {
+  for (const lighting of ["classic", "depth"]) {
+    for (const occlusion of ["off", "soft", "minecraft"]) {
+      const source = {
+        spec: { kind: "romanesco" },
+        view: { rotationX: 65, rotationY: 28, cameraDistance: 3, lighting, occlusion },
+      };
+      const original = structuredClone(source);
+      const view = initialConstructionView(source, 6);
+      assert.equal(view.cameraDistance, 6);
+      assert.equal(view.rotationX, 65);
+      assert.equal(view.rotationY, 28);
+      assert.equal(view.lighting, lighting);
+      assert.equal(view.occlusion, occlusion);
+      view.lighting = lighting === "classic" ? "depth" : "classic";
+      view.occlusion = "off";
+      assert.deepEqual(source, original);
+    }
+  }
+});
+
 test("3D path controls preserve the selected construction order and main path state", () => {
   const source = {
     source: { kind: "hilbert3d", order: 4 },

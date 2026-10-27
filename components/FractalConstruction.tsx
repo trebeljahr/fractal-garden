@@ -30,6 +30,7 @@ import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import { useRenderSurface } from "../utils/hooks/useRenderSurface";
 import { hasLSystemPlayback } from "../utils/lsystem/playback";
 import type { RendererKind } from "../utils/render/registry";
+import { CAMERA_DISTANCE } from "../utils/spatial/camera";
 import type { GpuSpatialSpec } from "../utils/spatialGpu/model";
 import { ConstructionIcon } from "./ConstructionIcon";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
@@ -194,7 +195,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const [pageVisible, setPageVisible] = useState(true);
   const [view, setView] = useState<ConstructionView>(() => ({
     ...spec.config,
-    ...initialConstructionView(spec.params),
+    ...initialConstructionView(spec.params, spec.gpuSpec ? CAMERA_DISTANCE : undefined),
   }));
   const autoplayed = useRef(false);
   const frame = useRef<HTMLDivElement>(null);
@@ -214,20 +215,23 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     setPlaying(false);
   }, []);
   const reset = useCallback(() => {
-    const initial = initialConstructionView(spec.params);
+    const initial = initialConstructionView(
+      spec.params,
+      spec.gpuSpec ? CAMERA_DISTANCE : undefined,
+    );
     setView((old) => ({
       ...old,
       x: 0,
       y: 0,
       zoom: 1,
-      cameraDistance: 7.5,
+      cameraDistance: initial.cameraDistance,
       rotationX: initial.rotationX,
       rotationY: initial.rotationY,
       grab: undefined,
       autoRotate: false,
       resetId: old.resetId + 1,
     }));
-  }, [spec.params]);
+  }, [spec.params, spec.gpuSpec]);
   const onReady = useCallback((level: number) => {
     setReady(true);
     setRenderedLevel(level);

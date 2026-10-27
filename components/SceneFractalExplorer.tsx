@@ -145,6 +145,8 @@ export function SceneFractalExplorer<V extends string>({
       showFaces: config.showFaces,
       showWireframe: config.showWireframe,
       lineWidth: config.lineWidth,
+      lighting: config.lighting,
+      occlusion: config.occlusion,
       autoRotate: false,
       rotationSpeed,
     };
@@ -194,6 +196,8 @@ export function SceneFractalExplorer<V extends string>({
     config.showFaces,
     config.showWireframe,
     config.lineWidth,
+    config.lighting,
+    config.occlusion,
   ]);
   useConstructionRegistration(construction);
 
@@ -213,6 +217,17 @@ export function SceneFractalExplorer<V extends string>({
   const constructionControls = useCallback(
     (view: ConstructionView) => (
       <>
+        {variant.spec.kind === "romanesco" && view.showFaces && (
+          <>
+            <PanelSelect path="lighting" label="Lighting" options={["classic", "depth"]} />
+            <PanelSelect
+              path="occlusion"
+              label="Corner shading"
+              options={["off", "soft", "minecraft"]}
+              optionLabels={["Off", "Soft", "Strong"]}
+            />
+          </>
+        )}
         <PanelColor path="background" />
         {(view.showFaces || view.showWireframe) && <PanelColor path="fillColor" />}
         {variantOptions.length > 1 && (
@@ -237,7 +252,7 @@ export function SceneFractalExplorer<V extends string>({
         )}
       </>
     ),
-    [variants, variantOptions, variantLabel],
+    [variant.spec.kind, variants, variantOptions, variantLabel],
   );
 
   return (

@@ -4,7 +4,7 @@ import { getDescription } from "../utils/readFiles";
 const VARIANTS: Record<string, SceneVariant> = {
   romanesco: {
     label: "Romanesco",
-    maxIterations: 2,
+    maxIterations: 4,
     spec: { kind: "romanesco" },
   },
 };
