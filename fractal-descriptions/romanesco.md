@@ -2,7 +2,7 @@
 
 Follow a curved row of bumps around a Romanesco cauliflower. Other rows turn the opposite way. Each bump carries smaller spiral rows of its own.<sup><a id="romanesco-ref-1" href="#romanesco-source-1">1</a></sup>
 
-Start with a narrow cone. Place smaller cones around it. Their tips trace a wider cone, while their bases overlap the narrow one. Turn each new cone about 137.5 degrees and make it smaller toward the tip. This turn is called the golden angle.<sup><a id="romanesco-ref-2" href="#romanesco-source-2">2</a></sup> Smaller cones also cover the underside. Repeat the arrangement around each smaller cone.
+Start with a cone. Raise small peaks along a spiral around it. Turn each new peak about 137.5 degrees and make it smaller toward the tip. This turn is called the golden angle.<sup><a id="romanesco-ref-2" href="#romanesco-source-2">2</a></sup> Repeat the spiral on each peak, and underneath the cone. Neighbouring peaks join along their edges.
 
 <figure data-construction-player="romanesco"></figure>
 
@@ -19,4 +19,4 @@ This is a geometric model inspired by Romanesco. A real cauliflower has a smalle
 
 1. <span id="romanesco-source-1"></span> [Cauliflower fractal forms arise from perturbations of floral gene networks](https://authors.library.caltech.edu/records/c4rmy-fg834). [Back](#romanesco-ref-1)
 2. <span id="romanesco-source-2"></span> [Phyllotaxis as geometric canalization during plant development](https://journals.biologists.com/dev/article-pdf/147/19/dev165878/1968297/dev165878.pdf). [Back](#romanesco-ref-2)
-3. <span id="romanesco-source-3"></span> Calculation: tips sit at golden-angle intervals, multiplying their distance from the axis by $e^{-0.015}$ each time. The row continues toward the apex without a final tip. Linking every eighth tip or every thirteenth tip traces the two nearest families of spiral rows. [Back](#romanesco-ref-3)
+3. <span id="romanesco-source-3"></span> Calculation: before the peaks are tilted upward, their positions turn through the golden angle and shrink toward the tip by $e^{-0.015}$ per step. Linking every eighth or thirteenth peak traces the two nearest spiral directions. Each peak repeats this construction. The renderer adds smaller peaks as you approach. [Back](#romanesco-ref-3)

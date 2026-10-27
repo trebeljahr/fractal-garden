@@ -1,6 +1,10 @@
 import type { FractalFrame } from "../fractalFrame";
 import { webglPixelRatio } from "../renderResolution";
+import { ROMANESCO_SURFACE_MODEL } from "../romanescoSurface";
 import { createShaderProgram } from "../shaders/compileShader";
+import romanescoChartFragment from "../shaders/romanesco-chart.frag";
+import romanescoResidualFragment from "../shaders/romanesco-residual.frag";
+import romanescoSurfaceFragment from "../shaders/romanesco-surface.frag";
 import fragment from "../shaders/spatial-flight.frag";
 import vertex from "../shaders/spatial-flight.vert";
 import {
@@ -30,14 +34,23 @@ import {
   packChildBounds,
   packOrderedChildren,
 } from "./model";
-import { spatialShaderStackDepth, specializeSpatialShader } from "./shader";
-import { packGpuRomanescoUniformGeometry } from "./uniformGeometry";
+import {
+  buildRomanescoSurfaceFrame,
+  type RomanescoSurfaceFrame,
+  romanescoSurfaceFrameClearance,
+} from "./romanescoSurfaceFrame";
+import { createRomanescoTracePasses } from "./romanescoTrace";
+import { specializeSpatialShader } from "./shader";
 
 const screenFragment = `#version 300 es
 precision highp float;
 uniform sampler2D u_color, u_surface;
 uniform vec2 u_resolution, u_projection, u_origin;
 uniform float u_far, u_ao;
+const bool ROMANESCO_OUTLINES = false;
+uniform bool u_faces, u_wire;
+uniform vec3 u_stroke, u_background;
+uniform float u_lineWidth;
 out vec4 outColor;
 float depth(vec4 s) { return exp2((s.b + s.a / 255.0) * log2(u_far + 1.0)) - 1.0; }
 vec3 point(vec2 uv, float d) { return vec3((uv * 2.0 - 1.0 - u_origin) * d / u_projection, -d); }
@@ -50,6 +63,19 @@ vec3 normal(vec4 s) {
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
   vec4 color = texture(u_color, uv), s = texture(u_surface, uv);
+  if (ROMANESCO_OUTLINES && s.b <= .999) {
+    float edge = 0.0;
+    if (u_wire) {
+      vec3 n = normal(s);
+      float radius = max(.75, u_lineWidth * .5);
+      for (int i = 0; i < 4; i++) {
+        vec2 axis = i == 0 ? vec2(1,0) : i == 1 ? vec2(-1,0) : i == 2 ? vec2(0,1) : vec2(0,-1);
+        vec4 neighbour = texture(u_surface, uv + axis * radius / u_resolution);
+        edge = max(edge, neighbour.b > .999 ? 1.0 : 1.0-smoothstep(.82,.98,dot(n,normal(neighbour))));
+      }
+    }
+    color.rgb = u_faces ? mix(color.rgb,u_stroke,edge) : mix(u_background,u_stroke,edge);
+  }
   if (u_ao < 0.5 || s.b > 0.999) { outColor = vec4(color.rgb, 1.0); return; }
   float d = depth(s), occlusion = 0.0;
   vec3 p = point(uv, d), n = normal(s);
@@ -99,40 +125,42 @@ export function createSpatialGpuRenderer(
       gl.deleteShader(p.frag);
     });
   try {
-    // A fixed Romanesco kind lets the driver eliminate the unrelated solid and
-    // Koch paths, rather than keeping their branches and temporaries live.
-    const specialized = initialSpec?.kind === "romanesco";
-    const sourceFor = (depth: StackDepth, seedPass = false) =>
-      specialized
-        ? fragment
-            .replace("uniform int u_kind;", "const int u_kind = 3;")
+    // Compile coordinate models separately so inactive paths need no registers.
+    const surface = initialSpec?.kind === "romanesco";
+    const tracePasses = surface ? createRomanescoTracePasses(gl) : undefined;
+    if (tracePasses) owned.push(() => tracePasses.destroy());
+    const sourceFor = (chartMode = 0) =>
+      surface
+        ? romanescoSurfaceFragment
             .replace(
-              "#version 300 es",
-              `#version 300 es\n#define SPATIAL_STACK_DEPTH ${depth}\n#define ROMANESCO_UNIFORM_GEOMETRY\n#define ROMANESCO_DEFER_NORMALS\n#define ${seedPass ? "ROMANESCO_SEED_PASS" : "ROMANESCO_SEED_USE"}`,
+              "// ROMANESCO_CHART",
+              `${romanescoResidualFragment}\n${romanescoChartFragment}`,
+            )
+            .replace(
+              "uniform int u_chartMode, u_chartLevels, u_chartFirstRank;",
+              `const int u_chartMode = ${chartMode};\nuniform int u_chartLevels, u_chartFirstRank;`,
             )
         : specializeSpatialShader(fragment, initialSpec);
-    let stackDepth: StackDepth = specialized ? 8 : 40;
-    let shader = program(sourceFor(stackDepth));
-    const screen = program(screenFragment);
+    const stackDepth: StackDepth = 40;
+    let surfaceMode = 0;
+    let shader = program(sourceFor());
+    const screen = program(
+      screenFragment.replace(
+        "const bool ROMANESCO_OUTLINES = false;",
+        `const bool ROMANESCO_OUTLINES = ${surface};`,
+      ),
+    );
     const vao = allocate(gl.createVertexArray(), (r) => gl.deleteVertexArray(r)),
       buffer = allocate(gl.createBuffer(), (r) => gl.deleteBuffer(r));
-    const uniformBuffers = specialized
-      ? Array.from({ length: 3 }, () =>
-          allocate(gl.createBuffer(), (target) => gl.deleteBuffer(target)),
-        )
-      : [];
     const newTexture = () => allocate(gl.createTexture(), (r) => gl.deleteTexture(r));
     const roots = newTexture(),
       children = newTexture(),
       childBounds = newTexture(),
       queryTexture = newTexture(),
-      surfaces = [newTexture(), newTexture()],
-      seeds = specialized ? [newTexture()] : [];
+      residualTable = surface ? newTexture() : undefined,
+      surfaces = [newTexture(), newTexture()];
     const framebuffer = allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r)),
-      queryFramebuffer = allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r)),
-      seedFramebuffer = specialized
-        ? allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r))
-        : undefined;
+      queryFramebuffer = allocate(gl.createFramebuffer(), (r) => gl.deleteFramebuffer(r));
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -153,20 +181,20 @@ export function createSpatialGpuRenderer(
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, 4, MAX_GPU_ROOTS, 0, gl.RGBA, gl.FLOAT, null);
     texture(queryTexture, 2);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    seeds.forEach((target, index) => {
-      texture(target, index + 5);
+    if (residualTable) {
+      texture(residualTable, 7);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
-        gl.RGBA32UI,
-        1,
-        1,
+        gl.RGBA32F,
+        20,
+        3 * ROMANESCO_SURFACE_MODEL.defaultLevels + 1,
         0,
-        gl.RGBA_INTEGER,
-        gl.UNSIGNED_INT,
-        new Uint32Array(4),
+        gl.RGBA,
+        gl.FLOAT,
+        null,
       );
-    });
+    }
     gl.bindFramebuffer(gl.FRAMEBUFFER, queryFramebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, queryTexture, 0);
     gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
@@ -219,6 +247,40 @@ export function createSpatialGpuRenderer(
       "queryRay",
       "seed",
       "useSeed",
+      "chartMode",
+      "chartPlane",
+      "chartError",
+      "chartOrigin",
+      "chartPhase",
+      "chartCarrier",
+      "chartWeight",
+      "chartQOffset",
+      "chartQX",
+      "chartQY",
+      "chartLevels",
+      "chartFirstRank",
+      "chartBaseGrowth",
+      "chartShear",
+      "residualTable",
+      "residualOffsets",
+      "residualCounts",
+      "residualInverseSigma",
+      "residualScale",
+      "residualHeight",
+      "residualRing",
+      "residualRadialRatio",
+      "residualPrimaryRatio",
+      "residualSideLogTransport",
+      "residualDelta",
+      "residualShearCoefficient",
+      "residualBottomUpperWork",
+      "residualRootUnit",
+      "residualDiskPoint",
+      "residualAmplitudeOffsets",
+      "residualShearOffsets",
+      "residualAnchorField",
+      "residualDeltaOffsets",
+      "residualAngleTransports",
     ];
     const uniforms = (target: WebGLProgram) =>
       Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(target, `u_${name}`)]));
@@ -227,12 +289,25 @@ export function createSpatialGpuRenderer(
       shader: typeof shader;
       uniforms: typeof u;
       shape?: GpuFrame["shape"];
-      blocksBound?: boolean;
     };
     let active: Variant = { shader, uniforms: u };
-    const variants = new Map<StackDepth, Variant>([[stackDepth, active]]);
-    const seedVariants = new Map<StackDepth, Variant>();
-    const screenNames = ["color", "surface", "resolution", "projection", "origin", "far", "ao"];
+    const variantKey = (depth: StackDepth, mode: number) =>
+      surface ? `surface:${mode}` : `stack:${depth}`;
+    const variants = new Map<string, Variant>([[variantKey(stackDepth, surfaceMode), active]]);
+    const screenNames = [
+      "color",
+      "surface",
+      "resolution",
+      "projection",
+      "origin",
+      "far",
+      "ao",
+      "faces",
+      "wire",
+      "stroke",
+      "background",
+      "lineWidth",
+    ];
     const su = Object.fromEntries(
       screenNames.map((name) => [name, gl.getUniformLocation(screen.program, `u_${name}`)]),
     );
@@ -243,8 +318,6 @@ export function createSpatialGpuRenderer(
     let childBoundsCount = 0;
     let frameWidth = 0,
       frameHeight = 0,
-      seedWidth = 0,
-      seedHeight = 0,
       lastDraw:
         | {
             camera: SpatialCamera;
@@ -266,19 +339,6 @@ export function createSpatialGpuRenderer(
     const configureFrame = (target: Variant, data: GpuFrame, style: SpatialStyle) => {
       const at = target.uniforms,
         rotation = rotationOf(style);
-      if (specialized) {
-        if (!target.blocksBound) {
-          ["RomanescoChildren", "RomanescoBounds0", "RomanescoBounds1"].forEach((name, binding) => {
-            const index = gl.getUniformBlockIndex(target.shader.program, name);
-            if (index !== gl.INVALID_INDEX)
-              gl.uniformBlockBinding(target.shader.program, index, binding);
-          });
-          target.blocksBound = true;
-        }
-        uniformBuffers.forEach((target, binding) => {
-          gl.bindBufferBase(gl.UNIFORM_BUFFER, binding, target);
-        });
-      }
       if (target.shape !== data.shape) {
         const planes = new Float32Array(80),
           edges = new Float32Array(16);
@@ -322,14 +382,81 @@ export function createSpatialGpuRenderer(
       gl.uniform1f(at.detailScale, 2);
       gl.uniform1i(at.useSeed, 0);
       gl.uniform1i(at.seed, 5);
+      if (surface) {
+        const chart = (data as RomanescoSurfaceFrame).chart;
+        const activeChart = chart?.active;
+        const residual = chart?.residual;
+        gl.uniform1i(
+          at.chartMode,
+          activeChart?.mode ?? (chart?.kind === "plane" ? 1 : residual ? 5 : 0),
+        );
+        gl.uniform4fv(
+          at.chartPlane,
+          chart ? [Math.max(-1e6, Math.min(1e6, chart.offset)), ...chart.gradient] : [0, 0, 0, 0],
+        );
+        gl.uniform1f(at.chartError, chart?.error ?? 0);
+        gl.uniform1f(at.chartShear, 0.63);
+        if (activeChart) {
+          gl.uniform3fv(at.chartOrigin, activeChart.origin);
+          gl.uniform2fv(at.chartPhase, activeChart.phase);
+          gl.uniform4fv(at.chartCarrier, activeChart.carrier);
+          gl.uniform4fv(at.chartWeight, activeChart.weight);
+          gl.uniform2fv(at.chartQOffset, activeChart.qOffset);
+          gl.uniform3fv(at.chartQX, activeChart.qJacobian[0]);
+          gl.uniform3fv(at.chartQY, activeChart.qJacobian[1]);
+          gl.uniform1i(at.chartLevels, activeChart.levels);
+          gl.uniform1i(at.chartFirstRank, activeChart.firstRank);
+          gl.uniform1f(at.chartBaseGrowth, activeChart.baseGrowth);
+        }
+        if (residual) {
+          const { side, ring, bottom } = residual.orbits;
+          gl.uniform1i(at.residualTable, 7);
+          gl.uniform3i(at.residualOffsets, side.row, ring.row, bottom.row);
+          gl.uniform3i(at.residualCounts, side.count, ring.count, bottom.count);
+          gl.uniform3f(
+            at.residualInverseSigma,
+            side.inverseSigma,
+            ring.inverseSigma,
+            bottom.inverseSigma,
+          );
+          gl.uniform1f(at.residualScale, residual.viewScale);
+          gl.uniform1f(at.residualHeight, residual.heightAtAnchor);
+          gl.uniform1f(at.residualRing, residual.ringRadius);
+          gl.uniform1f(at.residualRadialRatio, residual.radialRatio);
+          gl.uniform1f(at.residualPrimaryRatio, residual.primaryRatio);
+          gl.uniform1f(at.residualSideLogTransport, residual.sideLogTransport);
+          gl.uniform1f(at.residualDelta, residual.delta);
+          gl.uniform1f(at.residualShearCoefficient, residual.shearCoefficient);
+          gl.uniform1f(at.residualBottomUpperWork, residual.bottomUpperWork);
+          gl.uniform2fv(at.residualRootUnit, residual.rootUnit);
+          gl.uniform2fv(at.residualDiskPoint, residual.diskPoint);
+          gl.uniform2fv(at.residualAmplitudeOffsets, residual.amplitudeOffsets);
+          gl.uniform2fv(at.residualShearOffsets, residual.shearOffsets);
+          gl.uniform3f(
+            at.residualAnchorField,
+            residual.rawSideWork,
+            residual.rawBottomWork,
+            residual.yMinusOneWork,
+          );
+          gl.uniform3fv(at.residualDeltaOffsets, residual.deltaOffsets);
+          gl.uniform3fv(at.residualAngleTransports, residual.angleTransports);
+        }
+      }
     };
-    const frameFor = (camera: SpatialCamera, spec: GpuSpatialSpec, style: SpatialStyle) => {
+    const frameFor = (
+      camera: SpatialCamera,
+      spec: GpuSpatialSpec,
+      style: SpatialStyle,
+      options: GpuRenderOptions = {},
+    ) => {
       if (initialSpec && spec.kind !== initialSpec.kind)
         throw new Error("A specialized renderer cannot draw a different construction.");
       const rotation = rotationOf(style),
-        key = `${JSON.stringify(spec)}|${camera.bits}|${camera.zoom}|${camera.target.join(",")}|${rotation.join(",")}`;
+        key = `${JSON.stringify(spec)}|${camera.bits}|${camera.zoom}|${camera.target.join(",")}|${rotation.join(",")}|${options.maxRank ?? 1000}|${options.growth ?? 1}`;
       if (!frame || key !== cachedKey) {
-        frame = buildGpuFrame(buildGpuShape(spec), camera, style, { previous: frame });
+        frame = surface
+          ? buildRomanescoSurfaceFrame(camera, style, options)
+          : buildGpuFrame(buildGpuShape(spec), camera, style, { previous: frame });
         cachedKey = key;
       }
       return frame;
@@ -338,21 +465,24 @@ export function createSpatialGpuRenderer(
       camera: SpatialCamera,
       spec: GpuSpatialSpec,
       style: SpatialStyle,
-      stackOptions: GpuStackOptions = {},
+      stackOptions: GpuStackOptions & GpuRenderOptions = {},
     ) => {
-      frame = frameFor(camera, spec, style);
-      const depth = specialized ? spatialShaderStackDepth(frame, stackOptions) : 40;
-      if (depth !== stackDepth) {
-        let variant = variants.get(depth);
+      frame = frameFor(camera, spec, style, stackOptions);
+      const depth: StackDepth = 40;
+      const chart = surface ? (frame as RomanescoSurfaceFrame).chart : undefined;
+      const mode = chart?.active?.mode ?? (chart?.kind === "plane" ? 1 : chart?.residual ? 5 : 0);
+      if (mode !== surfaceMode) {
+        const key = variantKey(depth, mode);
+        let variant = variants.get(key);
         if (!variant) {
-          const next = program(sourceFor(depth));
+          const next = program(sourceFor(mode));
           variant = { shader: next, uniforms: uniforms(next.program) };
-          variants.set(depth, variant);
+          variants.set(key, variant);
         }
         active = variant;
         shader = active.shader;
         u = active.uniforms;
-        stackDepth = depth;
+        surfaceMode = mode;
       }
       // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
       gl.useProgram(shader.program);
@@ -378,9 +508,24 @@ export function createSpatialGpuRenderer(
           gl.FLOAT,
           frame.rootData,
         );
+        const residual = surface ? (frame as RomanescoSurfaceFrame).chart?.residual : undefined;
+        if (residual && residualTable) {
+          texture(residualTable, 7);
+          gl.texSubImage2D(
+            gl.TEXTURE_2D,
+            0,
+            0,
+            0,
+            residual.width,
+            residual.height,
+            gl.RGBA,
+            gl.FLOAT,
+            residual.data,
+          );
+        }
         uploadedFrame = frame;
       }
-      if (uploadedShape !== frame.shape) {
+      if (!surface && uploadedShape !== frame.shape) {
         const orderedChildren = packOrderedChildren(frame.shape);
         texture(children!, 1);
         gl.texImage2D(
@@ -408,13 +553,6 @@ export function createSpatialGpuRenderer(
           gl.UNSIGNED_INT,
           bounds.data,
         );
-        if (specialized) {
-          const geometry = packGpuRomanescoUniformGeometry(orderedChildren, bounds);
-          [geometry.children, geometry.bounds0, geometry.bounds1].forEach((values, binding) => {
-            gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffers[binding]);
-            gl.bufferData(gl.UNIFORM_BUFFER, values, gl.STATIC_DRAW);
-          });
-        }
         uploadedShape = frame.shape;
       }
       configureFrame(active, frame, style);
@@ -432,6 +570,7 @@ export function createSpatialGpuRenderer(
         minimumFootprint: (options.nearFootprint ?? 0.00002) * (options.detailScale ?? 2),
         pixelFootprint: (options.pixelAngle ?? 0.0001) * (options.detailScale ?? 2),
         maxRank: options.maxRank ?? 1000,
+        growth: options.growth ?? 1,
         clearance: mode === 2,
       });
       gl.uniform1i(u.query, mode);
@@ -477,6 +616,7 @@ export function createSpatialGpuRenderer(
           minimumFootprint: nearFootprint * detailScale,
           pixelFootprint: pixelAngle * detailScale,
           maxRank: options.maxRank ?? 1000,
+          growth: options.growth ?? 1,
         });
         if (gl.canvas.width !== w || gl.canvas.height !== h) {
           gl.canvas.width = w;
@@ -542,6 +682,12 @@ export function createSpatialGpuRenderer(
           right = 0,
           top = 0;
         const rotation = rotationOf(style);
+        const chart = surface ? (data as RomanescoSurfaceFrame).chart : undefined;
+        if (chart?.active || chart?.kind === "plane" || chart?.residual) {
+          left = bottom = 0;
+          right = w;
+          top = h;
+        }
         for (const root of data.roots) {
           if (root.cone) {
             // A locally clipped ancestor core can cross any part of the view.
@@ -591,75 +737,11 @@ export function createSpatialGpuRenderer(
           y = Math.max(0, Math.floor(bottom) - 1);
         const sw = Math.max(0, Math.min(w, Math.ceil(right) + 1) - x),
           sh = Math.max(0, Math.min(h, Math.ceil(top) + 1) - y);
-        let seed = false;
         if (sw && sh) {
-          if (specialized && (options.maxRank ?? 1000) > 0) {
-            let variant = seedVariants.get(stackDepth);
-            if (!variant) {
-              const next = program(sourceFor(stackDepth, true));
-              variant = { shader: next, uniforms: uniforms(next.program) };
-              seedVariants.set(stackDepth, variant);
-            }
-            const bw = Math.ceil(w / 8),
-              bh = Math.ceil(h / 8);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, seedFramebuffer!);
-            if (bw !== seedWidth || bh !== seedHeight) {
-              seeds.forEach((target, index) => {
-                texture(target, index + 5);
-                gl.texImage2D(
-                  gl.TEXTURE_2D,
-                  0,
-                  gl.RGBA32UI,
-                  bw,
-                  bh,
-                  0,
-                  gl.RGBA_INTEGER,
-                  gl.UNSIGNED_INT,
-                  null,
-                );
-                gl.framebufferTexture2D(
-                  gl.FRAMEBUFFER,
-                  gl.COLOR_ATTACHMENT0 + index,
-                  gl.TEXTURE_2D,
-                  target,
-                  0,
-                );
-              });
-              seedWidth = bw;
-              seedHeight = bh;
-              gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-              if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
-                throw new Error("Could not prepare GPU tile traversal.");
-            }
-            gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-            gl.clearBufferuiv(gl.COLOR, 0, new Uint32Array(4));
-            // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
-            gl.useProgram(variant.shader.program);
-            enablePosition(variant.shader.program);
-            configureFrame(variant, data, style);
-            configureDrawing(variant.uniforms);
-            gl.viewport(0, 0, bw, bh);
-            gl.enable(gl.SCISSOR_TEST);
-            gl.scissor(
-              Math.floor(x / 8),
-              Math.floor(y / 8),
-              Math.ceil((x + sw) / 8) - Math.floor(x / 8),
-              Math.ceil((y + sh) / 8) - Math.floor(y / 8),
-            );
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
-            gl.disable(gl.SCISSOR_TEST);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-            gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-            gl.viewport(0, 0, w, h);
-            // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
-            gl.useProgram(shader.program);
-            enablePosition(shader.program);
-            gl.uniform1i(u.useSeed, 1);
-            seed = true;
-          }
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(x, y, sw, sh);
-          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          if (tracePasses) tracePasses.draw(shader.program);
+          else gl.drawArrays(gl.TRIANGLES, 0, 3);
           gl.disable(gl.SCISSOR_TEST);
         }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -680,6 +762,11 @@ export function createSpatialGpuRenderer(
         );
         gl.uniform2fv(su.origin, origin);
         gl.uniform1f(su.far, data.horizon);
+        gl.uniform1i(su.faces, style.showFaces ? 1 : 0);
+        gl.uniform1i(su.wire, style.showWireframe && style.lineWidth > 0 ? 1 : 0);
+        gl.uniform3fv(su.stroke, rgb(style.strokeColor));
+        gl.uniform3fv(su.background, rgb(style.background));
+        gl.uniform1f(su.lineWidth, style.lineWidth * renderScale);
         gl.uniform1f(
           su.ao,
           !style.showFaces || style.occlusion === "off"
@@ -702,7 +789,13 @@ export function createSpatialGpuRenderer(
           maxRank: options.maxRank,
           growth: options.growth,
         };
-        return { roots: data.roots.length, visited: data.visited, pixels: w * h, stackDepth, seed };
+        return {
+          roots: data.roots.length,
+          visited: data.visited,
+          pixels: w * h,
+          stackDepth: surface ? 0 : stackDepth,
+          seed: false,
+        };
       },
       pick(x: number, y: number): Vec3 | null {
         if (!lastDraw) return null;
@@ -738,7 +831,12 @@ export function createSpatialGpuRenderer(
           if (cached !== null) return cached;
           // Collision checks must not wait behind a full-resolution GPU draw.
           // Unfinished CPU branches retain their enclosing hull in the bound.
-          const raw = romanescoCpuClearance(frameFor(camera, spec, style), options).distance;
+          const raw = surface
+            ? romanescoSurfaceFrameClearance(
+                frameFor(camera, spec, style, options) as RomanescoSurfaceFrame,
+                options,
+              )
+            : romanescoCpuClearance(frameFor(camera, spec, style), options).distance;
           const distance = Number.isFinite(raw) ? Math.max(0, raw) : 0;
           clearanceCache.write(camera, style, key, distance);
           return distance;

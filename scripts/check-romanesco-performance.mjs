@@ -14,16 +14,10 @@ const samples = Number(process.env.ROMANESCO_SAMPLES ?? 5);
 for (const [name, value] of Object.entries({ width, height, dpr, samples }))
   if (!Number.isFinite(value) || value <= 0) throw Error(`${name} must be positive`);
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
-const {
-  ROMANESCO_ROOT,
-  ROMANESCO_BASE_CHILDREN,
-  romanescoPoint,
-} = require("../../utils/romanesco.ts");
+const { ROMANESCO_ROOT, romanescoPoint } = require("../../utils/romanesco.ts");
+const { ROMANESCO_SURFACE_MODEL } = require("../../utils/romanescoSurface.ts");
 const tip = romanescoPoint(ROMANESCO_ROOT, [0, 1, 0]);
-const baseTip = romanescoPoint(
-  ROMANESCO_ROOT,
-  romanescoPoint(ROMANESCO_BASE_CHILDREN.at(-1), [0, 1, 0]),
-);
+const baseTip = romanescoPoint(ROMANESCO_ROOT, [0, -1 - ROMANESCO_SURFACE_MODEL.baseDepth, 0]);
 const fixtures = [
   { name: "opening", tilt: 65, zoom: 0, target: [0, 0, 0] },
   { name: "close", tilt: 65, zoom: 2, target: [0, 0, 0] },
@@ -31,27 +25,32 @@ const fixtures = [
   { name: "underside", tilt: -70, zoom: 0, target: [0, 0, 0] },
   { name: "tip-detail", tilt: 65, zoom: 6, target: tip },
   { name: "base-detail", tilt: -90, zoom: 4, target: baseTip },
-].map(({ target, ...fixture }) => {
-  const bits = 160 + Math.ceil(fixture.zoom);
-  const parts = {
-    config: { rotationX: fixture.tilt, rotationY: 28, autoRotate: false },
-    spatialZoom: {
-      bits,
-      zoom: fixture.zoom,
-      target: target.map((value) => fixedFromNumber(value, bits).toString()),
-      atmosphereZoom: fixture.zoom,
-      atmosphereVelocity: 0,
-    },
-  };
-  const hash = Buffer.from(JSON.stringify({ version: 1, path: "/romanesco", parts })).toString(
-    "base64url",
-  );
-  return {
-    ...fixture,
-    url: `${baseUrl}/romanesco#view=${hash}`,
-    capture: captures ? join(captures, `${fixture.name}.png`) : undefined,
-  };
-});
+]
+  .filter(
+    (fixture) =>
+      !process.env.ROMANESCO_FILTER || new RegExp(process.env.ROMANESCO_FILTER).test(fixture.name),
+  )
+  .map(({ target, ...fixture }) => {
+    const bits = 160 + Math.ceil(fixture.zoom);
+    const parts = {
+      config: { rotationX: fixture.tilt, rotationY: 28, autoRotate: false },
+      spatialZoom: {
+        bits,
+        zoom: fixture.zoom,
+        target: target.map((value) => fixedFromNumber(value, bits).toString()),
+        atmosphereZoom: fixture.zoom,
+        atmosphereVelocity: 0,
+      },
+    };
+    const hash = Buffer.from(JSON.stringify({ version: 1, path: "/romanesco", parts })).toString(
+      "base64url",
+    );
+    return {
+      ...fixture,
+      url: `${baseUrl}/romanesco#view=${hash}`,
+      capture: captures ? join(captures, `${fixture.name}.png`) : undefined,
+    };
+  });
 
 async function check(outerPage, { fixtures, width, height, dpr, samples }) {
   const context = await outerPage
