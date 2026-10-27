@@ -26,6 +26,8 @@ async function check(page, baseURL, captures, filter) {
   ].filter(([path]) => !filter || new RegExp(filter).test(path));
   const errors = [],
     results = [];
+  const pageError = (error) => errors.push({ runtimeError: error.message });
+  page.on("pageerror", pageError);
   const capture = async () =>
     page.evaluate(async () => {
       const parts = {},
@@ -34,16 +36,18 @@ async function check(page, baseURL, captures, filter) {
       await Promise.all(pending);
       return parts;
     });
+  const viewHash = (state) =>
+    page.evaluate((value) => {
+      const bytes = new TextEncoder().encode(JSON.stringify(value));
+      const encoded = btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
+      return "#view=" + encoded.replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    }, state);
   const opening = async (path, variant) => {
-    const hash =
-      "#view=" +
-      Buffer.from(
-        JSON.stringify({
-          version: 1,
-          path: "/" + path,
-          parts: { config: { variant, autoRotate: false } },
-        }),
-      ).toString("base64url");
+    const hash = await viewHash({
+      version: 1,
+      path: "/" + path,
+      parts: { config: { variant, autoRotate: false } },
+    });
     await page.goto(baseURL + "/" + path + hash);
     await page.waitForFunction(
       () => document.querySelector("[data-gpu-spatial-explorer]")?.dataset.renderZoom !== undefined,
@@ -83,16 +87,36 @@ async function check(page, baseURL, captures, filter) {
     results.push({ path, variant, ...status });
   }
   const motion = [];
-  const flightPaths = ["jerusalem-cube", "quadratic-koch-3d", "romanesco"].filter(
-    (path) => !filter || new RegExp(filter).test(path),
-  );
+  const flightPaths = [
+    "jerusalem-cube",
+    "quadratic-koch-3d",
+    "romanesco",
+    "sierpinski-tetrahedron",
+  ].filter((path) => !filter || new RegExp(filter).test(path));
   for (const path of flightPaths) {
-    await opening(path, "default");
+    await opening(path, path === "sierpinski-tetrahedron" ? "tetrahedron" : "default");
     const canvas = page.locator("[data-gpu-spatial-explorer]");
+    const box = await canvas.boundingBox();
+    if (!box) throw Error("Missing exploration canvas");
+    const initial = await capture();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 20, { steps: 4 });
+    const dragged = await capture();
+    if (JSON.stringify(initial.config) === JSON.stringify(dragged.config))
+      errors.push({ path, dragStopped: true });
+    await page.mouse.up();
     await canvas.click();
     await page.waitForFunction(() => document.pointerLockElement !== null);
     // The pointerlockchange handler clears held keys; let that event finish.
     await page.waitForTimeout(100);
+    // Clicking again while flying must not try to capture a locked pointer.
+    for (const button of ["left", "right"]) {
+      await page.mouse.down({ button });
+      await page.mouse.up({ button });
+    }
+    if (!(await page.evaluate(() => document.pointerLockElement !== null)))
+      errors.push({ path, lostLockAfterClick: true });
     const before = await capture();
     await page.keyboard.down("w");
     await page.waitForTimeout(1800);
@@ -116,11 +140,7 @@ async function check(page, baseURL, captures, filter) {
       errors.push({ path, settled });
     if (captures) await page.screenshot({ path: `${captures}/${path}-flight.png` });
     // The saved view restores the same fixed-point eye after remount.
-    const hash =
-      "#view=" +
-      Buffer.from(JSON.stringify({ version: 1, path: "/" + path, parts: after })).toString(
-        "base64url",
-      );
+    const hash = await viewHash({ version: 1, path: "/" + path, parts: after });
     await page.goto(baseURL + "/" + path + hash);
     await page.waitForFunction(
       () => document.querySelector("[data-gpu-spatial-explorer]")?.dataset.renderZoom !== undefined,
@@ -218,6 +238,7 @@ async function check(page, baseURL, captures, filter) {
   } finally {
     await phoneContext.close();
   }
+  page.off("pageerror", pageError);
   return { passed: errors.length === 0, results, motion, phone, errors };
 }
 writeFileSync(

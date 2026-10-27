@@ -332,6 +332,8 @@ export function useSpatialControls<T extends View>({
       stop();
       lastPointer = e.pointerType;
       canvas.focus({ preventScroll: true });
+      // Pointer lock already routes mouse input here and forbids pointer capture.
+      if (document.pointerLockElement) return;
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       canvas.setPointerCapture(e.pointerId);
       canvas.style.cursor = "grabbing";
