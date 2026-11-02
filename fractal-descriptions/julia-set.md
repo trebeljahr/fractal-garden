@@ -6,21 +6,19 @@ We can do the same with points on a plane. A point has a horizontal and a vertic
 
 Points less than one unit from zero move closer with every squaring. Points farther than one unit move away. The circle between them is the simplest Julia set.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
-Now add the same number after every square. That number is called $c$.
-
-Here is the calculation for one pixel. The pixel's position is the first point, $z_0$. Square it and add $c$ to get $z_1$. Do the same to $z_1$ to get $z_2$, and keep going:
+Now start at a pixel's position, $z_0$. Square it and add a number called $c$ to get $z_1$. Do that again to $z_1$, with the same $c$, to get $z_2$, and keep going:
 
 $$
 z_{n+1} = z_n^2 + c
 $$
 
-This is the same squaring as before, written in coordinates. If the current point is $(x, y)$ and $c$ is $(a, b)$, the next point is:
+In coordinates, if the current point is $(x, y)$ and $c$ is $(a, b)$, the next point is:
 
 $$
 (x^2 - y^2 + a,\ 2xy + b)
 $$
 
-The picture below adds $c=(-0.12256, 0.74486)$, and the circle becomes the dark shape you see. Pick a pixel in the dark shape and the point ends up jumping around the same three places. Pick a pixel outside it and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+With $c=(-0.12256, 0.74486)$, the circle becomes the dark shape below. Pick a pixel in the dark shape and the point ends up jumping around the same three places. Pick a pixel outside it and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
 
 <figure data-orbit="julia"></figure>
 
