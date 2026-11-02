@@ -1,6 +1,7 @@
 import type { CanvasViewport } from "../../canvasViewport";
 import {
   gosperIsland,
+  ISLAND_VIEW_REACH,
   type IslandPoint,
   latticeCenter,
   latticeTint,
@@ -344,8 +345,6 @@ export type GosperIslandParams = {
   lineWidth: number;
 };
 
-const ISLAND_REACH = { one: 1.12, seven: Math.sqrt(7) * 1.08, plane: Math.sqrt(7) * 1.08 };
-
 export function drawGosperIsland(
   ctx: Context2D,
   width: number,
@@ -353,7 +352,8 @@ export function drawGosperIsland(
   p: GosperIslandParams,
 ) {
   const outline = buildIsland(p.iterations);
-  const scale = (Math.min(width, height) * (1 - 2 * FITTED_PADDING)) / (2 * ISLAND_REACH[p.view]);
+  const scale =
+    (Math.min(width, height) * (1 - 2 * FITTED_PADDING)) / (2 * ISLAND_VIEW_REACH[p.view]);
   const zoom = p.viewport?.zoom ?? 1;
   const toPath = (points: IslandPoint[]) => {
     const path = new Path2D();

@@ -1,8 +1,11 @@
 import { buildCanopyGeometry } from "../canopyZoom";
 import { rgb } from "../ctxHelpers";
+import { buildIslandGeometry } from "../gosperIslandZoom";
+import { hexColor } from "../miraMap";
 import {
   buildPatternGeometry,
   carpetDetailOpacity,
+  clipPolygon,
   type PatternCamera,
   type PatternModel,
   patternModel,
@@ -11,6 +14,12 @@ import {
 import type { Context2D, Renderer } from "./types";
 
 export type RecursiveZoomParams = { pattern: RecursivePattern; camera: PatternCamera };
+
+function mixColors(from: string, to: string, t: number) {
+  const [r0, g0, b0] = hexColor(from);
+  const [r1, g1, b1] = hexColor(to);
+  return `rgb(${r0 + (r1 - r0) * t},${g0 + (g1 - g0) * t},${b0 + (b1 - b0) * t})`;
+}
 
 export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
   private params: RecursiveZoomParams | null = null;
@@ -21,7 +30,7 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
   update(params: RecursiveZoomParams) {
     const { iterations: _, ...shape } = params.pattern.config;
     const key = JSON.stringify([params.pattern.kind, shape, params.camera.bits]);
-    if (params.pattern.kind === "canopy") {
+    if (params.pattern.kind === "canopy" || params.pattern.kind === "island") {
       this.params = params;
       return;
     }
@@ -54,6 +63,33 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
       this.work = geometry.visited;
       return false;
     }
+    if (this.params.pattern.kind === "island") {
+      const { config } = this.params.pattern;
+      const geometry = buildIslandGeometry(config, this.params.camera, width, height, clipPolygon);
+      ctx.fillStyle = config.background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.lineJoin = "round";
+      ctx.lineWidth = config.lineWidth;
+      ctx.strokeStyle = config.outline;
+      const coast = new Path2D();
+      for (const [tint, polygons] of Array.from(geometry.paths)) {
+        const region = new Path2D();
+        for (const points of polygons) {
+          for (const path of [region, coast]) {
+            path.moveTo(points[0], points[1]);
+            for (let i = 2; i < points.length; i += 2) path.lineTo(points[i], points[i + 1]);
+            path.closePath();
+          }
+        }
+        if (config.fillIslands) {
+          ctx.fillStyle = mixColors(config.color, config.colorEnd, tint / 6);
+          ctx.fill(region);
+        }
+      }
+      ctx.stroke(coast);
+      this.work = geometry.visited;
+      return false;
+    }
     if (!this.model) return false;
     const { pattern, camera } = this.params;
     const { config } = pattern;
@@ -73,6 +109,16 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
           ? carpetDetailOpacity(config.iterations, camera, width, height, depth)
           : 1);
       if (!ctx.globalAlpha) continue;
+      if (pattern.kind === "star") {
+        // Zooming in by one copy's size moves the colors along by one level.
+        const levels = Math.max(1, config.iterations);
+        const shown = depth - Math.log(camera.zoom) / Math.log(1 / pattern.config.ratio);
+        ctx.strokeStyle = mixColors(
+          pattern.config.color,
+          pattern.config.colorEnd,
+          Math.max(0, Math.min(1, shown / levels)),
+        );
+      }
       const path = new Path2D();
       for (const points of polygons) {
         if (pattern.kind === "carpet") {
@@ -84,16 +130,22 @@ export class RecursiveZoomRenderer implements Renderer<RecursiveZoomParams> {
         path.closePath();
       }
       ctx.fillStyle =
-        pattern.kind === "carpet" && depth !== -1 ? pattern.config.holeColor : config.color;
+        pattern.kind === "star"
+          ? ctx.strokeStyle
+          : pattern.kind === "carpet" && depth !== -1
+            ? pattern.config.holeColor
+            : config.color;
       const fill =
         pattern.kind === "carpet" ||
+        (pattern.kind === "star" && pattern.config.fillStars) ||
         ("fillSquares" in config
           ? config.fillSquares
           : "fillPolygons" in config && config.fillPolygons);
       const stroke =
-        "strokeSquares" in config
+        pattern.kind === "star" ||
+        ("strokeSquares" in config
           ? config.strokeSquares
-          : "strokePolygons" in config && config.strokePolygons;
+          : "strokePolygons" in config && config.strokePolygons);
       if (fill) ctx.fill(path);
       if (stroke) ctx.stroke(path);
     }

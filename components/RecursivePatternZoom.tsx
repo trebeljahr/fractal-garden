@@ -97,6 +97,14 @@ export function RecursivePatternZoom({ pattern, width, height, ready = true }: P
       pattern.config.rotation,
     ],
     pattern.config.iterations,
+    pattern.kind === "star" && [
+      pattern.config.points,
+      pattern.config.skip,
+      pattern.config.offset,
+      pattern.config.rotation,
+      pattern.config.smallestOnly,
+    ],
+    pattern.kind === "island" && pattern.config.view,
     pattern.kind === "canopy" && [
       pattern.config.angle,
       pattern.config.branches,

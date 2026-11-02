@@ -21,9 +21,13 @@ const {
   carpetDetailOpacity,
 } = require("../utils/recursiveZoom.ts");
 const { RecursiveZoomRenderer } = require("../utils/render/recursiveZoom.ts");
+const { buildIslandGeometry } = require("../utils/gosperIslandZoom.ts");
+const { gosperIsland, polygonArea } = require("../utils/gosperIsland.ts");
+const { buildStars, starTips, touchingRatio } = require("../utils/starFractal.ts");
 const { fixedFromNumber, fixedToNumber } = require("../utils/lsystem/bigfixed.ts");
 const { prepareZoom } = require("../utils/lsystem/zoom.ts");
 const { DEFAULT_SPEC } = require("../utils/lsystem/spec.ts");
+const { clipPolygon } = require("../utils/recursiveZoom.ts");
 const base = {
   iterations: 3,
   color: "#ffffff",
@@ -247,4 +251,175 @@ test("the Sierpinski triangle's existing L-system path adds visible generations"
   assert.ok(detail.generation > 3);
   assert.ok(detail.count > 0);
   assert.equal(detail.limited, false);
+});
+
+const star = (overrides = {}) => ({
+  kind: "star",
+  config: {
+    ...base,
+    colorEnd: "#ff0000",
+    points: 5,
+    skip: 2,
+    ratio: touchingRatio(5),
+    offset: 1,
+    rotation: 0,
+    smallestOnly: false,
+    fillStars: false,
+    ...overrides,
+  },
+});
+
+const island = (view = "one", iterations = 2) => ({
+  kind: "island",
+  config: {
+    iterations,
+    view,
+    fillIslands: true,
+    background: "#000000",
+    color: "#111111",
+    colorEnd: "#ffffff",
+    outline: "#000000",
+    lineWidth: 1,
+  },
+});
+
+test("a star's opening view holds every star, in the same places as the finite drawing", () => {
+  const pattern = star();
+  const camera = initialPatternCamera(pattern);
+  const geometry = buildPatternGeometry(pattern, camera, 1000, 1000);
+  assert.equal(polygonCount(geometry), 1 + 5 + 25 + 125);
+  assert.equal(geometry.limited, false);
+  const scale = camera.frame * 1000;
+  const [root] = geometry.paths.get(0);
+  const tips = starTips(pattern.config);
+  [0, 2, 4, 1, 3].forEach((tip, index) => {
+    assert.ok(Math.abs(root[index * 2] - (500 + tips[tip][0] * scale)) < 1e-9);
+    assert.ok(Math.abs(root[index * 2 + 1] - (500 + tips[tip][1] * scale)) < 1e-9);
+  });
+  const finite = buildStars(pattern.config, 3).filter((entry) => entry.depth === 3);
+  const leaf = geometry.paths.get(3)[0];
+  assert.ok(
+    Math.abs(leaf[0] - (500 + (finite[0].x + finite[0].radius * tips[0][0]) * scale)) < 1e-9,
+  );
+  const smallest = star({ smallestOnly: true });
+  assert.equal(polygonCount(buildPatternGeometry(smallest, camera, 1000, 1000)), 125);
+});
+
+test("a star's long line stays exactly in place far below float precision", () => {
+  const pattern = star();
+  for (const zoom of [1e30, 1e100, 1e280]) {
+    let camera = movePatternCamera(initialPatternCamera(pattern), 800, 600, zoom);
+    const { vertices } = patternModel(pattern, camera.bits);
+    // Sit on the middle of the root star's first line.
+    camera = {
+      ...camera,
+      x: (vertices[0][0] + vertices[2][0]) / BigInt(2),
+      y: (vertices[0][1] + vertices[2][1]) / BigInt(2),
+    };
+    const geometry = buildPatternGeometry(pattern, camera, 800, 600);
+    const [line] = geometry.paths.get(0);
+    let nearest = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < line.length; i += 2) {
+      const j = (i + 2) % line.length;
+      const dx = line[j] - line[i];
+      const dy = line[j + 1] - line[i + 1];
+      const length = Math.hypot(dx, dy) || 1;
+      nearest = Math.min(
+        nearest,
+        Math.abs((400 - line[i]) * dy - (300 - line[i + 1]) * dx) / length,
+      );
+    }
+    assert.ok(nearest < 1e-6, `${zoom}: ${nearest}`);
+    assert.ok(line.every((value) => Number.isFinite(value) && Math.abs(value) < 1000));
+  }
+});
+
+test("zooming toward the tip of tips keeps finding smaller stars", () => {
+  const pattern = star();
+  for (const zoom of [1e12, 1e100, 1e280]) {
+    let camera = movePatternCamera(initialPatternCamera(pattern), 640, 480, zoom);
+    const { vertices, one, ratio } = patternModel(pattern, camera.bits);
+    // Following the top copy forever ends at the top tip divided by 1 - ratio.
+    camera = {
+      ...camera,
+      x: (vertices[0][0] * one) / (one - ratio),
+      y: (vertices[0][1] * one) / (one - ratio),
+    };
+    const geometry = buildPatternGeometry(pattern, camera, 640, 480);
+    assert.equal(geometry.limited, false);
+    assert.ok(geometry.generation > 20);
+    assert.ok(polygonCount(geometry) > 10, `${zoom}: ${polygonCount(geometry)}`);
+    assert.ok(geometry.visited < 120000);
+  }
+});
+
+test("high star copy sizes reduce depth instead of dropping branches", () => {
+  const pattern = star({ ratio: 0.7 });
+  const camera = movePatternCamera(initialPatternCamera(pattern), 640, 480, 4);
+  const geometry = buildPatternGeometry(pattern, camera, 640, 480);
+  assert.ok(polygonCount(geometry) > 100);
+  assert.ok(geometry.visited <= 120001);
+});
+
+test("an island's opening coast matches the finite outline, with y pointing down", () => {
+  for (const iterations of [0, 1, 3]) {
+    const pattern = island("one", iterations);
+    const camera = initialPatternCamera(pattern);
+    const geometry = buildIslandGeometry(pattern.config, camera, 4000, 4000, clipPolygon);
+    const [[outline]] = Array.from(geometry.paths.values());
+    const expected = gosperIsland(iterations);
+    assert.equal(outline.length / 2, expected.length);
+    const scale = camera.frame * 4000;
+    expected.forEach(([x, y], index) => {
+      assert.ok(Math.abs(outline[index * 2] - (2000 + x * scale)) < 1e-6, `${iterations} x`);
+      assert.ok(Math.abs(outline[index * 2 + 1] - (2000 - y * scale)) < 1e-6, `${iterations} y`);
+    });
+  }
+});
+
+test("an island view draws one, seven or a plane full of tiles", () => {
+  const count = (view) => {
+    const pattern = island(view, 1);
+    const geometry = buildIslandGeometry(
+      pattern.config,
+      initialPatternCamera(pattern),
+      900,
+      900,
+      clipPolygon,
+    );
+    return Array.from(geometry.paths.values()).reduce((sum, group) => sum + group.length, 0);
+  };
+  assert.equal(count("one"), 1);
+  assert.equal(count("seven"), 7);
+  assert.ok(count("plane") > 7);
+});
+
+test("a corner of the hexagon stays on the coast at every depth", () => {
+  const pattern = island("one", 2);
+  for (const zoom of [1e6, 1e30, 1e100, 1e280]) {
+    const opening = movePatternCamera(initialPatternCamera(pattern), 800, 600, zoom);
+    // Every round keeps the hexagon's corners, here (1, 0).
+    const camera = { ...opening, x: fixedFromNumber(1, opening.bits), y: BigInt(0) };
+    const geometry = buildIslandGeometry(pattern.config, camera, 800, 600, clipPolygon);
+    const [[outline]] = Array.from(geometry.paths.values());
+    let nearest = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < outline.length; i += 2)
+      nearest = Math.min(nearest, Math.hypot(outline[i] - 400, outline[i + 1] - 300));
+    assert.ok(nearest < 1e-3, `${zoom}: ${nearest}`);
+    assert.ok(outline.length > 40, `${zoom} shows local detail: ${outline.length}`);
+    assert.ok(geometry.visited < 100000, `${zoom}: ${geometry.visited}`);
+    assert.ok(outline.every((value) => Number.isFinite(value) && Math.abs(value) < 1000));
+  }
+});
+
+test("far inside an island the fill still covers the whole view", () => {
+  const pattern = island("one", 2);
+  for (const zoom of [1e6, 1e100, 1e280]) {
+    const camera = movePatternCamera(initialPatternCamera(pattern), 800, 600, zoom);
+    const geometry = buildIslandGeometry(pattern.config, camera, 800, 600, clipPolygon);
+    const [[outline]] = Array.from(geometry.paths.values());
+    const points = [];
+    for (let i = 0; i < outline.length; i += 2) points.push([outline[i], outline[i + 1]]);
+    assert.ok(Math.abs(polygonArea(points) - 808 * 608) < 1e-6, `${zoom}`);
+  }
 });

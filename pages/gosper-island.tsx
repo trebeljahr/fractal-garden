@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
+import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import type { CanvasViewport } from "../utils/canvasViewport";
 import { GOSPER_MAX_ROUND } from "../utils/gosperIsland";
-import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
@@ -16,7 +15,6 @@ type Props = {
 };
 
 type Config = {
-  viewport?: CanvasViewport;
   iterations: number;
   view: "one" | "seven" | "plane";
   fillIslands: boolean;
@@ -40,7 +38,7 @@ const GosperIsland = ({ description }: Props) => {
     lineWidth: 1,
   });
 
-  const { containerRef, canvas, setParams } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "gosperIsland",
     storageKey: `gosper-island:${config.view}`,
     config,
@@ -53,11 +51,6 @@ const GosperIsland = ({ description }: Props) => {
     stepDelay: 900,
     holdDelay: 1800,
   });
-
-  const viewport = useCanvasViewport(canvas);
-  useEffect(() => {
-    setParams({ ...config, viewport });
-  }, [config, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));
@@ -96,6 +89,12 @@ const GosperIsland = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
           ref={containerRef}
+        />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "island", config }}
+          width={width}
+          height={height}
         />
         <SideDrawer description={description} />
         <NavElement />

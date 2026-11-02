@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { PanelBoolean, PanelColor, PanelNumber } from "../components/ExplorerControls";
 import { ExplorerPanel } from "../components/ExplorerPanel";
 import { NavElement } from "../components/Navbar";
+import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
-import type { CanvasViewport } from "../utils/canvasViewport";
-import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
@@ -16,7 +15,6 @@ type Props = {
 };
 
 type Config = {
-  viewport?: CanvasViewport;
   iterations: number;
   points: number;
   skip: number;
@@ -54,7 +52,7 @@ const StarFractal = ({ description }: Props) => {
       setConfig((old) => ({ ...old, iterations: maxIterations }));
   }, [config.iterations, maxIterations]);
 
-  const { containerRef, canvas, setParams } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "starFractal",
     storageKey: `star-fractal:${config.points}`,
     config,
@@ -68,11 +66,6 @@ const StarFractal = ({ description }: Props) => {
     stepDelay: 900,
     holdDelay: 1800,
   });
-
-  const viewport = useCanvasViewport(canvas);
-  useEffect(() => {
-    setParams({ ...config, viewport });
-  }, [config, viewport, setParams]);
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({
@@ -122,6 +115,12 @@ const StarFractal = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
           ref={containerRef}
+        />
+        <RecursivePatternZoom
+          ready={ready}
+          pattern={{ kind: "star", config }}
+          width={width}
+          height={height}
         />
         <SideDrawer description={description} />
         <NavElement />

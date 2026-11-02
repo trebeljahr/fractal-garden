@@ -7,6 +7,12 @@ const SHRINK = 1 / Math.sqrt(7);
 const BEND = Math.asin(Math.sqrt(3) / (2 * Math.sqrt(7)));
 export const GOSPER_BEND_DEGREES = (BEND * 180) / Math.PI;
 export const GOSPER_MAX_ROUND = 8;
+// How far the opening view reaches from the center, in hexagon sides.
+export const ISLAND_VIEW_REACH = {
+  one: 1.12,
+  seven: Math.sqrt(7) * 1.08,
+  plane: Math.sqrt(7) * 1.08,
+};
 
 function bend([ax, ay]: IslandPoint, [bx, by]: IslandPoint): IslandPoint[] {
   const dx = (bx - ax) * SHRINK;

@@ -1,6 +1,7 @@
 import { canopyFrame } from "./canopyZoom";
 import { finite, isRecord } from "./explorerShare";
 import type { FractalFrame } from "./fractalFrame";
+import { ISLAND_VIEW_REACH } from "./gosperIsland";
 import {
   fixedCosSinOf,
   fixedFromNumber,
@@ -14,13 +15,17 @@ import type { NFlakeParams } from "./render/drawings/nFlake";
 import { usesCenterPolygon } from "./render/drawings/nFlake";
 import type { SierpinskiCarpetParams } from "./render/drawings/sierpinskiCarpet";
 import type { TSquareParams } from "./render/drawings/tSquare";
+import type { GosperIslandParams, StarFractalParams } from "./render/drawings/turtleCurves";
 import { VICSEK_OFFSETS, type VicsekFractal2DParams } from "./render/drawings/vicsekFractal2D";
+import { starLoops, starReach } from "./starFractal";
 
 export type RecursivePattern =
   | { kind: "canopy"; config: FractalCanopyParams }
   | { kind: "carpet"; config: SierpinskiCarpetParams }
   | { kind: "vicsek"; config: VicsekFractal2DParams }
   | { kind: "flake"; config: NFlakeParams }
+  | { kind: "star"; config: StarFractalParams }
+  | { kind: "island"; config: GosperIslandParams }
   | { kind: "tSquare"; config: TSquareParams };
 
 export type PatternCamera = {
@@ -37,6 +42,7 @@ const ZERO = BigInt(0);
 const ONE = BigInt(1);
 const TWO = BigInt(2);
 const THREE = BigInt(3);
+const STAR_LEVEL_BUDGET = 40000;
 
 export function initialPatternCamera(
   pattern: RecursivePattern,
@@ -45,6 +51,8 @@ export function initialPatternCamera(
 ): PatternCamera {
   if (pattern.kind === "canopy") return canopyFrame(pattern.config, width, height).camera;
   let frame = pattern.kind === "carpet" ? 0.8 : pattern.kind === "flake" ? 0.42 : 0.84;
+  if (pattern.kind === "star") frame = 0.42 / starReach(pattern.config, pattern.config.iterations);
+  if (pattern.kind === "island") frame = 0.42 / ISLAND_VIEW_REACH[pattern.config.view];
   if (pattern.kind === "tSquare") {
     const { ratio: r, iterations: n } = pattern.config;
     frame /= (1 - r ** n) / (1 - r) + r ** n;
@@ -121,12 +129,15 @@ export type PatternModel = {
   children: [bigint, bigint][];
   // Square corner or polygon vertex coordinates in root units.
   vertices: [bigint, bigint][];
+  // A star's closed lines, as positions in `vertices`.
+  loops?: number[][];
   reach: bigint;
   mode: "holes" | "leaves" | "all";
 };
 
 export function patternModel(pattern: RecursivePattern, bits: number): PatternModel {
   if (pattern.kind === "canopy") throw new Error("Canopies use branch geometry");
+  if (pattern.kind === "island") throw new Error("Islands use coastline geometry");
   const one = ONE << BigInt(bits);
   const half = one / TWO;
   const square: [bigint, bigint][] = [
@@ -156,6 +167,33 @@ export function patternModel(pattern: RecursivePattern, bits: number): PatternMo
     ]);
     if (usesCenterPolygon(sides, includeCenter)) children.push([ZERO, ZERO]);
     return { bits, one, ratio, vertices, children, reach: one, mode: "leaves" };
+  }
+  if (pattern.kind === "star") {
+    const { points, rotation, ratio, offset, smallestOnly } = pattern.config;
+    const pi = fixedPi(bits);
+    const vertices: [bigint, bigint][] = [];
+    for (let k = 0; k < points; k++) {
+      const angle =
+        (fixedFromNumber(rotation, bits) * pi) / (BigInt(180) * one) -
+        pi / TWO +
+        (TWO * pi * BigInt(k)) / BigInt(points);
+      vertices.push(fixedCosSinOf(angle, bits));
+    }
+    const distance = fixedFromNumber(offset, bits);
+    const shrink = fixedFromNumber(ratio, bits);
+    // A star's copies, however deep, stay within offset / (1 - ratio) of its center.
+    // Computed in fixed point, with room to spare: views can sit exactly on that limit.
+    const limit = (distance * one) / (one - shrink);
+    return {
+      bits,
+      one,
+      ratio: shrink,
+      vertices,
+      loops: starLoops(pattern.config),
+      children: vertices.map(([x, y]) => [(x * distance) / one, (y * distance) / one]),
+      reach: (limit > one ? limit : one) + (one >> BigInt(32)),
+      mode: smallestOnly ? "leaves" : "all",
+    };
   }
   if (pattern.kind === "tSquare") {
     const ratio = fixedFromNumber(pattern.config.ratio, bits);
@@ -232,7 +270,7 @@ export function carpetDetailOpacity(
 
 // Clip after converting exact, view-relative vertices. Square edges stay
 // axis-aligned even when their corners are hundreds of orders apart.
-function clipPolygon(input: number[], width: number, height: number): number[] {
+export function clipPolygon(input: number[], width: number, height: number): number[] {
   let points = input;
   for (const [axis, edge, sign] of [
     [0, -4, 1],
@@ -260,6 +298,35 @@ function clipPolygon(input: number[], width: number, height: number): number[] {
   return points;
 }
 
+// A line across the view can have ends hundreds of orders away, where converting
+// them to floats would move it. Clip those lines in fixed point first.
+function clipFixedPolygon(input: [bigint, bigint][], halfWidth: bigint, halfHeight: bigint) {
+  let points = input;
+  for (const [axis, edge, sign] of [
+    [0, -halfWidth, ONE],
+    [0, halfWidth, -ONE],
+    [1, -halfHeight, ONE],
+    [1, halfHeight, -ONE],
+  ] as const) {
+    const next: [bigint, bigint][] = [];
+    points.forEach((a, index) => {
+      const b = points[(index + 1) % points.length];
+      const insideA = sign * (a[axis] - edge) >= ZERO;
+      const insideB = sign * (b[axis] - edge) >= ZERO;
+      if (insideA) next.push(a);
+      if (insideA !== insideB) {
+        const other = 1 - axis;
+        const crossing: [bigint, bigint] = [edge, edge];
+        crossing[other] =
+          a[other] + ((b[other] - a[other]) * (edge - a[axis])) / (b[axis] - a[axis]);
+        next.push(crossing);
+      }
+    });
+    points = next;
+  }
+  return points;
+}
+
 export function buildPatternGeometry(
   pattern: RecursivePattern,
   camera: PatternCamera,
@@ -268,6 +335,8 @@ export function buildPatternGeometry(
   model = patternModel(pattern, camera.bits),
   generationLimit = Number.POSITIVE_INFINITY,
 ): PatternGeometry {
+  if (pattern.kind === "canopy" || pattern.kind === "island")
+    throw new Error("This pattern has its own geometry");
   const { one, ratio, children, reach, mode } = model;
   const scale = camera.frame * Math.min(width, height) * camera.zoom;
   const bits = camera.bits;
@@ -276,12 +345,19 @@ export function buildPatternGeometry(
   const halfW = fixedFromNumber((width / 2 + 8) / scale, bits);
   const halfH = fixedFromNumber((height / 2 + 8) / scale, bits);
   const growth = Math.log(1 / fixedToNumber(ratio, bits));
-  const generation = Math.min(
+  let generation = Math.min(
     generationLimit,
     camera.zoom > 1
       ? Math.max(pattern.config.iterations, Math.ceil(Math.log(scale / 6) / growth))
       : pattern.config.iterations,
   );
+  if (pattern.kind === "star" && camera.zoom > 1) {
+    // Large copies overlap, so every level multiplies what is on screen. Stop at a
+    // depth that can draw in a frame, rather than running out partway across the view.
+    const screenLevel = Math.max(0, Math.log(scale / Math.max(width, height)) / growth);
+    const levels = Math.log(STAR_LEVEL_BUDGET) / Math.log(pattern.config.points);
+    generation = Math.min(generation, Math.ceil(screenLevel + levels));
+  }
   const result: PatternGeometry = { paths: new Map(), generation, visited: 0, limited: false };
   const solidSquares: [bigint, bigint, bigint, bigint][] = [];
   const skipCovered =
@@ -289,7 +365,37 @@ export function buildPatternGeometry(
     pattern.kind === "tSquare" &&
     pattern.config.fillSquares &&
     !pattern.config.strokeSquares;
+  const addStar = (x: bigint, y: bigint, size: bigint, depth: number) => {
+    const tips = model.vertices.map(([vx, vy]): [bigint, bigint] => [
+      x + mul(vx, size),
+      y + mul(vy, size),
+    ]);
+    const group = result.paths.get(depth) ?? [];
+    for (const loop of model.loops ?? []) {
+      const polygon =
+        pixel(size) > Math.max(width, height) * 4
+          ? clipFixedPolygon(
+              loop.map((tip) => tips[tip]),
+              halfW,
+              halfH,
+            ).flatMap(([px, py]) => [pixel(px) + width / 2, pixel(py) + height / 2])
+          : clipPolygon(
+              loop.flatMap((tip) => [
+                pixel(tips[tip][0]) + width / 2,
+                pixel(tips[tip][1]) + height / 2,
+              ]),
+              width,
+              height,
+            );
+      if (polygon.length) group.push(polygon);
+    }
+    if (group.length) result.paths.set(depth, group);
+  };
   const add = (x: bigint, y: bigint, size: bigint, depth: number) => {
+    if (pattern.kind === "star") {
+      addStar(x, y, size, depth);
+      return;
+    }
     let polygon: number[];
     if (pattern.kind !== "flake") {
       // Clip squares in fixed point first. Float clipping enormous rectangles
