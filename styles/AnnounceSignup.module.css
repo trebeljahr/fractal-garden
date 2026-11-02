@@ -1,0 +1,68 @@
+.signup {
+  position: relative;
+  margin-top: 3rem;
+  padding-top: 2.4rem;
+  border-top: 1px solid rgba(245, 241, 209, 0.25);
+}
+
+.label {
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.input {
+  flex: 1 1 24rem;
+  min-width: 0;
+  max-width: 40rem;
+  padding: 0.8rem 1.2rem;
+  font: inherit;
+  color: var(--yellow-white);
+  background-color: transparent;
+  border: 1px solid rgba(245, 241, 209, 0.45);
+  border-radius: 0.4rem;
+}
+
+.input::placeholder {
+  color: var(--bright-grey);
+}
+
+.input:focus-visible,
+.button:focus-visible {
+  outline: 2px solid var(--yellow-white);
+  outline-offset: 2px;
+}
+
+.button {
+  padding: 0.8rem 1.6rem;
+  font: inherit;
+  color: var(--medium-grey);
+  background-color: var(--yellow-white);
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Bots fill this field; people never see it. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.status {
+  min-height: 1.6em;
+  margin: 1rem 0 0;
+}

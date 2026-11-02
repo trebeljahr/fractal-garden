@@ -6,7 +6,7 @@ import styles from "../styles/Imprint.module.css";
 
 // Update this date, and the host list below, whenever the site starts or stops
 // contacting a server (a script, a font, an image, an embed).
-const UPDATED_ON = "October 19, 2026";
+const UPDATED_ON = "November 2, 2026";
 
 const Host = ({ children }: { children: ReactNode }) => (
   <code className={styles.host}>{children}</code>
@@ -26,8 +26,8 @@ const Privacy: NextPage = () => {
 
         <p className={styles.paragraph}>
           This page lists every server your browser contacts when you open fractal.garden, and what
-          each one receives. The site has no accounts, no forms and no newsletter. It sets no
-          cookies.
+          each one receives. The site has no accounts and sets no cookies. Its one form is the email
+          signup under each fractal, and it sends nothing until you submit it.
         </p>
 
         <h2 className={styles.subheading}>Controller</h2>
@@ -59,6 +59,10 @@ const Privacy: NextPage = () => {
             <Host>plausible.trebeljahr.com</Host>: my own Plausible Analytics server.
           </li>
         </ul>
+        <p className={styles.paragraph}>
+          One more server appears only if you submit the email signup: <Host>ricos.site</Host>{" "}
+          receives the address you typed.
+        </p>
         <p className={styles.paragraph}>
           No other server receives a request from your browser. A link to another site, such as
           GitHub, my blog or the donation page on ricos.site, contacts that site only when you click
@@ -156,6 +160,28 @@ const Privacy: NextPage = () => {
           You can object at any time.
         </p>
 
+        <h2 className={styles.subheading}>Email signup</h2>
+        <p className={styles.paragraph}>
+          Under each fractal is a form for the list New things from Rico: one email each time I put
+          out a new thing. If you submit it, your browser sends your email address to{" "}
+          <Host>ricos.site/api/announce-signup</Host>. It sends nothing about this page or your
+          visit, and the list does not record that you signed up here.
+        </p>
+        <p className={styles.paragraph}>
+          ricos.site then sends you an email with a confirmation link. Until you click it, your
+          address is on no list. Each email has an unsubscribe link. Legal basis: Art. 6 (1) (a)
+          GDPR (consent).
+        </p>
+        <p className={styles.paragraph}>
+          The list is kept in Listmonk, which I host myself on a server of Hetzner Online GmbH in
+          Germany. The emails go out through Amazon Simple Email Service in its EU (Ireland) region.
+          They contain no tracking pixels and no tracked links. The{" "}
+          <a href="https://ricos.site/privacy" className={styles.link}>
+            privacy policy of ricos.site
+          </a>{" "}
+          has the details.
+        </p>
+
         <h2 className={styles.subheading}>Data in your browser</h2>
         <p className={styles.paragraph}>
           The site writes two things to your browser's local storage. Neither one leaves your
@@ -196,6 +222,7 @@ const Privacy: NextPage = () => {
             Cloudflare does not store the IP address.
           </li>
           <li>The two entries in your local storage stay there until you delete them.</li>
+          <li>The list keeps a confirmed email address until you unsubscribe.</li>
         </ul>
 
         <h2 className={styles.subheading}>Your rights</h2>

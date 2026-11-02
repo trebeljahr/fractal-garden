@@ -1,5 +1,6 @@
 import styles from "../styles/SideDrawer.module.css";
 import { scrollToDescription } from "../utils/scrollToDescription";
+import { AnnounceSignup } from "./AnnounceSignup";
 import { Footer } from "./Footer";
 import { RenderMarkdown } from "./Markdown";
 import { RelatedFractals } from "./RelatedFractals";
@@ -35,6 +36,7 @@ export const SideDrawer = ({ description }: Props) => {
         <div className={styles.drawerContent}>
           <RenderMarkdown content={description} />
           <RelatedFractals />
+          <AnnounceSignup />
         </div>
         <Footer />
       </div>

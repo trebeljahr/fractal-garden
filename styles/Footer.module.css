@@ -45,13 +45,30 @@
 
 .links {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 0.8rem;
+}
+
+.links a {
+  white-space: nowrap;
 }
 
 .separator {
   color: var(--bright-grey);
   opacity: 0.5;
+}
+
+/* Lines wrap here, so a separator could end up alone at a line's end. */
+@media (max-width: 600px) {
+  .separator {
+    display: none;
+  }
+
+  .links {
+    gap: 0.6rem 1.6rem;
+  }
 }
 
 .heart {
