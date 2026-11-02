@@ -20,7 +20,7 @@ In the picture below, the ring marks the number you chose. The amber point start
 
 <figure data-orbit="mandelbrot"></figure>
 
-A number belongs to the Mandelbrot set if its results stay within a fixed distance of zero forever. The computer cannot wait forever, so black means “hasn't escaped yet.” Other colors show how long escape took.
+A number belongs to the Mandelbrot set if the amber point never crosses the dashed circle. A point that crosses has **escaped**. The computer cannot wait forever, so black means “hasn't escaped yet.” Other colors show how long escape took.
 
 Every colored pixel has escaped, so it is outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
 

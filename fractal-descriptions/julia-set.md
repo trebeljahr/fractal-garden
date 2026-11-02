@@ -18,7 +18,7 @@ $$
 (x^2 - y^2 + a,\ 2xy + b)
 $$
 
-With $c=(-0.12256, 0.74486)$, the circle becomes the dark shape below. Pick a pixel in the dark shape and the point ends up jumping around the same three places. Pick a pixel outside it and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+With $c=(-0.12256, 0.74486)$, the circle becomes the edge of the dark shape below. Pick a pixel in the dark shape and the point ends up jumping around the same three places. Pick a pixel outside it and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
 
 <figure data-orbit="julia"></figure>
 

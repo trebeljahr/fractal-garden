@@ -10,7 +10,7 @@ Follow that one operation below. The hollow dot stays at the start while the amb
 
 <figure data-investigation="mandelbulb"></figure>
 
-After this operation, add the chosen position again. Repeat. Some choices keep the results within a fixed distance of the center; others send them farther and farther away. The boundary between these outcomes forms the bulb's surface.
+After this operation, add the chosen position again. Repeat. For some chosen positions, the current point's distance from the center grows without limit. For the rest, it doesn't. The boundary between these two groups forms the bulb's surface.
 
 The [Mandelbrot set](/mandelbrot) tests points in a plane this way. The Mandelbulb uses distance and two angles to extend the idea into space. Changing **Power** changes the operation, so the whole surface changes too.
 
