@@ -20,6 +20,7 @@ The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. Eac
 
 - [Sierpiński carpet — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_carpet)
 - [Sierpiński carpet — MathWorld](https://mathworld.wolfram.com/SierpinskiCarpet.html)
+- [Sierpinski Carpet — Larry Riddle](https://larryriddle.agnesscott.org/ifs/carpet/carpet.htm)
 
 ## Sources and notes
 

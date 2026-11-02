@@ -40,6 +40,7 @@ The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with
 
 - [Buddhabrot — Wikipedia](https://en.wikipedia.org/wiki/Buddhabrot)
 - [Buddhabrot — MathWorld](https://mathworld.wolfram.com/Buddhabrot.html)
+- [Buddhabrot — Mu-Ency](https://mrob.com/pub/muency/buddhabrot.html)
 
 ## Sources and notes
 

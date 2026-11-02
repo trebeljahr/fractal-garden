@@ -20,6 +20,7 @@ This also explains a number pattern. Start with curvatures $-1,2,2,3$, and the r
 
 - [Apollonian gasket — Wikipedia](https://en.wikipedia.org/wiki/Apollonian_gasket)
 - [Apollonian gasket — MathWorld](https://mathworld.wolfram.com/ApollonianGasket.html)
+- [Apollonius of Perga — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Apollonius/)
 
 ## Sources and notes
 

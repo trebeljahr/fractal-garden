@@ -24,6 +24,7 @@ Near a split, answers can take a long time to settle. The picture may still incl
 
 - [Logistic map — Wikipedia](https://en.wikipedia.org/wiki/Logistic_map)
 - [Logistic map — MathWorld](https://mathworld.wolfram.com/LogisticMap.html)
+- [This equation will change how you see the world — Veritasium](https://www.youtube.com/watch?v=ovJcsL7vyrk)
 
 ## Sources and notes
 

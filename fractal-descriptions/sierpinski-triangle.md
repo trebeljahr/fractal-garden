@@ -57,6 +57,7 @@ The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle a
 - [Sierpiński triangle — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle)
 - [Sierpiński sieve — MathWorld](https://mathworld.wolfram.com/SierpinskiSieve.html)
 - [The Sierpinski Triangle — Mathigon](https://mathigon.org/course/fractals/sierpinski)
+- [Chaos Game — Numberphile](https://www.youtube.com/watch?v=kbKtFN71Lfs)
 
 ## Sources and notes
 

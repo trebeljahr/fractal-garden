@@ -20,6 +20,7 @@ The [T-square fractal](/t-square-fractal) has the same overlap problem, but plac
 
 - [Pythagoras tree — Wikipedia](https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal))
 - [Pythagoras tree — MathWorld](https://mathworld.wolfram.com/PythagorasTree.html)
+- [Pythagorean Tree — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pythagorean/pythTree.htm)
 
 ## Sources and notes
 

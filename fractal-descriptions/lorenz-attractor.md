@@ -16,6 +16,7 @@ Lorenz developed these rules from a simplified model of heated fluid. One number
 
 - [Lorenz system — Wikipedia](https://en.wikipedia.org/wiki/Lorenz_system)
 - [Lorenz attractor — MathWorld](https://mathworld.wolfram.com/LorenzAttractor.html)
+- [Edward Lorenz — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Lorenz_Edward/)
 
 ## Sources and notes
 

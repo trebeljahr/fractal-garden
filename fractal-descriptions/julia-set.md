@@ -70,6 +70,7 @@ Last, $\nu$ sets the color. As $\nu$ rises, the color goes from dark blue throug
 
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
 - [Julia set — MathWorld](https://mathworld.wolfram.com/JuliaSet.html)
+- [Gaston Julia — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Julia/)
 
 ## Sources and notes
 

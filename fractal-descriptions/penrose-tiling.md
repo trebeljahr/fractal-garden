@@ -14,6 +14,7 @@ The marked points show where the first dividing lines go. They split an edge so 
 
 - [Penrose tiling — Wikipedia](https://en.wikipedia.org/wiki/Penrose_tiling)
 - [Penrose tiles — MathWorld](https://mathworld.wolfram.com/PenroseTiles.html)
+- [Roger Penrose — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Penrose/)
 
 ## Sources and notes
 

@@ -45,6 +45,7 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 - [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)
 - [Mandelbrot set — MathWorld](https://mathworld.wolfram.com/MandelbrotSet.html)
 - [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
+- [The Quest to Decode the Mandelbrot Set — Quanta Magazine](https://www.quantamagazine.org/the-quest-to-decode-the-mandelbrot-set-maths-famed-fractal-20240126/)
 
 ## Sources and notes
 

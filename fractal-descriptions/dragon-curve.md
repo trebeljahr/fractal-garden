@@ -24,6 +24,7 @@ The four-copy groups fit together in diagonal rows. Repeating them covers the pl
 
 - [Dragon curve — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve)
 - [Dragon curve — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
+- [Dragon Curve — Numberphile](https://www.youtube.com/watch?v=wCyC-K_PnRY)
 
 ## Sources and notes
 

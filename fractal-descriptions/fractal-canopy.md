@@ -20,6 +20,7 @@ Researchers at Johns Hopkins build physical trees with five generations and thre
 
 - [Fractal canopy — Wikipedia](https://en.wikipedia.org/wiki/Fractal_canopy)
 - [Mandelbrot tree background — MathWorld](https://mathworld.wolfram.com/MandelbrotTree.html)
+- [Symmetric Binary Trees — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pythagorean/symbinarytree.htm)
 
 ## Sources and notes
 

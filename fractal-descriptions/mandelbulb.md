@@ -20,6 +20,7 @@ Daniel White published the construction in 2007. Paul Nylander's later experimen
 
 - [Mandelbulb — Wikipedia](https://en.wikipedia.org/wiki/Mandelbulb)
 - [Mandelbulb — MathWorld](https://mathworld.wolfram.com/Mandelbulb.html)
+- [Mandelbulb — Inigo Quilez](https://iquilezles.org/articles/mandelbulb/)
 
 ## Sources and notes
 

@@ -18,6 +18,7 @@ This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus 
 
 - [Lévy C curve — Wikipedia](https://en.wikipedia.org/wiki/L%C3%A9vy_C_curve)
 - [Lévy fractal — MathWorld](https://mathworld.wolfram.com/LevyFractal.html)
+- [Lévy Dragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/levy/levy.htm)
 
 ## Sources and notes
 

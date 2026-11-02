@@ -16,6 +16,7 @@ The square's original corners remain at 90 degrees. The adjustable angle belongs
 
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Cesàro fractal — MathWorld](https://mathworld.wolfram.com/CesaroFractal.html)
+- [Ernesto Cesàro — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Cesaro/)
 
 ## Sources and notes
 

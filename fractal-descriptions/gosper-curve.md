@@ -16,6 +16,7 @@ The [Hilbert curve](/l-system/hilbert-curve) also fills a region, but divides a 
 
 - [Gosper curve — Wikipedia](https://en.wikipedia.org/wiki/Gosper_curve)
 - [Peano-Gosper curve — MathWorld](https://mathworld.wolfram.com/Peano-GosperCurve.html)
+- [Flowsnake — Larry Riddle](https://larryriddle.agnesscott.org/ifs/ksnow/flowsnake.htm)
 
 ## Sources and notes
 
