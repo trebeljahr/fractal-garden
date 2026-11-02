@@ -1,6 +1,7 @@
 import { keepMengerCube } from "./menger";
 import { type Orientation, viewRotation } from "./orientation";
 import { SURFACE_SHADE_STEPS, surfaceBrightness } from "./render/surfaceLighting";
+import type { Context2D } from "./render/types";
 
 export type Cube = {
   x: number;
@@ -107,7 +108,7 @@ export function shadeColor(hex: string, shade: number, alpha: number) {
  * hairline of whatever lies behind along it. Without an outline to cover that,
  * each face is also stroked in its own colour. One device pixel is enough.
  */
-export function seamWidth(ctx: CanvasRenderingContext2D) {
+export function seamWidth(ctx: Context2D) {
   return 1 / ctx.getTransform().a;
 }
 

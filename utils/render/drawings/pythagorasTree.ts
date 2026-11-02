@@ -1,9 +1,12 @@
+import type { CanvasViewport } from "../../canvasViewport";
 import { radians } from "../../ctxHelpers";
 import { remapper } from "../../scaling";
 import { type Matrix2D, type Vec2D, Vector } from "../../vectors";
+import { seamWidth } from "../../voxelFractals";
 import type { Context2D } from "../types";
 
 export type PythagorasTreeParams = {
+  viewport?: CanvasViewport;
   iterations: number;
   angle: number;
   background: string;
@@ -48,6 +51,13 @@ export function drawPythagorasTree(
 ) {
   let polygons = 0;
 
+  // The viewport scales strokes along with the shapes, which would fatten every
+  // square as you zoom in. A filled shape only needs its seams sealed, and an
+  // unfilled one keeps the same outline on screen.
+  const seam = seamWidth(ctx);
+  const outline = 1 / (config.viewport?.zoom ?? 1);
+  ctx.lineJoin = "round";
+
   // Branches overlap each other in depth-first order with different colors,
   // so every polygon is still drawn on its own.
   const drawPoly = (points: Vec2D[], color: string, fill = true) => {
@@ -61,6 +71,7 @@ export function drawPythagorasTree(
     ctx.fillStyle = color;
     if (fill) ctx.fill();
     ctx.strokeStyle = color;
+    ctx.lineWidth = fill ? seam : outline;
     ctx.stroke();
     polygons++;
   };
