@@ -24,7 +24,7 @@ The segment count goes from 1 to 9 to 81. Dividing each new segment's length by 
 - [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
 - [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-- [Fractal Trees - L-System — The Coding Train](https://thecodingtrain.com/challenges/16-l-system-fractal-trees)
+- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
 
 ## Sources and notes
 

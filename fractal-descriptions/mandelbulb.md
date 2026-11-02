@@ -23,8 +23,7 @@ Daniel White published the construction in 2007. Paul Nylander's later experimen
 - [Mandelbulb — Inigo Quilez](https://iquilezles.org/articles/mandelbulb/)
 - [Pandora’s 3D box — Plus Magazine](https://plus.maths.org/content/pandoras-3d-box)
 - [Mandelbulb set — Paul Bourke](https://paulbourke.net/fractals/bulb/)
-- [Coding Adventure: Ray Marching — Sebastian Lague](https://www.youtube.com/watch?v=Cp5WWtMoeKg)
-- [The Mandelbulb — The Coding Train](https://thecodingtrain.com/challenges/168-the-mandelbulb)
+- [MandelBulb 3D Fractal — The Coding Train](https://www.youtube.com/watch?v=NJCiUVGiNyA)
 
 ## Sources and notes
 

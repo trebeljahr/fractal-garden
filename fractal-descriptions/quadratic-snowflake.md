@@ -20,7 +20,6 @@ The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a
 - [Koch curve background — MathWorld](https://mathworld.wolfram.com/KochCurve.html)
 - [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-- [Courbe de Koch quadratique (in French) — Mathcurve](https://mathcurve.com/fractals/kochquadratique/kochquadratique.shtml)
 
 ## Sources and notes
 

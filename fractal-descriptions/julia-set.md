@@ -90,7 +90,7 @@ Not every $c$ in the Mandelbrot set has an attracting loop. With $c = (0, 1)$, $
 - [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
 - [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
 - [Computing the Distance to a Julia Set — Inigo Quilez](https://iquilezles.org/articles/distancefractals/)
-- [Julia Set — The Coding Train](https://thecodingtrain.com/challenges/22-julia-set)
+- [Julia Set in Processing — The Coding Train](https://www.youtube.com/watch?v=fAsaSkmbF5s)
 - [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
 
 ## Sources and notes

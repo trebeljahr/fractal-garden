@@ -26,7 +26,7 @@ The four-copy groups fit together in diagonal rows. Repeating them covers the pl
 - [Dragon curve — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
 - [Dragon Curve — Numberphile](https://www.youtube.com/watch?v=wCyC-K_PnRY)
 - [Heighway Dragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/heighway.htm)
-- [Dragon Curve — The Coding Train](https://thecodingtrain.com/challenges/185-dragon-curve)
+- [Unfolding Fractals — The Coding Train](https://www.youtube.com/watch?v=MazpwQNdJYQ)
 
 ## Sources and notes
 

@@ -24,7 +24,7 @@ Each tunnel crosses the tilted slice at an angle. The three openings overlap to 
 - [Menger sponge — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
 - [Menger fractal — Inigo Quilez](https://iquilezles.org/articles/menger/)
 - [Business Card Menger Sponge — The Institute For Figuring](https://theiff.org/oexhibits/menger01.html)
-- [Menger Sponge Fractal — The Coding Train](https://thecodingtrain.com/challenges/2-menger-sponge)
+- [Menger Sponge Fractal — The Coding Train](https://www.youtube.com/watch?v=LG8ZK-rRkXo)
 
 ## Sources and notes
 

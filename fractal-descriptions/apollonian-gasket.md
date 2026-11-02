@@ -23,7 +23,7 @@ This also explains a number pattern. Start with curvatures $-1,2,2,3$, and the r
 - [Apollonius of Perga — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Apollonius/)
 - [A Tisket, a Tasket, an Apollonian Gasket — American Scientist](https://www.americanscientist.org/article/a-tisket-a-tasket-an-apollonian-gasket)
 - [Apollony Fractal — Paul Bourke](https://paulbourke.net/fractals/apollony/)
-- [Apollonian Gasket — The Coding Train](https://thecodingtrain.com/challenges/182-apollonian-gasket)
+- [Apollonian Gasket Fractal — The Coding Train](https://www.youtube.com/watch?v=6UlGLB_jiCs)
 
 ## Sources and notes
 

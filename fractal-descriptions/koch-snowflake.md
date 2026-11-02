@@ -27,8 +27,8 @@ Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake
 - [The Koch curve — The Nature of Code](https://natureofcode.com/fractals/#the-koch-curve)
 - [Helge von Koch — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Koch/)
 - [A History of Fractal Geometry — MacTutor](https://mathshistory.st-andrews.ac.uk/HistTopics/fractals/)
-- [Fractals are typically not self-similar — 3Blue1Brown](https://www.3blue1brown.com/lessons/fractal-dimension)
-- [Koch Fractal Snowflake — The Coding Train](https://thecodingtrain.com/challenges/129-koch-fractal-snowflake)
+- [Fractals are typically not self-similar — 3Blue1Brown](https://www.youtube.com/watch?v=gB9n2gHsHN4)
+- [Koch Fractal Snowflake — The Coding Train](https://www.youtube.com/watch?v=X8bXDKqMsXE)
 
 ## Sources and notes
 

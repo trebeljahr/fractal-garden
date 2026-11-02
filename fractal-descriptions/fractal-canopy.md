@@ -22,7 +22,7 @@ Researchers at Johns Hopkins build physical trees with five generations and thre
 - [Mandelbrot tree background — MathWorld](https://mathworld.wolfram.com/MandelbrotTree.html)
 - [Symmetric Binary Trees — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pythagorean/symbinarytree.htm)
 - [Recursive trees — The Nature of Code](https://natureofcode.com/fractals/#trees)
-- [Recursive Fractal Trees — The Coding Train](https://thecodingtrain.com/challenges/14-fractal-trees-recursive)
+- [Fractal Trees - Recursive — The Coding Train](https://www.youtube.com/watch?v=0jjeOYMjmDU)
 
 ## Sources and notes
 

@@ -19,7 +19,6 @@ Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-
 - [Terdragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Terdragon)
 - [Terdragon — MathWorld](https://mathworld.wolfram.com/Terdragon.html)
 - [Terdragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/terdragon.htm)
-- [Courbes du terdragon (in French) — Mathcurve](https://mathcurve.com/fractals/terdragon/terdragon.shtml)
 
 ## Sources and notes
 

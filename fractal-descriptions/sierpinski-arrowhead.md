@@ -23,7 +23,6 @@ The path points in a different direction on alternate steps. The diagram rotates
 - [Sierpiński arrowhead curve — MathWorld](https://mathworld.wolfram.com/SierpinskiArrowheadCurve.html)
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
 - [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
-- [Binary, Hanoi, and Sierpinski, part 2 — 3Blue1Brown](https://www.youtube.com/watch?v=bdMfjfT0lKk)
 
 ## Sources and notes
 

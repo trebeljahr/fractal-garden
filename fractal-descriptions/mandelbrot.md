@@ -61,7 +61,7 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 - [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
 - [Times Tables, Mandelbrot and the Heart of Mathematics — Mathologer](https://www.youtube.com/watch?v=qhbuKbxJsk8)
 - [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
-- [Mandelbrot Set with p5.js — The Coding Train](https://thecodingtrain.com/challenges/21-mandelbrot-set-with-p5js)
+- [Mandelbrot Set — The Coding Train](https://www.youtube.com/watch?v=6z7GQewK-Ks)
 
 ## Sources and notes
 

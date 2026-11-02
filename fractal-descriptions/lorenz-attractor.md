@@ -21,7 +21,7 @@ Lorenz developed these rules from a simplified model of heated fluid. One number
 - [Strange Attractors — Chaos: A Mathematical Adventure](https://www.chaos-math.org/en/chaos-vii-strange-attractors.html)
 - [The Lorenz Attractor in 3D — Paul Bourke](https://paulbourke.net/fractals/lorenz/)
 - [Chaos: The Science of the Butterfly Effect — Veritasium](https://www.youtube.com/watch?v=fDek6cYijxI)
-- [The Lorenz Attractor — The Coding Train](https://thecodingtrain.com/challenges/12-lorenz-attractor)
+- [Lorenz Attractor — The Coding Train](https://www.youtube.com/watch?v=f0lkz2gSsIk)
 
 ## Sources and notes
 
