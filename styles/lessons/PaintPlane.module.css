@@ -1,0 +1,157 @@
+.lesson {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.lesson .wrap {
+  display: contents;
+}
+.lesson p {
+  margin: 0;
+}
+.lesson > *,
+.wrap > * {
+  min-width: 0;
+}
+.lesson [data-paint-shapes] {
+  margin: 0;
+}
+@media (min-width: 800px) {
+  .lesson {
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    gap: 1rem 1.5rem;
+  }
+  .lesson button.plane {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    align-self: start;
+  }
+  .lesson > :not(.wrap),
+  .lesson .actions {
+    grid-column: 2;
+  }
+  .lesson .mode {
+    margin-left: 0;
+  }
+}
+button.plane.plane {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+.paper {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #eee8ce;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.pair .actions {
+  margin-top: 1rem;
+}
+.mode {
+  --explorer-field: var(--lesson-bg);
+  --explorer-accent: var(--lesson-accent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 44px;
+  cursor: pointer;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.mode > span {
+  opacity: 0.6;
+}
+.mode > .active {
+  opacity: 1;
+}
+.mode button[role="switch"] {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.mode button[aria-checked="true"]:hover:not(:disabled) {
+  background: var(--lesson-accent);
+}
+.readout {
+  font-variant-numeric: tabular-nums;
+}
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 0.8rem;
+  border: 1px solid #eee8ce70;
+  border-radius: 50%;
+}
+.chart {
+  margin: 0;
+}
+.chart figcaption {
+  font:
+    1.3rem / 1.4 "Montserrat",
+    sans-serif;
+  opacity: 0.8;
+  margin-bottom: 0.4rem;
+}
+.chart canvas {
+  display: block;
+  width: 100%;
+  height: 72px;
+  background: #10151a;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.pair > div {
+  min-width: 0;
+}
+.pair h3 {
+  font:
+    600 1.5rem / 1.5 "Montserrat",
+    sans-serif;
+  margin: 0 0 0.6rem;
+}
+.pair .wrap {
+  margin-top: 0;
+}
+.edge {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #eee8ce;
+}
+.neck {
+  position: relative;
+  aspect-ratio: 5.6 / 4.4;
+  background: #eee8ce;
+}
+@media (max-width: 600px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}

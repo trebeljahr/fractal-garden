@@ -4,7 +4,11 @@ Start with $0.5$ and keep squaring it. You get $0.25$, then $0.0625$, then small
 
 We can do the same with points on a plane. A point has a horizontal and a vertical coordinate; together they form a **complex number**. To square it, multiply its distance from zero by itself and double its angle from the line pointing right.
 
-Points less than one unit from zero move closer with every squaring. Points farther than one unit move away. The circle between them is the simplest Julia set.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
+Move your pointer across the blank plane below, or drag on a phone. The line shows where that point goes as you keep squaring it. Each spot you touch gets a mark: dark if the point stays inside the dashed circle, blue if it crosses. The circle is two units from zero, and a point past it only moves farther away.
+
+<figure data-lesson="paint-squaring"></figure>
+
+The dark marks fill a disk. Points less than one unit from zero move closer with every squaring. Points farther than one unit move away. Close to the edge they move slowly: $1.001$ squared is only about $1.002$. The circle between the two groups is the simplest Julia set.<sup><a id="julia-set-ref-1" href="#julia-set-source-1">1</a></sup>
 
 Now start at a pixel's position, $z_0$. Square it and add a number called $c$ to get $z_1$. Do that again to $z_1$, with the same $c$, to get $z_2$, and keep going:
 
@@ -18,9 +22,13 @@ $$
 (x^2 - y^2 + a,\ 2xy + b)
 $$
 
-The demo below uses $c=(-0.12256, 0.74486)$. Each new $z$ is one jump.
+Here is the blank plane again, now with $c=(-0.12256, 0.74486)$. Color it in. Some points outside the old circle stay. Some points inside it cross.
 
-Points still split into two groups, but the line between them is no longer a circle. It is the edge of the dark shape. Pick a pixel outside it and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
+<figure data-lesson="paint-julia"></figure>
+
+Press **Fill the rest** to test every spot. Points still split into two groups, but the line between them is no longer a circle. It is the edge of the dark shape.
+
+The demo below uses the same $c$ and follows one point at a time. Each new $z$ is one jump. Pick a pixel outside the dark shape and the point ends up crossing the dashed circle, two units from zero. After that, every jump takes it farther away.<sup><a id="julia-set-ref-2" href="#julia-set-source-2">2</a></sup>
 
 Pick a pixel in the dark shape and the point ends up jumping around three places. Now pick a different pixel in the dark shape. It ends up on the same three places.
 
@@ -29,6 +37,14 @@ Pick a pixel in the dark shape and the point ends up jumping around three places
 Under the picture, the current jump is worked out by hand and rounded to five decimals. Press **Next jump** and the new point goes back in as the next starting point.
 
 Every starting point in one picture uses the same $c$. Change it, and you change the whole picture.
+
+The demo below draws only the edge. The ring on the left chooses $c$. It starts on $0$, where the edge is the circle. Drag it a little and the circle bends. Drag it farther and the edge pinches. Go farther still and it breaks into specks of dust.
+
+Each $c$ you try gets a mark on the left plane. To choose the color, the demo starts at $0$ and follows the jumps: dark if the point stays, blue if it crosses.
+
+<figure data-lesson="julia-edge"></figure>
+
+The dark marks gave one piece and the blue marks gave dust. This is true for every $c$.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> Press **Fill the rest**: the dark shape is the [Mandelbrot set](/mandelbrot). Every point on this plane stands for one Julia set, and the dark shape holds the ones in one piece.
 
 <figure data-article-images="julia"></figure>
 
@@ -46,7 +62,7 @@ Almost all of these points must pass close to $0.5$, and that takes about 300 st
 
 Some points land near $0.5$ again and repeat the slow trip. You can see more of them change color at about 650 and 1000 steps.
 
-Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> The shape above is dust too: $c = 0.2501$ lies just outside.
+The shape above is dust too: $c = 0.2501$ lies just outside the Mandelbrot set.
 
 The pictures below start on $c = -1$: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Move the amber ring to $(0, 0)$ and you get the circle again. Move it outside the black shape and the Julia set breaks into dust.
 

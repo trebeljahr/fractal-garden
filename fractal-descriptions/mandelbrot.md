@@ -20,7 +20,19 @@ In the picture below, the ring marks the number you chose. The amber point start
 
 <figure data-orbit="mandelbrot"></figure>
 
-A number belongs to the Mandelbrot set if the amber point never crosses the dashed circle. A point that crosses has **escaped**. The computer cannot wait forever, so black means “hasn't escaped yet.” Other colors show how long escape took.
+The route's shape depends on the number you pick. Move your pointer across the blank plane below, or drag on a phone. The point still starts at zero, and the spot under your pointer is the number you add. The buttons jump to a few of the shapes.
+
+Each spot you touch gets a mark: dark if the point stays inside the dashed circle for 300 jumps, blue if it crosses.
+
+<figure data-lesson="paint-mandelbrot"></figure>
+
+Press **Fill the rest** to test every spot. The dark shape is the Mandelbrot set. Then move your pointer into each bulb and watch the route change.
+
+Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed his equipment. Some specks changed from one print to the next, so they were dirt. Others came in matching pairs, one at the top and its mirror image at the bottom. Bad equipment was unlikely to do that. He zoomed in on those pieces, and they were smaller, slightly deformed copies of the whole shape.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
+
+A number belongs to the Mandelbrot set if the point never crosses the dashed circle. A point that crosses has **escaped**. The computer cannot wait forever, so black means “hasn't escaped yet.”
+
+Blue says only that the point escaped. Switch the demo to **Step colors** and each mark shows how many jumps that took, with one color for each count.
 
 Every colored pixel has escaped, so it is outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
 
@@ -28,15 +40,17 @@ Move the slider to choose how many steps the computer calculates before it stops
 
 **Spiral** shows a tiny piece of the edge, near the neck. The dark band across the middle isn't black: those pixels escaped at about step 40. At 200 steps there are also round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along.
 
-**Black and white** drops the colors: white pixels have escaped, and black pixels haven't. At high step counts, black specks look separate, but the set is one connected piece.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup> Each pixel tests only one point, so the parts joining the specks are too thin to show.
+**Black and white** drops the colors: white pixels have escaped, and black pixels haven't. At high step counts, black specks look separate, but the set is one connected piece.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> Each pixel tests only one point, so the parts joining the specks are too thin to show.
 
 <figure data-lesson="step-limit-mandelbrot"></figure>
 
 Points near the neck can take much longer. Start at $-0.75$, where the bulb meets the body, and move straight up. A point $0.1$ above it crosses the dashed circle after 33 steps. A point $0.01$ above it takes 315 steps, $0.001$ above takes 3143, and $0.0001$ above takes 31417. Closer points take longer, so no step limit catches every point.
 
-Now multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. These answers seem to be heading for π.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup>
+<figure data-lesson="escape-neck"></figure>
 
-Look at the round bulb on the left. Numbers inside it approach a two-number repeat, like the $0,-1$ example at its center. Numbers inside the heart-shaped body settle toward one value.<sup><a id="mandelbrot-ref-5" href="#mandelbrot-source-5">5</a></sup> Numbers inside the big bulbs above and below the heart approach a three-number repeat, and smaller bulbs have other lengths.<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup>
+Now multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. These answers seem to be heading for π.<sup><a id="mandelbrot-ref-5" href="#mandelbrot-source-5">5</a></sup>
+
+Look at the round bulb on the left. Numbers inside it approach a two-number repeat, like the $0,-1$ example at its center. Numbers inside the heart-shaped body settle toward one value.<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup> Numbers inside the big bulbs above and below the heart approach a three-number repeat, and smaller bulbs have other lengths.<sup><a id="mandelbrot-ref-7" href="#mandelbrot-source-7">7</a></sup>
 
 So far, every calculation has started at zero. Keep the number you add, but try a different starting point at every pixel. This makes a [Julia picture](/julia-set). A single choice in the Mandelbrot picture now gives us a whole new shape to explore.
 
@@ -61,7 +75,8 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 
 1. <span id="mandelbrot-source-1"></span> [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). [Back](#mandelbrot-ref-1)
 2. <span id="mandelbrot-source-2"></span> Calculation: if $|z|>2$ and $|z|\ge|c|$, then $|z^2+c|\ge|z|^2-|c|\ge|z|(|z|-1)>|z|$. A crossing gives $|z|\ge|c|$: either $|c|\le2$, or the first jump lands on $c$. [Back](#mandelbrot-ref-2)
-3. <span id="mandelbrot-source-3"></span> [Exploring the Mandelbrot Set: The Orsay Notes](https://pi.math.cornell.edu/~hubbard/OrsayEnglish.pdf). [Back](#mandelbrot-ref-3)
-4. <span id="mandelbrot-source-4"></span> [Pi in the Mandelbrot set everywhere](https://arxiv.org/abs/2505.07138). Its proof follows curved paths into the neck. Along this straight line, the pattern has only been observed. [Back](#mandelbrot-ref-4)
-5. <span id="mandelbrot-source-5"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-5)
-6. <span id="mandelbrot-source-6"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#mandelbrot-ref-6)
+3. <span id="mandelbrot-source-3"></span> [Development of the Mandelbrot set; 'dirt' in the picture](https://www.webofstories.com/play/10522). [Back](#mandelbrot-ref-3)
+4. <span id="mandelbrot-source-4"></span> [Exploring the Mandelbrot Set: The Orsay Notes](https://pi.math.cornell.edu/~hubbard/OrsayEnglish.pdf). [Back](#mandelbrot-ref-4)
+5. <span id="mandelbrot-source-5"></span> [Pi in the Mandelbrot set everywhere](https://arxiv.org/abs/2505.07138). Its proof follows curved paths into the neck. Along this straight line, the pattern has only been observed. [Back](#mandelbrot-ref-5)
+6. <span id="mandelbrot-source-6"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-6)
+7. <span id="mandelbrot-source-7"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#mandelbrot-ref-7)
