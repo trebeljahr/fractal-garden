@@ -187,10 +187,7 @@ export default function LinkedJuliaLesson() {
   };
   return (
     <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
-      <p>
-        Drag the amber ring across the Mandelbrot picture. Watch the Julia shape change: every point
-        in it now adds the number you chose.
-      </p>
+      <p>Drag either ring.</p>
       <div className={styles.pair}>
         <div>
           <h3>Mandelbrot · choose c</h3>
