@@ -48,14 +48,13 @@ const IMAGES = {
   julia: [
     {
       name: "julia-rabbit",
-      alt: "Julia set using the Rabbit spiral parameter",
-      caption: "The Rabbit spiral preset uses the same value of c for every pixel.",
+      alt: "Branching Julia set with star-shaped clusters, drawn for c = (−0.70176, −0.3842)",
+      caption: "c = (−0.70176, −0.3842)",
     },
     {
       name: "julia-sea-spiral",
-      alt: "Julia set using the Sea spiral parameter",
-      caption:
-        "The Sea spiral preset changes c for the entire image, producing a different Julia set.",
+      alt: "Julia set with paired curls along a twisting thread, drawn for c = (−0.8, 0.156)",
+      caption: "c = (−0.8, 0.156)",
     },
   ],
   "burning-ship": [

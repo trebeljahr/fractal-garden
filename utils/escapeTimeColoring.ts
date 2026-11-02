@@ -124,6 +124,20 @@ export function createColoring(
   };
 }
 
+// Each explorer's opening colors. Article demos share them so the pictures match.
+export const MANDELBROT_COLORING = createColoring("classic", {
+  iterations: 200,
+  colorDensity: 1,
+  colorOffset: 0.5,
+  interior: "#000000",
+});
+export const JULIA_COLORING = createColoring("classic", {
+  iterations: 200,
+  colorDensity: 0.45,
+  colorOffset: 0.45,
+  interior: "#252424",
+});
+
 /**
  * Merges a dat-gui update. Picking a look applies its values; tweaking any
  * coloring value by hand switches the look to "Custom".

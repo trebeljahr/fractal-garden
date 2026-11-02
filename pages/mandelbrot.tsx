@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { EscapeTimeFractal } from "../components/EscapeTimeFractal";
 import {
-  createColoring,
   type EscapeTimeColoring,
+  MANDELBROT_COLORING,
   updateColoring,
 } from "../utils/escapeTimeColoring";
 import { MANDELBROT_PLACES } from "../utils/escapeTimePlaces";
@@ -13,14 +13,7 @@ type Props = {
 };
 
 const Mandelbrot = ({ description }: Props) => {
-  const [config, setConfig] = useState<EscapeTimeColoring>(() =>
-    createColoring("classic", {
-      iterations: 200,
-      colorDensity: 1,
-      colorOffset: 0.5,
-      interior: "#000000",
-    }),
-  );
+  const [config, setConfig] = useState<EscapeTimeColoring>(MANDELBROT_COLORING);
 
   return (
     <EscapeTimeFractal

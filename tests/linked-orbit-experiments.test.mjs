@@ -18,7 +18,7 @@ const {
   visitOpacity,
 } = require("../utils/lessons/buddhabrotAccumulation.ts");
 const { histogramOrbit } = require("../utils/lessons/specialLessons.ts");
-const { quadraticEscape, juliaExplorerLink } = require("../utils/lessons/linkedJulia.ts");
+const { juliaExplorerLink } = require("../utils/lessons/linkedJulia.ts");
 const { decodeView, restoreConfig } = require("../utils/explorerShare.ts");
 const { traceTeachingOrbit } = require("../utils/orbitLesson.ts");
 
@@ -67,7 +67,7 @@ test("fixed exposure never dims an occupied bin when more visits are recorded", 
   }
 });
 
-test("Julia samples and displayed traces use the same chosen parameter and start", () => {
+test("displayed Julia traces square and add the chosen parameter from the chosen start", () => {
   for (const c of [
     { real: 0, imaginary: 0 },
     { real: -1, imaginary: 0 },
@@ -80,8 +80,6 @@ test("Julia samples and displayed traces use the same chosen parameter and start
       { real: 1.4, imaginary: 0.8 },
     ]) {
       const orbit = traceTeachingOrbit(c, start, false, 96);
-      const escaped = orbit.find((p) => Math.hypot(p.point.real, p.point.imaginary) > 4);
-      assert.equal(quadraticEscape(c, start), escaped?.iteration ?? null);
       for (let i = 1; i < orbit.length; i++) {
         const p = orbit[i - 1].point,
           next = orbit[i].point;
@@ -90,8 +88,9 @@ test("Julia samples and displayed traces use the same chosen parameter and start
       }
     }
   }
-  assert.equal(quadraticEscape({ real: 0, imaginary: 0 }, { real: 1, imaginary: 0 }), null);
-  assert.equal(quadraticEscape({ real: 0, imaginary: 0 }, { real: 2, imaginary: 0 }), 2);
+  const zero = { real: 0, imaginary: 0 };
+  assert.equal(traceTeachingOrbit(zero, { real: 1, imaginary: 0 }, false, 96).length, 97);
+  assert.equal(traceTeachingOrbit(zero, { real: 2, imaginary: 0 }, false, 96).at(-1).iteration, 2);
 });
 
 test("full Julia explorer links retain off-center parameters without clipping", () => {

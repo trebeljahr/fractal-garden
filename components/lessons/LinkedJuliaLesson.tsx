@@ -1,13 +1,19 @@
 import { type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
-import { juliaExplorerLink, LINKED_LIMIT, quadraticEscape } from "../../utils/lessons/linkedJulia";
-import { type ComplexPoint, traceTeachingOrbit } from "../../utils/orbitLesson";
-import { LessonFrame, LessonSteps } from "./LessonFrame";
+import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
+import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
+import { juliaExplorerLink, LINKED_LIMIT } from "../../utils/lessons/linkedJulia";
+import { type ComplexPoint, ESCAPE_RADIUS, traceTeachingOrbit } from "../../utils/orbitLesson";
+import { EscapeTimePicture } from "./EscapeTimePicture";
+import { LessonFrame } from "./LessonFrame";
 
 const ZERO = { real: 0, imaginary: 0 };
 const WIDTH = 360;
 const HEIGHT = 300;
+const STEP_MS = 100;
+// Picks closer together than this are one drag, so the orbit keeps growing through them.
+const SAME_DRAG_MS = 250;
 const BOUNDS = { parameter: [-2, 1, -1.25, 1.25], start: [-1.8, 1.8, -1.5, 1.5] } as const;
 const text = (p: ComplexPoint) =>
   `(${Number(p.real.toFixed(3))}, ${Number(p.imaginary.toFixed(3))})`;
@@ -24,41 +30,17 @@ function LinkedMap({
   value,
   onChange,
   orbit,
+  outcome = "",
 }: {
   mapKind: "parameter" | "start";
   c: ComplexPoint;
   value: ComplexPoint;
   onChange: (point: ComplexPoint) => void;
   orbit?: ComplexPoint[];
+  outcome?: string;
 }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
   const pointer = useRef<number | null>(null);
   const [left, right, bottom, top] = BOUNDS[mapKind];
-  const mapC = mapKind === "parameter" ? ZERO : c;
-  useEffect(() => {
-    const context = canvas.current?.getContext("2d");
-    if (!context) return;
-    const pixels = context.createImageData(WIDTH, HEIGHT);
-    for (let y = 0; y < HEIGHT; y++)
-      for (let x = 0; x < WIDTH; x++) {
-        const p = {
-          real: left + ((x + 0.5) / WIDTH) * (right - left),
-          imaginary: top - ((y + 0.5) / HEIGHT) * (top - bottom),
-        };
-        const escapeCount = quadraticEscape(
-          mapKind === "parameter" ? p : mapC,
-          mapKind === "parameter" ? ZERO : p,
-        );
-        const shade =
-          escapeCount === null ? 0 : 0.24 + 0.76 * Math.sqrt(escapeCount / LINKED_LIMIT);
-        const index = (y * WIDTH + x) * 4;
-        pixels.data[index] = escapeCount === null ? 16 : 245 * shade;
-        pixels.data[index + 1] = escapeCount === null ? 21 : 197 * shade;
-        pixels.data[index + 2] = escapeCount === null ? 26 : 109 * shade;
-        pixels.data[index + 3] = 255;
-      }
-    context.putImageData(pixels, 0, 0);
-  }, [mapKind, mapC, left, right, bottom, top]);
   const select = (real: number, imaginary: number) =>
     onChange({
       real: Number(Math.max(left, Math.min(right, real)).toFixed(3)),
@@ -81,7 +63,7 @@ function LinkedMap({
     <button
       type="button"
       className={styles.map}
-      aria-label={`${mapKind === "parameter" ? "Mandelbrot parameter" : "Julia starting point"} ${text(value)}. Drag or use arrow keys.`}
+      aria-label={`${mapKind === "parameter" ? "Mandelbrot parameter" : "Julia starting point"} ${text(value)}. ${outcome}Drag or use arrow keys.`}
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return;
         event.preventDefault();
@@ -117,7 +99,15 @@ function LinkedMap({
         );
       }}
     >
-      <canvas ref={canvas} width={WIDTH} height={HEIGHT} />
+      {mapKind === "parameter" ? (
+        <EscapeTimePicture
+          formula="mandelbrot"
+          bounds={BOUNDS.parameter}
+          coloring={MANDELBROT_COLORING}
+        />
+      ) : (
+        <EscapeTimePicture formula="julia" bounds={BOUNDS.start} coloring={JULIA_COLORING} c={c} />
+      )}
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
         <defs>
           <clipPath id={id}>
@@ -144,6 +134,16 @@ function LinkedMap({
               />
             ),
           )}
+          {orbit && orbit.length > 1 && (
+            <circle
+              cx={xy(orbit[orbit.length - 1])[0]}
+              cy={xy(orbit[orbit.length - 1])[1]}
+              r="4.5"
+              fill="#eee8ce"
+              stroke="#10151a"
+              strokeWidth="1.5"
+            />
+          )}
           <circle cx={point[0]} cy={point[1]} r="7" fill="none" stroke="#10151a" strokeWidth="5" />
           <circle
             cx={point[0]}
@@ -162,19 +162,33 @@ function LinkedMap({
 export default function LinkedJuliaLesson() {
   const [c, setC] = useState<ComplexPoint>({ real: -1, imaginary: 0 });
   const [start, setStart] = useState<ComplexPoint>({ real: 0.5, imaginary: 0 });
-  const [step, setStep] = useState(0);
+  // The whole route shows until a new starting point plays it from the start.
+  const [step, setStep] = useState(LINKED_LIMIT);
+  const lastPick = useRef(Number.NEGATIVE_INFINITY);
+  const reducedMotion = useReducedMotion();
   const orbit = useMemo(() => traceTeachingOrbit(c, start, false, LINKED_LIMIT), [c, start]);
   const max = orbit.length - 1;
   const shown = orbit.slice(0, Math.min(step, max) + 1);
-  const current = shown[shown.length - 1];
-  const escapeCount = quadraticEscape(c, start);
+  const end = orbit[max];
+  const outcome =
+    Math.hypot(end.point.real, end.point.imaginary) > ESCAPE_RADIUS
+      ? `Escapes after ${end.iteration} calculations. `
+      : `No escape after ${end.iteration} calculations. `;
+  useEffect(() => {
+    if (step >= max) return;
+    const timer = window.setTimeout(() => setStep(step + 1), STEP_MS);
+    return () => window.clearTimeout(timer);
+  }, [step, max]);
   const chooseC = (point: ComplexPoint) => {
     setC(point);
-    setStep(0);
+    setStep(LINKED_LIMIT);
   };
   const chooseStart = (point: ComplexPoint) => {
+    if (point.real === start.real && point.imaginary === start.imaginary) return;
+    const now = performance.now();
+    if (!reducedMotion && now - lastPick.current > SAME_DRAG_MS) setStep(0);
+    lastPick.current = now;
     setStart(point);
-    setStep(0);
   };
   return (
     <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
@@ -226,9 +240,10 @@ export default function LinkedJuliaLesson() {
             value={start}
             onChange={chooseStart}
             orbit={shown.map((item) => item.point)}
+            outcome={outcome}
           />
           <p data-selected-start={`${start.real},${start.imaginary}`}>
-            The teal ring starts at {text(start)}. Every test here adds c = {text(c)}.
+            The teal ring starts at {text(start)}. The line follows each square and add.
           </p>
           <div className={styles.coordinates}>
             {(["real", "imaginary"] as const).map((axis) => (
@@ -248,32 +263,6 @@ export default function LinkedJuliaLesson() {
           </div>
         </div>
       </div>
-      <p>
-        Now move the teal ring. The Julia picture stays the same; you are choosing which point to
-        follow. Press Next step to square it and add c, then repeat with each answer.
-      </p>
-      <LessonSteps
-        key={`${c.real}:${c.imaginary}:${start.real}:${start.imaginary}`}
-        label="Linked Julia orbit"
-        step={step}
-        max={max}
-        onChange={setStep}
-        stepDescription={`Calculation ${step} of ${max}`}
-      />
-      <p aria-live="polite" data-linked-orbit={current.iteration}>
-        After {current.iteration} calculation{current.iteration === 1 ? "" : "s"}:{" "}
-        {text(current.point)}.{" "}
-        {step > 0 &&
-          (escapeCount !== null && step >= escapeCount
-            ? "It has escaped. The rest of the route lies beyond the picture."
-            : step === max
-              ? "No escape after 96 calculations. A longer test might still find one."
-              : "Each new teal dot is the result of another square and addition.")}
-      </p>
-      <p>
-        Dark pixels have not escaped in {LINKED_LIMIT} calculations. Try Circle, Two lobes and Dust
-        to compare three choices of c.
-      </p>
       <p>
         <a href={juliaExplorerLink(c)}>Explore this Julia set</a>
       </p>

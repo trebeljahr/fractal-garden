@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import styles from "../styles/OrbitLesson.module.css";
+import { JULIA_COLORING } from "../utils/escapeTimeColoring";
 import {
   type ComplexPoint,
   ESCAPE_RADIUS,
@@ -10,6 +11,7 @@ import {
   teachingPixelEscape,
   traceTeachingOrbit,
 } from "../utils/orbitLesson";
+import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
 import { LessonSteps } from "./lessons/LessonFrame";
 
 export function isOrbitKind(value: unknown): value is OrbitKind {
@@ -144,15 +146,20 @@ function PixelMap({
         select(value.real + dx, value.imaginary + (flip ? -dy : dy));
       }}
     >
-      <canvas
-        ref={canvas}
-        width={300}
-        height={Math.round((300 * (top - bottom)) / (right - left))}
-      />
+      {kind === "julia" ? (
+        <EscapeTimePicture formula="julia" bounds={BOUNDS.julia} coloring={JULIA_COLORING} c={c} />
+      ) : (
+        <canvas
+          ref={canvas}
+          width={300}
+          height={Math.round((300 * (top - bottom)) / (right - left))}
+        />
+      )}
       <span
         className={styles.selectedPixel}
         style={{
-          backgroundColor: pixelColor(teachingPixelEscape(kind, value, c)),
+          backgroundColor:
+            kind === "julia" ? "transparent" : pixelColor(teachingPixelEscape(kind, value, c)),
           left: `${((value.real - left) / (right - left)) * 100}%`,
           top: `${((flip ? value.imaginary - bottom : top - value.imaginary) / (top - bottom)) * 100}%`,
         }}
@@ -286,8 +293,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               : "Start at zero. After each square, add the chosen pixel's coordinates."}
           </p>
           <p>
-            This image tests each pixel for {TEACHING_LIMIT} calculations. Dark pixels have not
-            escaped. Among the others, lighter pixels took longer.
+            {kind === "julia"
+              ? `Dark pixels have not escaped in ${JULIA_COLORING.iterations} calculations. The other colors show how long escape took.`
+              : `This image tests each pixel for ${TEACHING_LIMIT} calculations. Dark pixels have not escaped. Among the others, lighter pixels took longer.`}
           </p>
         </fieldset>
       </div>
@@ -407,7 +415,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               {escaped
                 ? `After ${current.iteration} calculations, the point has passed the dashed circle. From here it will keep moving farther away. The escape count sets the pixel's color.`
                 : step === frames.length - 1
-                  ? `Still inside after ${current.iteration} calculations, so this pixel stays dark. A longer test might still find an escape.`
+                  ? kind === "julia"
+                    ? `Still inside after ${current.iteration} calculations. The picture keeps testing up to ${JULIA_COLORING.iterations}.`
+                    : `Still inside after ${current.iteration} calculations, so this pixel stays dark. A longer test might still find an escape.`
                   : `The point is still inside the dashed circle. ${kind === "burning-ship" ? "Fold, square and add" : "Square and add"} again to see what happens next.`}
             </p>
           )}

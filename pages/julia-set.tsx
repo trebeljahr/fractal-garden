@@ -3,8 +3,8 @@ import { ComplexConstantControl } from "../components/ComplexConstantControl";
 import { EscapeTimeFractal } from "../components/EscapeTimeFractal";
 import { PanelSelect } from "../components/ExplorerControls";
 import {
-  createColoring,
   type EscapeTimeColoring,
+  JULIA_COLORING,
   updateColoring,
 } from "../utils/escapeTimeColoring";
 import { JULIA_PLACES, JULIA_PRESET_LABELS, JULIA_PRESETS } from "../utils/escapeTimePlaces";
@@ -29,12 +29,7 @@ const JuliaSet = ({ description }: Props) => {
     preset: "Rabbit",
     cReal: presets.Rabbit.cReal,
     cImag: presets.Rabbit.cImag,
-    ...createColoring("classic", {
-      iterations: 200,
-      colorDensity: 0.45,
-      colorOffset: 0.45,
-      interior: "#252424",
-    }),
+    ...JULIA_COLORING,
   }));
 
   const handleUpdate = (newData: Config) => {
