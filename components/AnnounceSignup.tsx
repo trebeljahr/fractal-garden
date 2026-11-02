@@ -44,8 +44,7 @@ export const AnnounceSignup = () => {
   return (
     <form className={styles.signup} onSubmit={submit} noValidate>
       <label className={styles.label} htmlFor={emailId}>
-        I make a new thing every month or two. Want one email when the next one is out? Nothing
-        else.
+        I make a new thing every month or two. Want to receive an email when the next one is out?
       </label>
       {state === "done" ? null : (
         <div className={styles.row}>
