@@ -55,9 +55,9 @@ export default function LogisticLesson() {
   return (
     <LessonFrame title="One calculation, two pictures" kind="logistic">
       <p>
-        The curve turns each starting number into the next answer. Press Next step to go to the
-        curve, then across to the diagonal. On that diagonal, height and width are equal: the answer
-        is now in place to become the next input.
+        The curve turns each starting number into the next answer. Press the next-step button to go
+        to the curve, then across to the diagonal. On that diagonal, height and width are equal: the
+        answer is now in place to become the next input.
       </p>
       <fieldset className={shared.options} aria-label="Logistic example">
         {PRESETS.map((preset) => (
@@ -137,7 +137,7 @@ export default function LogisticLesson() {
       </div>
       <p id={`${id}-summary`} aria-live="polite" aria-atomic="true">
         {step === 0
-          ? `Start at ${start.toFixed(4)}. Press Next step to calculate r × x × (1 − x).`
+          ? `Start at ${start.toFixed(4)}. Press the next-step button to calculate r × x × (1 − x).`
           : `x${step} = ${r.toFixed(2)} × ${values[step - 1].toFixed(4)} × (1 − ${values[step - 1].toFixed(4)}) = ${current.toFixed(4)}.`}{" "}
         Both amber dots show this same answer. The right graph puts the answers in order.
       </p>

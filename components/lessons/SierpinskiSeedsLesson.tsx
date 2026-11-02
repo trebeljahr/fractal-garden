@@ -124,7 +124,7 @@ export default function SierpinskiSeedsLesson() {
       </div>
       <p role="status">
         {step === 0
-          ? "These are the starting drawings. Next step replaces each picture with three half-size copies."
+          ? "These are the starting drawings. The next step replaces each picture with three half-size copies."
           : `Step ${step}: ${copies.length.toLocaleString("en-US")} copies in each view. Each copy is 1/${2 ** step} of its starting width.`}
       </p>
       <p className={styles.note}>

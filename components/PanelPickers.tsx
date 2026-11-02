@@ -21,15 +21,23 @@ export type ListboxGroup = { label?: string; options: ListboxOption[] };
 type ToggleSwitchProps = {
   checked: boolean;
   className?: string;
+  id?: string;
   labelledBy?: string;
   onChange: (checked: boolean) => void;
 };
 
-export const ToggleSwitch = ({ checked, className, labelledBy, onChange }: ToggleSwitchProps) => (
+export const ToggleSwitch = ({
+  checked,
+  className,
+  id,
+  labelledBy,
+  onChange,
+}: ToggleSwitchProps) => (
   <button
     aria-checked={checked}
     aria-labelledby={labelledBy}
     className={joinClassNames(styles.toggle, className)}
+    id={id}
     onClick={() => onChange(!checked)}
     role="switch"
     type="button"

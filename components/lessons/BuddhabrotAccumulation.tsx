@@ -172,8 +172,8 @@ export default function BuddhabrotAccumulation() {
         stepDescription={`${step * 100} other numbers tested`}
       />
       <p>
-        Now press Next step to try 100 other numbers. Their escaping routes add light in other
-        places. Squares visited more often become brighter.
+        Now press the next-step button to try 100 other numbers. Their escaping routes add light in
+        other places. Squares visited more often become brighter.
       </p>
       <p>
         Only routes that escape within 80 calculations are recorded. Visits outside the picture are

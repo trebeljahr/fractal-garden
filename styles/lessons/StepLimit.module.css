@@ -1,18 +1,44 @@
-.options {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  column-gap: 1rem;
+.picture {
+  margin-top: 1rem;
 }
 .picture canvas {
   display: block;
   width: 100%;
   height: auto;
 }
+.mode {
+  --explorer-field: var(--lesson-bg);
+  --explorer-accent: var(--lesson-accent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  width: fit-content;
+  min-height: 44px;
+  margin-top: 0.6rem;
+  cursor: pointer;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.mode > span {
+  opacity: 0.6;
+}
+.mode > .active {
+  opacity: 1;
+}
+.mode button[role="switch"] {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.mode button[aria-checked="true"]:hover:not(:disabled) {
+  background: var(--lesson-accent);
+}
 .key {
   display: grid;
   gap: 1.2rem;
-  margin-top: 1.5rem;
+  margin-top: 0.9rem;
   font:
     1.4rem / 1.4 "Montserrat",
     sans-serif;

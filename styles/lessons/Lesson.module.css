@@ -180,7 +180,15 @@
 }
 
 .controls button {
-  white-space: nowrap;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  padding: 0;
+}
+.controls button svg {
+  width: 20px;
+  background: none;
 }
 .controls button:focus-visible {
   outline: 2px solid #f5c56d;

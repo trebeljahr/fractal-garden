@@ -51,8 +51,8 @@ export default function DlaLesson() {
   return (
     <LessonFrame title="Follow one particle until it sticks" kind="dla">
       <p>
-        The cream square stays fixed. Press Next step to move the amber particle one square in a
-        random direction. Watch for its first touch.
+        The cream square stays fixed. Press the next-step button to move the amber particle one
+        square in a random direction. Watch for its first touch.
       </p>
       <fieldset className={common.options} aria-label="Random walk replay">
         {REPLAYS.map((item, index) => (

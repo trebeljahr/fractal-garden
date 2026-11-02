@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/StepLimit.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
@@ -9,6 +9,7 @@ import {
   STEP_LIMIT_VIEWS,
   type StepLimitFormula,
 } from "../../utils/lessons/stepLimit";
+import { ToggleSwitch } from "../PanelPickers";
 import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
 
@@ -22,6 +23,7 @@ export default function StepLimitLesson({ formula }: { formula: StepLimitFormula
   const [stop, setStop] = useState(view.stops.indexOf(view.start));
   const limit = view.stops[stop];
   const [blackAndWhite, setBlackAndWhite] = useState(false);
+  const id = useId();
   const base = COLORING[formula];
   const coloring = useMemo(
     () => ({ ...base, ...(blackAndWhite ? BLACK_AND_WHITE : {}), iterations: limit }),
@@ -29,44 +31,23 @@ export default function StepLimitLesson({ formula }: { formula: StepLimitFormula
   );
   return (
     <LessonFrame title="Give the computer more steps" kind={`step-limit-${formula}`}>
-      <div className={styles.options}>
-        {views.length > 1 && (
-          <div className={common.options}>
-            {views.map((option, index) => (
-              <button
-                type="button"
-                key={option.name}
-                aria-pressed={index === viewIndex}
-                onClick={() => {
-                  setViewIndex(index);
-                  setStop(option.stops.indexOf(option.start));
-                }}
-              >
-                {option.name}
-              </button>
-            ))}
-          </div>
-        )}
+      {views.length > 1 && (
         <div className={common.options}>
-          {[false, true].map((option) => (
+          {views.map((option, index) => (
             <button
               type="button"
-              key={String(option)}
-              aria-pressed={option === blackAndWhite}
-              onClick={() => setBlackAndWhite(option)}
+              key={option.name}
+              aria-pressed={index === viewIndex}
+              onClick={() => {
+                setViewIndex(index);
+                setStop(option.stops.indexOf(option.start));
+              }}
             >
-              {option ? "Black and white" : "Colors"}
+              {option.name}
             </button>
           ))}
         </div>
-      </div>
-      <div
-        className={styles.picture}
-        role="img"
-        aria-label={`${view.name} after ${limit} steps${blackAndWhite ? ", in black and white" : ""}`}
-      >
-        <EscapeTimePicture formula={formula} bounds={view.bounds} coloring={coloring} c={view.c} />
-      </div>
+      )}
       <LessonSteps
         key={view.name}
         step={stop}
@@ -76,6 +57,25 @@ export default function StepLimitLesson({ formula }: { formula: StepLimitFormula
         duration={PLAY_MS}
         stepDescription={`${limit} steps`}
       />
+      <div
+        className={styles.picture}
+        role="img"
+        aria-label={`${view.name} after ${limit} steps${blackAndWhite ? ", in black and white" : ""}`}
+      >
+        <EscapeTimePicture formula={formula} bounds={view.bounds} coloring={coloring} c={view.c} />
+      </div>
+      <label className={styles.mode} htmlFor={`${id}-switch`}>
+        <span className={blackAndWhite ? undefined : styles.active}>Colors</span>
+        <ToggleSwitch
+          id={`${id}-switch`}
+          checked={blackAndWhite}
+          labelledBy={`${id}-label`}
+          onChange={setBlackAndWhite}
+        />
+        <span id={`${id}-label`} className={blackAndWhite ? styles.active : undefined}>
+          Black and white
+        </span>
+      </label>
       <div className={styles.key}>
         <div className={styles.keyRow}>
           <span className={styles.swatch} style={{ background: coloring.interior }} />
