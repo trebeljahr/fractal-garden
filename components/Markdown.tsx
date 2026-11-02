@@ -142,6 +142,11 @@ const LinkRenderer = ({
     return <Link className="internalLink" {...props} href={href} />;
   }
 
+  // Outside pages open in a new tab so the reader keeps their place in the article.
+  if (href?.match(/^https?:/)) {
+    return <a target="_blank" rel="noopener noreferrer" {...props} />;
+  }
+
   return <a {...props} />;
 };
 
