@@ -22,6 +22,7 @@ The two methods place dots differently along the way. Changing the positive prob
 
 - [Barnsley fern — Wikipedia](https://en.wikipedia.org/wiki/Barnsley_fern)
 - [Barnsley’s fern — MathWorld](https://mathworld.wolfram.com/BarnsleysFern.html)
+- [Iterated Function Systems — Paul Bourke](https://paulbourke.net/fractals/ifs/)
 
 ## Sources and notes
 

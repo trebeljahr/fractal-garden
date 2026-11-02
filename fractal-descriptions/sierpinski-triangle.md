@@ -58,6 +58,10 @@ The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle a
 - [Sierpiński sieve — MathWorld](https://mathworld.wolfram.com/SierpinskiSieve.html)
 - [The Sierpinski Triangle — Mathigon](https://mathigon.org/course/fractals/sierpinski)
 - [Chaos Game — Numberphile](https://www.youtube.com/watch?v=kbKtFN71Lfs)
+- [Sierpinski Gasket — Larry Riddle](https://larryriddle.agnesscott.org/ifs/siertri/siertri.htm)
+- [How to compute the dimension of a fractal — Plus Magazine](https://plus.maths.org/how-compute-dimension-fractal)
+- [Binary, Hanoi and Sierpinski, part 1 — 3Blue1Brown](https://www.youtube.com/watch?v=2SUvWfNJSsM)
+- [Chaos Game — The Coding Train](https://thecodingtrain.com/challenges/123-chaos-game)
 
 ## Sources and notes
 

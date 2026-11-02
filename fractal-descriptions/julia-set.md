@@ -75,6 +75,14 @@ Last, $\nu$ sets the color. As $\nu$ rises, the color goes from dark blue throug
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
 - [Julia set — MathWorld](https://mathworld.wolfram.com/JuliaSet.html)
 - [Gaston Julia — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Julia/)
+- [Understanding Julia and Mandelbrot Sets — Karl Sims](https://www.karlsims.com/julia.html)
+- [The Julia Set — Complex Analysis](https://complex-analysis.com/content/julia_set.html)
+- [Julia Set Fractal — Paul Bourke](https://paulbourke.net/fractals/juliaset/)
+- [A History of Fractal Geometry — MacTutor](https://mathshistory.st-andrews.ac.uk/HistTopics/fractals/)
+- [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
+- [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
+- [Computing the Distance to a Julia Set — Inigo Quilez](https://iquilezles.org/articles/distancefractals/)
+- [Julia Set — The Coding Train](https://thecodingtrain.com/challenges/22-julia-set)
 
 ## Sources and notes
 

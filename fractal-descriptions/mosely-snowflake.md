@@ -17,6 +17,7 @@ You can build a model with business cards. Fold six cards into a cube, then tuck
 - [Mosely snowflake — Wikipedia](https://en.wikipedia.org/wiki/Mosely_snowflake)
 - [Menger sponge background — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
 - [The Mosely Snowflake Fractal — USC Libraries](https://libraries.usc.edu/about/events-and-exhibitions/exhibitions/mosely-snowflake-fractal)
+- [Business Card Menger Sponge — The Institute For Figuring](https://theiff.org/oexhibits/menger01.html)
 
 ## Sources and notes
 

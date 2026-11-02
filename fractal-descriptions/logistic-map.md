@@ -25,6 +25,9 @@ Near a split, answers can take a long time to settle. The picture may still incl
 - [Logistic map — Wikipedia](https://en.wikipedia.org/wiki/Logistic_map)
 - [Logistic map — MathWorld](https://mathworld.wolfram.com/LogisticMap.html)
 - [This equation will change how you see the world — Veritasium](https://www.youtube.com/watch?v=ovJcsL7vyrk)
+- [Chaos Theory and the Logistic Map — Geoff Boeing](https://geoffboeing.com/2015/03/chaos-theory-logistic-map/)
+- [Logistic Equation — Paul Bourke](https://paulbourke.net/fractals/logistic/)
+- [The Feigenbaum Constant — Numberphile](https://www.youtube.com/watch?v=ETrYE4MdoLQ)
 
 ## Sources and notes
 

@@ -16,6 +16,7 @@ Repeat the arrangement inside the smaller cubes. The little edge cubes are alrea
 
 - [Jerusalem cube — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge#Jerusalem_cube)
 - [Menger sponge background — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
+- [Cross Menger (Jerusalem) Cube Fractal — Robert Dickau](https://www.robertdickau.com/jerusalemcube.html)
 
 ## Sources and notes
 

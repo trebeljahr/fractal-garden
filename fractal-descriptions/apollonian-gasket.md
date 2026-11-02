@@ -21,6 +21,9 @@ This also explains a number pattern. Start with curvatures $-1,2,2,3$, and the r
 - [Apollonian gasket — Wikipedia](https://en.wikipedia.org/wiki/Apollonian_gasket)
 - [Apollonian gasket — MathWorld](https://mathworld.wolfram.com/ApollonianGasket.html)
 - [Apollonius of Perga — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Apollonius/)
+- [A Tisket, a Tasket, an Apollonian Gasket — American Scientist](https://www.americanscientist.org/article/a-tisket-a-tasket-an-apollonian-gasket)
+- [Apollony Fractal — Paul Bourke](https://paulbourke.net/fractals/apollony/)
+- [Apollonian Gasket — The Coding Train](https://thecodingtrain.com/challenges/182-apollonian-gasket)
 
 ## Sources and notes
 

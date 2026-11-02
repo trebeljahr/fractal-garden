@@ -24,6 +24,7 @@ Change the angle to spread the branches apart or bring them closer together. The
 - [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
 - [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
 - [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+- [Fractal Trees - L-System — The Coding Train](https://thecodingtrain.com/challenges/16-l-system-fractal-trees)
 
 ## Sources and notes
 

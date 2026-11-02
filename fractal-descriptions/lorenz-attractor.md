@@ -17,6 +17,11 @@ Lorenz developed these rules from a simplified model of heated fluid. One number
 - [Lorenz system — Wikipedia](https://en.wikipedia.org/wiki/Lorenz_system)
 - [Lorenz attractor — MathWorld](https://mathworld.wolfram.com/LorenzAttractor.html)
 - [Edward Lorenz — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Lorenz_Edward/)
+- [When the Butterfly Effect Took Flight — MIT Technology Review](https://www.technologyreview.com/2011/02/22/196987/when-the-butterfly-effect-took-flight/)
+- [Strange Attractors — Chaos: A Mathematical Adventure](https://www.chaos-math.org/en/chaos-vii-strange-attractors.html)
+- [The Lorenz Attractor in 3D — Paul Bourke](https://paulbourke.net/fractals/lorenz/)
+- [Chaos: The Science of the Butterfly Effect — Veritasium](https://www.youtube.com/watch?v=fDek6cYijxI)
+- [The Lorenz Attractor — The Coding Train](https://thecodingtrain.com/challenges/12-lorenz-attractor)
 
 ## Sources and notes
 

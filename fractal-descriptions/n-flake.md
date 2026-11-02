@@ -16,6 +16,7 @@ For hexagons, the center copy fits between the six corner copies without overlap
 
 - [N-flake — Wikipedia](https://en.wikipedia.org/wiki/N-flake)
 - [Pentaflake — MathWorld](https://mathworld.wolfram.com/Pentaflake.html)
+- [Sierpinski Pentagon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pentagon/pentagon.htm)
 
 ## Sources and notes
 

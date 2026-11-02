@@ -24,6 +24,8 @@ Each X adds three new X positions and two F steps. Each old F doubles. Try movin
 - [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
 - [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
 - [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+- [Fractal Trees - L-System — The Coding Train](https://thecodingtrain.com/challenges/16-l-system-fractal-trees)
 
 ## Sources and notes
 

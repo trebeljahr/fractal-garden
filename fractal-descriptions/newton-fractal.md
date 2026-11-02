@@ -21,6 +21,8 @@ The picture stops each calculation after 48 steps. If a guess has not reached a 
 - [Newton fractal — Wikipedia](https://en.wikipedia.org/wiki/Newton_fractal)
 - [Newton’s method — MathWorld](https://mathworld.wolfram.com/NewtonsMethod.html)
 - [Newton’s Fractal — 3Blue1Brown](https://www.3blue1brown.com/lessons/newtons-fractal/)
+- [Fractals derived from Newton-Raphson iteration — Simon Tatham](https://www.chiark.greenend.org.uk/~sgtatham/newton/)
+- [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
 
 ## Sources and notes
 

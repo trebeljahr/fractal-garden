@@ -15,6 +15,9 @@ The marked points show where the first dividing lines go. They split an edge so 
 - [Penrose tiling — Wikipedia](https://en.wikipedia.org/wiki/Penrose_tiling)
 - [Penrose tiles — MathWorld](https://mathworld.wolfram.com/PenroseTiles.html)
 - [Roger Penrose — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Penrose/)
+- [Tessellations — Mathigon](https://mathigon.org/course/polyhedra/tessellations)
+- [Penrose Tiling Explained — Jeff Preshing](https://preshing.com/20110831/penrose-tiling-explained/)
+- [The Infinite Pattern That Never Repeats — Veritasium](https://www.youtube.com/watch?v=48sCx-wBs34)
 
 ## Sources and notes
 

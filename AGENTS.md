@@ -99,6 +99,10 @@ paragraph or remove a useful construction step just to meet a word count.
   lists only pages the article does not already link, and includes the matching
   MathWorld entry when one exists. To cite a source again, reuse its footnote
   number and give each citation its own return link.
+- **Further reading** may be long, but every link must clear a high bar. Read it
+  first. It needs an identifiable expert or established publisher, real substance
+  on this construction and something the other links do not give. It must open
+  without a paywall, certificate warning or bot check. Label non-English pages.
 - Distinguish finite drawings from their limits, strokes from distinct edges,
   counted area from covered area, surfaces from enclosed solids, and similarity
   exponents from proved dimensions. State conjectures and estimates as such.

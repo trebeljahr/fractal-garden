@@ -19,6 +19,9 @@ Try changing the angle to spread the branches apart. Then move a bracket to chan
 - [L-system — Wikipedia](https://en.wikipedia.org/wiki/L-system)
 - [Lindenmayer system — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
 - [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
+- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+- [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
+- [Fractal Trees - L-System — The Coding Train](https://thecodingtrain.com/challenges/16-l-system-fractal-trees)
 
 ## Sources and notes
 
