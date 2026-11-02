@@ -6,10 +6,10 @@ import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   ATTRACTOR_BOUNDS,
   ATTRACTOR_COLORS,
-  ATTRACTOR_JUMPS,
-  attractingLoop,
+  type AttractorDots,
+  attractingOrbit,
   attractorDots,
-  BULB_LOOPS,
+  BULB_ORBITS,
   dotsAfter,
   ESCAPES,
   fateGrid,
@@ -33,14 +33,14 @@ const ASPECT = (TOP - BOTTOM) / (RIGHT - LEFT);
 const QUICK_COLUMNS = 150;
 const SHARPEST_COLUMNS = 640;
 const SHARPEN_AFTER_MS = 120;
-// Labels, the written loop, arrows and lines stop being readable past these many places.
+// Labels, the written orbit, arrows and lines stop being readable past these many places.
 const MOST_LABELS = 5;
 const MOST_WRITTEN = 6;
 const MOST_ARROWS = 8;
 const MOST_LINES = 32;
-// The first jumps move the most, so they play slowly enough to follow. Once the dots
-// have joined the loop, it plays slowly enough to follow them around it.
-const hopMs = (step: number) => (step <= 6 ? 620 : step <= ATTRACTOR_JUMPS ? 150 : 520);
+// The first jumps move the most, so they play slowly enough to follow. Later ones change
+// little, so each one goes faster than the last.
+const hopMs = (step: number) => (step <= 6 ? 620 : Math.max(40, 620 * 0.8 ** (step - 6)));
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -50,13 +50,13 @@ function number(value: number, digits: number) {
 function coordinates(point: ComplexPoint, digits = 5) {
   return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
 }
-function orbitText(loop: ComplexPoint[] | null) {
-  if (!loop) return "No attractor found";
-  if (loop.length === 1) return `Fixed point: ${coordinates(loop[0])}`;
-  if (loop.length > MOST_WRITTEN) return `Loop of ${loop.length} places`;
-  return `Loop: ${[...loop, loop[0]].map((place) => coordinates(place)).join(" → ")} → …`;
+function orbitText(orbit: ComplexPoint[] | null) {
+  if (!orbit) return "No attractor found";
+  if (orbit.length === 1) return `Fixed point: ${coordinates(orbit[0])}`;
+  if (orbit.length > MOST_WRITTEN) return `Orbit of ${orbit.length} places`;
+  return `Orbit: ${[...orbit, orbit[0]].map((place) => coordinates(place)).join(" → ")} → …`;
 }
-// More colors than the palette holds would need repeats, so a long loop shares one color.
+// More colors than the palette holds would need repeats, so a long orbit shares one color.
 function fateColor(fate: number, places: number) {
   if (fate === ESCAPES) return ESCAPING_DOT;
   return fate < 0 || places > ATTRACTOR_COLORS.length ? INK : ATTRACTOR_COLORS[fate];
@@ -65,17 +65,17 @@ function fateColor(fate: number, places: number) {
 function paintStarts(
   canvas: HTMLCanvasElement,
   c: ComplexPoint,
-  loop: ComplexPoint[] | null,
+  orbit: ComplexPoint[] | null,
   columns: number,
 ) {
   const context = canvas.getContext("2d");
   if (!context) return;
   const rows = Math.round(columns * ASPECT);
-  const fates = fateGrid(c, loop, columns, rows);
+  const fates = fateGrid(c, orbit, columns, rows);
   canvas.width = columns;
   canvas.height = rows;
   const image = context.createImageData(columns, rows);
-  const places = loop?.length ?? 0;
+  const places = orbit?.length ?? 0;
   const channels = (hex: string) =>
     [1, 3, 5].map((at) => Number.parseInt(hex.slice(at, at + 2), 16));
   const lookup = new Map<number, number[]>();
@@ -93,21 +93,20 @@ function paintStarts(
 }
 
 type Frame = {
-  loop: ComplexPoint[] | null;
-  colors: Int16Array;
+  orbit: ComplexPoint[] | null;
+  dots: AttractorDots;
   step: number;
   positions: Float64Array;
   previous: Float64Array;
-  landedOn: Int16Array;
-  landedBefore: Int16Array;
-  onPlace: number[];
+  joined: number;
   moving: number;
 };
 
 function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
   const context = canvas.getContext("2d");
   if (!context) return;
-  const { loop, colors, step, positions, previous, onPlace } = frame;
+  const { orbit, dots, step, positions, previous } = frame;
+  const { colors, arrivals } = dots;
   const scale = window.devicePixelRatio || 1;
   const width = Math.round(canvas.clientWidth * scale);
   const height = Math.round(canvas.clientHeight * scale);
@@ -135,18 +134,17 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
     }
   }
 
-  const places = loop?.length ?? 0;
+  const places = orbit?.length ?? 0;
   const pixel = (place: ComplexPoint) => ({ x: px(place.real), y: py(place.imaginary) });
-  // The loop itself. It firms up as dots join it.
-  const joined = onPlace.reduce((sum, count) => sum + count, 0);
-  if (loop && joined && places > 1 && places <= MOST_LINES) {
-    context.globalAlpha = 0.3 + (0.7 * joined) / (joined + frame.moving);
+  // The orbit itself. It firms up as dots join it.
+  if (orbit && frame.joined && places > 1 && places <= MOST_LINES) {
+    context.globalAlpha = 0.3 + (0.7 * frame.joined) / (frame.joined + frame.moving);
     context.strokeStyle = ORBIT;
     context.fillStyle = ORBIT;
     context.lineWidth = 1.5 * scale;
-    loop.forEach((place, index) => {
+    orbit.forEach((place, index) => {
       const from = pixel(place);
-      const to = pixel(loop[(index + 1) % places]);
+      const to = pixel(orbit[(index + 1) % places]);
       const bend = jumpControl(from, to);
       context.beginPath();
       context.moveTo(from.x, from.y);
@@ -166,8 +164,8 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
     context.globalAlpha = 1;
   }
 
-  // A dot on the loop joins its bunch, which is drawn once and travels along the loop.
-  const landed = t < 1 ? frame.landedBefore : frame.landedOn;
+  // A dot on the orbit joins its bunch, which is drawn once and travels along the orbit.
+  const joinedBy = t < 1 ? step - 1 : step;
   const radius = Math.max(1.3, canvas.clientWidth / 340) * scale;
   const bunches = new Array<number>(places).fill(0);
   for (const fate of Array.from(new Set(colors))) {
@@ -175,7 +173,7 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
     context.beginPath();
     for (let dot = 0; dot < colors.length; dot++) {
       if (colors[dot] !== fate) continue;
-      if (landed[dot] >= 0) {
+      if (fate >= 0 && arrivals[dot] <= joinedBy) {
         bunches[fate]++;
         continue;
       }
@@ -189,91 +187,80 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
     }
     context.fill();
   }
-  if (!loop) return;
+  if (!orbit) return;
   bunches.forEach((count, color) => {
     if (!count) return;
-    const to = pixel(loop[(color + step) % places]);
-    const from = pixel(loop[(color + Math.max(0, step - 1)) % places]);
+    const to = pixel(orbit[(color + step) % places]);
+    const from = pixel(orbit[(color + Math.max(0, step - 1)) % places]);
     const at = jumpPoint(from, jumpControl(from, to), to, t);
     context.fillStyle = fateColor(color, places);
     context.beginPath();
     context.arc(at.x, at.y, Math.min(7, 2.5 + 0.14 * Math.sqrt(count)) * scale, 0, Math.PI * 2);
     context.fill();
   });
-  if (places > MOST_LABELS) return;
+  if (places > MOST_LABELS || !frame.joined) return;
+  // Each label sits on the far side of its place from the middle of the orbit, clear of the lines.
+  const middle = {
+    x: orbit.reduce((sum, place) => sum + px(place.real), 0) / places,
+    y: orbit.reduce((sum, place) => sum + py(place.imaginary), 0) / places,
+  };
   context.font = `600 ${12 * scale}px Montserrat, sans-serif`;
   context.lineWidth = 3 * scale;
   context.strokeStyle = BACKGROUND;
   context.fillStyle = INK;
-  loop.forEach((place, index) => {
-    if (!onPlace[index]) return;
+  const gap = 12 * scale;
+  orbit.forEach((place) => {
     const label = coordinates(place);
-    const fits = px(place.real) + context.measureText(label).width + 24 * scale < width;
-    context.textAlign = fits ? "left" : "right";
-    const x = px(place.real) + (fits ? 12 : -12) * scale;
-    const y = py(place.imaginary) - 10 * scale;
-    context.strokeText(label, x, y);
-    context.fillText(label, x, y);
+    const { x, y } = pixel(place);
+    const room = context.measureText(label).width + 2 * gap;
+    const left = x < middle.x ? x > room : x + room > width;
+    context.textAlign = left ? "right" : "left";
+    const textX = x + (left ? -gap : gap);
+    const textY = y + (y > middle.y ? gap + 10 * scale : -gap);
+    context.strokeText(label, textX, textY);
+    context.fillText(label, textX, textY);
   });
   context.textAlign = "left";
 }
 
 export default function JuliaAttractorLesson() {
   const [c, setC] = useState<ComplexPoint>(RABBIT);
-  const [motion, setMotion] = useState({ step: 0, animate: false, furthest: ATTRACTOR_JUMPS });
+  const [motion, setMotion] = useState({ step: 0, animate: false });
   const starts = useRef<HTMLCanvasElement>(null);
   const dotsCanvas = useRef<HTMLCanvasElement>(null);
-  const lastFrame = useRef<{ dots: Float64Array; step: number; positions: Float64Array } | null>(
-    null,
-  );
   const reduced = useReducedMotion();
-  const { step, animate, furthest } = motion;
-  const field = useMemo(() => {
-    const loop = attractingLoop(c);
-    return { loop, ...attractorDots(c, loop) };
+  const { orbit, dots } = useMemo(() => {
+    const found = attractingOrbit(c);
+    return { orbit: found, dots: attractorDots(c, found) };
   }, [c]);
-  const { loop } = field;
-  const goTo = (next: number) =>
-    setMotion({
-      step: next,
-      animate: next === step + 1 && !reduced,
-      furthest: Math.max(furthest, next + 1),
-    });
-  // The orbit never ends, so playing has no last jump. Pausing or scrolling away stops it.
-  const playback = useLessonPlayback(step, Number.POSITIVE_INFINITY, goTo, hopMs(step + 1) + 40);
+  const { lastJump } = dots;
+  // A pick of c shows the end of its run, whichever jump that turns out to be.
+  const step = Math.min(motion.step, lastJump);
+  const animate = motion.animate && step === motion.step;
+  const goTo = (next: number) => setMotion({ step: next, animate: next === step + 1 && !reduced });
+  const playback = useLessonPlayback(step, lastJump, goTo, hopMs(step + 1) * 1.1);
   const frame = useMemo(() => {
-    const last = lastFrame.current;
-    const before =
-      last?.dots === field.starts && last.step === step - 1
-        ? last.positions
-        : animate
-          ? dotsAfter(c, field.starts, step - 1)
-          : null;
-    const positions = before ? dotsAfter(c, before, 1) : dotsAfter(c, field.starts, step);
-    lastFrame.current = { dots: field.starts, step, positions };
-    const previous = animate && before ? before : positions;
-    const tally = tallyDots(c, positions, loop);
+    const positions = dotsAfter(c, dots, orbit, step);
     return {
-      ...tally,
-      loop,
-      colors: field.colors,
+      ...tallyDots(dots, step),
+      orbit,
+      dots,
       step,
       positions,
-      previous,
-      landedBefore: animate ? tallyDots(c, previous, loop).landedOn : tally.landedOn,
+      previous: animate ? dotsAfter(c, dots, orbit, step - 1) : positions,
     };
-  }, [c, field, loop, step, animate]);
+  }, [c, dots, orbit, step, animate]);
 
   useEffect(() => {
     const canvas = starts.current;
     if (!canvas) return;
-    paintStarts(canvas, c, loop, QUICK_COLUMNS);
+    paintStarts(canvas, c, orbit, QUICK_COLUMNS);
     const timer = window.setTimeout(() => {
       const scale = window.devicePixelRatio || 1;
-      paintStarts(canvas, c, loop, Math.min(SHARPEST_COLUMNS, canvas.clientWidth * scale));
+      paintStarts(canvas, c, orbit, Math.min(SHARPEST_COLUMNS, canvas.clientWidth * scale));
     }, SHARPEN_AFTER_MS);
     return () => window.clearTimeout(timer);
-  }, [c, loop]);
+  }, [c, orbit]);
   useEffect(() => {
     const canvas = dotsCanvas.current;
     if (!canvas) return;
@@ -292,14 +279,13 @@ export default function JuliaAttractorLesson() {
     };
   }, [frame, animate]);
 
-  const places = loop?.length ?? 0;
-  const orbit = orbitText(loop);
-  const joinedDots = frame.onPlace.reduce((sum, count) => sum + count, 0);
+  const places = orbit?.length ?? 0;
+  const orbitLine = orbitText(orbit);
   return (
     <LessonFrame title="Where each point's orbit goes" kind="julia-attractor">
       <LessonStepControls
         step={step}
-        max={Math.max(ATTRACTOR_JUMPS, furthest)}
+        max={lastJump}
         playback={playback}
         label="Points"
         stepDescription={step === 0 ? "Start" : `Jump ${step}`}
@@ -314,11 +300,10 @@ export default function JuliaAttractorLesson() {
               value={c}
               onChange={(point) => {
                 setC(pickBulb(point));
-                playback.change(ATTRACTOR_JUMPS);
-                setMotion({ step: ATTRACTOR_JUMPS, animate: false, furthest: ATTRACTOR_JUMPS });
+                playback.change(Number.POSITIVE_INFINITY);
               }}
               onRelease={playback.play}
-              overlay={BULB_LOOPS.map(({ places: count, at }) => {
+              overlay={BULB_ORBITS.map(({ places: count, at }) => {
                 const [x, y] = parameterPixel(at);
                 return (
                   <text
@@ -339,7 +324,7 @@ export default function JuliaAttractorLesson() {
             <canvas
               ref={starts}
               role="img"
-              aria-label={`Starting points colored by their turn on the loop, for c = ${coordinates(c, 3)}. ${orbit}.`}
+              aria-label={`Starting points colored by their turn on the orbit, for c = ${coordinates(c, 3)}. ${orbitLine}.`}
             />
           </div>
         </div>
@@ -349,14 +334,14 @@ export default function JuliaAttractorLesson() {
             <canvas
               ref={dotsCanvas}
               role="img"
-              aria-label={`The points after ${step} jumps. ${frame.escaped} have escaped, ${joinedDots} are on the loop and ${frame.moving} are still on the way.`}
+              aria-label={`The points after ${step} jumps. ${frame.escaped} have escaped, ${frame.joined} are on the orbit and ${frame.moving} are still on the way.`}
             />
           </div>
           <div className={styles.key}>
-            <p data-attractor-places={places}>{orbit}</p>
+            <p data-attractor-places={places}>{orbitLine}</p>
             <table>
               <tbody>
-                {loop && (
+                {orbit && (
                   <tr>
                     <td>
                       {places <= ATTRACTOR_COLORS.length ? (
@@ -370,9 +355,9 @@ export default function JuliaAttractorLesson() {
                       ) : (
                         <span className={styles.swatch} style={{ background: INK }} />
                       )}
-                      {places === 1 ? "On the fixed point" : "On the loop"}
+                      {places === 1 ? "On the fixed point" : "On the orbit"}
                     </td>
-                    <td>{joinedDots}</td>
+                    <td>{frame.joined}</td>
                   </tr>
                 )}
                 <tr>

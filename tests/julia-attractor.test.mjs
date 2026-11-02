@@ -2,10 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JULIA_PRESETS } from "../utils/escapeTimePlaces.ts";
 import {
-  ATTRACTOR_JUMPS,
-  attractingLoop,
+  attractingOrbit,
   attractorDots,
-  BULB_LOOPS,
+  BULB_ORBITS,
   dotsAfter,
   ESCAPES,
   fateOf,
@@ -18,16 +17,16 @@ const near = (a, b, tolerance = 1e-4) =>
   Math.hypot(a.real - b.real, a.imaginary - b.imaginary) < tolerance;
 
 test("following zero finds the attractor, listed in jump order from zero", () => {
-  const circle = attractingLoop({ real: 0, imaginary: 0 });
+  const circle = attractingOrbit({ real: 0, imaginary: 0 });
   assert.equal(circle.length, 1);
   assert.ok(near(circle[0], { real: 0, imaginary: 0 }));
 
-  const two = attractingLoop({ real: -1, imaginary: 0 });
+  const two = attractingOrbit({ real: -1, imaginary: 0 });
   assert.equal(two.length, 2);
   assert.ok(near(two[0], { real: 0, imaginary: 0 }));
   assert.ok(near(two[1], { real: -1, imaginary: 0 }));
 
-  const three = attractingLoop(RABBIT);
+  const three = attractingOrbit(RABBIT);
   assert.equal(three.length, 3);
   assert.ok(near(three[0], { real: 0, imaginary: 0 }));
   assert.ok(near(three[1], RABBIT));
@@ -36,7 +35,7 @@ test("following zero finds the attractor, listed in jump order from zero", () =>
 
 test("inside the heart the attractor is one fixed point, and it need not be zero", () => {
   const c = { real: -0.1, imaginary: 0.3 };
-  const [place, ...rest] = attractingLoop(c);
+  const [place, ...rest] = attractingOrbit(c);
   assert.equal(rest.length, 0);
   assert.ok(Math.hypot(place.real, place.imaginary) > 0.1);
   const next = {
@@ -46,51 +45,104 @@ test("inside the heart the attractor is one fixed point, and it need not be zero
   assert.ok(near(place, next, 1e-9));
 });
 
-test("no attractor when zero escapes or lands on a loop that pushes points away", () => {
-  assert.equal(attractingLoop({ real: 0.2501, imaginary: 0 }), null);
-  assert.equal(attractingLoop({ real: 0, imaginary: 1 }), null);
-  assert.equal(attractingLoop({ real: -2, imaginary: 0 }), null);
+test("no attractor when zero escapes or lands on an orbit that pushes points away", () => {
+  assert.equal(attractingOrbit({ real: 0.2501, imaginary: 0 }), null);
+  assert.equal(attractingOrbit({ real: 0, imaginary: 1 }), null);
+  assert.equal(attractingOrbit({ real: -2, imaginary: 0 }), null);
 });
 
 test("each bulb number matches the attractor at that bulb's center", () => {
-  for (const { places, c } of BULB_LOOPS) {
-    assert.equal(attractingLoop(c)?.length, places, `${c.real} ${c.imaginary}`);
+  for (const { places, c } of BULB_ORBITS) {
+    assert.equal(attractingOrbit(c)?.length, places, `${c.real} ${c.imaginary}`);
   }
 });
 
 test("a pick on a number beside a small bulb chooses that bulb", () => {
-  const four = BULB_LOOPS.find(({ at }) => at.real === 0.35 && at.imaginary === 0.6);
+  const four = BULB_ORBITS.find(({ at }) => at.real === 0.35 && at.imaginary === 0.6);
   assert.deepEqual(pickBulb({ real: 0.36, imaginary: 0.59 }), four.c);
   const open = { real: -0.1, imaginary: 0.3 };
   assert.equal(pickBulb(open), open);
 });
 
-test("every Rabbit dot escapes or joins the loop at the turn its color says", () => {
-  const loop = attractingLoop(RABBIT);
-  const { starts, colors } = attractorDots(RABBIT, loop);
+const follow = (x, y, c, jumps) => {
+  let [u, v] = [x, y];
+  for (let step = 0; step < jumps; step++) {
+    [u, v] = [u * u - v * v + c.real, 2 * u * v + c.imaginary];
+    if (Math.hypot(u, v) > 1e6) return { real: Number.NaN, imaginary: Number.NaN };
+  }
+  return { real: u, imaginary: v };
+};
+
+test("every Rabbit dot escapes or joins the orbit at the turn its color says", () => {
+  const orbit = attractingOrbit(RABBIT);
+  const dots = attractorDots(RABBIT, orbit);
   const jumps = 601;
-  const { landedOn, moving, escaped, onPlace } = tallyDots(
-    RABBIT,
-    dotsAfter(RABBIT, starts, jumps),
-    loop,
-  );
-  assert.equal(moving, 0);
-  assert.equal(escaped + onPlace.reduce((sum, count) => sum + count, 0), colors.length);
-  for (let dot = 0; dot < colors.length; dot++) {
-    if (colors[dot] === ESCAPES) assert.equal(landedOn[dot], -1);
-    else assert.equal((((landedOn[dot] - jumps) % 3) + 3) % 3, colors[dot], `dot ${dot}`);
+  for (let dot = 0; dot < dots.colors.length; dot++) {
+    const point = follow(dots.starts[dot * 2], dots.starts[dot * 2 + 1], RABBIT, jumps);
+    if (dots.colors[dot] === ESCAPES) assert.ok(Number.isNaN(point.real), `dot ${dot}`);
+    else assert.ok(near(point, orbit[(dots.colors[dot] + jumps) % 3], 1e-6), `dot ${dot}`);
   }
 });
 
-test("the demo's last jump leaves almost no Rabbit dot still moving", () => {
-  const loop = attractingLoop(RABBIT);
-  const { starts, colors } = attractorDots(RABBIT, loop);
-  const { moving } = tallyDots(RABBIT, dotsAfter(RABBIT, starts, ATTRACTOR_JUMPS), loop);
-  assert.ok(moving <= colors.length / 1000, `${moving} of ${colors.length}`);
+test("dots skip calculating once settled, and still match following them every jump", () => {
+  const orbit = attractingOrbit(RABBIT);
+  const dots = attractorDots(RABBIT, orbit);
+  for (const jumps of [0, 1, 7, 40, dots.lastJump, dots.lastJump + 500]) {
+    const positions = dotsAfter(RABBIT, dots, orbit, jumps);
+    for (let dot = 0; dot < dots.colors.length; dot++) {
+      if (dots.colors[dot] === ESCAPES && dots.arrivals[dot] < jumps) {
+        assert.ok(Number.isNaN(positions[dot * 2]));
+        continue;
+      }
+      const point = follow(dots.starts[dot * 2], dots.starts[dot * 2 + 1], RABBIT, jumps);
+      const shown = { real: positions[dot * 2], imaginary: positions[dot * 2 + 1] };
+      // A dot counts as joined within 0.001 of a place, and the next jumps can stretch that gap a little.
+      assert.ok(near(point, shown, 5e-3), `dot ${dot} jump ${jumps}`);
+    }
+  }
+});
+
+test("a run stops on the first jump with every dot on the orbit or escaped", () => {
+  const orbit = attractingOrbit(RABBIT);
+  const dots = attractorDots(RABBIT, orbit);
+  const end = tallyDots(dots, dots.lastJump);
+  assert.equal(end.moving, 0);
+  assert.equal(end.joined + end.escaped, dots.colors.length);
+  assert.ok(tallyDots(dots, dots.lastJump - 1).moving > 0);
+  assert.ok(dots.lastJump < 300);
+});
+
+test("a run still ends when some dots never settle", () => {
+  for (const c of [
+    { real: 0.25, imaginary: 0 },
+    { real: -0.390541, imaginary: -0.586788 },
+  ]) {
+    const dots = attractorDots(c, attractingOrbit(c));
+    assert.ok(tallyDots(dots, dots.lastJump).moving > 0);
+    assert.ok(dots.lastJump <= 300);
+  }
+});
+
+test("a dot on the orbit lands on a different place every jump", () => {
+  const orbit = attractingOrbit(RABBIT);
+  const dots = attractorDots(RABBIT, orbit);
+  const dot = dots.colors.findIndex((color) => color !== ESCAPES);
+  const visited = [];
+  for (let jumps = 300; jumps < 306; jumps++) {
+    const positions = dotsAfter(RABBIT, dots, orbit, jumps);
+    visited.push(
+      orbit.findIndex((place) =>
+        near(place, { real: positions[dot * 2], imaginary: positions[dot * 2 + 1] }),
+      ),
+    );
+  }
+  assert.equal(new Set(visited).size, 3);
+  for (let jump = 3; jump < 6; jump++) assert.equal(visited[jump], visited[jump - 3]);
+  for (let jump = 1; jump < 6; jump++) assert.notEqual(visited[jump], visited[jump - 1]);
 });
 
 test("three colors meet where three Rabbit lobes join", () => {
-  const loop = attractingLoop(RABBIT);
+  const loop = attractingOrbit(RABBIT);
   for (const joint of [
     [-0.27634, 0.47973],
     [0.27634, -0.47973],
@@ -112,9 +164,9 @@ test("three colors meet where three Rabbit lobes join", () => {
 
 test("outside the Mandelbrot set no dot stays", () => {
   const c = { real: 0.4, imaginary: 0.4 };
-  const { starts, colors } = attractorDots(c, null);
-  const { escaped } = tallyDots(c, dotsAfter(c, starts, 400), null);
-  assert.equal(escaped, colors.length);
+  const dots = attractorDots(c, null);
+  const { escaped } = tallyDots(dots, dots.lastJump);
+  assert.equal(escaped, dots.colors.length);
 });
 
 test("the article's numbers for the Rabbit", () => {
@@ -122,7 +174,7 @@ test("the article's numbers for the Rabbit", () => {
     real: real ** 2 - imaginary ** 2 + RABBIT.real,
     imaginary: 2 * real * imaginary + RABBIT.imaginary,
   });
-  const [center] = attractingLoop(RABBIT);
+  const [center] = attractingOrbit(RABBIT);
   // A point 0.1 from the place at zero, after each trip of three jumps.
   let point = { real: center.real + 0.1, imaginary: center.imaginary };
   const distances = [];
@@ -143,7 +195,7 @@ test("the article's numbers for the Rabbit", () => {
   assert.ok(Math.hypot(back.real, back.imaginary) < 0.00001);
 
   // Most points reach a value that repeats exactly, to the last stored digit, in about 30 jumps.
-  const { starts, colors } = attractorDots(RABBIT, attractingLoop(RABBIT));
+  const { starts, colors } = attractorDots(RABBIT, attractingOrbit(RABBIT));
   const repeatAt = [];
   for (let dot = 0; dot < colors.length; dot++) {
     if (colors[dot] === ESCAPES) continue;
@@ -164,19 +216,4 @@ test("the article's numbers for the Rabbit", () => {
   repeatAt.sort((a, b) => a - b);
   const median = repeatAt[repeatAt.length >> 1];
   assert.ok(median >= 20 && median <= 40, `median ${median}`);
-});
-
-test("a dot on the loop keeps moving: it lands on a different place every jump", () => {
-  const loop = attractingLoop(RABBIT);
-  const { starts, colors } = attractorDots(RABBIT, loop);
-  const dot = colors.findIndex((color) => color !== ESCAPES);
-  const seen = [];
-  let positions = dotsAfter(RABBIT, starts, 300);
-  for (let jump = 0; jump < 6; jump++) {
-    seen.push(tallyDots(RABBIT, positions, loop).landedOn[dot]);
-    positions = dotsAfter(RABBIT, positions, 1);
-  }
-  assert.equal(new Set(seen).size, 3);
-  for (let jump = 3; jump < 6; jump++) assert.equal(seen[jump], seen[jump - 3]);
-  for (let jump = 1; jump < 6; jump++) assert.notEqual(seen[jump], seen[jump - 1]);
 });
