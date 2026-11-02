@@ -16,7 +16,7 @@ The edges of the removed squares are retained. The outside border is also retain
 
 The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. Each outside face of the sponge has this carpet pattern.
 
-## Further reading
+## Further exploring
 
 - [Sierpiński carpet — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_carpet)
 - [Sierpiński carpet — MathWorld](https://mathworld.wolfram.com/SierpinskiCarpet.html)

@@ -36,7 +36,7 @@ $$
 
 The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with. Starting at $x=\frac12$ in one is starting at $z=0$ in the other.<sup><a id="buddhabrot-ref-4" href="#buddhabrot-source-4">4</a></sup>
 
-## Further reading
+## Further exploring
 
 - [Buddhabrot — Wikipedia](https://en.wikipedia.org/wiki/Buddhabrot)
 - [Buddhabrot — MathWorld](https://mathworld.wolfram.com/Buddhabrot.html)

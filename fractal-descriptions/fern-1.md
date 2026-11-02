@@ -19,7 +19,8 @@ The brackets inside brackets repeat that process within a branch. Every X adds f
 
 Change the angle to spread the branches apart or bring them closer together. The letter rules stay the same.
 
-## Further reading
+## Further exploring
+
 - [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 

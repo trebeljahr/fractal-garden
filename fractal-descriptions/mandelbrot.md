@@ -42,14 +42,20 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 
 <figure data-lesson="linked-julia"></figure>
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
+- [Mandelbrot Set — The Coding Train](https://www.youtube.com/watch?v=6z7GQewK-Ks)
+
+### Reading
+
 - [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)
 - [Mandelbrot set — MathWorld](https://mathworld.wolfram.com/MandelbrotSet.html)
 - [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
 - [The Quest to Decode the Mandelbrot Set — Quanta Magazine](https://www.quantamagazine.org/the-quest-to-decode-the-mandelbrot-set-maths-famed-fractal-20240126/)
 - [The Encyclopedia of the Mandelbrot Set — Mu-Ency](https://mrob.com/pub/muency.html)
-- [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
-- [Mandelbrot Set — The Coding Train](https://www.youtube.com/watch?v=6z7GQewK-Ks)
 
 ## Sources and notes
 

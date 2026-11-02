@@ -16,7 +16,8 @@ An edge covered by another square is inside the shape, so it doesn't count towar
 
 Use outlines to see the individual squares, including the parts hidden in a filled drawing.
 
-## Further reading
+## Further exploring
+
 - [T-square fractal — Wikipedia](https://en.wikipedia.org/wiki/T-square_(fractal))
 
 ## Sources and notes

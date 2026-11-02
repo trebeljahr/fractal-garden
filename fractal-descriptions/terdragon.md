@@ -14,7 +14,7 @@ The replacement also changes the overall direction between the endpoints by 30 d
 
 Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-system/dragon-curve) instead uses two new lines and 90-degree turns.
 
-## Further reading
+## Further exploring
 
 - [Terdragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Terdragon)
 - [Terdragon — MathWorld](https://mathworld.wolfram.com/Terdragon.html)

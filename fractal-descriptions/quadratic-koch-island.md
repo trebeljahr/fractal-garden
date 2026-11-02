@@ -20,7 +20,8 @@ F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
 
 F draws forward. Plus and minus turn in opposite directions.
 
-## Further reading
+## Further exploring
+
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 
 ## Sources and notes

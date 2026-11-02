@@ -14,7 +14,7 @@ In the infinite limit, the two versions are rotated and scaled copies of one ano
 
 The [3D version](/vicsek-fractal-3d) produces the plus-shaped pattern as a straight-on shadow. Its front, middle and back cubes overlap in the center of that shadow, while four other cubes form the arms.
 
-## Further reading
+## Further exploring
 
 - [Vicsek fractal — Wikipedia](https://en.wikipedia.org/wiki/Vicsek_fractal)
 - [Box fractal — MathWorld](https://mathworld.wolfram.com/BoxFractal.html)

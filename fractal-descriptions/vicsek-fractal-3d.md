@@ -12,7 +12,8 @@ Look straight along one arm. The front cube hides the center and back cubes, so 
 
 <figure data-projection="vicsek"></figure>
 
-## Further reading
+## Further exploring
+
 - [Three-dimensional Vicsek fractal — Wikipedia](https://en.wikipedia.org/wiki/Vicsek_fractal#Analogues_in_higher_dimensions)
 - [Greek Cross Fractal in 2D and 3D — Robert Dickau](https://www.robertdickau.com/greekcross.html)
 

@@ -18,12 +18,18 @@ The outline keeps getting longer without limit, while the area inside approaches
 
 Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake). They now remove area, while the outline still gets longer.
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [Koch Fractal Snowflake — The Coding Train](https://www.youtube.com/watch?v=X8bXDKqMsXE)
+
+### Reading
+
 - [Koch snowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
 - [Koch snowflake — MathWorld](https://mathworld.wolfram.com/KochSnowflake.html)
 - [Koch Snowflake — Larry Riddle](https://larryriddle.agnesscott.org/ifs/ksnow/ksnow.htm)
 - [The Koch curve — The Nature of Code](https://natureofcode.com/fractals/#the-koch-curve)
-- [Koch Fractal Snowflake — The Coding Train](https://www.youtube.com/watch?v=X8bXDKqMsXE)
 
 ## Sources and notes
 

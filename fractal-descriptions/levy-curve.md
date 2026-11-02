@@ -14,7 +14,7 @@ The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It chan
 
 This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus signs make the right angle between the new lines.
 
-## Further reading
+## Further exploring
 
 - [Lévy C curve — Wikipedia](https://en.wikipedia.org/wiki/L%C3%A9vy_C_curve)
 - [Lévy fractal — MathWorld](https://mathworld.wolfram.com/LevyFractal.html)

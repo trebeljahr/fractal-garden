@@ -20,7 +20,8 @@ Zoom along a mast to find smaller ship-shaped regions. At their centers, the cal
 
 Look between the smaller ships for thin, branching shapes that resemble [Julia sets](/julia-set). These are called **embedded quasi-Julia sets**.<sup><a id="burning-ship-ref-5" href="#burning-ship-source-1">1</a></sup> **Places to explore** includes three views from Heiland-Allen’s gallery under **Embedded Julia shapes**.<sup><a id="burning-ship-ref-6" href="#burning-ship-source-4">4</a></sup>
 
-## Further reading
+## Further exploring
+
 - [Burning Ship fractal — Wikipedia](https://en.wikipedia.org/wiki/Burning_Ship_fractal)
 - [Burning Ship fractal — MathWorld](https://mathworld.wolfram.com/BurningShipFractal.html)
 

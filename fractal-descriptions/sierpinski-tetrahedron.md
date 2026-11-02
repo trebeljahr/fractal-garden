@@ -10,7 +10,7 @@ The holes don't always appear in a shadow. From one direction, the shadow is a f
 
 <figure data-projection="tetrahedron"></figure>
 
-## Further reading
+## Further exploring
 
 - [Sierpiński tetrahedron — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle#Analogues_in_higher_dimensions)
 - [Tetrix — MathWorld](https://mathworld.wolfram.com/Tetrix.html)

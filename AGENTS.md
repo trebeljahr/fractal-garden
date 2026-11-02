@@ -95,16 +95,20 @@ paragraph or remove a useful construction step just to meet a word count.
   or “Diagram construction”. If the article already shows the calculation, do
   not repeat its provenance in a footnote. Label general-method references as
   background and place them beside the method, not beside this site's numbers.
-- Link each outside page once per article (Rico, 2026-11-03). **Further reading**
+- Link each outside page once per article (Rico, 2026-11-03). **Further exploring**
   lists only pages the article does not already link, and includes the matching
   MathWorld entry when one exists. To cite a source again, reuse its footnote
   number and give each citation its own return link.
-- Every **Further reading** link must clearly be more reading about this fractal
-  (Rico, 2026-11-03). Biographies, histories of fractals, general fractal or method
-  pages and pages about a neighboring shape do not belong. A parent page counts only
-  if it covers this variant. A general L-system or IFS page does not count because
-  this rule appears somewhere on it; link the matching page on this site instead.
-- Further reading has no fixed length, but it must not feel like too much. Drop a
+- When **Further exploring** has both videos and text, split it under `### Videos`
+  and then `### Reading` (Rico, 2026-11-03). With only one kind, use no subheading.
+- Every **Further exploring** link must clearly be more about this fractal (Rico,
+  2026-11-03). Biographies, histories of fractals and general fractal or method
+  pages do not belong. A page named for a neighboring shape counts only if it spends
+  real time on this one, as Numberphile's Mandelbrot video and Mathigon's Mandelbrot
+  lesson do for Julia sets. A parent page counts only if it covers this variant. A
+  general L-system or IFS page does not count because this rule appears somewhere
+  on it; link the matching page on this site instead.
+- Further exploring has no fixed length, but it must not feel like too much. Drop a
   link that repeats another. A short list is fine, and so is no section.
 - Prefer links that will stay up: Wikipedia, MathWorld, arXiv, established
   publishers, universities and long-running sites of known authors. Skip small

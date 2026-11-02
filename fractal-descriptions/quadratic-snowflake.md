@@ -14,7 +14,8 @@ The rule is `F → F+F-F-F+F`. F draws forward and each turn is 90 degrees. The 
 
 The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a surface. It puts small cubes onto square faces instead of changing a flat line.
 
-## Further reading
+## Further exploring
+
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 

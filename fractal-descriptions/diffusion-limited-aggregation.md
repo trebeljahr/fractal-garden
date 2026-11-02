@@ -18,11 +18,16 @@ Choose **Let it grow** to see this happen. Each new particle becomes another pla
 
 In the full explorer, lower **Sticking chance** to let some particles move on after touching the cluster. Try a line seed to grow from a base instead of a single point. Color by arrival time to see which parts formed first.
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [Diffusion-Limited Aggregation — The Coding Train](https://www.youtube.com/watch?v=Cl_Gjj80gPE)
+
+### Reading
 
 - [Diffusion-limited aggregation — Wikipedia](https://en.wikipedia.org/wiki/Diffusion-limited_aggregation)
 - [Diffusion-limited aggregation — MathWorld](https://mathworld.wolfram.com/Diffusion-LimitedAggregation.html)
-- [Diffusion-Limited Aggregation — The Coding Train](https://www.youtube.com/watch?v=Cl_Gjj80gPE)
 - [DLA — Paul Bourke](https://paulbourke.net/fractals/dla/)
 
 ## Sources and notes

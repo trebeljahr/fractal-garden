@@ -20,13 +20,18 @@ Four copies fit around the same starting point, each turned a quarter turn from 
 
 The four-copy groups fit together in diagonal rows. Repeating them covers the plane without gaps.<sup><a id="dragon-curve-ref-4" href="#dragon-curve-source-3">3</a></sup> The [Twindragon](/l-system/twindragon) makes another tile by joining just two dragon paths at their ends.
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [Dragon Curve — Numberphile](https://www.youtube.com/watch?v=wCyC-K_PnRY)
+- [Unfolding Fractals — The Coding Train](https://www.youtube.com/watch?v=MazpwQNdJYQ)
+
+### Reading
 
 - [Dragon curve — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve)
 - [Dragon curve — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
-- [Dragon Curve — Numberphile](https://www.youtube.com/watch?v=wCyC-K_PnRY)
 - [Heighway Dragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/heighway.htm)
-- [Unfolding Fractals — The Coding Train](https://www.youtube.com/watch?v=MazpwQNdJYQ)
 
 ## Sources and notes
 

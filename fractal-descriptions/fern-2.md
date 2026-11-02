@@ -21,7 +21,8 @@ Old F instructions stay unchanged. New length is added through the X and Y repla
 
 The first replacement draws one forward step. The second draws eleven because every X and Y in the old string gets replaced at once.
 
-## Further reading
+## Further exploring
+
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes

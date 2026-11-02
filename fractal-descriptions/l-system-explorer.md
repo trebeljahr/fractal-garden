@@ -14,14 +14,19 @@ A letter can also have a replacement without drawing anything. X is often used t
 
 Try changing the angle to spread the branches apart. Then move a bracket to change where a branch starts.
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+
+### Reading
 
 - [L-system — Wikipedia](https://en.wikipedia.org/wiki/L-system)
 - [Lindenmayer system — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
 - [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
 - [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
-- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
 
 ## Sources and notes
 

@@ -10,7 +10,7 @@ A flat view can hide the separation between lines. Two segments that appear to c
 
 Each finite path consists of line segments with space between them. In the infinite limit, the route reaches every point of the cube. The [2D Hilbert curve](/l-system/hilbert-curve) reaches every point of a square by the same nested subdivision.
 
-## Further reading
+## Further exploring
 
 - [Hilbert curves — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
 - [Hilbert curve — MathWorld](https://mathworld.wolfram.com/HilbertCurve.html)

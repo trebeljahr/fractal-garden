@@ -72,14 +72,23 @@ Count the colors that meet at a joint of the dark shape. For a bulb that touches
 
 Not every $c$ in the Mandelbrot set has an attractor. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup> Close to a bulb's rim, the points need far more jumps, and the demo may not find the attractor.
 
-## Further reading
+## Further exploring
+
+### Videos
+
+- [Filled Julia Set — Numberphile2](https://www.youtube.com/watch?v=oCkQ7WK7vuY)
+- [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
+- [Beyond the Mandelbrot set, an intro to holomorphic dynamics — 3Blue1Brown](https://www.youtube.com/watch?v=LqbZpur38nw)
+- [Julia Set in Processing — The Coding Train](https://www.youtube.com/watch?v=fAsaSkmbF5s)
+
+### Reading
+
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
 - [Julia set — MathWorld](https://mathworld.wolfram.com/JuliaSet.html)
+- [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
 - [Understanding Julia and Mandelbrot Sets — Karl Sims](https://www.karlsims.com/julia.html)
 - [How to Fold a Julia Fractal — Steven Wittens](https://acko.net/blog/how-to-fold-a-julia-fractal/)
 - [The Julia Set — Complex Analysis](https://complex-analysis.com/content/julia_set.html)
-- [Beyond the Mandelbrot set, an intro to holomorphic dynamics — 3Blue1Brown](https://www.youtube.com/watch?v=LqbZpur38nw)
-- [Julia Set in Processing — The Coding Train](https://www.youtube.com/watch?v=fAsaSkmbF5s)
 
 ## Sources and notes
 

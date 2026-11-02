@@ -19,7 +19,8 @@ The final `+X` has no brackets around it. Its turn changes the direction used by
 
 Each X adds three new X positions and two F steps. Each old F doubles. Try moving the final plus inside the previous bracket. The turn is now undone when the bracket closes. The main stem continues straight.
 
-## Further reading
+## Further exploring
+
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes

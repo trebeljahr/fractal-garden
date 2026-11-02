@@ -18,7 +18,7 @@ Squaring without the mirror turns 120 degrees into 240, so the Mandelbrot set ha
 
 The smooth body in the middle is where a route settles on one point. Its edge is where that point sits exactly 1/2 away from zero. Walk that point $z$ around its circle and compute $c = z - \bar{z}^2$, where $\bar{z}$ is the mirrored $z$. The curve has three sharp points. Use $c = z - z^2$ instead, without the mirror, and you draw the Mandelbrot set's heart, with one sharp point.<sup><a id="mandelbar-set-ref-4" href="#mandelbar-set-source-4">4</a></sup>
 
-## Further reading
+## Further exploring
 
 - [Tricorn — Wikipedia](https://en.wikipedia.org/wiki/Tricorn_(mathematics))
 - [Multicorns are not Path Connected](https://arxiv.org/abs/1209.1753)

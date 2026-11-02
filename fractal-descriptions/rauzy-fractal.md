@@ -20,7 +20,7 @@ Connect the first few dots below, then add thousands more. The route keeps chang
 
 Copies of the finished tile fit together without gaps. You can slide them into place without turning them.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
 
-## Further reading
+## Further exploring
 
 - [Rauzy fractal — Wikipedia](https://en.wikipedia.org/wiki/Rauzy_fractal)
 - [Rauzy fractal — MathWorld](https://mathworld.wolfram.com/RauzyFractal.html)

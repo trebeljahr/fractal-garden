@@ -18,7 +18,7 @@ So the long arms are the early part of a slow fall. MathWorld's pictures with $b
 
 The rule's two-line form is one that Igor Gumowski, at CERN, and Christian Mira, at Toulouse, used to study particle motion in accelerators.<sup><a id="mira-fractal-ref-4" href="#mira-fractal-source-4">4</a></sup>
 
-## Further reading
+## Further exploring
 
 - [Lorenz attractor](/lorenz-attractor), another picture drawn by following one route
 

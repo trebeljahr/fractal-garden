@@ -12,7 +12,7 @@ The infinite paths cover a region, including its interior. Copies of that region
 
 Finite paths leave gaps inside each repeated region. Increasing the level makes the segments smaller and the gaps harder to see. The completely filled tile describes the infinite limit.
 
-## Further reading
+## Further exploring
 
 - [Twindragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Twindragon)
 - [Twindragon — MathWorld](https://mathworld.wolfram.com/Twindragon.html)

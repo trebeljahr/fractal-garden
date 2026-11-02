@@ -10,7 +10,8 @@ Each new triangle has half the old edge length, so it has one quarter of the are
 
 The bumps shrink at each step, so the construction stays within a bounded space even while the sum of triangle areas increases without limit.
 
-## Further reading
+## Further exploring
+
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Koch Surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 

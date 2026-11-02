@@ -16,7 +16,7 @@ Yet the equal-branch tree fits inside a fixed rectangle, however many squares yo
 
 The [T-square fractal](/t-square-fractal) has the same overlap problem, but places four new squares at corners instead of two above a triangle.
 
-## Further reading
+## Further exploring
 
 - [Pythagoras tree — Wikipedia](https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal))
 - [Pythagoras tree — MathWorld](https://mathworld.wolfram.com/PythagorasTree.html)

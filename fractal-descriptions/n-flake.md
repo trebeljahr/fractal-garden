@@ -12,7 +12,7 @@ The **center** option adds another polygon between the corner copies. For square
 
 For hexagons, the center copy fits between the six corner copies without overlapping their interiors. Adding it fills a gap that would otherwise remain.
 
-## Further reading
+## Further exploring
 
 - [N-flake — Wikipedia](https://en.wikipedia.org/wiki/N-flake)
 - [Pentaflake — MathWorld](https://mathworld.wolfram.com/Pentaflake.html)

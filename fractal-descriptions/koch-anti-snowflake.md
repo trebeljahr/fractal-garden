@@ -14,7 +14,7 @@ Adding all these decreasing amounts gives three fifths of the original area. Two
 
 The ordinary snowflake adds those triangles and ends with 60% more area than it started with.
 
-## Further reading
+## Further exploring
 
 - [Koch snowflake and antisnowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
 - [Koch antisnowflake — MathWorld](https://mathworld.wolfram.com/KochAntisnowflake.html)

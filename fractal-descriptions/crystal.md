@@ -12,7 +12,8 @@ The pen travels five thirds of the old distance, but it draws only four differen
 
 The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
 
-## Further reading
+## Further exploring
+
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes

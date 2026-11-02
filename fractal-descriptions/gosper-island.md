@@ -18,7 +18,7 @@ Raise the round. The outline stays right on the seven islands, because zigzaggin
 
 This is why the [Gosper curve](/l-system/gosper-curve) fills this shape: its route also joins seven smaller copies of itself. Set **Show** to **Whole plane** in **Exploration controls** to see the seven tints repeat.
 
-## Further reading
+## Further exploring
 
 - [Gosper Island — MathWorld](https://mathworld.wolfram.com/GosperIsland.html)
 - [Gosper curve — Wikipedia](https://en.wikipedia.org/wiki/Gosper_curve)

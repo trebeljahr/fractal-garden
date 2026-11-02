@@ -18,7 +18,7 @@ Past a radius of about 5, a point that leaves can never return, because the stre
 
 Change $c$ to see other shapes. At $c = 1 + i$ the stretch is about 1.41, large enough that most points leave for good, and the picture splits into two curled shapes.
 
-## Further reading
+## Further exploring
 
 - [Julia set](/julia-set), the same kind of picture with a squaring rule
 

@@ -14,7 +14,8 @@ By Round 12 the outline looks like an octagon, full of lace, with the middle sti
 
 The middle stays empty for a simple reason. Each curve bulges a long way out from its side, up to one full side length. It only ever reaches about a quarter of a side length back in. So no line ever enters the central square, half a side wide.<sup><a id="levy-tapestry-ref-2" href="#levy-tapestry-source-2">2</a></sup>
 
-## Further reading
+## Further exploring
+
 - [Lévy Dragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/levy/levy.htm)
 
 ## Sources and notes

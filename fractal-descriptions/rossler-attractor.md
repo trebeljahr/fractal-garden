@@ -10,7 +10,7 @@ Two lines may seem to cross from above while passing at different heights. Chang
 
 Turn on **Compare a nearby start** to follow a second point. As with the [Lorenz attractor](/lorenz-attractor), a small change at the start can eventually produce a different route.
 
-## Further reading
+## Further exploring
 
 - [Rössler attractor — Wikipedia](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor)
 - [Rössler attractor — MathWorld](https://mathworld.wolfram.com/RoesslerAttractor.html)

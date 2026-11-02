@@ -12,7 +12,8 @@ Look toward a corner with **Center kept** selected. A cube has a hexagonal outli
 
 You can build a model with business cards. Fold six cards into a cube, then tuck their flaps into neighboring cubes. The USC project called for about 49,000 cards.<sup><a id="mosely-snowflake-ref-3" href="#mosely-snowflake-source-3">3</a></sup>
 
-## Further reading
+## Further exploring
+
 - [Mosely snowflake — Wikipedia](https://en.wikipedia.org/wiki/Mosely_snowflake)
 - [The Mosely Snowflake Fractal — USC Libraries](https://libraries.usc.edu/about/events-and-exhibitions/exhibitions/mosely-snowflake-fractal)
 

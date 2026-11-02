@@ -12,7 +12,8 @@ Some lines are drawn twice. After the square loop, the next forward step goes ov
 
 The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
-## Further reading
+## Further exploring
+
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes

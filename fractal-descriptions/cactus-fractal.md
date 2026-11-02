@@ -16,7 +16,7 @@ The Mandelbrot set's heart meets its round left bulb the same way, at $c = -3/4$
 
 Use **Places to explore** to look away from the bodies. You find specks with space around them. The Mandelbrot set is known to be one connected piece, and the proof uses its start at zero, the place where the rule's slope is zero.<sup><a id="cactus-fractal-ref-3" href="#cactus-fractal-source-3">3</a></sup> A cactus point starts at $c$, which is not such a place, so that argument does not apply here. A picture cannot prove that two pieces never join, so treat the gaps as what the screen shows.
 
-## Further reading
+## Further exploring
 
 - [Cactus — Paul Bourke](https://paulbourke.net/fractals/cactus)
 

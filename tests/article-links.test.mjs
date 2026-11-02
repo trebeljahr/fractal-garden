@@ -17,6 +17,25 @@ test("an article links to each outside page once", () => {
   }
 });
 
+test("further exploring keeps videos apart from reading", () => {
+  const video = /\]\(https:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|vimeo\.com)\//;
+  const links = (lines) => lines.split("\n").filter((line) => line.startsWith("- "));
+  for (const { file, text } of articles) {
+    assert.doesNotMatch(text, /further reading/i, file);
+    const section = text.split(/^## Further exploring$/m)[1]?.split(/^## /m)[0];
+    if (!section) continue;
+
+    const [intro, ...groups] = section.split(/^### /m);
+    if (groups.length === 0) {
+      assert.equal(new Set(links(intro).map((line) => video.test(line))).size, 1, `${file} mixes kinds`);
+      continue;
+    }
+    assert.deepEqual(groups.map((group) => group.split("\n")[0]), ["Videos", "Reading"], file);
+    assert.ok(links(groups[0]).length > 0 && links(groups[0]).every((line) => video.test(line)), `${file} videos`);
+    assert.ok(links(groups[1]).length > 0 && !links(groups[1]).some((line) => video.test(line)), `${file} reading`);
+  }
+});
+
 test("every citation reaches its source and every source returns to its citations", () => {
   for (const { file, text } of articles) {
     const citations = [...text.matchAll(/<a id="([^"]+-ref-\d+)" href="#([^"]+-source-(\d+))">(\d+)<\/a>/g)];

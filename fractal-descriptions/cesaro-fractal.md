@@ -12,7 +12,8 @@ Repeating the rule on every line produces smaller notches along the larger ones.
 
 The square's original corners remain at 90 degrees. The adjustable angle belongs to the replacements, not those corners. The [Koch anti-snowflake](/l-system/koch-anti-snowflake) uses fixed 60-degree notches around a triangle instead.
 
-## Further reading
+## Further exploring
+
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Cesàro fractal — MathWorld](https://mathworld.wolfram.com/CesaroFractal.html)
 

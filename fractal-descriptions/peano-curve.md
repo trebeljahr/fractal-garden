@@ -18,7 +18,7 @@ The curve has no choice. A continuous line that covers a whole square must pass 
 
 The [Hilbert curve](/l-system/hilbert-curve) fills a square too. Hilbert published it a year after Peano, with drawings.<sup><a id="peano-curve-ref-4" href="#peano-curve-source-3">3</a></sup> It divides into four squares each round and rotates its copies, while Peano's divides into nine and mirrors them.
 
-## Further reading
+## Further exploring
 
 - [Peano curve — Wikipedia](https://en.wikipedia.org/wiki/Peano_curve)
 - [Peano Curve — MathWorld](https://mathworld.wolfram.com/PeanoCurve.html)

@@ -12,7 +12,8 @@ More pieces can still mean less material. Repeat either replacement and the tota
 
 The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses the same corner-copy construction with four half-size tetrahedra.
 
-## Further reading
+## Further exploring
+
 - [Three-dimensional flakes — Wikipedia](https://en.wikipedia.org/wiki/N-flake#In_three_dimensions)
 - [Sierpinski Gasket — Paul Bourke](https://paulbourke.net/fractals/polyhedral/)
 
