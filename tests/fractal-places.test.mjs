@@ -28,6 +28,32 @@ test("the Rabbit preset sends zero through a three-step repeat", () => {
   assert.ok(Math.hypot(x, y) < 1e-4);
 });
 
+test("every Rabbit start that stays inside ends on the same three places", () => {
+  const { cReal, cImag } = JULIA_PRESETS.Rabbit;
+  const next = ([x, y]) => [x * x - y * y + cReal, 2 * x * y + cImag];
+  let settled = [0, 0];
+  for (let i = 0; i < 3000; i++) settled = next(settled);
+  const places = [settled, next(settled), next(next(settled))];
+  let inside = 0;
+  for (let a = -28; a <= 28; a++) {
+    for (let b = -22; b <= 22; b++) {
+      let z = [a / 10, b / 10];
+      let i = 0;
+      while (i < 3000 && Math.hypot(...z) <= 2) {
+        z = next(z);
+        i++;
+      }
+      if (i < 3000) continue;
+      inside++;
+      assert.ok(
+        places.some(([x, y]) => Math.hypot(x - z[0], y - z[1]) < 1e-6),
+        `${a} ${b}`,
+      );
+    }
+  }
+  assert.ok(inside > 0);
+});
+
 test("every destination has a preview on disk", () => {
   for (const view of [...JULIA_PLACES, ...MANDELBROT_PLACES, ...BURNING_SHIP_PLACES]) {
     assert.ok(view.preview, view.id);

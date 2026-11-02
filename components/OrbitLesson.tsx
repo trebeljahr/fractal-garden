@@ -5,6 +5,7 @@ import {
   JULIA_COLORING,
   MANDELBROT_COLORING,
 } from "../utils/escapeTimeColoring";
+import { JULIA_PRESETS } from "../utils/escapeTimePlaces";
 import { useLessonPlayback } from "../utils/hooks/useLessonPlayback";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
@@ -26,9 +27,10 @@ export function isOrbitKind(value: unknown): value is OrbitKind {
   return value === "mandelbrot" || value === "julia" || value === "burning-ship";
 }
 const ZERO = { real: 0, imaginary: 0 };
+const JULIA_C = { real: JULIA_PRESETS.Rabbit.cReal, imaginary: JULIA_PRESETS.Rabbit.cImag };
 const DEFAULTS: Record<OrbitKind, ComplexPoint> = {
   mandelbrot: { real: -1, imaginary: 0 },
-  julia: { real: 0.5, imaginary: 0 },
+  julia: { real: 0.3, imaginary: 0 },
   "burning-ship": { real: -1.76, imaginary: -0.03 },
 };
 // Every formula shares one view, so the whole escape circle is always on screen.
@@ -47,9 +49,9 @@ const FIRST_HOP_DELAY_MS = 350;
 const TINY_HOP_DELAY_MS = 150;
 const FOLD_SHARE = 0.35;
 
-function number(value: number) {
+function number(value: number, digits = 3) {
   if (Math.abs(value) < 0.0005) return "0";
-  return String(Number(value.toFixed(3))).replace("-", "−");
+  return String(Number(value.toFixed(digits))).replace("-", "−");
 }
 function coordinates(point: ComplexPoint) {
   return `(${number(point.real)}, ${number(point.imaginary)})`;
@@ -153,7 +155,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const reduced = useReducedMotion();
   const flip = kind === "burning-ship";
   const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
-  const c = kind === "julia" ? ZERO : value;
+  const c = kind === "julia" ? JULIA_C : value;
   const orbit = useMemo(
     () => traceTeachingOrbit(c, kind === "julia" ? value : ZERO, flip),
     [c, value, kind, flip],
@@ -235,7 +237,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const title = kind === "julia" ? "Follow one starting point" : "Follow one pixel";
   const rule =
     kind === "julia"
-      ? "Pick a pixel to start there. Each jump squares the point."
+      ? `Pick a pixel to start there. Each jump squares the point, then adds c = (${number(JULIA_C.real, 5)}, ${number(JULIA_C.imaginary, 5)}).`
       : `Pick a pixel to test it. The point starts at 0. Each jump ${flip ? "folds and squares it" : "squares it"}, then adds the pixel's coordinates.`;
 
   const ring = project(value);
@@ -363,7 +365,12 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               playback.change(TEACHING_LIMIT);
             }}
           >
-            <EscapeTimePicture formula={kind} bounds={VIEW_BOUNDS} coloring={COLORING[kind]} />
+            <EscapeTimePicture
+              formula={kind}
+              bounds={VIEW_BOUNDS}
+              coloring={COLORING[kind]}
+              c={kind === "julia" ? JULIA_C : undefined}
+            />
             <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
               <defs>
                 <marker
