@@ -13,7 +13,7 @@ The marked points show where the first dividing lines go. They split an edge so 
 ## Further reading
 
 - [Penrose tiling — Wikipedia](https://en.wikipedia.org/wiki/Penrose_tiling)
-- [Penrose Rhomb — Tilings Encyclopedia](https://tilings.math.uni-bielefeld.de/substitution/penrose-rhomb/)
+- [Penrose tiles — MathWorld](https://mathworld.wolfram.com/PenroseTiles.html)
 
 ## Sources and notes
 

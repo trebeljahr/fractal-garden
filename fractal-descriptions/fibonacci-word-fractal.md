@@ -17,6 +17,7 @@ Changing the angle keeps the digit sequence and turn choices fixed, but changes 
 ## Further reading
 
 - [Fibonacci word fractal — Wikipedia](https://en.wikipedia.org/wiki/Fibonacci_word_fractal)
+- [Rabbit sequence background — MathWorld](https://mathworld.wolfram.com/RabbitSequence.html)
 - [Properties and Generalizations of the Fibonacci Word Fractal — The Mathematica Journal](https://www.mathematica-journal.com/2014/02/19/properties-and-generalizations-of-the-fibonacci-word-fractal/)
 
 ## Sources and notes

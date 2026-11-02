@@ -17,6 +17,7 @@ The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube. It joi
 ## Further reading
 
 - [Hilbert curve — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
+- [Hilbert curve — MathWorld](https://mathworld.wolfram.com/HilbertCurve.html)
 - [Hilbert’s Curve — 3Blue1Brown](https://www.3blue1brown.com/lessons/hilbert-curve/)
 
 ## Sources and notes

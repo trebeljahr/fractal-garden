@@ -17,6 +17,7 @@ The [quadratic Koch surface](/quadratic-koch-3d) uses a related replacement on a
 ## Further reading
 
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
+- [Koch curve background — MathWorld](https://mathworld.wolfram.com/KochCurve.html)
 - [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 
 ## Sources and notes

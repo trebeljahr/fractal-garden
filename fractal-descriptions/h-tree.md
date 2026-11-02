@@ -13,6 +13,7 @@ This arrangement has a practical use in circuits. Every endpoint at the same dep
 ## Further reading
 
 - [H tree — Wikipedia](https://en.wikipedia.org/wiki/H_tree)
+- [H-fractal — MathWorld](https://mathworld.wolfram.com/H-Fractal.html)
 - [Recursive tree background — The Nature of Code](https://natureofcode.com/fractals/#trees)
 
 ## Sources and notes

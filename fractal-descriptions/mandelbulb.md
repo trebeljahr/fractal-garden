@@ -19,7 +19,7 @@ Daniel White published the construction in 2007. Paul Nylander's later experimen
 ## Further reading
 
 - [Mandelbulb — Wikipedia](https://en.wikipedia.org/wiki/Mandelbulb)
-- [Mandelbulb — Daniel White](https://www.skytopia.com/project/fractal/mandelbulb.html)
+- [Mandelbulb — MathWorld](https://mathworld.wolfram.com/Mandelbulb.html)
 
 ## Sources and notes
 

@@ -15,7 +15,7 @@ Finite paths leave gaps inside each repeated region. Increasing the level makes 
 ## Further reading
 
 - [Twindragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Twindragon)
-- [Dragon curve background — MathWorld](https://mathworld.wolfram.com/DragonCurve.html)
+- [Twindragon — MathWorld](https://mathworld.wolfram.com/Twindragon.html)
 
 ## Sources and notes
 

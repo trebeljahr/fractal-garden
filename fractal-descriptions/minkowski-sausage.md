@@ -17,6 +17,7 @@ The rule is `F → F+F-F-FF+F+F-F`, with 90-degree turns. Every F draws one forw
 ## Further reading
 
 - [Minkowski sausage — Wikipedia](https://en.wikipedia.org/wiki/Minkowski_sausage)
+- [Minkowski sausage (different motif) — MathWorld](https://mathworld.wolfram.com/MinkowskiSausage.html)
 - [Quadratic Koch curves and surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 
 ## Sources and notes

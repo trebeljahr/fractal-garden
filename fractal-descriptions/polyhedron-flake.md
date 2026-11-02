@@ -15,6 +15,7 @@ The [Sierpinski tetrahedron](/sierpinski-tetrahedron) uses the same corner-copy 
 ## Further reading
 
 - [Three-dimensional flakes — Wikipedia](https://en.wikipedia.org/wiki/N-flake#In_three_dimensions)
+- [Tetrix background — MathWorld](https://mathworld.wolfram.com/Tetrix.html)
 - [Printing half-octahedron flakes — cttdev](https://cttdev.github.io/sierpinski/)
 
 ## Sources and notes

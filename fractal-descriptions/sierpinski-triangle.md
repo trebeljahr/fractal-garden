@@ -26,7 +26,7 @@ Try a few moves one at a time. Then add a thousand. Where do the dots collect?
 
 <figure data-lesson="sierpinski-chaos"></figure>
 
-The dots collect in the same three half-size copies we made above. Each move uses one of the same three rules. After many random choices, the dots trace the Sierpinski triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-2">2</a></sup>
+The dots collect in the same three half-size copies we made above. Each move uses one of the same three rules. After many random choices, the dots trace the Sierpinski triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-1">1</a></sup>
 
 This is the **chaos game**. The [Barnsley fern](/barnsley-fern) also uses random choices, but its four moves shrink, turn and place the dot in different parts of a fern.
 
@@ -38,13 +38,13 @@ Choose a number below to see its addition. Then color the odd numbers and show m
 
 <figure data-lesson="sierpinski-pascal"></figure>
 
-The even numbers leave the same triangular gaps.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-3">3</a></sup> We can find those gaps without calculating the large numbers: odd plus odd is even, and even plus even is even. A sum is odd only when one number is odd and the other is even.
+The even numbers leave the same triangular gaps.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-2">2</a></sup> We can find those gaps without calculating the large numbers: odd plus odd is even, and even plus even is even. A sum is odd only when one number is odd and the other is even.
 
 ## Replace the numbers with cells
 
 Let a filled cell stand for odd and a blank cell for even. The addition rule becomes a drawing rule: fill the cell below when the two cells above differ. Leave it blank when they match.
 
-In the square grid below, those two cells sit diagonally above the new one. The cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-4">4</a></sup>
+In the square grid below, those two cells sit diagonally above the new one. The cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-2">2</a></sup>
 
 <figure data-lesson="sierpinski-cells"></figure>
 
@@ -55,11 +55,10 @@ The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle a
 ## Further reading
 
 - [Sierpiński triangle — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle)
+- [Sierpiński sieve — MathWorld](https://mathworld.wolfram.com/SierpinskiSieve.html)
 - [The Sierpinski Triangle — Mathigon](https://mathigon.org/course/fractals/sierpinski)
 
 ## Sources and notes
 
-1. <span id="sierpinski-triangle-source-1"></span> [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314). [Back](#sierpinski-triangle-ref-1)
-2. <span id="sierpinski-triangle-source-2"></span> [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314). [Back](#sierpinski-triangle-ref-2)
-3. <span id="sierpinski-triangle-source-3"></span> [Pascal’s triangle and rule 90](https://www.wolframscience.com/nks/notes-2-1--pascals-triangle-and-rule-90/). [Back](#sierpinski-triangle-ref-3)
-4. <span id="sierpinski-triangle-source-4"></span> [Pascal’s triangle and rule 90](https://www.wolframscience.com/nks/notes-2-1--pascals-triangle-and-rule-90/). [Back](#sierpinski-triangle-ref-4)
+1. <span id="sierpinski-triangle-source-1"></span> [V-variable fractals and superfractals](https://arxiv.org/pdf/math/0312314). [Back](#sierpinski-triangle-ref-1) [Back](#sierpinski-triangle-ref-2)
+2. <span id="sierpinski-triangle-source-2"></span> [Pascal’s triangle and rule 90](https://www.wolframscience.com/nks/notes-2-1--pascals-triangle-and-rule-90/). [Back](#sierpinski-triangle-ref-3) [Back](#sierpinski-triangle-ref-4)

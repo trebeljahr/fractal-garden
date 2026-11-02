@@ -13,6 +13,7 @@ Turn on **Compare a nearby start** to follow a second point. As with the [Lorenz
 ## Further reading
 
 - [Rössler attractor — Wikipedia](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor)
+- [Rössler attractor — MathWorld](https://mathworld.wolfram.com/RoesslerAttractor.html)
 - [Rössler Attractor — Robert Dickau](https://www.robertdickau.com/rossler.html)
 
 ## Sources and notes

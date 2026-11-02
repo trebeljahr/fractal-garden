@@ -17,6 +17,7 @@ The [3D version](/vicsek-fractal-3d) produces the plus-shaped pattern as a strai
 ## Further reading
 
 - [Vicsek fractal — Wikipedia](https://en.wikipedia.org/wiki/Vicsek_fractal)
+- [Box fractal — MathWorld](https://mathworld.wolfram.com/BoxFractal.html)
 - [Greek Cross Fractal — Robert Dickau](https://www.robertdickau.com/greekcross.html)
 
 ## Sources and notes

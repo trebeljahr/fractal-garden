@@ -19,7 +19,7 @@ Researchers at Johns Hopkins build physical trees with five generations and thre
 ## Further reading
 
 - [Fractal canopy — Wikipedia](https://en.wikipedia.org/wiki/Fractal_canopy)
-- [Fractal Canopy — Johns Hopkins University](https://engineering.jhu.edu/lefd/canopy-flows/fractal-canopy/)
+- [Mandelbrot tree background — MathWorld](https://mathworld.wolfram.com/MandelbrotTree.html)
 
 ## Sources and notes
 

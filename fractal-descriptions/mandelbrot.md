@@ -31,6 +31,7 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 ## Further reading
 
 - [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)
+- [Mandelbrot set — MathWorld](https://mathworld.wolfram.com/MandelbrotSet.html)
 - [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
 
 ## Sources and notes

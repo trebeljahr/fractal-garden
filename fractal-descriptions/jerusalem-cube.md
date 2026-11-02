@@ -15,7 +15,7 @@ Repeat the arrangement inside the smaller cubes. The little edge cubes are alrea
 ## Further reading
 
 - [Jerusalem cube — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge#Jerusalem_cube)
-- [Jerusalem Cube — Eric Baird](https://www.coroflot.com/erkdemon/Jerusalem-Cube)
+- [Menger sponge background — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
 
 ## Sources and notes
 

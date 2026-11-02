@@ -59,7 +59,7 @@ Last, $\nu$ sets the color. As $\nu$ rises, the color goes from dark blue throug
 ## Further reading
 
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
-- [Introduction to Complex Dynamics — Cornell Math Explorers’ Club](https://pi.math.cornell.edu/~lipa/mec/lesson5.html)
+- [Julia set — MathWorld](https://mathworld.wolfram.com/JuliaSet.html)
 
 ## Sources and notes
 

@@ -39,7 +39,7 @@ The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with
 ## Further reading
 
 - [Buddhabrot — Wikipedia](https://en.wikipedia.org/wiki/Buddhabrot)
-- [The Buddhabrot Technique — Melinda Green](https://superliminal.com/fractals/bbrot/)
+- [Buddhabrot — MathWorld](https://mathworld.wolfram.com/Buddhabrot.html)
 
 ## Sources and notes
 

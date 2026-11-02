@@ -21,7 +21,7 @@ Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake
 ## Further reading
 
 - [Koch snowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
-- [Koch Snowflake — Math Fun Facts](https://math.hmc.edu/funfacts/koch-snowflake/)
+- [Koch snowflake — MathWorld](https://mathworld.wolfram.com/KochSnowflake.html)
 
 ## Sources and notes
 

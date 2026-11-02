@@ -21,7 +21,7 @@ Each tunnel crosses the tilted slice at an angle. The three openings overlap to 
 ## Further reading
 
 - [Menger sponge — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge)
-- [The Surprising Menger Sponge Slice — Simons Foundation](https://www.simonsfoundation.org/news/mathematical-impressions-the-surprising-menger-sponge-slice/)
+- [Menger sponge — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
 
 ## Sources and notes
 

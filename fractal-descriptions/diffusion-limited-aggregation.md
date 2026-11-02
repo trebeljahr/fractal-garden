@@ -21,6 +21,7 @@ In the full explorer, lower **Sticking chance** to let some particles move on af
 ## Further reading
 
 - [Diffusion-limited aggregation — Wikipedia](https://en.wikipedia.org/wiki/Diffusion-limited_aggregation)
+- [Diffusion-limited aggregation — MathWorld](https://mathworld.wolfram.com/Diffusion-LimitedAggregation.html)
 - [Diffusion-Limited Aggregation — The Coding Train](https://thecodingtrain.com/challenges/34-diffusion-limited-aggregation)
 
 ## Sources and notes

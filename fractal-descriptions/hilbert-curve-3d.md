@@ -13,6 +13,7 @@ Each finite path consists of line segments with space between them. In the infin
 ## Further reading
 
 - [Hilbert curves — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
+- [Hilbert curve — MathWorld](https://mathworld.wolfram.com/HilbertCurve.html)
 - [3-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys3d.html)
 
 ## Sources and notes

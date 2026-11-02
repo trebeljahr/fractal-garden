@@ -16,7 +16,7 @@ $$
 
 The large branching picture puts many of these experiments side by side. Each column uses one value of $r$. We leave out the early answers and plot the later ones. One lasting value makes one branch; an alternating pair makes two.
 
-After enough splits, many settings produce **chaos**: nearby starting numbers eventually give very different answers. Repeating patterns still appear among them. Near $r=3.83$, the answers settle into a three-number cycle.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup>
+After enough splits, many settings produce **chaos**: nearby starting numbers eventually give very different answers. Repeating patterns still appear among them. Near $r=3.83$, the answers settle into a three-number cycle.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-1">1</a>, <a id="logistic-map-ref-3" href="#logistic-map-source-2">2</a></sup>
 
 Near a split, answers can take a long time to settle. The picture may still include some of those early values.
 
@@ -27,5 +27,5 @@ Near a split, answers can take a long time to settle. The picture may still incl
 
 ## Sources and notes
 
-1. <span id="logistic-map-source-1"></span> [Simple Mathematical Models with Very Complicated Dynamics — Dynamic Properties](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html). [Back](#logistic-map-ref-1)
-2. <span id="logistic-map-source-2"></span> [Simple Mathematical Models with Very Complicated Dynamics — Dynamic Properties](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html) and [Fine Structure of the Chaotic Regime](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). [Back](#logistic-map-ref-2)
+1. <span id="logistic-map-source-1"></span> [Simple Mathematical Models with Very Complicated Dynamics — Dynamic Properties](https://ned.ipac.caltech.edu/level5/Sept01/May/May3.html). [Back](#logistic-map-ref-1) [Back](#logistic-map-ref-2)
+2. <span id="logistic-map-source-2"></span> [Fine Structure of the Chaotic Regime](https://ned.ipac.caltech.edu/level5/Sept01/May/May4.html). [Back](#logistic-map-ref-3)

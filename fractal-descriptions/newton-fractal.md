@@ -12,16 +12,16 @@ Now choose **Three roots**. The same rule works with complex numbers, which have
 
 The large picture tries a starting point at every pixel. Each color stands for one root. Nearby starting points often reach the same root, making the broad patches of color.
 
-Zoom into a border between two colors. Pieces of the third keep appearing. All three regions share the same boundary: however closely you zoom at a boundary point, starts leading to all three roots remain nearby.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-2">2</a></sup>
+Zoom into a border between two colors. Pieces of the third keep appearing. All three regions share the same boundary: however closely you zoom at a boundary point, starts leading to all three roots remain nearby.<sup><a id="newton-fractal-ref-2" href="#newton-fractal-source-1">1</a></sup>
 
 The picture stops each calculation after 48 steps. If a guess has not reached a root, it uses the nearest root's color. Some pixels near a border can therefore have the wrong color.
 
 ## Further reading
 
 - [Newton fractal — Wikipedia](https://en.wikipedia.org/wiki/Newton_fractal)
+- [Newton’s method — MathWorld](https://mathworld.wolfram.com/NewtonsMethod.html)
 - [Newton’s Fractal — 3Blue1Brown](https://www.3blue1brown.com/lessons/newtons-fractal/)
 
 ## Sources and notes
 
-1. <span id="newton-fractal-source-1"></span> [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf). [Back](#newton-fractal-ref-1)
-2. <span id="newton-fractal-source-2"></span> [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf), section 3. [Back](#newton-fractal-ref-2)
+1. <span id="newton-fractal-source-1"></span> [À la recherche des racines perdues (In Search of Lost Roots)](https://arpi.unipi.it/bitstream/11568/777953/1/Abate_Newton2.pdf). Section 3 covers the shared boundary. [Back](#newton-fractal-ref-1) [Back](#newton-fractal-ref-2)

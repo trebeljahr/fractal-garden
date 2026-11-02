@@ -95,6 +95,10 @@ paragraph or remove a useful construction step just to meet a word count.
   or “Diagram construction”. If the article already shows the calculation, do
   not repeat its provenance in a footnote. Label general-method references as
   background and place them beside the method, not beside this site's numbers.
+- Link each outside page once per article (Rico, 2026-11-03). **Further reading**
+  lists only pages the article does not already link, and includes the matching
+  MathWorld entry when one exists. To cite a source again, reuse its footnote
+  number and give each citation its own return link.
 - Distinguish finite drawings from their limits, strokes from distinct edges,
   counted area from covered area, surfaces from enclosed solids, and similarity
   exponents from proved dimensions. State conjectures and estimates as such.
