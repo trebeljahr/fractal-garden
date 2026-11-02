@@ -4,8 +4,8 @@ export function ConstructionIcon({
   name: "previous" | "next" | "play" | "pause" | "reset" | "zoomIn" | "zoomOut";
 }) {
   const paths = {
-    previous: "M6 5v14m12-14L7 12l11 7Z",
-    next: "M18 5v14M6 5l11 7-11 7Z",
+    previous: "m15 5-7 7 7 7",
+    next: "m9 5 7 7-7 7",
     play: "m8 4 12 8-12 8Z",
     pause: "M8 5v14M16 5v14",
     reset: "M3 11a9 9 0 1 1 2 7M3 4v7h7",
