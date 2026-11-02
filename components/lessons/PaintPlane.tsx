@@ -229,12 +229,11 @@ export function DistanceChart({ route, shown }: { route: OrbitStep[]; shown?: nu
 }
 
 /**
- * A blank plane the reader colors in. Every spot under the pointer gets its own test,
- * so the edge of the shape shows up inside the mark as the pointer crosses it.
+ * A blank plane where each pixel is a number c. Every spot under the pointer gets its own
+ * test, so the edge of the Mandelbrot set shows up inside the mark as the pointer crosses it.
  */
 export function PaintPlane({
   bounds,
-  fixedC,
   value,
   onChange,
   route,
@@ -244,8 +243,6 @@ export function PaintPlane({
   children,
 }: {
   bounds: PlaneBounds;
-  /** Null makes each pixel the number c, with the point starting at zero. */
-  fixedC: ComplexPoint | null;
   value: ComplexPoint;
   onChange: (point: ComplexPoint) => void;
   route?: OrbitStep[];
@@ -312,7 +309,7 @@ export function PaintPlane({
   // biome-ignore lint/correctness/useExhaustiveDependencies: painting follows the value only
   useEffect(() => {
     if (last.current === value || !grid.current) return;
-    show(paintDab(grid.current, fixedC, value, brush));
+    show(paintDab(grid.current, value, brush));
   }, [value]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: colors are read from a ref
   useEffect(() => {
@@ -335,7 +332,7 @@ export function PaintPlane({
     if (reduced) {
       const cells: number[] = [];
       for (let row = 0; row < rows; row++) {
-        for (const cell of paintRow(grid.current, fixedC, row)) cells.push(cell);
+        for (const cell of paintRow(grid.current, row)) cells.push(cell);
       }
       show(cells);
       finished();
@@ -348,7 +345,7 @@ export function PaintPlane({
       const target = Math.min(rows, Math.ceil(((now - begun) / FILL_MS) * rows));
       const cells: number[] = [];
       while (grid.current && row < target) {
-        for (const cell of paintRow(grid.current, fixedC, row)) cells.push(cell);
+        for (const cell of paintRow(grid.current, row)) cells.push(cell);
         row++;
       }
       show(cells);
@@ -361,7 +358,7 @@ export function PaintPlane({
     start();
     setFilling("blank");
     last.current = null;
-    if (grid.current) show(paintDab(grid.current, fixedC, value, brush));
+    if (grid.current) show(paintDab(grid.current, value, brush));
   };
 
   const pointAt = (event: PointerEvent<HTMLButtonElement>) => {
@@ -378,7 +375,7 @@ export function PaintPlane({
     };
   };
   const moveTo = (point: ComplexPoint) => {
-    if (grid.current) show(paintStroke(grid.current, fixedC, last.current ?? point, point, brush));
+    if (grid.current) show(paintStroke(grid.current, last.current ?? point, point, brush));
     last.current = point;
     // React would otherwise commit after this frame paints, one frame behind the pointer.
     flushSync(() => onChange(point));

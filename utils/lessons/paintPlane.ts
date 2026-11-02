@@ -37,37 +37,27 @@ export function crossingJump(
   return STAYED;
 }
 
-/** With a fixed c the pixel is the starting point. Without one the pixel is c and the point starts at 0. */
-export function testPixel(fixedC: ComplexPoint | null, pixel: ComplexPoint, limit = PAINT_JUMPS) {
-  return fixedC
-    ? crossingJump(fixedC.real, fixedC.imaginary, pixel.real, pixel.imaginary, limit)
-    : crossingJump(pixel.real, pixel.imaginary, 0, 0, limit);
-}
-
 export function createGrid(bounds: PlaneBounds, columns: number): PaintGrid {
   const [left, right, bottom, top] = bounds;
   const rows = Math.round((columns * (top - bottom)) / (right - left));
   return { columns, rows, bounds, steps: new Int16Array(columns * rows).fill(UNTESTED) };
 }
 
-function testCell(grid: PaintGrid, fixedC: ComplexPoint | null, column: number, row: number) {
+function testCell(grid: PaintGrid, column: number, row: number) {
   const index = row * grid.columns + column;
   if (grid.steps[index] !== UNTESTED) return -1;
   const [left, right, bottom, top] = grid.bounds;
-  grid.steps[index] = testPixel(fixedC, {
-    real: left + ((column + 0.5) / grid.columns) * (right - left),
-    imaginary: top - ((row + 0.5) / grid.rows) * (top - bottom),
-  });
+  grid.steps[index] = crossingJump(
+    left + ((column + 0.5) / grid.columns) * (right - left),
+    top - ((row + 0.5) / grid.rows) * (top - bottom),
+    0,
+    0,
+  );
   return index;
 }
 
 /** Tests every untested cell within radius of the point. Returns the cells it changed. */
-export function paintDab(
-  grid: PaintGrid,
-  fixedC: ComplexPoint | null,
-  center: ComplexPoint,
-  radius: number,
-) {
+export function paintDab(grid: PaintGrid, center: ComplexPoint, radius: number) {
   const [left, right, bottom, top] = grid.bounds;
   const unit = grid.columns / (right - left);
   const column = (center.real - left) * unit;
@@ -81,7 +71,7 @@ export function paintDab(
     const lastColumn = Math.min(grid.columns - 1, Math.ceil(column + reach));
     for (let x = firstColumn; x <= lastColumn; x++) {
       if ((x + 0.5 - column) ** 2 + (y + 0.5 - row) ** 2 > reach * reach) continue;
-      const index = testCell(grid, fixedC, x, y);
+      const index = testCell(grid, x, y);
       if (index >= 0) changed.push(index);
     }
   }
@@ -89,13 +79,7 @@ export function paintDab(
 }
 
 /** Dabs along a straight line, so a fast pointer still leaves an unbroken mark. */
-export function paintStroke(
-  grid: PaintGrid,
-  fixedC: ComplexPoint | null,
-  from: ComplexPoint,
-  to: ComplexPoint,
-  radius: number,
-) {
+export function paintStroke(grid: PaintGrid, from: ComplexPoint, to: ComplexPoint, radius: number) {
   const length = Math.hypot(to.real - from.real, to.imaginary - from.imaginary);
   const dabs = Math.max(1, Math.ceil(length / (radius / 2)));
   const changed: number[] = [];
@@ -105,15 +89,15 @@ export function paintStroke(
       real: from.real + (to.real - from.real) * t,
       imaginary: from.imaginary + (to.imaginary - from.imaginary) * t,
     };
-    for (const index of paintDab(grid, fixedC, center, radius)) changed.push(index);
+    for (const index of paintDab(grid, center, radius)) changed.push(index);
   }
   return changed;
 }
 
-export function paintRow(grid: PaintGrid, fixedC: ComplexPoint | null, row: number) {
+export function paintRow(grid: PaintGrid, row: number) {
   const changed: number[] = [];
   for (let column = 0; column < grid.columns; column++) {
-    const index = testCell(grid, fixedC, column, row);
+    const index = testCell(grid, column, row);
     if (index >= 0) changed.push(index);
   }
   return changed;

@@ -42,8 +42,6 @@ const LESSONS = [
   "linked-julia",
   "julia-attractor",
   "julia-edge",
-  "paint-squaring",
-  "paint-julia",
   "paint-mandelbrot",
   "escape-neck",
   "julia-map",
@@ -97,10 +95,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <JuliaAttractorLesson />;
     case "julia-edge":
       return <JuliaEdgeLesson />;
-    case "paint-squaring":
-    case "paint-julia":
     case "paint-mandelbrot":
-      return <PaintLesson kind={kind} />;
+      return <PaintLesson />;
     case "escape-neck":
       return <EscapeNeckLesson />;
     case "julia-map":

@@ -38,7 +38,7 @@ export default function JuliaEdgeLesson() {
       <div className={styles.pair}>
         <div>
           <h3>Choose c</h3>
-          <PaintPlane bounds={C_BOUNDS} fixedC={null} value={c} onChange={setC} label="Number c" />
+          <PaintPlane bounds={C_BOUNDS} value={c} onChange={setC} label="Number c" />
           <p data-selected-parameter={`${c.real},${c.imaginary}`}>c = {coordinates(c, 3)}</p>
         </div>
         <div>

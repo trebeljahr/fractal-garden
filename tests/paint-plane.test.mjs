@@ -8,7 +8,6 @@ import {
   paintRow,
   paintStroke,
   STAYED,
-  testPixel,
   UNTESTED,
 } from "../utils/lessons/paintPlane.ts";
 import { traceTeachingOrbit } from "../utils/orbitLesson.ts";
@@ -23,15 +22,6 @@ test("the crossing jump is the last jump of the route the demo draws", () => {
     const crossing = crossingJump(c.real, c.imaginary, 0, 0);
     assert.equal(crossing, route.length === 301 ? STAYED : route.length - 1);
   }
-});
-
-test("a fixed c makes the pixel the start; no fixed c makes the pixel c", () => {
-  assert.equal(testPixel(ZERO, { real: 0.9, imaginary: 0 }), STAYED);
-  assert.equal(testPixel(ZERO, { real: 1.1, imaginary: 0 }), 3);
-  assert.equal(testPixel(ZERO, { real: 3, imaginary: 0 }), 0);
-  assert.equal(testPixel(null, { real: -1, imaginary: 0 }), STAYED);
-  assert.equal(testPixel(null, { real: 0.5, imaginary: 0 }), 5);
-  assert.equal(testPixel(null, { real: 3, imaginary: 0 }), 1);
 });
 
 test("the slow escapes above the neck match the article's counts", () => {
@@ -61,40 +51,33 @@ test("the shapes offered as presets do what their names say", () => {
   assert.ok(line.every(({ point }) => point.imaginary === 0));
 });
 
-test("the rabbit's plane shows why the old circle no longer works", () => {
-  assert.equal(crossingJump(RABBIT.real, RABBIT.imaginary, 0.25, 0.3) > 0, true);
-  assert.ok(Math.hypot(0.25, 0.3) < 1);
-  assert.equal(crossingJump(RABBIT.real, RABBIT.imaginary, 1.24, -0.65), STAYED);
-  assert.ok(Math.hypot(1.24, -0.65) > 1);
-});
-
 test("a dab tests only cells inside its radius, and only once", () => {
   const grid = createGrid(BOUNDS, 280);
   assert.ok(grid.steps.every((step) => step === UNTESTED));
-  const changed = paintDab(grid, null, { real: -1, imaginary: 0 }, 0.2);
+  const changed = paintDab(grid, { real: -1, imaginary: 0 }, 0.2);
   // 280 cells across 5.6 units is 50 cells per unit, so the radius is 10 cells.
   assert.ok(Math.abs(changed.length - Math.PI * 100) < 20);
   for (const cell of changed) assert.equal(grid.steps[cell], STAYED);
-  assert.equal(paintDab(grid, null, { real: -1, imaginary: 0 }, 0.2).length, 0);
+  assert.equal(paintDab(grid, { real: -1, imaginary: 0 }, 0.2).length, 0);
 });
 
 test("a fast stroke leaves no gap between its ends", () => {
   const grid = createGrid(BOUNDS, 280);
-  paintStroke(grid, ZERO, { real: -2, imaginary: 0 }, { real: 2, imaginary: 0 }, 0.1);
+  paintStroke(grid, { real: -2, imaginary: 0 }, { real: 2, imaginary: 0 }, 0.1);
   const row = Math.floor(grid.rows / 2);
   for (let column = 40; column < 240; column++) {
     assert.notEqual(grid.steps[row * grid.columns + column], UNTESTED);
   }
 });
 
-test("filling every row gives the unit disk for squaring alone", () => {
+test("filling every row gives the Mandelbrot set's area", () => {
   const grid = createGrid(BOUNDS, 280);
-  for (let row = 0; row < grid.rows; row++) paintRow(grid, ZERO, row);
+  for (let row = 0; row < grid.rows; row++) paintRow(grid, row);
   assert.ok(grid.steps.every((step) => step !== UNTESTED));
   let dark = 0;
   for (const step of grid.steps) if (step === STAYED) dark++;
-  // 50 cells per unit, so the unit disk covers about pi * 2500 cells.
-  assert.ok(Math.abs(dark / (Math.PI * 2500) - 1) < 0.02, String(dark));
+  // 50 cells per unit, and the set's area is about 1.5066. A step limit counts a little extra.
+  assert.ok(Math.abs(dark / (1.5066 * 2500) - 1) < 0.06, String(dark));
 });
 
 test("running the jumps backward draws the unit circle for c = 0", () => {
