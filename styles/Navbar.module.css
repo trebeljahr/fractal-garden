@@ -72,17 +72,6 @@
   text-align: left;
 }
 
-/* Keep the flush border visible inside the rounded corners of macOS windows. Fullscreen has none. */
-@media not (display-mode: fullscreen) {
-  :global(html[data-rounded-window]) .previous.inWindowCorner {
-    border-bottom-left-radius: 12px;
-  }
-
-  :global(html[data-rounded-window]) .next.inWindowCorner {
-    border-bottom-right-radius: 12px;
-  }
-}
-
 .next .preview {
   grid-column: 1;
 }

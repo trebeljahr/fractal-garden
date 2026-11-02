@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import styles from "../styles/Navbar.module.css";
 import { getFractalName, PAGE_SEO } from "../utils/pageSeo";
 
@@ -84,33 +84,6 @@ function useLinks() {
   return [prev, "/", next];
 }
 
-// Scrolling or a classic scrollbar moves a button away from the browser window's corner.
-function useWindowCorner(side: "left" | "right") {
-  const link = useRef<HTMLAnchorElement>(null);
-  const [inWindowCorner, setInWindowCorner] = useState(true);
-
-  useEffect(() => {
-    const handleChange = () => {
-      const box = link.current?.getBoundingClientRect();
-      if (!box) return;
-      // Allow one pixel because zoomed pages report fractional edges.
-      const reachesSide = side === "left" ? box.left < 1 : box.right > window.innerWidth - 1;
-      setInWindowCorner(reachesSide && box.bottom > window.innerHeight - 1);
-    };
-
-    handleChange();
-    window.addEventListener("scroll", handleChange, { passive: true });
-    window.addEventListener("resize", handleChange);
-
-    return () => {
-      window.removeEventListener("scroll", handleChange);
-      window.removeEventListener("resize", handleChange);
-    };
-  }, [side]);
-
-  return [link, inWindowCorner] as const;
-}
-
 function NavigationArrow({ previous = false }: { previous?: boolean }) {
   return (
     <svg
@@ -133,8 +106,6 @@ function NavigationArrow({ previous = false }: { previous?: boolean }) {
 export const NavElement = () => {
   const router = useRouter();
   const [prev, , next] = useLinks();
-  const [previousLink, previousInCorner] = useWindowCorner("left");
-  const [nextLink, nextInCorner] = useWindowCorner("right");
 
   useEffect(() => {
     const navigateWithArrows = (event: KeyboardEvent) => {
@@ -171,8 +142,7 @@ export const NavElement = () => {
   return (
     <nav className={styles.navigation} aria-label="Fractal navigation" data-fractal-chrome>
       <Link
-        ref={previousLink}
-        className={`${styles.linkButton} ${styles.previous} ${previousInCorner ? styles.inWindowCorner : ""}`.trim()}
+        className={`${styles.linkButton} ${styles.previous}`}
         href={prev}
         aria-label={`Previous fractal: ${getFractalName(prev)}`}
         aria-keyshortcuts="ArrowLeft"
@@ -192,8 +162,7 @@ export const NavElement = () => {
         />
       </Link>
       <Link
-        ref={nextLink}
-        className={`${styles.linkButton} ${styles.next} ${nextInCorner ? styles.inWindowCorner : ""}`.trim()}
+        className={`${styles.linkButton} ${styles.next}`}
         href={next}
         aria-label={`Next fractal: ${getFractalName(next)}`}
         aria-keyshortcuts="ArrowRight"
