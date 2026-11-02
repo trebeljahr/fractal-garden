@@ -681,6 +681,7 @@ export function createDeepZoomRenderer(
               error: (error) =>
                 report(error instanceof Error ? error.message : String(error), true),
               initialFrame: lastDirectFrame,
+              backdrop: true,
               paint: (snapshot, target) => {
                 draw(snapshot.orbit, snapshot.orbitView, target.tile, {
                   ...target,

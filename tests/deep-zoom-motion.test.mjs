@@ -16,7 +16,7 @@ const { createViewportAtLog, moveViewport, zoomViewport } = require("../utils/de
 
 function harness(
   run,
-  { timed = false, initial = false, size = [640, 360], reportErrors = true } = {},
+  { timed = false, initial = false, size = [640, 360], reportErrors = true, backdrop = false } = {},
 ) {
   const [width, height] = size;
   const saved = [globalThis.requestAnimationFrame, globalThis.cancelAnimationFrame];
@@ -149,6 +149,7 @@ function harness(
     height,
   };
   const motion = createMandelbrotMotion(gl, {
+    backdrop,
     paint(source, target) {
       assert.ok(bound, "paint must target its offscreen framebuffer");
       if (paintError) throw paintError;
@@ -350,6 +351,161 @@ test("settling drops a moving source that cannot fill the exposed edges either",
       assert.ok(next.every(({ target }) => target.width === 640 && target.height === 360));
     },
     { initial: true },
+  ));
+
+const isBackdrop = ({ target }) => Math.abs(target.pixelRatio - 1 / 12) < 1e-3;
+const paintedArea = (paints) =>
+  paints.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0);
+const finishRest = (h) => {
+  h.update(false);
+  h.flush();
+};
+
+test("a resting view calculates its wide backdrop after the native pass", () =>
+  harness(
+    (h) => {
+      h.update(false);
+      const first = h.tick();
+      assert.ok(first.every(isBackdrop), "an empty display fills with the backdrop first");
+      h.flush();
+      const backdrop = h.paints.filter(isBackdrop);
+      const [{ source, target }] = backdrop;
+      assert.deepEqual([target.width, target.height], [213, 120]);
+      assert.equal(source.state.view.logZoom, h.snapshot.state.view.logZoom + 2);
+      assert.equal(paintedArea(backdrop), 213 * 120);
+      assert.equal(paintedArea(h.paints.filter((p) => !isBackdrop(p))), 640 * 360);
+      assert.deepEqual(h.completions, [1]);
+      assert.equal(h.motion.getStats().backdropCoversViewport, true);
+      const painted = h.paints.length;
+      h.update(false, { version: 2 });
+      h.flush();
+      assert.equal(h.paints.length, painted, "the same camera repaints nothing");
+    },
+    { backdrop: true },
+  ));
+
+test("a stopped camera refreshes its backdrop only after the native pass completes", () =>
+  harness(
+    (h) => {
+      finishRest(h);
+      const before = h.paints.length;
+      const state = { ...h.snapshot.state, view: moveViewport(h.snapshot.state.view, 0.05, 0) };
+      h.update(false, { state, version: 2 });
+      h.flush();
+      const next = h.paints.slice(before);
+      const firstBackdrop = next.findIndex(isBackdrop);
+      assert.equal(paintedArea(next.slice(0, firstBackdrop)), 640 * 360);
+      assert.ok(next.slice(firstBackdrop).every(isBackdrop));
+      assert.deepEqual(h.completions, [1, 2]);
+    },
+    { backdrop: true },
+  ));
+
+test("the backdrop keeps a zoom step ahead of a camera zooming out", () =>
+  harness(
+    (h) => {
+      finishRest(h);
+      const before = h.paints.length;
+      const near = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -19.5, 0, 0) };
+      h.update(true, { state: near, version: 2 });
+      assert.equal(h.tick().some(isBackdrop), false, "half a bit stays inside the backdrop");
+      const far = { ...near, view: zoomViewport(near.view, -18.8, 0, 0) };
+      h.update(true, { state: far, version: 3 });
+      const batch = h.tick();
+      assert.ok(batch.length && batch.every(isBackdrop), "the refresh outranks detail");
+      assert.equal(batch[0].source.state.view.logZoom, -16.8);
+      assert.ok(h.paints.length > before);
+    },
+    { backdrop: true },
+  ));
+
+test("settling goes straight to a center-out native pass when the backdrop fills the edges", () =>
+  harness(
+    (h) => {
+      finishRest(h);
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -19.6, 0, 0) };
+      h.update(true, { state, version: 2 });
+      h.tick();
+      const stats = h.motion.getStats();
+      assert.equal(stats.historyCoversViewport, false);
+      assert.equal(stats.backdropCoversViewport, true);
+      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [0], "moving work stays hidden");
+      h.update(false);
+      const [first] = h.tick();
+      assert.equal(h.motion.getStats().discardedSources, 1);
+      assert.deepEqual([first.target.width, first.target.height], [640, 360]);
+      const { tile } = first.target;
+      assert.ok(tile.x < 320 && tile.x + tile.width > 256, "the pass begins at the center");
+      assert.ok(tile.y < 180 && tile.y + tile.height > 128, "the pass begins at the center");
+    },
+    { backdrop: true },
+  ));
+
+test("a replacement backdrop stays hidden until it is whole", () =>
+  harness(
+    (h) => {
+      finishRest(h);
+      const shown = h.presents.at(-1).u_backdropSize;
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -18.8, 0, 0) };
+      h.update(true, { state, version: 2 });
+      const density = h.motion.getStats().backdropEffectiveDensity;
+      h.tick();
+      assert.equal(h.motion.getStats().backdropEffectiveDensity, density);
+      assert.deepEqual(h.presents.at(-1).u_backdropSize, shown);
+      h.tick();
+      h.tick();
+      assert.ok(h.motion.getStats().backdropEffectiveDensity < density);
+    },
+    { backdrop: true },
+  ));
+
+test("slow backdrop batches do not lower motion sampling, but slow detail batches do", () =>
+  harness(
+    (h) => {
+      h.gpuMs = 15;
+      h.available = true;
+      h.update(true);
+      assert.ok(h.tick().every(isBackdrop));
+      assert.ok(h.tick().every((paint) => !isBackdrop(paint)));
+      assert.equal(h.motion.getStats().sampleScale, 0.8);
+      h.tick();
+      assert.equal(h.motion.getStats().sampleScale, 0.75);
+    },
+    { backdrop: true, timed: true },
+  ));
+
+test("a parameter edit replaces the backdrop before its native pass", () =>
+  harness(
+    (h) => {
+      finishRest(h);
+      const before = h.paints.length;
+      const state = { ...h.snapshot.state, config: { ...h.snapshot.state.config, palette: "ice" } };
+      h.update(false, { state, version: 2 });
+      const first = h.tick();
+      assert.deepEqual(h.presents.at(-1).u_backdropValid, [0]);
+      assert.ok(first.every(isBackdrop));
+      assert.ok(first.every(({ source }) => source.state.config.palette === "ice"));
+      h.flush();
+      assert.deepEqual(h.presents.at(-1).u_backdropValid, [1]);
+      assert.equal(paintedArea(h.paints.slice(before).filter((p) => !isBackdrop(p))), 640 * 360);
+    },
+    { backdrop: true },
+  ));
+
+test("a camera move at rest discards an unfinished backdrop for the old camera", () =>
+  harness(
+    (h) => {
+      h.update(false);
+      const [{ source }] = h.tick();
+      const state = { ...h.snapshot.state, view: moveViewport(h.snapshot.state.view, 0.1, 0) };
+      h.update(false, { state, version: 2 });
+      h.flush();
+      const last = h.paints.filter(isBackdrop).at(-1);
+      assert.notEqual(last.source, source);
+      assert.equal(last.source.state.view.x, state.view.x);
+      assert.deepEqual(h.completions, [2]);
+    },
+    { backdrop: true },
   ));
 
 test("same-camera version changes retain native work and never repaint its completed source", () =>

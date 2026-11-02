@@ -48,13 +48,17 @@ void main() { gl_Position = vec4(a_position, 0.0, 1.0); }`;
 const fragment = `precision highp float;
 uniform sampler2D u_history;
 uniform sampler2D u_work;
+uniform sampler2D u_backdrop;
 uniform vec2 u_resolution;
 uniform vec2 u_historySize;
 uniform vec2 u_workSize;
+uniform vec2 u_backdropSize;
 uniform vec3 u_historyTransform;
 uniform vec3 u_workTransform;
+uniform vec3 u_backdropTransform;
 uniform float u_historyValid;
 uniform float u_workValid;
+uniform float u_backdropValid;
 uniform float u_workOverHistory;
 vec4 sampleSource(sampler2D image, vec2 size, vec3 transform, float valid, vec2 uv) {
   if (valid < 0.5) return vec4(0.0);
@@ -66,8 +70,11 @@ void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x,u_resolution.y);
   vec4 history = sampleSource(u_history,u_historySize,u_historyTransform,u_historyValid,uv);
   vec4 work = sampleSource(u_work,u_workSize,u_workTransform,u_workValid,uv);
-  vec3 color = history.a > 0.999 ? history.rgb : vec3(0.02,0.025,0.03);
-  if (work.a > 0.999 && (u_workOverHistory > 0.5 || history.a <= 0.999)) color = work.rgb;
+  vec4 backdrop = sampleSource(u_backdrop,u_backdropSize,u_backdropTransform,u_backdropValid,uv);
+  vec3 color = backdrop.a > 0.999 ? backdrop.rgb : vec3(0.02,0.025,0.03);
+  if (history.a > 0.999) color = history.rgb;
+  if (work.a > 0.999 && (u_workOverHistory > 0.5 || (history.a <= 0.999 && backdrop.a <= 0.999)))
+    color = work.rgb;
   gl_FragColor = vec4(color,1.0);
 }`;
 
@@ -102,6 +109,10 @@ function sameCamera(a: Source, b: Source) {
 }
 /** Below this, zooming has outrun finished sources, so partial detail beats none. */
 const MIN_HISTORY_DENSITY = 0.25;
+/** A backdrop spans four viewports, so zooming out or panning shows it instead of dark. */
+const BACKDROP_SPAN = 4;
+/** With that span, a third of the native size per side costs a ninth of the pixels. */
+const BACKDROP_SAMPLING = 1 / 12;
 
 /** Merge only adjoining rectangles, after the center-priority budget is selected. */
 function coalesce(tiles: Tile[]): Tile[] {
@@ -122,7 +133,7 @@ function coalesce(tiles: Tile[]): Tile[] {
   return rectangles;
 }
 
-/** Keep original sampled cameras in two surfaces; never feed warped display pixels back. */
+/** Keep original sampled cameras in separate surfaces; never feed warped display pixels back. */
 export function createMandelbrotMotion(
   gl: WebGLRenderingContext,
   options: {
@@ -133,6 +144,8 @@ export function createMandelbrotMotion(
     complete: (version: number) => void;
     error?: (error: unknown) => void;
     initialFrame?: Source;
+    /** Keep a wide, low-resolution source behind history for exposed edges. */
+    backdrop?: boolean;
   },
 ) {
   const release: (() => void)[] = [];
@@ -142,7 +155,7 @@ export function createMandelbrotMotion(
   let moving = false;
   let paintAllowed = true;
   let completedVersion = -1;
-  let query: { handle: object; pixels: number; moving: boolean } | null = null;
+  let query: { handle: object; pixels: number; moving: boolean; detail: boolean } | null = null;
   let sampleScale = 0.8;
   let batchPixels = 32768;
   let fallbackPixels = 16384;
@@ -158,6 +171,7 @@ export function createMandelbrotMotion(
   let prioritizedVersion = -1;
   let prioritizedHistory: Source | null = null;
   let prioritizedWork: MotionSnapshot | null = null;
+  let prioritizedBackdrop: Source | null = null;
   try {
     const shader = createShaderProgram(gl, vertex, fragment);
     if (!shader) throw new Error("Could not create progressive Mandelbrot display.");
@@ -176,13 +190,17 @@ export function createMandelbrotMotion(
       [
         "history",
         "work",
+        "backdrop",
         "resolution",
         "historySize",
         "workSize",
+        "backdropSize",
         "historyTransform",
         "workTransform",
+        "backdropTransform",
         "historyValid",
         "workValid",
+        "backdropValid",
         "workOverHistory",
       ].map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
     );
@@ -223,6 +241,9 @@ export function createMandelbrotMotion(
     };
     let history = surface();
     let work = surface();
+    // The shown backdrop stays whole while its replacement is calculated.
+    let backdrop = surface();
+    let backdropWork = surface();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (options.initialFrame) {
       history.source = capture(options.initialFrame);
@@ -260,6 +281,7 @@ export function createMandelbrotMotion(
       for (const [image, name, unit] of [
         [history, "history", 3],
         [work, "work", 4],
+        [backdrop, "backdrop", 5],
       ] as const) {
         gl.activeTexture(gl.TEXTURE0 + unit);
         gl.bindTexture(gl.TEXTURE_2D, image.texture);
@@ -271,7 +293,7 @@ export function createMandelbrotMotion(
         gl.uniform3f(uniforms[`${name}Transform`], t[0], t[1], t[2]);
       }
       // Moving sources swap in whole, so the final native pass is the only
-      // sweep seen outward from the center. They still fill uncovered space.
+      // sweep seen outward from the center. They fill space nothing else covers.
       gl.uniform1f(
         uniforms.workOverHistory,
         work.native || (density(history) ?? 0) < MIN_HISTORY_DENSITY ? 1 : 0,
@@ -280,22 +302,21 @@ export function createMandelbrotMotion(
       presentations++;
       gl.activeTexture(gl.TEXTURE0);
     };
-    const begin = () => {
+    const begin = (image: Surface, sampling: number, padding: number) => {
       if (!latest) return;
       const original = capture(latest);
-      const padding = moving ? 1.18 : 1;
-      const previousWidth = work.width;
-      const previousHeight = work.height;
-      work.width = Math.max(1, Math.round(latest.width * (moving ? sampleScale : 1) * padding));
-      work.height = Math.max(1, Math.round(latest.height * (moving ? sampleScale : 1) * padding));
+      const previousWidth = image.width;
+      const previousHeight = image.height;
+      image.width = Math.max(1, Math.round(latest.width * sampling * padding));
+      image.height = Math.max(1, Math.round(latest.height * sampling * padding));
       // Preserve the center and enlarge the camera together with its border pixels.
       const view = {
         ...original.state.view,
         logZoom: original.state.view.logZoom + Math.log2(padding),
       };
-      work.source = { ...original, state: { ...original.state, view } };
-      work.origin = original;
-      work.snapshot = {
+      image.source = { ...original, state: { ...original.state, view } };
+      image.origin = original;
+      image.snapshot = {
         ...original,
         state: {
           ...original.state,
@@ -306,40 +327,40 @@ export function createMandelbrotMotion(
           },
         },
       };
-      work.pixelRatio =
-        Math.min(work.width, work.height) / Math.min(latest.width, latest.height) / padding;
-      work.native = !moving;
-      work.cursor = 0;
-      work.receivedAt = receivedAt;
-      work.submittedPixels = 0;
-      work.tiles = [];
-      for (let y = 0; y < work.height; y += 64)
-        for (let x = 0; x < work.width; x += 64)
-          work.tiles.push({
+      image.pixelRatio =
+        Math.min(image.width, image.height) / Math.min(latest.width, latest.height) / padding;
+      image.native = sampling === 1;
+      image.cursor = 0;
+      image.receivedAt = receivedAt;
+      image.submittedPixels = 0;
+      image.tiles = [];
+      for (let y = 0; y < image.height; y += 64)
+        for (let x = 0; x < image.width; x += 64)
+          image.tiles.push({
             x,
             y,
-            width: Math.min(64, work.width - x),
-            height: Math.min(64, work.height - y),
+            width: Math.min(64, image.width - x),
+            height: Math.min(64, image.height - y),
           });
       const distance = (tile: Tile) =>
-        (tile.x + tile.width / 2 - work.width / 2) ** 2 +
-        (tile.y + tile.height / 2 - work.height / 2) ** 2;
-      work.tiles.sort((a, b) => distance(a) - distance(b));
+        (tile.x + tile.width / 2 - image.width / 2) ** 2 +
+        (tile.y + tile.height / 2 - image.height / 2) ** 2;
+      image.tiles.sort((a, b) => distance(a) - distance(b));
       gl.activeTexture(gl.TEXTURE3);
-      gl.bindTexture(gl.TEXTURE_2D, work.texture);
-      if (work.width !== previousWidth || work.height !== previousHeight)
+      gl.bindTexture(gl.TEXTURE_2D, image.texture);
+      if (image.width !== previousWidth || image.height !== previousHeight)
         gl.texImage2D(
           gl.TEXTURE_2D,
           0,
           gl.RGBA,
-          work.width,
-          work.height,
+          image.width,
+          image.height,
           0,
           gl.RGBA,
           gl.UNSIGNED_BYTE,
           null,
         );
-      gl.bindFramebuffer(gl.FRAMEBUFFER, work.framebuffer);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, image.framebuffer);
       if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
         throw new Error("Progressive Mandelbrot surface is incomplete.");
       gl.disable(gl.SCISSOR_TEST);
@@ -347,46 +368,69 @@ export function createMandelbrotMotion(
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.activeTexture(gl.TEXTURE0);
     };
-    const discardWork = () => {
-      work.source = null;
-      work.origin = null;
-      work.snapshot = null;
-      work.native = false;
-      work.tiles = [];
-      work.cursor = 0;
-      work.submittedPixels = 0;
+    const discard = (image: Surface) => {
+      image.source = null;
+      image.origin = null;
+      image.snapshot = null;
+      image.native = false;
+      image.tiles = [];
+      image.cursor = 0;
+      image.submittedPixels = 0;
     };
-    const coversViewport = (image: Surface) => {
+    /** Whether the viewport fits inside `share` of the source's span. */
+    const coversViewport = (image: Surface, share = 1) => {
       if (!latest || !image.source || !compatible(latest, image.source)) return false;
       const [x, y, ratio] = transform(latest.state.view, image.source.state.view);
       const nativeSize = Math.min(latest.width, latest.height);
       const sourceSize = Math.min(image.width, image.height);
       return (
         Number.isFinite(x + y + ratio) &&
-        Math.abs(x) + (ratio * latest.width) / nativeSize <= image.width / sourceSize &&
-        Math.abs(y) + (ratio * latest.height) / nativeSize <= image.height / sourceSize
+        Math.abs(x) + (ratio * latest.width) / nativeSize <= (share * image.width) / sourceSize &&
+        Math.abs(y) + (ratio * latest.height) / nativeSize <= (share * image.height) / sourceSize
       );
     };
-    // After zooming out, the moving source alone fills the edges. Dropping it
-    // would blank them and make the native pass fill them a second time.
+    const exposed = () => !coversViewport(history) && !coversViewport(backdrop);
+    // Without a backdrop, the moving source alone fills edges exposed by zooming
+    // out. Dropping it would blank them and make the native pass fill them again.
     const workFillsGap = () =>
       !work.native &&
       latest !== null &&
       history.source !== null &&
       compatible(latest, history.source) &&
-      !coversViewport(history) &&
+      exposed() &&
       coversViewport(work);
+    const backdropDue = () => {
+      if (!options.backdrop || !latest || backdropWork.snapshot) return false;
+      if (!moving) {
+        // The native pass comes first unless the viewport would otherwise show dark.
+        if (exposed()) return true;
+        if (work.snapshot) return false;
+        return (
+          !backdrop.origin ||
+          !compatible(latest, backdrop.origin) ||
+          !sameCamera(latest, backdrop.origin)
+        );
+      }
+      // Stay a zoom step ahead of the camera, and replace a backdrop that has
+      // become too coarse once it is on screen.
+      return (
+        !coversViewport(backdrop, 0.5) ||
+        (!coversViewport(history) && (density(backdrop) ?? 0) < BACKDROP_SAMPLING / 2)
+      );
+    };
     const prioritizeVisibleWork = () => {
       if (!latest || !work.source || !work.snapshot) return;
       if (
         prioritizedVersion === latest.version &&
         prioritizedHistory === history.source &&
-        prioritizedWork === work.snapshot
+        prioritizedWork === work.snapshot &&
+        prioritizedBackdrop === backdrop.source
       )
         return;
       prioritizedVersion = latest.version;
       prioritizedHistory = history.source;
       prioritizedWork = work.snapshot;
+      prioritizedBackdrop = backdrop.source;
       const inWorkPixels = (source: Source, width: number, height: number): Rect | null => {
         const [x, y, ratio] = transform(source.state.view, work.source!.state.view);
         const scale = Math.min(work.width, work.height);
@@ -401,8 +445,10 @@ export function createMandelbrotMotion(
       };
       const viewport = inWorkPixels(latest, latest.width, latest.height);
       if (!viewport) return;
-      const covered =
-        history.source && compatible(latest, history.source)
+      // With nothing dark to fill, the tiles sweep outward from the center alone.
+      const covered = coversViewport(backdrop)
+        ? viewport
+        : history.source && compatible(latest, history.source)
           ? inWorkPixels(history.source, history.width, history.height)
           : null;
       const intersect = (a: Rect, b: Rect): Rect => ({
@@ -466,7 +512,7 @@ export function createMandelbrotMotion(
             ),
           );
           if (moving && !query.moving) batchPixels = Math.min(batchPixels, 32768);
-          if (query.moving && ms > 12) sampleScale = 0.75;
+          if (query.moving && query.detail && ms > 12) sampleScale = 0.75;
         }
       }
       timer.deleteQueryEXT(query.handle);
@@ -513,7 +559,17 @@ export function createMandelbrotMotion(
         const swap = history;
         history = work;
         work = swap;
-        discardWork();
+        discard(work);
+      }
+      if (backdropWork.snapshot && backdropWork.origin) {
+        const usable = compatible(latest, backdropWork.origin);
+        if (usable && backdropWork.cursor === backdropWork.tiles.length) {
+          const swap = backdrop;
+          backdrop = backdropWork;
+          backdropWork = swap;
+          discard(backdropWork);
+        } else if (!usable || (!moving && !sameCamera(latest, backdropWork.origin)))
+          discard(backdropWork);
       }
       // A native pass can outlive a short pause and a resumed gesture. Once
       // stopped, refine the final camera directly instead of finishing an old
@@ -527,25 +583,30 @@ export function createMandelbrotMotion(
             (!work.native || !work.origin || !sameCamera(latest, work.origin))))
       ) {
         discardedSources++;
-        discardWork();
+        discard(work);
       }
       const exactHistory =
         history.origin && compatible(latest, history.origin) && sameCamera(latest, history.origin);
-      if (!work.snapshot && !(exactHistory && (moving || history.native))) begin();
-      if (work.snapshot) {
-        prioritizeVisibleWork();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, work.framebuffer);
+      if (!work.snapshot && !(exactHistory && (moving || history.native)))
+        begin(work, moving ? sampleScale : 1, moving ? 1.18 : 1);
+      if (backdropDue()) begin(backdropWork, BACKDROP_SAMPLING, BACKDROP_SPAN);
+      const image =
+        backdropWork.snapshot && (moving || !work.snapshot || exposed()) ? backdropWork : work;
+      if (image.snapshot) {
+        const detail = image === work;
+        if (detail) prioritizeVisibleWork();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, image.framebuffer);
         const handle = timer?.createQueryEXT() ?? null;
         if (handle && timer) {
-          query = { handle, pixels: 0, moving };
+          query = { handle, pixels: 0, moving, detail };
           timer.beginQueryEXT(timer.TIME_ELAPSED_EXT, handle);
         }
         const budget = handle ? batchPixels : timer ? 16384 : fallbackPixels;
         let pixels = 0;
         const selected: Tile[] = [];
         try {
-          while (work.cursor < work.tiles.length) {
-            const tile = work.tiles[work.cursor];
+          while (image.cursor < image.tiles.length) {
+            const tile = image.tiles[image.cursor];
             const area = tile.width * tile.height;
             if (pixels && pixels + area > budget) break;
             if (!pixels && area > budget && (tile.width > 32 || tile.height > 32)) {
@@ -563,39 +624,39 @@ export function createMandelbrotMotion(
               children.sort(
                 (a, b) =>
                   Math.hypot(
-                    a.x + a.width / 2 - work.width / 2,
-                    a.y + a.height / 2 - work.height / 2,
+                    a.x + a.width / 2 - image.width / 2,
+                    a.y + a.height / 2 - image.height / 2,
                   ) -
                   Math.hypot(
-                    b.x + b.width / 2 - work.width / 2,
-                    b.y + b.height / 2 - work.height / 2,
+                    b.x + b.width / 2 - image.width / 2,
+                    b.y + b.height / 2 - image.height / 2,
                   ),
               );
-              work.tiles.splice(work.cursor, 1, ...children);
+              image.tiles.splice(image.cursor, 1, ...children);
               continue;
             }
-            work.cursor++;
+            image.cursor++;
             selected.push(tile);
             pixels += area;
             if (pixels >= budget) break;
           }
           for (const tile of coalesce(selected)) {
-            options.paint(work.snapshot, {
-              width: work.width,
-              height: work.height,
+            options.paint(image.snapshot, {
+              width: image.width,
+              height: image.height,
               tile,
-              pixelRatio: work.pixelRatio,
+              pixelRatio: image.pixelRatio,
             });
             paintCalls++;
           }
-          work.submittedPixels += pixels;
+          image.submittedPixels += pixels;
           submittedPixels += pixels;
           submittedBatches++;
           if (!timer) fallbackLastFrame = timestamp;
         } finally {
           if (handle && timer) {
             timer.endQueryEXT(timer.TIME_ELAPSED_EXT);
-            query = { handle, pixels, moving };
+            query = { handle, pixels, moving, detail };
           }
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
@@ -611,7 +672,7 @@ export function createMandelbrotMotion(
         completedVersion = latest.version;
         options.complete(latest.version);
       }
-      if (query || work.snapshot) schedule();
+      if (query || work.snapshot || backdropWork.snapshot) schedule();
     };
     const destroy = () => {
       if (destroyed) return;
@@ -666,6 +727,8 @@ export function createMandelbrotMotion(
           historyEffectiveDensity: density(history),
           workEffectiveDensity: density(work),
           historyCoversViewport: coversViewport(history),
+          backdropCoversViewport: coversViewport(backdrop),
+          backdropEffectiveDensity: density(backdrop),
           workSubmittedFraction: work.source
             ? work.submittedPixels / (work.width * work.height)
             : 0,
