@@ -63,16 +63,24 @@
 .previous {
   left: env(safe-area-inset-left, 0px);
   border-top-left-radius: 0;
-  /* Keep the flush border visible inside rounded browser-window corners. */
-  border-bottom-left-radius: 12px;
 }
 
 .next {
   grid-template-columns: 40px minmax(0, auto);
   right: env(safe-area-inset-right, 0px);
   border-top-right-radius: 0;
-  border-bottom-right-radius: 12px;
   text-align: left;
+}
+
+/* Keep the flush border visible inside rounded browser-window corners. Fullscreen has none. */
+@media not (display-mode: fullscreen) {
+  .previous.inWindowCorner {
+    border-bottom-left-radius: 12px;
+  }
+
+  .next.inWindowCorner {
+    border-bottom-right-radius: 12px;
+  }
 }
 
 .next .preview {
