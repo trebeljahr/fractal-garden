@@ -1,3 +1,13 @@
+import type { CanvasViewport } from "../../canvasViewport";
+import {
+  gosperIsland,
+  type IslandPoint,
+  latticeCenter,
+  latticeTint,
+  SEVEN_ISLANDS,
+} from "../../gosperIsland";
+import { hexColor } from "../../miraMap";
+import { buildStars, type StarSettings, starReach, traceStars } from "../../starFractal";
 import { drawFittedCurve, expandLSystem, traceTurtle } from "../../turtleCurve";
 import {
   type Bounds,
@@ -80,6 +90,19 @@ export function drawKochAntiSnowflake(
 ) {
   // Counterclockwise triangle whose Koch spikes turn left, into the triangle.
   const curve = traceLSystem("F++F++F", { F: "F+F--F+F" }, { "+": 60, "-": -60 }, p.iterations);
+  return drawFittedCurve(ctx, curve, { width, height, ...p, closePath: true });
+}
+
+export type LevyTapestryParams = CurveStyle;
+
+export function drawLevyTapestry(
+  ctx: Context2D,
+  width: number,
+  height: number,
+  p: LevyTapestryParams,
+) {
+  // Four Lévy curves on the sides of a square, each first fold pointing away from it.
+  const curve = traceLSystem("F++F++F++F", { F: "-F++F-" }, { "+": 45, "-": -45 }, p.iterations);
   return drawFittedCurve(ctx, curve, { width, height, ...p, closePath: true });
 }
 
@@ -170,6 +193,19 @@ export function drawGosperCurve(
   p: GosperCurveParams,
 ) {
   return strokeFitted(ctx, width, height, traceGosper(p.iterations), p);
+}
+
+const tracePeano = cacheLast((iterations: number) =>
+  traceTurtleVec(
+    rewriteSentence("X", { X: "XFYFX+F+YFXFY-F-XFYFX", Y: "YFXFY-F-XFYFX+F+YFXFY" }, iterations),
+    { turnAngle: Math.PI / 2 },
+  ),
+);
+
+export type PeanoCurveParams = CurveStyle;
+
+export function drawPeanoCurve(ctx: Context2D, width: number, height: number, p: PeanoCurveParams) {
+  return strokeFitted(ctx, width, height, tracePeano(p.iterations), p);
 }
 
 const traceFibonacciWord = cacheLast((iterations: number, angle: number) => {
@@ -290,4 +326,135 @@ export function drawTwindragon(ctx: Context2D, width: number, height: number, p:
 
   drawTile(0, 0);
   return tiles * tileSegments;
+}
+
+// --- Gosper island ---
+
+const buildIsland = cacheLast((iterations: number) => gosperIsland(iterations));
+
+export type GosperIslandParams = {
+  viewport?: CanvasViewport;
+  iterations: number;
+  view: "one" | "seven" | "plane";
+  fillIslands: boolean;
+  background: string;
+  color: string;
+  colorEnd: string;
+  outline: string;
+  lineWidth: number;
+};
+
+const ISLAND_REACH = { one: 1.12, seven: Math.sqrt(7) * 1.08, plane: Math.sqrt(7) * 1.08 };
+
+export function drawGosperIsland(
+  ctx: Context2D,
+  width: number,
+  height: number,
+  p: GosperIslandParams,
+) {
+  const outline = buildIsland(p.iterations);
+  const scale = (Math.min(width, height) * (1 - 2 * FITTED_PADDING)) / (2 * ISLAND_REACH[p.view]);
+  const zoom = p.viewport?.zoom ?? 1;
+  const toPath = (points: IslandPoint[]) => {
+    const path = new Path2D();
+    path.moveTo(points[0][0] * scale, -points[0][1] * scale);
+    for (let i = 1; i < points.length; i++)
+      path.lineTo(points[i][0] * scale, -points[i][1] * scale);
+    path.closePath();
+    return path;
+  };
+  const path = toPath(outline);
+  const [r0, g0, b0] = hexColor(p.color);
+  const [r1, g1, b1] = hexColor(p.colorEnd);
+  const tint = (t: number) =>
+    `rgb(${r0 + (r1 - r0) * t},${g0 + (g1 - g0) * t},${b0 + (b1 - b0) * t})`;
+
+  ctx.fillStyle = p.background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.lineJoin = "round";
+  ctx.lineWidth = p.lineWidth / zoom;
+  ctx.strokeStyle = p.outline;
+
+  let tiles: [number, number][] = [[0, 0]];
+  if (p.view === "seven") tiles = SEVEN_ISLANDS;
+  if (p.view === "plane") {
+    const range = Math.ceil(Math.max(width, height) / (1.5 * scale)) + 2;
+    tiles = [];
+    for (let a = -range; a <= range; a++)
+      for (let b = -range - Math.ceil(range / 2); b <= range + Math.ceil(range / 2); b++)
+        tiles.push([a, b]);
+  }
+  let drawn = 0;
+  for (const [a, b] of tiles) {
+    const [x, y] = latticeCenter(a, b);
+    const left = width / 2 + x * scale;
+    const top = height / 2 - y * scale;
+    if (left < -scale * 1.2 || left > width + scale * 1.2) continue;
+    if (top < -scale * 1.2 || top > height + scale * 1.2) continue;
+    ctx.save();
+    ctx.translate(left, top);
+    if (p.fillIslands) {
+      ctx.fillStyle = tint(latticeTint(a, b) / 6);
+      ctx.fill(path);
+    }
+    ctx.stroke(path);
+    ctx.restore();
+    drawn++;
+  }
+  return drawn * outline.length;
+}
+
+// --- Star fractal ---
+
+export type StarFractalParams = StarSettings & {
+  viewport?: CanvasViewport;
+  iterations: number;
+  smallestOnly: boolean;
+  fillStars: boolean;
+  background: string;
+  color: string;
+  colorEnd: string;
+  lineWidth: number;
+};
+
+export function drawStarFractal(
+  ctx: Context2D,
+  width: number,
+  height: number,
+  p: StarFractalParams,
+) {
+  const reach = starReach(p, p.iterations);
+  const scale = (Math.min(width, height) * (1 - 2 * FITTED_PADDING)) / (2 * reach);
+  const stars = buildStars(p, p.iterations);
+  const zoom = p.viewport?.zoom ?? 1;
+  const [r0, g0, b0] = hexColor(p.color);
+  const [r1, g1, b1] = hexColor(p.colorEnd);
+  const place = (x: number, y: number): [number, number] => [
+    width / 2 + x * scale,
+    height / 2 + y * scale,
+  ];
+
+  ctx.fillStyle = p.background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineWidth = p.lineWidth / zoom;
+
+  let drawn = 0;
+  for (let depth = 0; depth <= p.iterations; depth++) {
+    if (p.smallestOnly && depth !== p.iterations) continue;
+    const level = stars.filter((star) => star.depth === depth);
+    const path = new Path2D();
+    traceStars(path, level, p, place);
+    const t = p.iterations ? depth / p.iterations : 0;
+    const color = `rgb(${r0 + (r1 - r0) * t},${g0 + (g1 - g0) * t},${b0 + (b1 - b0) * t})`;
+    ctx.strokeStyle = color;
+    if (p.fillStars) {
+      ctx.fillStyle = color;
+      ctx.fill(path);
+    }
+    ctx.stroke(path);
+    drawn += level.length;
+  }
+  return drawn;
 }

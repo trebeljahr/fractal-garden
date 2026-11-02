@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { EscapeFormula } from "../../utils/deepZoom/orbit";
 import { watchDisplayResolution } from "../../utils/displayResolution";
 import {
   type EscapeTimeColoring,
@@ -109,7 +110,7 @@ export function EscapeTimePicture({
   coloring,
   c = ZERO,
 }: {
-  formula: "mandelbrot" | "julia" | "burning-ship";
+  formula: EscapeFormula;
   bounds: Bounds;
   coloring: EscapeTimeColoring;
   c?: ComplexPoint;

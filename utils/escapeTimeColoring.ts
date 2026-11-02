@@ -6,6 +6,8 @@ export type EscapeTimeColoring = {
   colorDensity: number;
   colorOffset: number;
   interior: string;
+  /** Only Barnsley's tree lets the escape circle change. */
+  escapeRadius?: number;
 };
 
 // Order matches the MODE_* constants in escape-time.frag.
@@ -143,6 +145,24 @@ export const BURNING_SHIP_COLORING = createColoring("classic", {
   colorOffset: 0.55,
   interior: "#000000",
 });
+export const MANDELBAR_COLORING = createColoring("classic", {
+  iterations: 200,
+  colorDensity: 1,
+  colorOffset: 0.5,
+  interior: "#000000",
+});
+export const CACTUS_COLORING = createColoring("classic", {
+  iterations: 200,
+  colorDensity: 1,
+  colorOffset: 0.5,
+  interior: "#000000",
+});
+export const BARNSLEY_TREE_COLORING = createColoring("classic", {
+  iterations: 100,
+  colorDensity: 3,
+  colorOffset: 0.5,
+  interior: "#000000",
+});
 
 /**
  * Merges a dat-gui update. Picking a look applies its values; tweaking any
@@ -167,7 +187,13 @@ export function parseHexColor(hex: string) {
 }
 
 type ColoringLocations = Record<
-  "colorMode" | "palette" | "iterations" | "colorDensity" | "colorOffset" | "interior",
+  | "colorMode"
+  | "palette"
+  | "iterations"
+  | "colorDensity"
+  | "colorOffset"
+  | "interior"
+  | "escapeRadius",
   WebGLUniformLocation | null
 >;
 
@@ -182,6 +208,7 @@ export function getColoringLocations(
     colorDensity: gl.getUniformLocation(program, "u_colorDensity"),
     colorOffset: gl.getUniformLocation(program, "u_colorOffset"),
     interior: gl.getUniformLocation(program, "u_interior"),
+    escapeRadius: gl.getUniformLocation(program, "u_escapeRadius"),
   };
 }
 
@@ -200,4 +227,5 @@ export function setColoringUniforms(
   gl.uniform1f(locations.colorDensity, coloring.colorDensity);
   gl.uniform1f(locations.colorOffset, coloring.colorOffset);
   gl.uniform3f(locations.interior, r, g, b);
+  gl.uniform1f(locations.escapeRadius, coloring.escapeRadius ?? 256);
 }

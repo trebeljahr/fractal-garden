@@ -5,9 +5,13 @@ import {
   drawDragonCurve,
   drawFibonacciWordFractal,
   drawGosperCurve,
+  drawGosperIsland,
   drawKochAntiSnowflake,
+  drawLevyTapestry,
   drawMinkowskiSausage,
+  drawPeanoCurve,
   drawQuadraticKochIsland,
+  drawStarFractal,
   drawTerdragon,
   drawTwindragon,
 } from "./turtleCurves";
@@ -22,5 +26,9 @@ export const TURTLE_RENDERERS = {
   terdragon: () => new StaticRenderer(drawTerdragon),
   twindragon: () => new StaticRenderer(drawTwindragon),
   gosperCurve: () => new StaticRenderer(drawGosperCurve),
+  gosperIsland: () => new StaticRenderer(drawGosperIsland),
+  levyTapestry: () => new StaticRenderer(drawLevyTapestry),
+  peanoCurve: () => new StaticRenderer(drawPeanoCurve),
+  starFractal: () => new StaticRenderer(drawStarFractal),
   fibonacciWordFractal: () => new StaticRenderer(drawFibonacciWordFractal),
 } satisfies Record<string, () => Renderer<never>>;

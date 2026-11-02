@@ -173,6 +173,69 @@ const families: Family[] = [
     ],
   },
   {
+    paths: ["/mandelbar-set", "/mandelbrot", "/burning-ship", "/cactus-fractal", "/julia-set"],
+  },
+  {
+    paths: ["/cactus-fractal", "/mandelbrot", "/mandelbar-set", "/newton-fractal", "/julia-set"],
+  },
+  {
+    paths: [
+      "/barnsley-tree",
+      "/julia-set",
+      "/l-system/twindragon",
+      "/barnsley-fern",
+      "/mandelbrot",
+    ],
+  },
+  {
+    paths: [
+      "/mira-fractal",
+      "/lorenz-attractor",
+      "/rossler-attractor",
+      "/logistic-map",
+      "/barnsley-fern",
+    ],
+  },
+  {
+    paths: [
+      "/star-fractal",
+      "/n-flake",
+      "/l-system/koch-snowflake",
+      "/vicsek-fractal-2d",
+      "/l-system/sierpinski-triangle",
+    ],
+  },
+  {
+    paths: [
+      "/gosper-island",
+      "/l-system/gosper-curve",
+      "/l-system/koch-snowflake",
+      "/l-system/twindragon",
+      "/penrose-tiling",
+    ],
+  },
+  {
+    paths: [
+      "/l-system/peano-curve",
+      "/l-system/hilbert-curve",
+      "/l-system/gosper-curve",
+      "/gosper-island",
+      "/l-system/sierpinski-curve",
+    ],
+  },
+  {
+    paths: [
+      "/l-system/levy-tapestry",
+      "/l-system/levy-curve",
+      "/l-system/dragon-curve",
+      "/l-system/twindragon",
+      "/l-system/quadratic-koch-island",
+    ],
+  },
+  {
+    paths: ["/circles-and-squares", "/logistic-map", "/sierpinski-carpet", "/julia-set"],
+  },
+  {
     paths: [
       "/l-system/board",
       "/l-system/crystal",

@@ -1,5 +1,5 @@
-// Shared escape-time shader for the Mandelbrot set, Julia sets and the Burning Ship.
-// The page prepends one of FORMULA_MANDELBROT, FORMULA_JULIA or FORMULA_BURNING_SHIP.
+// Shared escape-time shader for the Mandelbrot set, Julia sets, the Burning Ship and
+// their relatives. The page prepends one FORMULA_* define.
 precision highp float;
 
 uniform vec2 u_resolution;
@@ -27,6 +27,14 @@ const int MODE_DISTANCE = 3;
 const int MODE_STRIPES = 4;
 const int MODE_TRAP_POINT = 5;
 const int MODE_TRAP_CROSS = 6;
+
+// Barnsley's tree is drawn with a chosen circle: its picture depends on the radius.
+#ifdef FORMULA_BARNSLEY_TREE
+uniform float u_escapeRadius;
+#define ESCAPE_LIMIT u_escapeRadius
+#else
+#define ESCAPE_LIMIT escapeRadius
+#endif
 
 vec2 complexMultiply(vec2 a, vec2 b) {
     return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
@@ -104,6 +112,19 @@ vec3 paletteColor(float t) {
     return vec3(t);
 }
 
+// Continuous iteration counts. Beyond the escape circle a point's log-size doubles
+// per step for a square, triples for a cube, and only grows by log|c| for a linear map.
+#ifdef FORMULA_CACTUS
+float escapeOvershoot(float logZ) { return log(max(logZ, 1e-6)) / log(3.0); }
+float escapeBlend(float logZ) { return 1.0 + log(log(escapeRadius) / max(logZ, 1e-6)) / log(3.0); }
+#elif defined(FORMULA_BARNSLEY_TREE)
+float escapeOvershoot(float logZ) { return (logZ - log(ESCAPE_LIMIT)) / max(log(length(u_c)), 1e-3); }
+float escapeBlend(float logZ) { return 1.0 - escapeOvershoot(logZ); }
+#else
+float escapeOvershoot(float logZ) { return log2(max(logZ, 1e-6)); }
+float escapeBlend(float logZ) { return 1.0 + log2(log(escapeRadius) / max(logZ, 1e-6)); }
+#endif
+
 void main() {
     vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
     float pixelSize = 2.0 * u_zoomSize / min(u_resolution.x, u_resolution.y) * exp2(-u_logPixelScale);
@@ -115,9 +136,13 @@ void main() {
     vec2 point = u_center + uv * u_zoomSize;
 #endif
 
-#ifdef FORMULA_JULIA
+#if defined(FORMULA_JULIA) || defined(FORMULA_BARNSLEY_TREE)
     vec2 z = point;
     vec2 c = u_c;
+    vec2 dz = vec2(1.0, 0.0);
+#elif defined(FORMULA_CACTUS)
+    vec2 z = point;
+    vec2 c = point;
     vec2 dz = vec2(1.0, 0.0);
 #else
     vec2 z = vec2(0.0);
@@ -156,6 +181,19 @@ void main() {
 #elif defined(FORMULA_JULIA)
         if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(z, dz);
         z = complexSquare(z) + c;
+#elif defined(FORMULA_MANDELBAR)
+        vec2 flipped = vec2(z.x, -z.y);
+        if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(flipped, vec2(dz.x, -dz.y)) + vec2(1.0, 0.0);
+        z = complexSquare(flipped) + c;
+#elif defined(FORMULA_CACTUS)
+        // z^3 + (c - 1) z - c, written as z (z^2 + c - 1) - c.
+        vec2 inner = complexSquare(z) + c - vec2(1.0, 0.0);
+        if (u_colorMode == MODE_DISTANCE) dz = complexMultiply(inner + 2.0 * complexSquare(z), dz) + z - vec2(1.0, 0.0);
+        z = complexMultiply(inner, z) - c;
+#elif defined(FORMULA_BARNSLEY_TREE)
+        // Move one unit toward the vertical axis, then rotate and scale by c.
+        if (u_colorMode == MODE_DISTANCE) dz = complexMultiply(c, dz);
+        z = complexMultiply(c, z - vec2(sign(z.x), 0.0));
 #else
         if (u_colorMode == MODE_DISTANCE) dz = 2.0 * complexMultiply(z, dz) + vec2(1.0, 0.0);
         z = complexSquare(z) + c;
@@ -170,7 +208,7 @@ void main() {
             stripeSum += stripeLast;
         }
 
-        if (dot(z, z) > escapeRadius2) {
+        if (dot(z, z) > ESCAPE_LIMIT * ESCAPE_LIMIT) {
             escaped = true;
             break;
         }
@@ -186,7 +224,7 @@ void main() {
 
     float logZ = log(dot(z, z)) / 2.0;
     // Continuous (normalized) iteration count, see "smooth coloring" on Wikipedia.
-    float smoothIteration = max(iteration + 1.0 - log2(max(logZ, 1e-6)), 0.0);
+    float smoothIteration = max(iteration + 1.0 - escapeOvershoot(logZ), 0.0);
     float t;
 
     if (u_colorMode == MODE_LOG) {
@@ -202,7 +240,7 @@ void main() {
         float count = max(iteration + 1.0, 1.0);
         float average = stripeSum / count;
         float previous = count > 1.0 ? (stripeSum - stripeLast) / (count - 1.0) : average;
-        float blend = clamp(1.0 + log2(log(escapeRadius) / max(logZ, 1e-6)), 0.0, 1.0);
+        float blend = clamp(escapeBlend(logZ), 0.0, 1.0);
         t = mix(previous, average, blend);
     } else if (trapMode) {
         t = sqrt(trap);

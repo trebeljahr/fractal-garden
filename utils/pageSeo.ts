@@ -362,6 +362,63 @@ export const PAGE_SEO: Record<string, SeoEntry> = {
       "Grow the von Koch surface in 3D by raising a tetrahedron on the middle of every triangle, from one triangle or a whole tetrahedron.",
     imagePath: "/assets/fractal-images/koch-surface.jpg",
   },
+  "/mandelbar-set": {
+    title: "Mandelbar Set Explorer",
+    name: "Mandelbar Set",
+    description:
+      "Mirror each point before you square it and the Mandelbrot set becomes a shape with three matching corners. Zoom in and follow the orbits.",
+    imagePath: "/assets/fractal-images/mandelbar-set.jpg",
+  },
+  "/cactus-fractal": {
+    title: "Cactus Fractal Explorer",
+    name: "Cactus Fractal",
+    description:
+      "Zoom into a cubic relative of the Mandelbrot set, where two prickly bodies meet at a single point and specks lie far from both.",
+    imagePath: "/assets/fractal-images/cactus-fractal.jpg",
+  },
+  "/barnsley-tree": {
+    title: "Barnsley's Tree Explorer",
+    name: "Barnsley's Tree",
+    description:
+      "Follow a rule with one sharp edge, then change the escape circle and watch the scrolls of Barnsley's tree give way to one solid shape.",
+    imagePath: "/assets/fractal-images/barnsley-tree.jpg",
+  },
+  "/mira-fractal": {
+    title: "Mira Fractal",
+    description:
+      "Plot millions of steps of the Mira map. Change two numbers to get rings, flowers and arms, and watch a picture slowly drain toward its center.",
+    imagePath: "/assets/fractal-images/mira-fractal.jpg",
+  },
+  "/star-fractal": {
+    title: "Star Fractal",
+    description:
+      "Put a smaller star on every tip of a star, then repeat. Change the copy size and find where the smallest stars form an N-flake.",
+    imagePath: "/assets/fractal-images/star-fractal.jpg",
+  },
+  "/gosper-island": {
+    title: "Gosper Island",
+    description:
+      "Bend the sides of a hexagon into a coastline, then fit seven islands together into one bigger island and tile the plane.",
+    imagePath: "/assets/fractal-images/gosper-island.jpg",
+  },
+  "/l-system/peano-curve": {
+    title: "Peano Curve",
+    description:
+      "Follow the first curve ever found to fill a square, and find the points in that square it must visit more than once.",
+    imagePath: "/assets/fractal-images/l-system-peano-curve.jpg",
+  },
+  "/l-system/levy-tapestry": {
+    title: "Lévy Tapestry",
+    description:
+      "Fold each side of a square again and again. Four Lévy curves grow into an octagon with an empty middle.",
+    imagePath: "/assets/fractal-images/l-system-levy-tapestry.jpg",
+  },
+  "/circles-and-squares": {
+    title: "Circles and Squares",
+    description:
+      "One formula, one set of rings. Change the spacing of the dots and watch ghost copies of the rings appear across a grid.",
+    imagePath: "/assets/fractal-images/circles-and-squares.jpg",
+  },
 };
 
 const DEFAULT_ENTRY = PAGE_SEO["/"];

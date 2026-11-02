@@ -45,6 +45,7 @@ vec4 cxSquare(vec4 a) {
     return vec4(feAdd(feMul(a.xy,a.xy), feNeg(feMul(a.zw,a.zw))), feTwice(feMul(a.xy,a.zw)));
 }
 vec4 cxTwice(vec4 a) { return vec4(feTwice(a.xy), feTwice(a.zw)); }
+vec4 cxThrice(vec4 a) { return cxAdd(cxTwice(a), a); }
 vec2 cxValue(vec4 a) { return vec2(ordinary(a.xy), ordinary(a.zw)); }
 float scaled(vec2 a, float e) { return a.x == 0.0 || a.y-e < -120.0 ? 0.0 : a.x * exp2(min(a.y-e,60.0)); }
 float cxLogLength(vec4 a) {
@@ -72,13 +73,29 @@ vec2 diffAbs(vec2 a, vec2 b) {
     if (a.x >= 0.0) return sum.x >= 0.0 ? b : feNeg(feAdd(feTwice(a),b));
     return sum.x <= 0.0 ? feNeg(b) : feAdd(feTwice(a),b);
 }
+#ifdef FORMULA_CACTUS
+// Index zero of the camera orbit is the reference pixel itself, because z starts at c.
+const vec4 CX_MINUS_ONE = vec4(-1.0, 0.0, 0.0, 0.0);
+vec4 cactusParameter(vec4 dc) { return cxAdd(cxAdd(referenceAt(0.0), dc), CX_MINUS_ONE); }
+#endif
 vec4 perturbFull(vec4 ref, vec4 delta, vec4 dc) {
 #ifdef FORMULA_BURNING_SHIP
     delta = vec4(diffAbs(ref.xy,delta.xy), diffAbs(ref.zw,delta.zw));
     ref.x = abs(ref.x);
     ref.z = abs(ref.z);
 #endif
+#ifdef FORMULA_MANDELBAR
+    // conj(Z + delta)^2 - conj(Z)^2 is the usual difference of the flipped values.
+    ref.z = -ref.z;
+    delta.z = -delta.z;
+#endif
+#ifdef FORMULA_CACTUS
+    // delta' = delta (3 Z^2 + 3 Z delta + delta^2 + C - 1 + deltaC) + deltaC (Z - 1).
+    vec4 factor = cxAdd(cxAdd(cxThrice(cxAdd(cxSquare(ref),cxMul(ref,delta))),cxSquare(delta)),cactusParameter(dc));
+    return cxAdd(cxMul(delta,factor),cxMul(dc,cxAdd(ref,CX_MINUS_ONE)));
+#else
     return cxAdd(cxAdd(cxTwice(cxMul(ref,delta)),cxSquare(delta)),dc);
+#endif
 }
 vec4 perturb(vec4 ref, vec4 delta, vec4 dc) {
     // Most iterations can use native vec2 arithmetic with one shared scale.
@@ -102,10 +119,20 @@ vec4 perturb(vec4 ref, vec4 delta, vec4 dc) {
         d.y = r.y >= 0.0 ? (sum.y >= 0.0 ? d.y : -2.0*r.y/s-d.y) : (sum.y <= 0.0 ? -d.y : 2.0*r.y/s+d.y);
         r = abs(r);
 #endif
+#ifdef FORMULA_MANDELBAR
+        r.y = -r.y;
+        d.y = -d.y;
+#endif
         // A larger forcing term must use the full path to avoid overflow.
         if ((dc.x == 0.0 || dc.y-e < 60.0) && (dc.z == 0.0 || dc.w-e < 60.0)) {
             vec2 forcing = vec2(scaled(dc.xy,e),scaled(dc.zw,e));
+#ifdef FORMULA_CACTUS
+            vec2 parameter = cxValue(referenceAt(0.0)) - vec2(1.0,0.0);
+            vec2 factor = 3.0*complexSquare(r) + parameter + s*(3.0*complexMultiply(r,d) + forcing) + s*s*complexSquare(d);
+            vec2 next = complexMultiply(d,factor) + complexMultiply(forcing,r-vec2(1.0,0.0));
+#else
             vec2 next = 2.0*complexMultiply(r,d) + s*complexSquare(d) + forcing;
+#endif
             return vec4(fe(next.x,e),fe(next.y,e));
         }
     }
@@ -129,6 +156,10 @@ void main() {
 #ifdef FORMULA_JULIA
     vec4 delta = offset;
     vec4 dc = vec4(0.0);
+    vec4 derivative = vec4(u_scale,0.0,0.0);
+#elif defined(FORMULA_CACTUS)
+    vec4 delta = offset;
+    vec4 dc = offset;
     vec4 derivative = vec4(u_scale,0.0,0.0);
 #else
     vec4 delta = vec4(0.0);
@@ -256,9 +287,17 @@ void main() {
             derivativeZ.x = abs(derivativeZ.x);
             derivativeZ.z = abs(derivativeZ.z);
 #endif
+#ifdef FORMULA_MANDELBAR
+            derivative.z = -derivative.z;
+            derivativeZ.z = -derivativeZ.z;
+#endif
+#ifdef FORMULA_CACTUS
+            derivative = cxAdd(cxMul(derivative,cxAdd(cxThrice(cxSquare(actual)),cactusParameter(dc))),cxMul(vec4(u_scale,0.0,0.0),cxAdd(actual,CX_MINUS_ONE)));
+#else
             derivative = cxTwice(cxMul(derivativeZ,derivative));
 #ifndef FORMULA_JULIA
             derivative = cxAdd(derivative,vec4(u_scale,0.0,0.0));
+#endif
 #endif
         }
 #ifdef FORMULA_BURNING_SHIP
@@ -282,7 +321,7 @@ void main() {
         }
         if (dot(z,z) > escapeRadius2) { escaped=true; break; }
         {
-#ifdef FORMULA_JULIA
+#if defined(FORMULA_JULIA) || defined(FORMULA_CACTUS)
             if (cxLogLength(actual) < cxLogLength(ref)-5.0) { glitch=true; break; }
             if (cxLogLength(actual) < cxLogLength(delta) || refIndex >= refLength-1.0) {
                 // Rebase onto z0=0 for this same c, never onto the camera seed.
@@ -317,7 +356,7 @@ void main() {
     bool trapMode = u_colorMode == MODE_TRAP_POINT || u_colorMode == MODE_TRAP_CROSS;
     if (!escaped && !trapMode) { gl_FragColor=vec4(u_interior,1.0); return; }
     float logZ=log(max(dot(z,z),1e-30))/2.0;
-    float smoothIteration=max(iteration+1.0-log2(max(logZ,1e-6)),0.0);
+    float smoothIteration=max(iteration+1.0-escapeOvershoot(logZ),0.0);
     float t;
     if (u_colorMode == MODE_LOG) t=log(smoothIteration+1.0)/log(u_maxIterations+1.0);
     else if (u_colorMode == MODE_BANDED) t=iteration/32.0;
@@ -331,7 +370,7 @@ void main() {
         float count=max(iteration+1.0,1.0);
         float average=stripeSum/count;
         float previous=count>1.0 ? (stripeSum-stripeLast)/(count-1.0) : average;
-        float blend=clamp(1.0+log2(log(escapeRadius)/max(logZ,1e-6)),0.0,1.0);
+        float blend=clamp(escapeBlend(logZ),0.0,1.0);
         t=mix(previous,average,blend);
     } else if (trapMode) t=sqrt(trap);
     else t=smoothIteration/40.0;

@@ -78,6 +78,25 @@ const definitions = [
     height: 3,
     exploratory: false,
   },
+  { name: "Mandelbar spike tip 1e-100", formula: "mandelbar", center: [-2, 0], digits: 100 },
+  {
+    name: "Mandelbar body corner 1e-8",
+    formula: "mandelbar",
+    center: [-0.75, 0],
+    digits: 8,
+    height: 3,
+  },
+  {
+    name: "Mandelbar turned tip 1e-12",
+    formula: "mandelbar",
+    center: [1, Math.sqrt(3)],
+    digits: 12,
+    height: 3,
+  },
+  { name: "Cactus neck 1e-30", formula: "cactus", center: [0, 0], digits: 30, height: 3 },
+  { name: "Cactus left dust 1e-6", formula: "cactus", center: [-1.72, 0], digits: 6, height: 3 },
+  { name: "Cactus left tip 1e-12", formula: "cactus", center: [-0.7735, 0], digits: 12, height: 3 },
+  { name: "Cactus crown 1e-9", formula: "cactus", center: [0.1, 0.28], digits: 9, height: 3 },
 ];
 
 const fixtures = definitions.map((definition) => {

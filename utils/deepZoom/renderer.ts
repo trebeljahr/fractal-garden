@@ -59,6 +59,7 @@ export function createDeepZoomRenderer(
 ) {
   const release: (() => void)[] = [];
   const sharpMotion = formula === "mandelbrot";
+  const usesDeepZoom = (logZoom: number) => logZoom < -7 && formula !== "barnsley-tree";
   try {
     const compile = (fragment: string) => {
       const output = createShaderProgram(gl, vertexShader, fragment);
@@ -360,7 +361,7 @@ export function createDeepZoomRenderer(
       target?: { state: RenderState; width: number; height: number; pixelRatio: number },
     ) => {
       const state = target?.state ?? getState();
-      const isDeep = Boolean(target && orbit) || state.view.logZoom < -7;
+      const isDeep = Boolean(target && orbit) || usesDeepZoom(state.view.logZoom);
       if (isDeep && (!orbit || !orbitView)) return false;
       const { w, h } = target ? { w: target.width, h: target.height } : resize();
       const { program, coloring, position, uniforms: u } = programs[isDeep ? 1 : 0];
@@ -663,7 +664,7 @@ export function createDeepZoomRenderer(
       frame = 0;
       if (destroyed) return;
       const state = getState();
-      if (state.view.logZoom >= -7 && !(sharpMotion && options.interactive)) {
+      if (!usesDeepZoom(state.view.logZoom) && !(sharpMotion && options.interactive)) {
         motion?.destroy();
         motion = null;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);

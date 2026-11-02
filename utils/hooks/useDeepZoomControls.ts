@@ -16,12 +16,15 @@ export function useDeepZoomControls({
   canvas,
   viewportRef,
   maxZoomSize,
+  minLogZoom = -MAX_DEPTH_BITS,
   flipY,
   onChange,
 }: {
   canvas: HTMLCanvasElement | null;
   viewportRef: MutableRefObject<DeepViewport>;
   maxZoomSize: number;
+  /** Stops zooming where a renderer without deep arithmetic runs out of precision. */
+  minLogZoom?: number;
   flipY: boolean;
   onChange: (interaction?: boolean) => void;
 }) {
@@ -48,7 +51,7 @@ export function useDeepZoomControls({
         y: ((rect.height - 2 * (event.clientY - rect.top)) / size) * (flipY ? -1 : 1),
       };
     };
-    const clamp = (log: number) => Math.max(-MAX_DEPTH_BITS, Math.min(Math.log2(maxZoomSize), log));
+    const clamp = (log: number) => Math.max(minLogZoom, Math.min(Math.log2(maxZoomSize), log));
     const gesture = () => {
       const pair = Array.from(pointers.values());
       const first = pair[0];
@@ -122,5 +125,5 @@ export function useDeepZoomControls({
       wheelGuard.dispose();
       canvas.style.touchAction = "";
     };
-  }, [canvas, flipY, maxZoomSize, viewportRef]);
+  }, [canvas, flipY, maxZoomSize, minLogZoom, viewportRef]);
 }

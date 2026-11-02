@@ -4,7 +4,14 @@
 import { mkdir } from "node:fs/promises";
 import sharp from "sharp";
 import { fixedFromDecimal, precisionForZoom } from "../utils/deepZoom/math.ts";
-import { BURNING_SHIP_PLACES, JULIA_PLACES, MANDELBROT_PLACES } from "../utils/escapeTimePlaces.ts";
+import {
+  BARNSLEY_TREE_PLACES,
+  BURNING_SHIP_PLACES,
+  CACTUS_PLACES,
+  JULIA_PLACES,
+  MANDELBAR_PLACES,
+  MANDELBROT_PLACES,
+} from "../utils/escapeTimePlaces.ts";
 
 sharp.concurrency(1);
 const width = 240;
@@ -13,7 +20,40 @@ const bailout = 65536;
 const output = new URL("../public/assets/place-previews/", import.meta.url);
 await mkdir(output, { recursive: true });
 
+function iterateCactus(view, cr, ci) {
+  let zr = cr;
+  let zi = ci;
+  let iteration = 0;
+  for (; iteration < view.iterations; iteration++) {
+    const fr = zr * zr - zi * zi + cr - 1;
+    const fi = 2 * zr * zi + ci;
+    const next = fr * zr - fi * zi - cr;
+    zi = fr * zi + fi * zr - ci;
+    zr = next;
+    if (zr * zr + zi * zi > bailout) return { iteration, zr, zi, escaped: true };
+  }
+  return { iteration, zr, zi, escaped: false };
+}
+
+function iterateBarnsleyTree(view, px, py) {
+  const { cReal, cImag, escapeRadius } = view.parameters;
+  let zr = px;
+  let zi = py;
+  let iteration = 0;
+  for (; iteration < view.iterations; iteration++) {
+    const shifted = zr - Math.sign(zr);
+    const next = cReal * shifted - cImag * zi;
+    zi = cReal * zi + cImag * shifted;
+    zr = next;
+    if (zr * zr + zi * zi > escapeRadius * escapeRadius)
+      return { iteration, zr, zi, escaped: true };
+  }
+  return { iteration, zr, zi, escaped: false };
+}
+
 function iterate(view, formula, px, py) {
+  if (formula === "cactus") return iterateCactus(view, px, py);
+  if (formula === "barnsley-tree") return iterateBarnsleyTree(view, px, py);
   const cr = view.parameters?.cReal ?? px;
   const ci = view.parameters?.cImag ?? py;
   let zr = formula === "julia" ? px : 0;
@@ -25,11 +65,24 @@ function iterate(view, formula, px, py) {
       zi = Math.abs(zi);
     }
     const next = zr * zr - zi * zi + cr;
-    zi = 2 * zr * zi + ci;
+    zi = (formula === "mandelbar" ? -2 : 2) * zr * zi + ci;
     zr = next;
     if (zr * zr + zi * zi > bailout) return { iteration, zr, zi, escaped: true };
   }
   return { iteration, zr, zi, escaped: false };
+}
+
+function smoothCount(view, formula, { iteration, zr, zi }) {
+  const logSize = Math.log(zr * zr + zi * zi) / 2;
+  if (formula === "barnsley-tree") {
+    const { cReal, cImag, escapeRadius } = view.parameters;
+    return iteration + 1 - (logSize - Math.log(escapeRadius)) / Math.log(Math.hypot(cReal, cImag));
+  }
+  const overshoot =
+    formula === "cactus"
+      ? Math.log(Math.max(logSize, 1e-6)) / Math.log(3)
+      : Math.log2(Math.max(logSize, 1e-6));
+  return Math.max(iteration + 1 - overshoot, 0);
 }
 
 /** The center's Mandelbrot orbit, calculated in fixed point and stored as ordinary numbers. */
@@ -89,11 +142,17 @@ function iteratePerturbed(view, { real, imaginary }, deltaCr, deltaCi) {
   return { iteration, zr, zi, escaped: false };
 }
 
+// Name formulas to rebuild only those: node scripts/generate-place-previews.mjs cactus
+const only = process.argv.slice(2);
 for (const [formula, views, density, offset, interior] of [
   ["julia", JULIA_PLACES, 0.45, 0.45, 36],
   ["mandelbrot", MANDELBROT_PLACES, 1, 0.5, 0],
   ["burning-ship", BURNING_SHIP_PLACES, 0.5, 0.55, 0],
+  ["mandelbar", MANDELBAR_PLACES, 1, 0.5, 0],
+  ["cactus", CACTUS_PLACES, 1, 0.5, 0],
+  ["barnsley-tree", BARNSLEY_TREE_PLACES, 3, 0.5, 0],
 ]) {
+  if (only.length && !only.includes(formula)) continue;
   for (const view of views) {
     if (view.preciseCenter && formula !== "mandelbrot") {
       throw new Error(`Deep preview is not implemented for ${formula}.`);
@@ -107,13 +166,11 @@ for (const [formula, views, density, offset, interior] of [
           ((height - 2 * (y + 0.5)) / height) *
           view.zoomSize *
           (formula === "burning-ship" ? -1 : 1);
-        const { iteration, zr, zi, escaped } = orbit
+        const result = orbit
           ? iteratePerturbed(view, orbit, dx, dy)
           : iterate(view, formula, view.center[0] + dx, view.center[1] + dy);
-        const smooth = Math.max(
-          iteration + 1 - Math.log2(Math.max(Math.log(zr * zr + zi * zi) / 2, 1e-6)),
-          0,
-        );
+        const { escaped } = result;
+        const smooth = smoothCount(view, formula, result);
         const t = (smooth / 40) * density + offset;
         for (let channel = 0; channel < 3; channel++) {
           pixels[(y * width + x) * 3 + channel] = escaped

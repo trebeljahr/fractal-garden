@@ -1,10 +1,14 @@
 import type { StaticImageData } from "next/legacy/image";
 import apollonianGasketImage from "../public/assets/fractal-images/apollonian-gasket.jpg";
 import barnsleyFernImage from "../public/assets/fractal-images/barnsley-fern.jpg";
+import barnsleyTreeImage from "../public/assets/fractal-images/barnsley-tree.jpg";
 import buddhabrotImage from "../public/assets/fractal-images/buddhabrot.jpg";
 import burningShipImage from "../public/assets/fractal-images/burning-ship.jpg";
+import cactusFractalImage from "../public/assets/fractal-images/cactus-fractal.jpg";
+import circlesAndSquaresImage from "../public/assets/fractal-images/circles-and-squares.jpg";
 import diffusionLimitedAggregationImage from "../public/assets/fractal-images/diffusion-limited-aggregation.jpg";
 import fractalCanopyImage from "../public/assets/fractal-images/fractal-canopy.jpg";
+import gosperIslandImage from "../public/assets/fractal-images/gosper-island.jpg";
 import hTreeImage from "../public/assets/fractal-images/h-tree.jpg";
 import jerusalemCubeImage from "../public/assets/fractal-images/jerusalem-cube.jpg";
 import juliaSetImage from "../public/assets/fractal-images/julia-set.jpg";
@@ -25,7 +29,9 @@ import hilbertCurve3DImage from "../public/assets/fractal-images/l-system-hilber
 import kochAntiSnowflakeImage from "../public/assets/fractal-images/l-system-koch-anti-snowflake.jpg";
 import kochSnowflakeImage from "../public/assets/fractal-images/l-system-koch-snowflake.jpg";
 import levyCurveImage from "../public/assets/fractal-images/l-system-levy.jpg";
+import levyTapestryImage from "../public/assets/fractal-images/l-system-levy-tapestry.jpg";
 import minkowskiSausageImage from "../public/assets/fractal-images/l-system-minkowski-sausage.jpg";
+import peanoCurveImage from "../public/assets/fractal-images/l-system-peano-curve.jpg";
 import quadraticKochIslandImage from "../public/assets/fractal-images/l-system-quadratic-koch-island.jpg";
 import quadraticSnowflakeImage from "../public/assets/fractal-images/l-system-quadratic-snowflake.jpg";
 import sierpinskiCurveImage from "../public/assets/fractal-images/l-system-sierpinski-curve.jpg";
@@ -34,9 +40,11 @@ import terdragonImage from "../public/assets/fractal-images/l-system-terdragon.j
 import twindragonImage from "../public/assets/fractal-images/l-system-twindragon.jpg";
 import logisticMapImage from "../public/assets/fractal-images/logistic-map.jpg";
 import lorenzAttractorImage from "../public/assets/fractal-images/lorenz-attractor.jpg";
+import mandelbarSetImage from "../public/assets/fractal-images/mandelbar-set.jpg";
 import mandelbrotImage from "../public/assets/fractal-images/mandelbrot.jpg";
 import mandelbulbImage from "../public/assets/fractal-images/mandelbulb.jpg";
 import mengerSpongeImage from "../public/assets/fractal-images/menger-sponge.jpg";
+import miraFractalImage from "../public/assets/fractal-images/mira-fractal.jpg";
 import moselySnowflakeImage from "../public/assets/fractal-images/mosely-snowflake.jpg";
 import nFlakeImage from "../public/assets/fractal-images/n-flake.jpg";
 import newtonFractalImage from "../public/assets/fractal-images/newton-fractal.jpg";
@@ -50,6 +58,7 @@ import rosslerAttractorImage from "../public/assets/fractal-images/rossler-attra
 import sierpinskiArrowheadImage from "../public/assets/fractal-images/sierpinski-arrowhead.jpg";
 import sierpinskiCarpetImage from "../public/assets/fractal-images/sierpinski-carpet.jpg";
 import sierpinskiTetrahedronImage from "../public/assets/fractal-images/sierpinski-tetrahedron.jpg";
+import starFractalImage from "../public/assets/fractal-images/star-fractal.jpg";
 import tSquareFractalImage from "../public/assets/fractal-images/t-square-fractal.jpg";
 import vicsekFractal2DImage from "../public/assets/fractal-images/vicsek-fractal-2d.jpg";
 import vicsekFractal3DImage from "../public/assets/fractal-images/vicsek-fractal-3d.jpg";
@@ -136,6 +145,15 @@ export const FRACTAL_TILES = {
   },
   "/polyhedron-flake": { title: "Polyhedron Flake", imageSrc: polyhedronFlakeImage },
   "/koch-surface": { title: "Koch Surface", imageSrc: kochSurfaceImage },
+  "/mandelbar-set": { title: "Mandelbar Set", imageSrc: mandelbarSetImage },
+  "/cactus-fractal": { title: "Cactus Fractal", imageSrc: cactusFractalImage },
+  "/barnsley-tree": { title: "Barnsley's Tree", imageSrc: barnsleyTreeImage },
+  "/mira-fractal": { title: "Mira Fractal", imageSrc: miraFractalImage },
+  "/star-fractal": { title: "Star Fractal", imageSrc: starFractalImage },
+  "/gosper-island": { title: "Gosper Island", imageSrc: gosperIslandImage },
+  "/l-system/peano-curve": { title: "Peano Curve", imageSrc: peanoCurveImage },
+  "/l-system/levy-tapestry": { title: "Lévy Tapestry", imageSrc: levyTapestryImage },
+  "/circles-and-squares": { title: "Circles and Squares", imageSrc: circlesAndSquaresImage },
 } satisfies Record<string, FractalTile>;
 
 export type FractalTilePath = keyof typeof FRACTAL_TILES;

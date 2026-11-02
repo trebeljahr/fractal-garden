@@ -142,6 +142,8 @@ test("every bespoke turtle player matches its existing page renderer", () => {
     dragonCurve: "drawDragonCurve",
     terdragon: "drawTerdragon",
     gosperCurve: "drawGosperCurve",
+    peanoCurve: "drawPeanoCurve",
+    levyTapestry: "drawLevyTapestry",
     kochAntiSnowflake: "drawKochAntiSnowflake",
     quadraticKochIsland: "drawQuadraticKochIsland",
     minkowskiSausage: "drawMinkowskiSausage",
@@ -150,7 +152,8 @@ test("every bespoke turtle player matches its existing page renderer", () => {
     twindragon: "drawTwindragon",
   };
   for (const [kind, name] of Object.entries(names)) {
-    for (const iterations of [0, 1, 2]) {
+    // Round 0 of the Peano curve is a lone symbol with nothing to draw.
+    for (const iterations of kind === "peanoCurve" ? [1, 2] : [0, 1, 2]) {
       const settings = {
         iterations,
         angle: 71,

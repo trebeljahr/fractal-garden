@@ -2,14 +2,18 @@ import { memo, type PointerEvent, useEffect, useId, useMemo, useRef, useState } 
 import { flushSync } from "react-dom";
 import styles from "../styles/OrbitLesson.module.css";
 import {
+  BARNSLEY_TREE_COLORING,
   BURNING_SHIP_COLORING,
+  CACTUS_COLORING,
   JULIA_COLORING,
+  MANDELBAR_COLORING,
   MANDELBROT_COLORING,
 } from "../utils/escapeTimeColoring";
 import { JULIA_PRESETS } from "../utils/escapeTimePlaces";
 import { useLessonPlayback } from "../utils/hooks/useLessonPlayback";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
+  CACTUS_RADIUS,
   type ComplexPoint,
   ESCAPE_RADIUS,
   isOutside,
@@ -19,29 +23,85 @@ import {
   ORBIT_LESSON_LIMIT,
   type OrbitKind,
   type Pixel,
+  traceBarnsleyTreeOrbit,
+  traceCactusOrbit,
+  traceMandelbarOrbit,
   traceUntilLoop,
+  untilLoop,
 } from "../utils/orbitLesson";
 import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
 
 export function isOrbitKind(value: unknown): value is OrbitKind {
-  return value === "mandelbrot" || value === "julia" || value === "burning-ship";
+  return (
+    value === "mandelbrot" ||
+    value === "julia" ||
+    value === "burning-ship" ||
+    value === "mandelbar" ||
+    value === "cactus" ||
+    value === "barnsley-tree"
+  );
 }
 const ZERO = { real: 0, imaginary: 0 };
 const JULIA_C = { real: JULIA_PRESETS.Rabbit.cReal, imaginary: JULIA_PRESETS.Rabbit.cImag };
+function number(value: number, digits = 3) {
+  if (Math.abs(value) < 0.0005) return "0";
+  return String(Number(value.toFixed(digits))).replace("-", "−");
+}
+const TREE_C = { real: 0.6, imaginary: 1.1 };
 const DEFAULTS: Record<OrbitKind, ComplexPoint> = {
   mandelbrot: { real: -1, imaginary: 0 },
   julia: { real: 0.3, imaginary: 0 },
   "burning-ship": { real: -1.76, imaginary: -0.03 },
+  mandelbar: { real: -1, imaginary: 0.5 },
+  cactus: { real: 0.15, imaginary: 0 },
+  "barnsley-tree": { real: 0.9, imaginary: 0.6 },
 };
-// Every formula shares one view, so the whole escape circle is always on screen.
+// Each view shows its whole escape circle.
 const VIEW = { left: -2.8, right: 2.8, bottom: -2.2, top: 2.2 };
-const VIEW_BOUNDS = [VIEW.left, VIEW.right, VIEW.bottom, VIEW.top] as const;
-const VIEW_WIDTH = VIEW.right - VIEW.left;
-const VIEW_HEIGHT = VIEW.top - VIEW.bottom;
+const WIDE_VIEW = { left: -3.4, right: 3.4, bottom: -2.7, top: 2.7 };
+const VIEWS: Record<OrbitKind, typeof VIEW> = {
+  mandelbrot: VIEW,
+  julia: VIEW,
+  "burning-ship": VIEW,
+  mandelbar: VIEW,
+  cactus: WIDE_VIEW,
+  "barnsley-tree": VIEW,
+};
+const RADIUS: Record<OrbitKind, number> = {
+  mandelbrot: ESCAPE_RADIUS,
+  julia: ESCAPE_RADIUS,
+  "burning-ship": ESCAPE_RADIUS,
+  mandelbar: ESCAPE_RADIUS,
+  cactus: CACTUS_RADIUS,
+  "barnsley-tree": ESCAPE_RADIUS,
+};
 const COLORING = {
   mandelbrot: MANDELBROT_COLORING,
   julia: JULIA_COLORING,
   "burning-ship": BURNING_SHIP_COLORING,
+  mandelbar: MANDELBAR_COLORING,
+  cactus: CACTUS_COLORING,
+  "barnsley-tree": { ...BARNSLEY_TREE_COLORING, escapeRadius: ESCAPE_RADIUS },
+};
+function traceOrbit(kind: OrbitKind, value: ComplexPoint) {
+  if (kind === "julia") return traceUntilLoop(JULIA_C, value);
+  if (kind === "mandelbar") return untilLoop((jumps) => traceMandelbarOrbit(value, jumps));
+  if (kind === "cactus") return untilLoop((jumps) => traceCactusOrbit(value, jumps));
+  if (kind === "barnsley-tree")
+    return untilLoop((jumps) => traceBarnsleyTreeOrbit(TREE_C, value, jumps));
+  return traceUntilLoop(value, ZERO, kind === "burning-ship");
+}
+const STARTS_AT_PIXEL: OrbitKind[] = ["julia", "barnsley-tree"];
+const RULES: Partial<Record<OrbitKind, string>> = {
+  julia: `Pick a pixel to start there. Each jump squares the point, then adds c = (${number(JULIA_C.real, 5)}, ${number(JULIA_C.imaginary, 5)}).`,
+  "burning-ship":
+    "Pick a pixel to test it. The point starts at 0. Each jump folds and squares it, then adds the pixel's coordinates.",
+  mandelbar:
+    "Pick a pixel to test it. The point starts at 0. Each jump mirrors it across the horizontal axis and squares it, then adds the pixel's coordinates.",
+  cactus:
+    "Pick a pixel to test it. The point starts at that pixel, called c. Each jump goes to z³ + (c − 1)z − c.",
+  "barnsley-tree":
+    "Pick a pixel to start there. Each jump moves the point one unit toward the vertical axis, then multiplies it by c = (0.6, 1.1).",
 };
 const HOP_MS = 650;
 const REST_MS = 300;
@@ -49,10 +109,6 @@ const FIRST_HOP_DELAY_MS = 350;
 const TINY_HOP_DELAY_MS = 150;
 const FOLD_SHARE = 0.35;
 
-function number(value: number, digits = 3) {
-  if (Math.abs(value) < 0.0005) return "0";
-  return String(Number(value.toFixed(digits))).replace("-", "−");
-}
 function coordinates(point: ComplexPoint, digits = 3) {
   return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
 }
@@ -65,10 +121,10 @@ function ease(t: number) {
 function lerp(a: Pixel, b: Pixel, t: number) {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
 }
-function clampToView(point: ComplexPoint) {
+function clampToView(point: ComplexPoint, view: typeof VIEW) {
   return {
-    real: Math.max(VIEW.left, Math.min(VIEW.right, point.real)),
-    imaginary: Math.max(VIEW.bottom, Math.min(VIEW.top, point.imaginary)),
+    real: Math.max(view.left, Math.min(view.right, point.real)),
+    imaginary: Math.max(view.bottom, Math.min(view.top, point.imaginary)),
   };
 }
 // A chosen point rests on two decimals. While dragging it follows the pointer exactly.
@@ -80,20 +136,32 @@ function pace(jump: number) {
   return Math.max(0.35, 1 - 0.06 * (jump - 1));
 }
 
+const halves = (reach: number) => {
+  const values: number[] = [];
+  for (let value = -Math.floor(reach * 2) / 2; value <= reach; value += 0.5)
+    if (value !== 0) values.push(value);
+  return values;
+};
+
 const CoordinateGrid = memo(function CoordinateGrid({
   width,
   height,
   flip,
+  view,
+  radius,
 }: {
   width: number;
   height: number;
   flip: boolean;
+  view: typeof VIEW;
+  radius: number;
 }) {
-  const scale = width / VIEW_WIDTH;
+  const scale = width / (view.right - view.left);
   const originX = width / 2;
   const originY = height / 2;
-  const across = [-2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5];
-  const down = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2];
+  // Stop short of the edge so a tick label is never cut in half.
+  const across = halves(view.right - 0.1);
+  const down = halves(view.top - 0.1);
   const px = (value: number) => originX + value * scale;
   const py = (value: number) => originY + (flip ? value : -value) * scale;
   const unit = (value: number) => Number.isInteger(value);
@@ -115,7 +183,7 @@ const CoordinateGrid = memo(function CoordinateGrid({
         />
       ))}
       <path d={`M0 ${originY}H${width}M${originX} 0V${height}`} className={styles.axis} />
-      <circle cx={originX} cy={originY} r={ESCAPE_RADIUS * scale} className={styles.escapeCircle} />
+      <circle cx={originX} cy={originY} r={radius * scale} className={styles.escapeCircle} />
       {across
         .filter((value) => unit(value) || showHalves)
         .map((value) => (
@@ -161,12 +229,13 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const id = useId().replace(/:/g, "");
   const reduced = useReducedMotion();
   const flip = kind === "burning-ship";
-  const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
-  const c = kind === "julia" ? JULIA_C : value;
-  const { orbit, loop } = useMemo(
-    () => traceUntilLoop(c, kind === "julia" ? value : ZERO, flip),
-    [c, value, kind, flip],
-  );
+  const view = VIEWS[kind];
+  const radius = RADIUS[kind];
+  const viewWidth = view.right - view.left;
+  const viewHeight = view.top - view.bottom;
+  const viewBounds = useMemo(() => [view.left, view.right, view.bottom, view.top] as const, [view]);
+  const height = (width * viewHeight) / viewWidth;
+  const { orbit, loop } = useMemo(() => traceOrbit(kind, value), [value, kind]);
   const max = orbit.length - 1;
   const shown = dragging ? max : Math.min(motion.step, max);
   const landed = hop < 1 ? shown - 1 : shown;
@@ -174,10 +243,10 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const inLoop = (index: number) => finished && loop !== null && index > loop.from;
 
   const project = (point: ComplexPoint): Pixel => ({
-    x: ((point.real - VIEW.left) / VIEW_WIDTH) * width,
-    y: ((flip ? point.imaginary - VIEW.bottom : VIEW.top - point.imaginary) / VIEW_HEIGHT) * height,
+    x: ((point.real - view.left) / viewWidth) * width,
+    y: ((flip ? point.imaginary - view.bottom : view.top - point.imaginary) / viewHeight) * height,
   });
-  // A jump draws in two stages when the Burning Ship folds the point first.
+  // A jump draws in two stages when the rule moves the point before the jump.
   const jump = (index: number) => {
     const from = project(orbit[index - 1].point);
     const via = project(orbit[index].folded ?? orbit[index - 1].point);
@@ -234,13 +303,16 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     const rect = event.currentTarget.getBoundingClientRect();
     const across = (event.clientX - rect.left) / rect.width;
     const down = (event.clientY - rect.top) / rect.height;
-    return clampToView({
-      real: VIEW.left + across * VIEW_WIDTH,
-      imaginary: flip ? VIEW.bottom + down * VIEW_HEIGHT : VIEW.top - down * VIEW_HEIGHT,
-    });
+    return clampToView(
+      {
+        real: view.left + across * viewWidth,
+        imaginary: flip ? view.bottom + down * viewHeight : view.top - down * viewHeight,
+      },
+      view,
+    );
   };
 
-  const crossed = isOutside(orbit[max].point);
+  const crossed = isOutside(orbit[max].point, radius);
   const outcome = !finished
     ? ""
     : loop
@@ -250,11 +322,10 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         : max === 0
           ? "Already outside the dashed circle."
           : `Crossed the dashed circle on jump ${max}.`;
-  const title = kind === "julia" ? "Follow one starting point" : "Follow one pixel";
+  const title = STARTS_AT_PIXEL.includes(kind) ? "Follow one starting point" : "Follow one pixel";
   const rule =
-    kind === "julia"
-      ? `Pick a pixel to start there. Each jump squares the point, then adds c = (${number(JULIA_C.real, 5)}, ${number(JULIA_C.imaginary, 5)}).`
-      : `Pick a pixel to test it. The point starts at 0. Each jump ${flip ? "folds and squares it" : "squares it"}, then adds the pixel's coordinates.`;
+    RULES[kind] ??
+    "Pick a pixel to test it. The point starts at 0. Each jump squares it, then adds the pixel's coordinates.";
 
   const ring = project(value);
   const tagAt = (at: Pixel) => {
@@ -385,10 +456,13 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               const dy = event.key === "ArrowUp" ? 0.05 : event.key === "ArrowDown" ? -0.05 : 0;
               setValue(
                 snap(
-                  clampToView({
-                    real: value.real + dx,
-                    imaginary: value.imaginary + (flip ? -dy : dy),
-                  }),
+                  clampToView(
+                    {
+                      real: value.real + dx,
+                      imaginary: value.imaginary + (flip ? -dy : dy),
+                    },
+                    view,
+                  ),
                 ),
               );
               playback.change(ORBIT_LESSON_LIMIT);
@@ -396,9 +470,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           >
             <EscapeTimePicture
               formula={kind}
-              bounds={VIEW_BOUNDS}
+              bounds={viewBounds}
               coloring={COLORING[kind]}
-              c={kind === "julia" ? JULIA_C : undefined}
+              c={kind === "julia" ? JULIA_C : kind === "barnsley-tree" ? TREE_C : undefined}
             />
             <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
               <defs>
@@ -425,7 +499,13 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                   <path d="M0 0L4 2L0 4Z" fill="#f5c56d" />
                 </marker>
               </defs>
-              <CoordinateGrid width={width} height={height} flip={flip} />
+              <CoordinateGrid
+                width={width}
+                height={height}
+                flip={flip}
+                view={view}
+                radius={radius}
+              />
               {trail}
               {landings.map(({ iteration, at, fresh }) => (
                 <g key={iteration} opacity={fade(iteration)}>

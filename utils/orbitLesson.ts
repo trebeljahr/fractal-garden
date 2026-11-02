@@ -1,5 +1,11 @@
 export type ComplexPoint = { real: number; imaginary: number };
-export type OrbitKind = "mandelbrot" | "julia" | "burning-ship";
+export type OrbitKind =
+  | "mandelbrot"
+  | "julia"
+  | "burning-ship"
+  | "mandelbar"
+  | "cactus"
+  | "barnsley-tree";
 export const TEACHING_LIMIT = 16;
 // Starting at zero, or with |c| <= 2, a point past this circle only moves farther away.
 export const ESCAPE_RADIUS = 2;
@@ -67,14 +73,11 @@ function repeatsFrom(orbit: OrbitStep[], from: number, end: number) {
 }
 
 // Ends the orbit at the first jump that lands back on an earlier point.
-export function traceUntilLoop(
-  c: ComplexPoint,
-  start: ComplexPoint,
-  fold = false,
+export function untilLoop(
+  trace: (jumps: number) => OrbitStep[],
   limit = ORBIT_LESSON_LIMIT,
-  radius = ESCAPE_RADIUS,
 ): { orbit: OrbitStep[]; loop: OrbitLoop | null } {
-  const orbit = traceTeachingOrbit(c, start, fold, limit + LOOP_CONFIRMATION, radius);
+  const orbit = trace(limit + LOOP_CONFIRMATION);
   const last = Math.min(limit, orbit.length - 1);
   for (let end = 1; end <= last; end++) {
     for (let from = end - 1; from >= 0; from--) {
@@ -83,6 +86,16 @@ export function traceUntilLoop(
     }
   }
   return { orbit: orbit.slice(0, last + 1), loop: null };
+}
+
+export function traceUntilLoop(
+  c: ComplexPoint,
+  start: ComplexPoint,
+  fold = false,
+  limit = ORBIT_LESSON_LIMIT,
+  radius = ESCAPE_RADIUS,
+) {
+  return untilLoop((jumps) => traceTeachingOrbit(c, start, fold, jumps, radius), limit);
 }
 
 export type HandJump = { point: ComplexPoint; squared: ComplexPoint; next: ComplexPoint };
@@ -120,6 +133,85 @@ export function traceHandJumps(c: ComplexPoint, start: ComplexPoint) {
     point = jump.next;
   }
   return { jumps, repeats: null };
+}
+
+type OrbitJump = { via?: ComplexPoint; next: ComplexPoint };
+
+function followOrbit(
+  start: ComplexPoint,
+  jump: (z: ComplexPoint) => OrbitJump,
+  limit: number,
+  radius: number,
+): OrbitStep[] {
+  const orbit: OrbitStep[] = [{ iteration: 0, point: start }];
+  let z = start;
+  for (let i = 0; i < limit; i++) {
+    if (isOutside(z, radius)) break;
+    const { via, next } = jump(z);
+    z = next;
+    orbit.push({ iteration: i + 1, point: z, folded: via });
+  }
+  return orbit;
+}
+
+function multiply(a: ComplexPoint, b: ComplexPoint): ComplexPoint {
+  return {
+    real: a.real * b.real - a.imaginary * b.imaginary,
+    imaginary: a.real * b.imaginary + a.imaginary * b.real,
+  };
+}
+
+/** Square the mirror image of z, then add c. The dotted line shows the mirror. */
+export function traceMandelbarOrbit(c: ComplexPoint, limit = TEACHING_LIMIT) {
+  return followOrbit(
+    { real: 0, imaginary: 0 },
+    (z) => {
+      const via = { real: z.real, imaginary: -z.imaginary };
+      const square = squarePoint(via);
+      return {
+        via,
+        next: { real: square.real + c.real, imaginary: square.imaginary + c.imaginary },
+      };
+    },
+    limit,
+    ESCAPE_RADIUS,
+  );
+}
+
+// With any starting pixel inside it, a point past this circle only moves farther away.
+export const CACTUS_RADIUS = 2.5;
+
+/** Start at the pixel c. Each jump goes to z^3 + (c - 1) z - c. */
+export function traceCactusOrbit(c: ComplexPoint, limit = TEACHING_LIMIT) {
+  return followOrbit(
+    c,
+    (z) => {
+      const square = squarePoint(z);
+      const factor = { real: square.real + c.real - 1, imaginary: square.imaginary + c.imaginary };
+      const product = multiply(factor, z);
+      return { next: { real: product.real - c.real, imaginary: product.imaginary - c.imaginary } };
+    },
+    limit,
+    CACTUS_RADIUS,
+  );
+}
+
+/** Move one unit toward the vertical axis, then multiply by c. */
+export function traceBarnsleyTreeOrbit(
+  c: ComplexPoint,
+  start: ComplexPoint,
+  limit = TEACHING_LIMIT,
+  radius = ESCAPE_RADIUS,
+) {
+  return followOrbit(
+    start,
+    (z) => {
+      const via = { real: z.real - Math.sign(z.real), imaginary: z.imaginary };
+      return { via, next: multiply(c, via) };
+    },
+    limit,
+    radius,
+  );
 }
 
 // A jump curves to its left, so A to B and B to A draw as a visible loop, not one line.

@@ -557,3 +557,210 @@ export const BURNING_SHIP_PLACES = places("burning-ship", [
     group: "Embedded Julia shapes",
   },
 ]);
+
+export const MANDELBAR_PLACES = places("mandelbar", [
+  {
+    id: "whole",
+    label: "Whole set",
+    detail: "Three corners around one three-sided body.",
+    center: [-0.25, 0],
+    zoomSize: 2.05,
+    iterations: 200,
+    group: "The three corners",
+  },
+  {
+    id: "corner",
+    label: "One corner",
+    detail: "A thin spike ends at (-2, 0).",
+    center: [-1.75, 0],
+    zoomSize: 0.25,
+    iterations: 400,
+    group: "The three corners",
+  },
+  {
+    id: "turned-corner",
+    label: "The same corner, turned",
+    detail: "Rotate the first corner by 120 degrees to land here.",
+    center: [0.875, 1.5155],
+    zoomSize: 0.25,
+    iterations: 400,
+    group: "The three corners",
+  },
+  {
+    id: "body",
+    label: "The smooth body",
+    detail: "Three curved sides meet in three sharp points.",
+    center: [0, 0],
+    zoomSize: 0.95,
+    iterations: 400,
+    group: "Along the edge",
+  },
+  {
+    id: "bulb",
+    label: "A bulb on the spike",
+    detail: "A smaller round region sits around (-1, 0).",
+    center: [-1.1, 0],
+    zoomSize: 0.25,
+    iterations: 600,
+    group: "Along the edge",
+  },
+  {
+    id: "small-copy",
+    label: "A small body on the spike",
+    detail: "Its own smooth sides and corners, far along the left spike.",
+    center: [-1.755, 0],
+    zoomSize: 0.05,
+    iterations: 800,
+    group: "Along the edge",
+  },
+  {
+    id: "lace",
+    label: "Deep lace",
+    detail: "A billion times closer, near the bulb on the spike.",
+    center: [-0.7847222222222222, 0.09388888888888891],
+    zoomSize: 2 ** -30,
+    iterations: 800,
+    group: "Deep zoom",
+  },
+]);
+
+export const CACTUS_PLACES = places("cactus", [
+  {
+    id: "whole",
+    label: "Whole cactus",
+    detail: "Two prickly bodies meet at a point.",
+    center: [-0.45, 0],
+    zoomSize: 1.25,
+    iterations: 200,
+    group: "The two bodies",
+  },
+  {
+    id: "neck",
+    label: "The neck",
+    detail: "The bodies touch at exactly (0, 0).",
+    center: [0, 0],
+    zoomSize: 0.12,
+    iterations: 800,
+    group: "The two bodies",
+  },
+  {
+    id: "spine",
+    label: "A spine",
+    detail: "Smaller lobes line the tip of the left body.",
+    center: [-0.67, 0],
+    zoomSize: 0.1,
+    iterations: 400,
+    group: "The two bodies",
+  },
+  {
+    id: "crown",
+    label: "The crown",
+    detail: "Spirals sit where the two bodies pull apart.",
+    center: [0.1, 0.28],
+    zoomSize: 0.12,
+    iterations: 500,
+    group: "The two bodies",
+  },
+  {
+    id: "deep-crown",
+    label: "Deep in the crown",
+    detail: "A billion times closer, small prickly bodies repeat.",
+    center: [0.10670139537704815, 0.28283531823932523],
+    zoomSize: 2 ** -30,
+    iterations: 800,
+    group: "The two bodies",
+  },
+  {
+    id: "dust-left",
+    label: "Dust on the left",
+    detail: "Specks of the set lie far from the bodies.",
+    center: [-1.72, 0],
+    zoomSize: 0.28,
+    iterations: 400,
+    group: "Away from the bodies",
+  },
+  {
+    id: "dust-right",
+    label: "Dust on the right",
+    detail: "Another group of specks, above and below the axis.",
+    center: [0.72, 0.34],
+    zoomSize: 0.2,
+    iterations: 400,
+    group: "Away from the bodies",
+  },
+]);
+
+// Below this half-span the ordinary shader's 32-bit numbers run out of digits.
+export const BARNSLEY_TREE_MIN_LOG_ZOOM = -13;
+
+export const BARNSLEY_TREE_PRESETS: Record<
+  string,
+  { cReal: number; cImag: number; escapeRadius: number }
+> = {
+  Scrolls: { cReal: 0.6, cImag: 1.1, escapeRadius: 2 },
+  Solid: { cReal: 0.6, cImag: 1.1, escapeRadius: 8 },
+  Dragons: { cReal: 1, cImag: 1, escapeRadius: 256 },
+  Pinwheels: { cReal: 0.8, cImag: 0.8, escapeRadius: 2 },
+};
+
+export const BARNSLEY_TREE_PRESET_LABELS: Record<string, string> = {
+  Scrolls: "Scrolls",
+  Solid: "One solid shape",
+  Dragons: "Two dragons",
+  Pinwheels: "Pinwheels",
+};
+
+function barnsleyTree(
+  id: string,
+  label: string,
+  detail: string,
+  preset: string,
+  zoomSize: number,
+  iterations: number,
+): EscapeTimePlace {
+  return {
+    id,
+    label,
+    detail,
+    center: [0, 0],
+    zoomSize,
+    iterations,
+    parameters: { preset, ...BARNSLEY_TREE_PRESETS[preset] },
+    preview: `/assets/place-previews/barnsley-tree-${id}.webp`,
+  };
+}
+
+export const BARNSLEY_TREE_PLACES: EscapeTimePlace[] = [
+  barnsleyTree(
+    "scrolls",
+    "Scrolls",
+    "Radius 2 shows when a point first leaves.",
+    "Scrolls",
+    2.3,
+    100,
+  ),
+  barnsleyTree(
+    "solid",
+    "One solid shape",
+    "Radius 8 shows the points that never leave.",
+    "Solid",
+    6,
+    300,
+  ),
+  barnsleyTree(
+    "dragons",
+    "Two dragons",
+    "With c = (1, 1), points leave for good.",
+    "Dragons",
+    3,
+    200,
+  ),
+  barnsleyTree(
+    "pinwheels",
+    "Pinwheels",
+    "With c = (0.8, 0.8), the scrolls tighten.",
+    "Pinwheels",
+    3,
+    200,
+  ),
+];

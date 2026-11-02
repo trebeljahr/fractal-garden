@@ -3,6 +3,7 @@ import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
 import { exportDeepZoomPng } from "../utils/deepZoom/export";
 import { createViewport, matchesDeepViewport } from "../utils/deepZoom/math";
+import type { EscapeFormula } from "../utils/deepZoom/orbit";
 import { createDeepZoomRenderer, MAX_RENDER_ITERATIONS } from "../utils/deepZoom/renderer";
 import { watchDisplayResolution } from "../utils/displayResolution";
 import {
@@ -27,10 +28,8 @@ import { FractalPlaces } from "./FractalPlaces";
 import { NavElement } from "./Navbar";
 import { SideDrawer } from "./SideDrawer";
 
-type Formula = "mandelbrot" | "julia" | "burning-ship";
-
 type Props<T extends EscapeTimeColoring> = {
-  formula: Formula;
+  formula: EscapeFormula;
   title: string;
   description: string;
   config: T;
@@ -39,17 +38,19 @@ type Props<T extends EscapeTimeColoring> = {
   initialCenter: [number, number];
   initialZoomSize: number;
   maxZoomSize?: number;
+  minLogZoom?: number;
   flipY?: boolean;
   c?: [number, number];
   views?: EscapeTimePlace[];
   lines: string[];
   children?: ReactNode;
   shareRules?: ControlRule[];
+  placeMatches?: (view: EscapeTimePlace) => boolean;
 };
 
 /**
- * Fullscreen WebGL explorer shared by the Mandelbrot set, Julia sets and the
- * Burning Ship. All three share one shader and the same coloring controls.
+ * Fullscreen WebGL explorer shared by the Mandelbrot set, Julia sets, the Burning
+ * Ship and their relatives. They share one shader and the same coloring controls.
  */
 export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   formula,
@@ -61,12 +62,14 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   initialCenter,
   initialZoomSize,
   maxZoomSize = initialZoomSize,
+  minLogZoom,
   flipY = false,
   c = [0, 0],
   views = [],
   lines,
   children,
   shareRules,
+  placeMatches,
 }: Props<T>) {
   const { width, height } = useFractalViewportSize();
   const frame = useFractalFrame(width, height);
@@ -132,6 +135,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     canvas: cnv,
     viewportRef,
     maxZoomSize: Math.max(maxZoomSize, 2 ** opening.logZoom),
+    minLogZoom,
     flipY,
     onChange: updateViewport,
   });
@@ -196,7 +200,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
             <FractalPlaces
               views={views}
               initialZoomSize={initialZoomSize}
-              matchesParameters={(view) => matchesJuliaConstant(view, c)}
+              matchesParameters={placeMatches ?? ((view) => matchesJuliaConstant(view, c))}
               matchesViewport={(view) =>
                 matchesDeepViewport(
                   viewport,

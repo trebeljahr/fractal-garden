@@ -6,7 +6,9 @@ export const TURTLE_PLAYBACK_KINDS = [
   "dragonCurve",
   "terdragon",
   "gosperCurve",
+  "peanoCurve",
   "kochAntiSnowflake",
+  "levyTapestry",
   "quadraticKochIsland",
   "minkowskiSausage",
   "cesaroFractal",
@@ -64,7 +66,13 @@ export function playbackSource(kind: string, params: unknown) {
         rules: { X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" },
         angle: -60,
       },
+      peanoCurve: {
+        axiom: "X",
+        rules: { X: "XFYFX+F+YFXFY-F-XFYFX", Y: "YFXFY-F-XFYFX+F+YFXFY" },
+        angle: -90,
+      },
       kochAntiSnowflake: { axiom: "F++F++F", rules: { F: "F+F--F+F" }, angle: -60 },
+      levyTapestry: { axiom: "F++F++F++F", rules: { F: "-F++F-" }, angle: -45 },
       quadraticKochIsland: {
         axiom: "F-F-F-F",
         rules: { F: "F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F" },

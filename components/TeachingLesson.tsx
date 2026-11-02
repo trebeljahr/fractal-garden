@@ -26,6 +26,14 @@ const CellularTriangleLesson = dynamic(() =>
   import("./lessons/SierpinskiConnections").then((m) => m.CellularTriangleLesson),
 );
 const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
+const MandelbarLesson = dynamic(() => import("./lessons/MandelbarLesson"));
+const BarnsleyRadiusLesson = dynamic(() => import("./lessons/BarnsleyRadiusLesson"));
+const PeanoFillLesson = dynamic(() => import("./lessons/PeanoFillLesson"));
+const GosperIslandLesson = dynamic(() => import("./lessons/GosperIslandLesson"));
+const StarFractalLesson = dynamic(() => import("./lessons/StarFractalLesson"));
+const LevyTapestryLesson = dynamic(() => import("./lessons/LevyTapestryLesson"));
+const CircleGhostLesson = dynamic(() => import("./lessons/CircleGhostLesson"));
+const MiraLesson = dynamic(() => import("./lessons/MiraLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -52,6 +60,14 @@ const LESSONS = [
   "sierpinski-chaos",
   "sierpinski-pascal",
   "sierpinski-cells",
+  "mandelbar-turns",
+  "barnsley-radius",
+  "peano-fill",
+  "gosper-island",
+  "star-fractal",
+  "levy-tapestry",
+  "circle-ghosts",
+  "mira",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -108,5 +124,21 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <CellularTriangleLesson />;
     case "penrose":
       return <PenroseLesson />;
+    case "mandelbar-turns":
+      return <MandelbarLesson />;
+    case "barnsley-radius":
+      return <BarnsleyRadiusLesson />;
+    case "peano-fill":
+      return <PeanoFillLesson />;
+    case "gosper-island":
+      return <GosperIslandLesson />;
+    case "star-fractal":
+      return <StarFractalLesson />;
+    case "levy-tapestry":
+      return <LevyTapestryLesson />;
+    case "circle-ghosts":
+      return <CircleGhostLesson />;
+    case "mira":
+      return <MiraLesson />;
   }
 }

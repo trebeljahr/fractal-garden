@@ -62,6 +62,15 @@ function useLinks() {
     "/sierpinski-tetrahedron",
     "/polyhedron-flake",
     "/koch-surface",
+    "/mandelbar-set",
+    "/cactus-fractal",
+    "/barnsley-tree",
+    "/mira-fractal",
+    "/star-fractal",
+    "/gosper-island",
+    "/l-system/peano-curve",
+    "/l-system/levy-tapestry",
+    "/circles-and-squares",
   ];
 
   // Exact match first, so "/l-system/hilbert-curve-3d" doesn't resolve to "/l-system/hilbert-curve".
