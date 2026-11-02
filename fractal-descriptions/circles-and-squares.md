@@ -21,9 +21,7 @@ The result is a moiré pattern, like the shimmer of two overlapping window scree
 MathWorld writes the rule as $z_{n+1} = z_n^2 \pmod m$.<sup><a id="circles-and-squares-ref-4" href="#circles-and-squares-source-3">3</a></sup> This page reads that as $z_1 = x^2 + y^2$, with $m = 2$ by default. **Squarings** in the controls repeats the square-and-remainder step, which folds each ring into many.
 
 ## Further reading
-
 - [Circle Squares fractal — Paul Bourke](https://paulbourke.net/fractals/circlesquares/)
-- [Moiré pattern — Wikipedia](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern)
 
 ## Sources and notes
 

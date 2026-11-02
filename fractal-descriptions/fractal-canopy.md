@@ -17,9 +17,7 @@ Follow just one route from the trunk to a tip. Its branches keep getting shorter
 Researchers at Johns Hopkins build physical trees with five generations and three branches at each fork. They put them in water to study how a canopy changes the flow.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
 ## Further reading
-
 - [Fractal canopy — Wikipedia](https://en.wikipedia.org/wiki/Fractal_canopy)
-- [Mandelbrot tree background — MathWorld](https://mathworld.wolfram.com/MandelbrotTree.html)
 - [Symmetric Binary Trees — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pythagorean/symbinarytree.htm)
 - [Recursive trees — The Nature of Code](https://natureofcode.com/fractals/#trees)
 - [Fractal Trees - Recursive — The Coding Train](https://www.youtube.com/watch?v=0jjeOYMjmDU)

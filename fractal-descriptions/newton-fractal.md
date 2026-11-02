@@ -17,12 +17,10 @@ Zoom into a border between two colors. Pieces of the third keep appearing. All t
 The picture stops each calculation after 48 steps. If a guess has not reached a root, it uses the nearest root's color. Some pixels near a border can therefore have the wrong color.
 
 ## Further reading
-
 - [Newton fractal — Wikipedia](https://en.wikipedia.org/wiki/Newton_fractal)
-- [Newton’s method — MathWorld](https://mathworld.wolfram.com/NewtonsMethod.html)
-- [Newton’s Fractal — 3Blue1Brown](https://www.3blue1brown.com/lessons/newtons-fractal/)
+- [Newton’s Fractal — 3Blue1Brown](https://www.youtube.com/watch?v=-RdOwhmqP5s)
 - [Fractals derived from Newton-Raphson iteration — Simon Tatham](https://www.chiark.greenend.org.uk/~sgtatham/newton/)
-- [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
+- [Beyond the Mandelbrot set, an intro to holomorphic dynamics — 3Blue1Brown](https://www.youtube.com/watch?v=LqbZpur38nw)
 
 ## Sources and notes
 

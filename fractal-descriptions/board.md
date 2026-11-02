@@ -13,11 +13,7 @@ Some lines are drawn twice. After the square loop, the next forward step goes ov
 The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
 
 ## Further reading
-
-- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
-- [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
-- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
-- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes
 

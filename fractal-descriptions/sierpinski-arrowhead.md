@@ -18,11 +18,8 @@ Each replacement triples the segment count. Halving the new segment lengths keep
 The path points in a different direction on alternate steps. The diagram rotates it back so you can compare the stages.
 
 ## Further reading
-
 - [Sierpiński arrowhead curve — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Arrowhead_curve)
 - [Sierpiński arrowhead curve — MathWorld](https://mathworld.wolfram.com/SierpinskiArrowheadCurve.html)
-- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-- [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
 
 ## Sources and notes
 

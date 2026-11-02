@@ -17,11 +17,8 @@ Those four X symbols in each replacement are expanded on the following round. Ex
 The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the name but follows different replacement rules. Its turns are 60 degrees and its gaps are triangular.
 
 ## Further reading
-
 - [Sierpiński curves — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve)
 - [Sierpiński curve — MathWorld](https://mathworld.wolfram.com/SierpinskiCurve.html)
-- [2-D L-Systems — Robert Dickau](https://www.robertdickau.com/lsys2d.html)
-- [Wacław Sierpiński — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Sierpinski/)
 
 ## Sources and notes
 

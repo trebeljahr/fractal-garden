@@ -19,10 +19,8 @@ Choose **All four maps** to remove the random choice. Now every step applies all
 The two methods place dots differently along the way. Changing the positive probabilities changes how heavily the random method fills each region, but the four fixed rules still determine the same final shape.<sup><a id="barnsley-fern-ref-3" href="#barnsley-fern-source-3">3</a></sup>
 
 ## Further reading
-
 - [Barnsley fern — Wikipedia](https://en.wikipedia.org/wiki/Barnsley_fern)
 - [Barnsley’s fern — MathWorld](https://mathworld.wolfram.com/BarnsleysFern.html)
-- [Iterated Function Systems — Paul Bourke](https://paulbourke.net/fractals/ifs/)
 - [Chaos Game — Numberphile](https://www.youtube.com/watch?v=kbKtFN71Lfs)
 
 ## Sources and notes

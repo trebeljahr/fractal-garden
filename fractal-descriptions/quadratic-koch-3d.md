@@ -15,9 +15,7 @@ The first added cubes have one third of the starting cube's width. Cubes added o
 Neel Shrestha developed a way to fold this construction in paper. His origami models use the same thirteen-square replacement.<sup><a id="quadratic-koch-3d-ref-2" href="#quadratic-koch-3d-source-1">1</a></sup>
 
 ## Further reading
-
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
-- [Koch curve background — MathWorld](https://mathworld.wolfram.com/KochCurve.html)
 - [Koch Surface Fractals — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
 
 ## Sources and notes

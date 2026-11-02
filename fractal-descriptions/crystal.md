@@ -13,11 +13,7 @@ The pen travels five thirds of the old distance, but it draws only four differen
 The rule is `F → FF+F++F+F`. F draws a step, each plus turns 90 degrees, and the double plus makes the reversal.<sup><a id="crystal-ref-1" href="#crystal-source-1">1</a></sup>
 
 ## Further reading
-
-- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
-- [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
-- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
-- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes
 

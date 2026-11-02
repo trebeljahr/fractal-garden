@@ -99,13 +99,23 @@ paragraph or remove a useful construction step just to meet a word count.
   lists only pages the article does not already link, and includes the matching
   MathWorld entry when one exists. To cite a source again, reuse its footnote
   number and give each citation its own return link.
-- **Further reading** may be long, but every link must clear a high bar. Read it
-  first. It needs an identifiable expert or established publisher, real substance
-  on this construction and something the other links do not give. It must be in
-  English and open without a paywall, certificate warning or bot check.
+- Every **Further reading** link must clearly be more reading about this fractal
+  (Rico, 2026-11-03). Biographies, histories of fractals, general fractal or method
+  pages and pages about a neighboring shape do not belong. A parent page counts only
+  if it covers this variant. A general L-system or IFS page does not count because
+  this rule appears somewhere on it; link the matching page on this site instead.
+- Further reading has no fixed length, but it must not feel like too much. Drop a
+  link that repeats another. A short list is fine, and so is no section.
+- Prefer links that will stay up: Wikipedia, MathWorld, arXiv, established
+  publishers, universities and long-running sites of known authors. Skip small
+  personal pages, press releases and anything else likely to disappear.
+- Read a link before adding it. It needs an identifiable expert or established
+  publisher, real substance on this construction and something the other links do
+  not give. It must be in English and open without a paywall, certificate warning
+  or bot check.
 - Judge a video from its transcript, not its title or description. If a page only
-  wraps a video, link the video directly. Keep the page when it adds real text or
-  an interactive.
+  wraps a video or repeats its script, link the video directly. Keep the page when
+  it adds its own text or an interactive.
 - Distinguish finite drawings from their limits, strokes from distinct edges,
   counted area from covered area, surfaces from enclosed solids, and similarity
   exponents from proved dimensions. State conjectures and estimates as such.

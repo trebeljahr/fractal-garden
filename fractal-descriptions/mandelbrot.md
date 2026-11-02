@@ -43,24 +43,12 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 <figure data-lesson="linked-julia"></figure>
 
 ## Further reading
-
 - [Mandelbrot set — Wikipedia](https://en.wikipedia.org/wiki/Mandelbrot_set)
 - [Mandelbrot set — MathWorld](https://mathworld.wolfram.com/MandelbrotSet.html)
 - [The Mandelbrot Set — Mathigon](https://mathigon.org/course/fractals/mandelbrot)
 - [The Quest to Decode the Mandelbrot Set — Quanta Magazine](https://www.quantamagazine.org/the-quest-to-decode-the-mandelbrot-set-maths-famed-fractal-20240126/)
-- [What is the Mandelbrot set? — Plus Magazine](https://plus.maths.org/content/what-mandelbrot-set)
-- [Understanding Julia and Mandelbrot Sets — Karl Sims](https://www.karlsims.com/julia.html)
-- [The Mandelbrot Set — Complex Analysis](https://complex-analysis.com/content/mandelbrot_set.html)
-- [The Fractal Geometry of the Mandelbrot Set — Robert Devaney](https://math.bu.edu/DYSYS/FRACGEOM/FRACGEOM.html)
 - [The Encyclopedia of the Mandelbrot Set — Mu-Ency](https://mrob.com/pub/muency.html)
-- [The Mandelbrot at a Glance — Paul Bourke](https://paulbourke.net/fractals/mandelbrot/)
-- [Benoit Mandelbrot — MacTutor](https://mathshistory.st-andrews.ac.uk/Biographies/Mandelbrot/)
-- [A History of Fractal Geometry — MacTutor](https://mathshistory.st-andrews.ac.uk/HistTopics/fractals/)
-- [Fractals and the art of roughness — Benoit Mandelbrot](https://www.ted.com/talks/benoit_mandelbrot_fractals_and_the_art_of_roughness)
-- [The Mandelbrot Set — Numberphile](https://www.youtube.com/watch?v=NGMRB4O922I)
 - [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
-- [Times Tables, Mandelbrot and the Heart of Mathematics — Mathologer](https://www.youtube.com/watch?v=qhbuKbxJsk8)
-- [How a Mandelbrot set arises from Newton’s work — 3Blue1Brown](https://www.3blue1brown.com/lessons/holomorphic-dynamics)
 - [Mandelbrot Set — The Coding Train](https://www.youtube.com/watch?v=6z7GQewK-Ks)
 
 ## Sources and notes

@@ -53,15 +53,12 @@ The filled cells make the same pattern as the odd numbers, with an empty cell be
 The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle another way, by repeatedly bending one connected line. The [Sierpinski tetrahedron](/sierpinski-tetrahedron) extends the corner-copy rule into three dimensions, with four half-size pyramids.
 
 ## Further reading
-
 - [Sierpiński triangle — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle)
 - [Sierpiński sieve — MathWorld](https://mathworld.wolfram.com/SierpinskiSieve.html)
 - [The Sierpinski Triangle — Mathigon](https://mathigon.org/course/fractals/sierpinski)
 - [Chaos Game — Numberphile](https://www.youtube.com/watch?v=kbKtFN71Lfs)
 - [Sierpinski Gasket — Larry Riddle](https://larryriddle.agnesscott.org/ifs/siertri/siertri.htm)
-- [How to compute the dimension of a fractal — Plus Magazine](https://plus.maths.org/how-compute-dimension-fractal)
 - [Chaos Game Part 1 — The Coding Train](https://www.youtube.com/watch?v=7gNzMtYo9n4)
-- [Fractals are typically not self-similar — 3Blue1Brown](https://www.youtube.com/watch?v=gB9n2gHsHN4)
 
 ## Sources and notes
 

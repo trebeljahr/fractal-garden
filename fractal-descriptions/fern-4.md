@@ -20,12 +20,7 @@ The final `+X` has no brackets around it. Its turn changes the direction used by
 Each X adds three new X positions and two F steps. Each old F doubles. Try moving the final plus inside the previous bracket. The turn is now undone when the bracket closes. The main stem continues straight.
 
 ## Further reading
-
-- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
-- [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
-- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
-- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes
 

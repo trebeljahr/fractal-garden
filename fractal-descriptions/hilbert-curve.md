@@ -15,10 +15,9 @@ Pick a spot in one of the gaps. As the grid gets finer, the path passes closer t
 The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube. It joins eight smaller paths, one in each of eight smaller cubes.
 
 ## Further reading
-
 - [Hilbert curve — Wikipedia](https://en.wikipedia.org/wiki/Hilbert_curve)
 - [Hilbert curve — MathWorld](https://mathworld.wolfram.com/HilbertCurve.html)
-- [Hilbert’s Curve — 3Blue1Brown](https://www.3blue1brown.com/lessons/hilbert-curve/)
+- [Hilbert’s Curve — 3Blue1Brown](https://www.youtube.com/watch?v=3s7h2MHQtxc)
 - [Coding the Hilbert Curve — The Coding Train](https://www.youtube.com/watch?v=dSK-MW-zuAc)
 
 ## Sources and notes

@@ -16,11 +16,6 @@ Go to the touching size and show only the smallest stars. You have seen this arr
 
 **Distance from center**, in **Exploration controls**, places the copies inside or outside the tips, as in MathWorld's second picture. **Tips** uses another number of points. Copies still touch at the N-flake size for that number.
 
-## Further reading
-
-- [Sierpinski Pentagon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/pentagon/pentagon.htm)
-- [Pentagram — Wikipedia](https://en.wikipedia.org/wiki/Pentagram)
-
 ## Sources and notes
 
 1. <span id="star-fractal-source-1"></span> [Star Fractal](https://mathworld.wolfram.com/StarFractal.html). [Back](#star-fractal-ref-1)

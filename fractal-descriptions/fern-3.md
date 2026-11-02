@@ -19,12 +19,7 @@ There are nine F steps in the replacement. On the next round, every one of those
 The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. The plant stays the same height as more branches appear.
 
 ## Further reading
-
-- [L-system background — Wikipedia](https://en.wikipedia.org/wiki/L-system)
-- [L-system background — MathWorld](https://mathworld.wolfram.com/LindenmayerSystem.html)
-- [Drawing L-systems — The Nature of Code](https://natureofcode.com/fractals/#l-systems)
-- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ## Sources and notes
 

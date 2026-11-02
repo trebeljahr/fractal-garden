@@ -13,9 +13,7 @@ The corner cubes are about 41.4% as wide as the original. The edge cubes are abo
 Repeat the arrangement inside the smaller cubes. The little edge cubes are already as small as a corner cube will be after two steps. The level control counts them as two steps for that reason.
 
 ## Further reading
-
 - [Jerusalem cube — Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge#Jerusalem_cube)
-- [Menger sponge background — MathWorld](https://mathworld.wolfram.com/MengerSponge.html)
 - [Cross Menger (Jerusalem) Cube Fractal — Robert Dickau](https://www.robertdickau.com/jerusalemcube.html)
 
 ## Sources and notes

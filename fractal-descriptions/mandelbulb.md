@@ -17,11 +17,10 @@ The [Mandelbrot set](/mandelbrot) tests points in a plane this way. The Mandelbu
 Daniel White published the construction in 2007. Paul Nylander's later experiments with higher powers led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
 
 ## Further reading
-
 - [Mandelbulb — Wikipedia](https://en.wikipedia.org/wiki/Mandelbulb)
 - [Mandelbulb — MathWorld](https://mathworld.wolfram.com/Mandelbulb.html)
 - [Mandelbulb — Inigo Quilez](https://iquilezles.org/articles/mandelbulb/)
-- [Pandora’s 3D box — Plus Magazine](https://plus.maths.org/content/pandoras-3d-box)
+- [Pandora’s 3D box — Plus Magazine](https://plus.maths.org/pandoras-3d-box)
 - [Mandelbulb set — Paul Bourke](https://paulbourke.net/fractals/bulb/)
 - [MandelBulb 3D Fractal — The Coding Train](https://www.youtube.com/watch?v=NJCiUVGiNyA)
 
