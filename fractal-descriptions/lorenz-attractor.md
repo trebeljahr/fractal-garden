@@ -28,4 +28,4 @@ Lorenz developed these rules from a simplified model of heated fluid. One number
 
 ## Sources and notes
 
-1. <span id="lorenz-attractor-source-1"></span> [Deterministic Nonperiodic Flow](https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf). [Back](#lorenz-attractor-ref-1)
+1. <span id="lorenz-attractor-source-1"></span> [Deterministic Nonperiodic Flow (archived copy)](https://web.archive.org/web/20261009044744/https://www.lmd.polytechnique.fr/~dubos/Cours/PRL/Lorenz63.pdf). [Back](#lorenz-attractor-ref-1)

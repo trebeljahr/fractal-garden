@@ -18,5 +18,5 @@ The holes don't always appear in a shadow. From one direction, the shadow is a f
 
 ## Sources and notes
 
-1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/~tsuiki/papers/Bridges2007.pdf), Bridges 2007, pp. 1–2. Proves the square parallel projection at every finite stage and in the limit. [Back](#sierpinski-tetrahedron-ref-1)
+1. <span id="sierpinski-tetrahedron-source-1"></span> Hideki Tsuiki, [Does it Look Square? Hexagonal Bipyramids, Triangular Antiprismoids, and their Fractals](https://www.i.h.kyoto-u.ac.jp/users/tsuiki/papers/Bridges2007.pdf), Bridges 2007, pp. 1–2. Proves the square parallel projection at every finite stage and in the limit. [Back](#sierpinski-tetrahedron-ref-1)
 2. <span id="sierpinski-tetrahedron-source-2"></span> Diagram construction. Calculated from the four corner positions used here. The square view looks along the z direction; the triangular view looks along (0, 1, 1), making the first two copies overlap exactly. Both use parallel viewing lines, as with a distant light. [Back](#sierpinski-tetrahedron-ref-2)

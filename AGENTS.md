@@ -112,7 +112,8 @@ paragraph or remove a useful construction step just to meet a word count.
   link that repeats another. A short list is fine, and so is no section.
 - Prefer links that will stay up: Wikipedia, MathWorld, arXiv, established
   publishers, universities and long-running sites of known authors. Skip small
-  personal pages, press releases and anything else likely to disappear.
+  personal pages, press releases and anything else likely to disappear. Run
+  `pnpm check:links` to find outside links that have died.
 - Read a link before adding it. It needs an identifiable expert or established
   publisher, real substance on this construction and something the other links do
   not give. It must be in English and open without a paywall, certificate warning
