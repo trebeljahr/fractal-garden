@@ -16,6 +16,15 @@ const COUNTS_PER_ROUND = 40;
 const SMOOTH_COUNT_LAG = 3;
 const KEY_COLORS = 32;
 
+// Every escaped pixel gets one gray, whatever its step. The shader takes the fractional part,
+// so an offset of 1 would wrap around to black.
+export const BLACK_AND_WHITE = {
+  palette: "grayscale",
+  colorDensity: 0,
+  colorOffset: 0.999,
+  interior: "#000000",
+};
+
 export function colorRepeatSteps(coloring: EscapeTimeColoring) {
   return COUNTS_PER_ROUND / coloring.colorDensity;
 }

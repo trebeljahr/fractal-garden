@@ -13,13 +13,14 @@ require.extensions[".ts"] = (module, filename) =>
     filename,
   );
 const {
+  BLACK_AND_WHITE,
   colorKeyGradient,
   colorRepeatSteps,
   escapeStepColor,
   STEP_LIMIT_VIEWS,
   stepStops,
 } = require("../utils/lessons/stepLimit.ts");
-const { JULIA_COLORING, MANDELBROT_COLORING } = require("../utils/escapeTimeColoring.ts");
+const { JULIA_COLORING, MANDELBROT_COLORING, PALETTES } = require("../utils/escapeTimeColoring.ts");
 const { traceTeachingOrbit } = require("../utils/orbitLesson.ts");
 
 const article = (name) =>
@@ -56,6 +57,17 @@ test("the dark band in the spiral has escaped at about step 40 and is not black"
   assert.ok(Math.hypot(point.real, point.imaginary) > 256);
   assert.equal(iteration, 40);
   assert.notDeepEqual(escapeStepColor(iteration, MANDELBROT_COLORING), [0, 0, 0]);
+});
+
+test("black and white gives every escaped pixel one near-white gray over a black interior", () => {
+  const { palette, colorDensity, colorOffset, interior } = BLACK_AND_WHITE;
+  assert.ok(PALETTES.includes(palette));
+  assert.equal(colorDensity, 0);
+  // The shader takes the fractional part, so 1 would wrap around to black.
+  assert.ok(colorOffset > 0.99 && colorOffset < 1);
+  assert.equal(interior, "#000000");
+  assert.match(article("mandelbrot"), /\*\*Black and white\*\*/);
+  assert.match(article("julia-set"), /\*\*Black and white\*\*/);
 });
 
 test("the color key repeats where the article says it does", () => {
