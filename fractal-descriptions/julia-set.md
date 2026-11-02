@@ -40,7 +40,7 @@ Some points land near $0.5$ again and repeat the slow trip. You can see more of 
 
 Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> The shape above is dust too: $c = 0.2501$ lies just outside.
 
-Try **Circle**, **Two lobes**, then **Dust** below. Watch where the amber ring sits in the Mandelbrot picture as the Julia shape changes. **Two lobes** subtracts one: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$.
+The pictures below start on $c = -1$: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Move the amber ring to $(0, 0)$ and you get the circle again. Move it outside the black shape and the Julia set breaks into dust.
 
 <figure data-lesson="linked-julia"></figure>
 

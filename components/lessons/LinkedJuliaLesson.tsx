@@ -1,8 +1,6 @@
 import { type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
-import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
-import { JULIA_PRESETS } from "../../utils/escapeTimePlaces";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import { juliaExplorerLink, LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../../utils/orbitLesson";
@@ -18,15 +16,6 @@ const SAME_DRAG_MS = 250;
 const BOUNDS = { parameter: [-2, 1, -1.25, 1.25], start: [-1.8, 1.8, -1.5, 1.5] } as const;
 const text = (p: ComplexPoint) =>
   `(${Number(p.real.toFixed(3))}, ${Number(p.imaginary.toFixed(3))})`;
-const PRESETS = [
-  { name: "Circle", c: ZERO },
-  { name: "Two lobes", c: { real: -1, imaginary: 0 } },
-  {
-    name: "Rabbit",
-    c: { real: JULIA_PRESETS.Rabbit.cReal, imaginary: JULIA_PRESETS.Rabbit.cImag },
-  },
-  { name: "Dust", c: { real: 0.3, imaginary: 0.6 } },
-];
 
 function LinkedMap({
   mapKind,
@@ -202,44 +191,14 @@ export default function LinkedJuliaLesson() {
         Drag the amber ring across the Mandelbrot picture. Watch the Julia shape change: every point
         in it now adds the number you chose.
       </p>
-      <div className={common.options}>
-        {PRESETS.map((preset) => (
-          <button
-            type="button"
-            key={preset.name}
-            aria-pressed={c.real === preset.c.real && c.imaginary === preset.c.imaginary}
-            onClick={() => chooseC(preset.c)}
-          >
-            {preset.name}
-          </button>
-        ))}
-      </div>
       <div className={styles.pair}>
         <div>
-          <h3>Mandelbrot · choose the number to add</h3>
+          <h3>Mandelbrot · choose c</h3>
           <LinkedMap mapKind="parameter" c={ZERO} value={c} onChange={chooseC} />
-          <p data-selected-parameter={`${c.real},${c.imaginary}`}>
-            The amber ring chooses c = {text(c)}. Each test here starts at zero.
-          </p>
-          <div className={styles.coordinates}>
-            {(["real", "imaginary"] as const).map((axis) => (
-              <label key={axis}>
-                {axis === "real" ? "Horizontal" : "Vertical"} <output>{c[axis]}</output>
-                <input
-                  type="range"
-                  aria-label={`Julia parameter ${axis}`}
-                  min={axis === "real" ? -2 : -1.25}
-                  max={axis === "real" ? 1 : 1.25}
-                  step="0.001"
-                  value={c[axis]}
-                  onChange={(e) => chooseC({ ...c, [axis]: Number(e.target.value) })}
-                />
-              </label>
-            ))}
-          </div>
+          <p data-selected-parameter={`${c.real},${c.imaginary}`}>c = {text(c)}</p>
         </div>
         <div>
-          <h3>Julia · choose a starting point</h3>
+          <h3>Julia · follow a starting point</h3>
           <LinkedMap
             mapKind="start"
             c={c}
@@ -248,25 +207,7 @@ export default function LinkedJuliaLesson() {
             orbit={shown.map((item) => item.point)}
             outcome={outcome}
           />
-          <p data-selected-start={`${start.real},${start.imaginary}`}>
-            The teal ring starts at {text(start)}. The line follows each square and add.
-          </p>
-          <div className={styles.coordinates}>
-            {(["real", "imaginary"] as const).map((axis) => (
-              <label key={axis}>
-                {axis === "real" ? "Horizontal" : "Vertical"} <output>{start[axis]}</output>
-                <input
-                  type="range"
-                  aria-label={`Linked Julia start ${axis}`}
-                  min={axis === "real" ? -1.8 : -1.5}
-                  max={axis === "real" ? 1.8 : 1.5}
-                  step="0.001"
-                  value={start[axis]}
-                  onChange={(e) => chooseStart({ ...start, [axis]: Number(e.target.value) })}
-                />
-              </label>
-            ))}
-          </div>
+          <p data-selected-start={`${start.real},${start.imaginary}`}>{text(start)}</p>
         </div>
       </div>
       <p>

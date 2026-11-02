@@ -40,18 +40,6 @@
 .readout p {
   margin: 0.5rem 0;
 }
-.coordinates {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-.coordinates label {
-  font-size: 1.4rem;
-  min-width: 0;
-}
-.coordinates output {
-  display: block;
-}
 .sequence {
   overflow-wrap: anywhere;
 }
