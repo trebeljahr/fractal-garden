@@ -34,7 +34,9 @@ Take $c = 0.2501$. From 100 steps to 300 steps, this picture barely changes: it 
 
 <figure data-lesson="step-limit-julia"></figure>
 
-Most of the shape changes color between 310 and 330 steps. Almost all of its points must pass close to $0.5$, and that takes about 300 steps. With $c = 0.25$, the point $0.5$ would never move: $0.5^2 + 0.25 = 0.5$. With $c = 0.2501$, it moves by only $0.0001$, so jumps near $0.5$ are very small. The point in the ring spends 274 of its 315 steps within $0.05$ of $0.5$.
+Most of the shape changes color between 310 and 330 steps. Every colored pixel has escaped, so the pale area is outside the filled Julia set. Its pixels look alike because they escape at about the same step.
+
+Almost all of these points must pass close to $0.5$, and that takes about 300 steps. With $c = 0.25$, the point $0.5$ would never move: $0.5^2 + 0.25 = 0.5$. With $c = 0.2501$, it moves by only $0.0001$, so jumps near $0.5$ are very small. The point at the center of the picture spends 274 of its 315 steps within $0.05$ of $0.5$.
 
 Some points land near $0.5$ again and repeat the slow trip. You can see more of them change color at about 650 and 1000 steps.
 

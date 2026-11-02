@@ -1,4 +1,5 @@
-import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../orbitLesson";
+import type { EscapeTimeColoring } from "../escapeTimeColoring";
+import type { ComplexPoint } from "../orbitLesson";
 
 export type StepLimitFormula = "mandelbrot" | "julia";
 export type StepLimitView = {
@@ -7,11 +8,36 @@ export type StepLimitView = {
   stops: number[];
   start: number;
   c?: ComplexPoint;
-  ring?: ComplexPoint;
 };
 
-// The picture's shader tests this radius, so the readout agrees with the pixel under the ring.
-const SHADER_ESCAPE_RADIUS = 256;
+// Smooth coloring divides the count by this in escape-time.frag.
+const COUNTS_PER_ROUND = 40;
+// A pixel that escapes at step n gets a smooth count about 3 below n, because of radius 256.
+const SMOOTH_COUNT_LAG = 3;
+const KEY_COLORS = 32;
+
+export function colorRepeatSteps(coloring: EscapeTimeColoring) {
+  return COUNTS_PER_ROUND / coloring.colorDensity;
+}
+
+/** The Classic palette color of a pixel that escapes at this step, as escape-time.frag draws it. */
+export function escapeStepColor(step: number, coloring: EscapeTimeColoring) {
+  const t =
+    ((step - SMOOTH_COUNT_LAG) / COUNTS_PER_ROUND) * coloring.colorDensity + coloring.colorOffset;
+  return [0, 0.1, 0.2].map((phase) =>
+    Math.round(255 * (0.5 + 0.5 * Math.cos(6.28318 * (t + phase)))),
+  );
+}
+
+/** One round of the palette, from step 0 to the step where the colors repeat. */
+export function colorKeyGradient(coloring: EscapeTimeColoring) {
+  const repeat = colorRepeatSteps(coloring);
+  const colors = Array.from({ length: KEY_COLORS + 1 }, (_, index) => {
+    const [red, green, blue] = escapeStepColor((index / KEY_COLORS) * repeat, coloring);
+    return `rgb(${red}, ${green}, ${blue})`;
+  });
+  return `linear-gradient(to right, ${colors.join(", ")})`;
+}
 
 /** About 4% apart and rounded to two digits, so the slider reads 310 rather than 307. */
 export function stepStops(min: number, max: number, keep: number[] = []) {
@@ -38,7 +64,6 @@ export const STEP_LIMIT_VIEWS: Record<StepLimitFormula, StepLimitView[]> = {
       bounds: [-0.7466, -0.7406, 0.1298, 0.1338],
       stops: stepStops(30, 5000, [50, 500]),
       start: 50,
-      ring: { real: -0.74523, imaginary: 0.13027 },
     },
   ],
   julia: [
@@ -49,18 +74,6 @@ export const STEP_LIMIT_VIEWS: Record<StepLimitFormula, StepLimitView[]> = {
       stops: stepStops(50, 2000, [650, ...Array.from({ length: 21 }, (_, i) => 300 + 2 * i)]),
       start: 200,
       c: { real: 0.2501, imaginary: 0 },
-      ring: { real: 0, imaginary: 0 },
     },
   ],
 };
-
-/** The step at which the ring's point escapes, or null if it stays in within the view's stops. */
-export function ringEscapeStep(formula: StepLimitFormula, view: StepLimitView) {
-  if (!view.ring) return null;
-  const c = formula === "julia" && view.c ? view.c : view.ring;
-  const start = formula === "julia" ? view.ring : { real: 0, imaginary: 0 };
-  const limit = view.stops[view.stops.length - 1];
-  const orbit = traceTeachingOrbit(c, start, false, limit, SHADER_ESCAPE_RADIUS);
-  const end = orbit[orbit.length - 1];
-  return isOutside(end.point, SHADER_ESCAPE_RADIUS) ? end.iteration : null;
-}

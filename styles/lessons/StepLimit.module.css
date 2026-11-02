@@ -1,19 +1,41 @@
-.picture {
-  position: relative;
-}
 .picture canvas {
   display: block;
   width: 100%;
   height: auto;
 }
-.picture svg {
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  background: none;
-  pointer-events: none;
+.key {
+  display: grid;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
 }
-.readout {
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+@media (min-width: 700px) {
+  .key {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 4fr);
+    gap: 2rem;
+  }
+}
+.notEscaped {
+  display: flex;
+  align-self: start;
+  align-items: center;
+  gap: 0.8rem;
+}
+.swatch {
+  flex: none;
+  width: 2.4rem;
+  height: 1.6rem;
+  border: 1px solid #eee8ce70;
+}
+.strip {
+  height: 1.6rem;
+  margin-top: 0.5rem;
+}
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.3rem;
 }

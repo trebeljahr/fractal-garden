@@ -12,12 +12,19 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
-const { ringEscapeStep, STEP_LIMIT_VIEWS, stepStops } = require("../utils/lessons/stepLimit.ts");
+const {
+  colorKeyGradient,
+  colorRepeatSteps,
+  escapeStepColor,
+  STEP_LIMIT_VIEWS,
+  stepStops,
+} = require("../utils/lessons/stepLimit.ts");
+const { JULIA_COLORING, MANDELBROT_COLORING } = require("../utils/escapeTimeColoring.ts");
 const { traceTeachingOrbit } = require("../utils/orbitLesson.ts");
 
 const article = (name) =>
   readFileSync(new URL(`../fractal-descriptions/${name}.md`, import.meta.url), "utf8");
-const spiral = STEP_LIMIT_VIEWS.mandelbrot.find((view) => view.name === "Spiral");
+const ZERO = { real: 0, imaginary: 0 };
 const [juliaView] = STEP_LIMIT_VIEWS.julia;
 
 test("slider stops rise from the minimum to the maximum and keep the steps the articles name", () => {
@@ -36,14 +43,38 @@ test("slider stops rise from the minimum to the maximum and keep the steps the a
   }
 });
 
-test("the spiral ring looks inside at the explorer's default and later escapes", () => {
-  const step = ringEscapeStep("mandelbrot", spiral);
-  assert.ok(step > 200 && step < 1000, `escapes at ${step}`);
+test("a round black dot in the spiral looks inside at 200 steps and later escapes", () => {
+  const orbit = traceTeachingOrbit({ real: -0.74523, imaginary: 0.13027 }, ZERO, false, 1000, 256);
+  const { iteration, point } = orbit.at(-1);
+  assert.ok(Math.hypot(point.real, point.imaginary) > 256, "escapes within 1000 steps");
+  assert.ok(iteration > 200, `escapes at ${iteration}`);
 });
 
-test("the Julia ring and article agree on the slow trip past 0.5", () => {
-  assert.equal(ringEscapeStep("julia", juliaView), 315);
-  const orbit = traceTeachingOrbit(juliaView.c, juliaView.ring, false, 315, 256);
+test("the dark band in the spiral has escaped at about step 40 and is not black", () => {
+  const orbit = traceTeachingOrbit({ real: -0.7443, imaginary: 0.1319 }, ZERO, false, 200, 256);
+  const { iteration, point } = orbit.at(-1);
+  assert.ok(Math.hypot(point.real, point.imaginary) > 256);
+  assert.equal(iteration, 40);
+  assert.notDeepEqual(escapeStepColor(iteration, MANDELBROT_COLORING), [0, 0, 0]);
+});
+
+test("the color key repeats where the article says it does", () => {
+  assert.equal(colorRepeatSteps(MANDELBROT_COLORING), 40);
+  assert.equal(Math.round(colorRepeatSteps(JULIA_COLORING)), 89);
+  assert.deepEqual(
+    escapeStepColor(30, MANDELBROT_COLORING),
+    escapeStepColor(70, MANDELBROT_COLORING),
+  );
+  assert.match(article("mandelbrot"), /repeat every 40 steps/);
+  const colors = colorKeyGradient(JULIA_COLORING).match(/rgb\([^)]*\)/g);
+  assert.equal(colors.length, 33);
+  assert.equal(colors[0], colors.at(-1));
+});
+
+test("the center of the Julia picture and the article agree on the slow trip past 0.5", () => {
+  const orbit = traceTeachingOrbit(juliaView.c, ZERO, false, 315, 256);
+  assert.equal(orbit.at(-1).iteration, 315);
+  assert.ok(Math.hypot(orbit.at(-1).point.real, orbit.at(-1).point.imaginary) > 256);
   const near = orbit.filter(
     ({ point }) => Math.hypot(point.real - 0.5, point.imaginary) < 0.05,
   ).length;

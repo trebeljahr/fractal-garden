@@ -22,15 +22,17 @@ In the picture below, the ring marks the number you chose. The amber point start
 
 A number belongs to the Mandelbrot set if its results stay within a fixed distance of zero forever. The computer cannot wait forever, so black means “hasn't escaped yet.” Other colors show how long escape took.
 
+Every colored pixel has escaped, so it is outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
+
 Move the slider to choose how many steps the computer calculates before it stops. In **Whole set**, more steps turn black pixels into colored ones until the heart and the bulb appear.
 
-**Spiral** shows a tiny piece of the edge, near the neck. At 200 steps it has round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along.
+**Spiral** shows a tiny piece of the edge, near the neck. The dark band across the middle isn't black: those pixels escaped at about step 40. At 200 steps there are also round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along.
 
 <figure data-lesson="step-limit-mandelbrot"></figure>
 
 Points near the neck can take much longer. Start at $-0.75$, where the bulb meets the body, and move straight up. A point $0.1$ above it crosses the dashed circle after 33 steps. A point $0.01$ above it takes 315 steps, $0.001$ above takes 3143, and $0.0001$ above takes 31417. Closer points take longer, so no step limit catches every point.
 
-Now multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. These answers seem to be heading for $\pi$.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
+Now multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. These answers seem to be heading for π.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
 
 Look at the round bulb on the left. Numbers inside it approach a two-number repeat, like the $0,-1$ example at its center. Numbers inside the heart-shaped body settle toward one value.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup>
 
