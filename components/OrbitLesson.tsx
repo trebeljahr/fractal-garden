@@ -1,4 +1,5 @@
 import { memo, type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import styles from "../styles/OrbitLesson.module.css";
 import {
   BURNING_SHIP_COLORING,
@@ -15,13 +16,12 @@ import {
   jumpControl,
   jumpExit,
   jumpPoint,
+  ORBIT_LESSON_LIMIT,
   type OrbitKind,
   type Pixel,
-  TEACHING_LIMIT,
-  traceTeachingOrbit,
+  traceUntilLoop,
 } from "../utils/orbitLesson";
 import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
-import { LessonStepControls } from "./lessons/LessonFrame";
 
 export function isOrbitKind(value: unknown): value is OrbitKind {
   return value === "mandelbrot" || value === "julia" || value === "burning-ship";
@@ -53,8 +53,8 @@ function number(value: number, digits = 3) {
   if (Math.abs(value) < 0.0005) return "0";
   return String(Number(value.toFixed(digits))).replace("-", "−");
 }
-function coordinates(point: ComplexPoint) {
-  return `(${number(point.real)}, ${number(point.imaginary)})`;
+function coordinates(point: ComplexPoint, digits = 3) {
+  return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
 }
 function distance(a: Pixel, b: Pixel) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -67,9 +67,17 @@ function lerp(a: Pixel, b: Pixel, t: number) {
 }
 function clampToView(point: ComplexPoint) {
   return {
-    real: Number(Math.max(VIEW.left, Math.min(VIEW.right, point.real)).toFixed(2)),
-    imaginary: Number(Math.max(VIEW.bottom, Math.min(VIEW.top, point.imaginary)).toFixed(2)),
+    real: Math.max(VIEW.left, Math.min(VIEW.right, point.real)),
+    imaginary: Math.max(VIEW.bottom, Math.min(VIEW.top, point.imaginary)),
   };
+}
+// A chosen point rests on two decimals. While dragging it follows the pointer exactly.
+function snap(point: ComplexPoint) {
+  return { real: Number(point.real.toFixed(2)), imaginary: Number(point.imaginary.toFixed(2)) };
+}
+// Later jumps run faster, so a long orbit doesn't take much longer to watch.
+function pace(jump: number) {
+  return Math.max(0.35, 1 - 0.06 * (jump - 1));
 }
 
 const CoordinateGrid = memo(function CoordinateGrid({
@@ -148,7 +156,6 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [hop, setHop] = useState(1);
   const [dragging, setDragging] = useState(false);
   const [width, setWidth] = useState(640);
-  const stage = useRef<HTMLButtonElement>(null);
   const route = useRef<HTMLDivElement>(null);
   const pointer = useRef<number | null>(null);
   const id = useId().replace(/:/g, "");
@@ -156,13 +163,15 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const flip = kind === "burning-ship";
   const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
   const c = kind === "julia" ? JULIA_C : value;
-  const orbit = useMemo(
-    () => traceTeachingOrbit(c, kind === "julia" ? value : ZERO, flip),
+  const { orbit, loop } = useMemo(
+    () => traceUntilLoop(c, kind === "julia" ? value : ZERO, flip),
     [c, value, kind, flip],
   );
   const max = orbit.length - 1;
   const shown = dragging ? max : Math.min(motion.step, max);
   const landed = hop < 1 ? shown - 1 : shown;
+  const finished = landed === max;
+  const inLoop = (index: number) => finished && loop !== null && index > loop.from;
 
   const project = (point: ComplexPoint): Pixel => ({
     x: ((point.real - VIEW.left) / VIEW_WIDTH) * width,
@@ -180,7 +189,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     const { from, via, to } = jump(shown);
     return distance(from, via) + distance(via, to);
   })();
-  const fade = (index: number) => Math.max(0.2, 1 - 0.15 * (shown - index));
+  const fade = (index: number) => (inLoop(index) ? 1 : Math.max(0.2, 1 - 0.15 * (shown - index)));
 
   const goTo = (next: number) => {
     const animate = next === shown + 1 && !reduced;
@@ -188,14 +197,20 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     setMotion({ step: next, animate });
   };
   const delay =
-    shown === 0 ? FIRST_HOP_DELAY_MS : hopPixels < 2 ? TINY_HOP_DELAY_MS : HOP_MS + REST_MS;
-  const playback = useLessonPlayback(shown, max, goTo, delay);
+    shown === 0
+      ? FIRST_HOP_DELAY_MS
+      : hopPixels < 2
+        ? TINY_HOP_DELAY_MS
+        : (HOP_MS + REST_MS) * pace(shown);
+  const playback = useLessonPlayback<HTMLButtonElement>(shown, max, goTo, delay);
+  const stage = playback.ref;
 
   useEffect(() => {
     if (!motion.animate) return;
     const begun = performance.now();
+    const duration = HOP_MS * pace(motion.step);
     let frame = requestAnimationFrame(function tick(now) {
-      const t = Math.max(0, Math.min(1, (now - begun) / HOP_MS));
+      const t = Math.max(0, Math.min(1, (now - begun) / duration));
       setHop(t);
       if (t < 1) frame = requestAnimationFrame(tick);
     });
@@ -209,7 +224,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [stage]);
   useEffect(() => {
     const element = route.current;
     if (element && landed >= 0) element.scrollTop = element.scrollHeight;
@@ -226,14 +241,15 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   };
 
   const crossed = isOutside(orbit[max].point);
-  const finished = landed === max;
   const outcome = !finished
     ? ""
-    : !crossed
-      ? `Still inside the dashed circle after ${max} jumps.`
-      : max === 0
-        ? "Already outside the dashed circle."
-        : `Crossed the dashed circle on jump ${max}.`;
+    : loop
+      ? `Jump ${max} lands back on jump ${loop.from}. ${loop.period === 1 ? "The point stays here." : `The same ${loop.period} jumps repeat from here.`}`
+      : !crossed
+        ? `Still inside the dashed circle after ${max} jumps.`
+        : max === 0
+          ? "Already outside the dashed circle."
+          : `Crossed the dashed circle on jump ${max}.`;
   const title = kind === "julia" ? "Follow one starting point" : "Follow one pixel";
   const rule =
     kind === "julia"
@@ -250,7 +266,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     };
   };
   const tag = tagAt(ring);
-  const tagWidth = coordinates(value).length * 7.5;
+  const tagWidth = coordinates(value, 2).length * 7.5;
   const tagLeft = tag.textAnchor === "end" ? tag.x - tagWidth : tag.x;
   const ghost = hover && project(hover);
   // A jump number sits up and right of its dot; skip it where the ring's tag already is.
@@ -272,6 +288,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     const foldEnd = foldShare ? lerp(from, via, ease(Math.min(1, t / foldShare))) : via;
     const arcT = ease(Math.max(0, (t - foldShare) / (1 - foldShare)));
     const current = index === shown;
+    const looping = inLoop(index);
     const end = jumpPoint(via, control, to, arcT);
     const partial = lerp(via, control, arcT);
     trail.push(
@@ -282,8 +299,12 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         {arcT > 0 && (
           <path
             d={`M${via.x} ${via.y}Q${partial.x} ${partial.y} ${end.x} ${end.y}`}
-            className={current ? styles.hopCurrent : styles.hop}
-            markerEnd={!current && distance(via, to) > 16 ? `url(#${id}-arrow)` : undefined}
+            className={current || looping ? styles.hopCurrent : styles.hop}
+            markerEnd={
+              !current && distance(via, to) > 16
+                ? `url(#${id}-${looping ? "loop-arrow" : "arrow"})`
+                : undefined
+            }
           />
         )}
       </g>,
@@ -317,35 +338,41 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             type="button"
             ref={stage}
             className={styles.stage}
-            aria-label={`Chosen pixel ${coordinates(value)}. Click or drag to choose another, or use the arrow keys. Press Enter to play.`}
+            aria-label={`Chosen pixel ${coordinates(value, 2)}. Click or drag to choose another, or use the arrow keys. Press Enter to play.`}
             data-orbit-stage
+            data-dragging={dragging || undefined}
             onPointerDown={(event) => {
               if (!event.isPrimary || event.button !== 0) return;
               pointer.current = event.pointerId;
               event.currentTarget.setPointerCapture(event.pointerId);
               setHover(null);
-              setValue(pointAt(event));
+              setValue(snap(pointAt(event)));
               playback.change(0);
             }}
             onPointerMove={(event) => {
+              const at = pointAt(event);
+              // React would otherwise commit after this frame paints, one frame behind the pointer.
               if (pointer.current !== event.pointerId) {
-                if (event.pointerType === "mouse") setHover(pointAt(event));
+                if (event.pointerType === "mouse") flushSync(() => setHover(at));
                 return;
               }
-              setDragging(true);
-              setValue(pointAt(event));
+              flushSync(() => {
+                setDragging(true);
+                setValue(at);
+              });
             }}
             onPointerLeave={() => setHover(null)}
             onPointerUp={(event) => {
               if (pointer.current !== event.pointerId) return;
               pointer.current = null;
               event.currentTarget.releasePointerCapture(event.pointerId);
-              setValue(pointAt(event));
+              setValue(snap(pointAt(event)));
               setDragging(false);
               playback.play();
             }}
             onPointerCancel={() => {
               pointer.current = null;
+              setValue(snap(value));
               setDragging(false);
             }}
             onClick={(event) => {
@@ -357,12 +384,14 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               const dx = event.key === "ArrowLeft" ? -0.05 : event.key === "ArrowRight" ? 0.05 : 0;
               const dy = event.key === "ArrowUp" ? 0.05 : event.key === "ArrowDown" ? -0.05 : 0;
               setValue(
-                clampToView({
-                  real: value.real + dx,
-                  imaginary: value.imaginary + (flip ? -dy : dy),
-                }),
+                snap(
+                  clampToView({
+                    real: value.real + dx,
+                    imaginary: value.imaginary + (flip ? -dy : dy),
+                  }),
+                ),
               );
-              playback.change(TEACHING_LIMIT);
+              playback.change(ORBIT_LESSON_LIMIT);
             }}
           >
             <EscapeTimePicture
@@ -384,6 +413,17 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                 >
                   <path d="M0 0L6 3L0 6Z" fill="#eee8ce" />
                 </marker>
+                <marker
+                  id={`${id}-loop-arrow`}
+                  markerWidth="5"
+                  markerHeight="5"
+                  refX="4"
+                  refY="2"
+                  orient="auto"
+                  markerUnits="strokeWidth"
+                >
+                  <path d="M0 0L4 2L0 4Z" fill="#f5c56d" />
+                </marker>
               </defs>
               <CoordinateGrid width={width} height={height} flip={flip} />
               {trail}
@@ -402,12 +442,12 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                 <g data-orbit-ghost>
                   <circle cx={ghost.x} cy={ghost.y} r="10" className={styles.ghost} />
                   <text {...tagAt(ghost)} className={styles.ringTag}>
-                    {coordinates(hover)}
+                    {coordinates(hover, 2)}
                   </text>
                 </g>
               ) : (
                 <text {...tag} className={styles.ringTag}>
-                  {coordinates(value)}
+                  {coordinates(value, 2)}
                 </text>
               )}
               {motion.animate && hop >= 1 && !exit && (
@@ -435,13 +475,6 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               )}
             </svg>
           </button>
-          <LessonStepControls
-            step={shown}
-            max={max}
-            playback={playback}
-            label={title}
-            stepDescription={shown === 0 ? "Start" : `Jump ${shown}`}
-          />
         </div>
         <div className={styles.routeColumn}>
           <div ref={route} className={styles.route}>
@@ -454,7 +487,12 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               </thead>
               <tbody>
                 {orbit.slice(0, Math.max(0, landed) + 1).map(({ iteration, point }) => (
-                  <tr key={iteration} data-current={iteration === landed || undefined}>
+                  <tr
+                    key={iteration}
+                    data-current={
+                      iteration === landed || (finished && iteration === loop?.from) || undefined
+                    }
+                  >
                     <td>{iteration}</td>
                     <td>{coordinates(point)}</td>
                   </tr>

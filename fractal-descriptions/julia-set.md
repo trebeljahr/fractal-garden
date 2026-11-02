@@ -22,6 +22,10 @@ With $c=(-0.12256, 0.74486)$, the circle becomes the dark shape below. Pick a pi
 
 <figure data-orbit="julia"></figure>
 
+Here is one jump from $(0.3, 0)$, where the ring starts, worked out by hand and rounded to five decimals. Press **Next jump** and the new point goes back in as the next starting point.
+
+<figure data-lesson="julia-by-hand"></figure>
+
 Every starting point in one picture uses the same $c$. Change it, and you change the whole picture.
 
 <figure data-article-images="julia"></figure>

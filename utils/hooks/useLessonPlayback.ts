@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 // Playback is always reader initiated. Stop when the lesson leaves the screen,
 // the tab hides, or the reader changes a setting.
-export function useLessonPlayback(
+export function useLessonPlayback<Watched extends HTMLElement = HTMLFieldSetElement>(
   value: number,
   max: number,
   onChange: (value: number) => void,
@@ -10,7 +10,7 @@ export function useLessonPlayback(
   increment = 1,
 ) {
   const [playing, setPlaying] = useState(false);
-  const ref = useRef<HTMLFieldSetElement>(null);
+  const ref = useRef<Watched>(null);
   const change = useRef(onChange);
   change.current = onChange;
   useEffect(() => {

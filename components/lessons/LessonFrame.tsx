@@ -70,7 +70,7 @@ export function LessonStepControls({
 }: {
   step: number;
   max: number;
-  playback: ReturnType<typeof useLessonPlayback>;
+  playback: ReturnType<typeof useLessonPlayback<HTMLFieldSetElement>>;
   label: string;
   stepDescription?: string;
   disabled?: boolean;

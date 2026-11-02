@@ -61,6 +61,9 @@
   touch-action: none;
   user-select: none;
 }
+.lesson .stage[data-dragging] {
+  cursor: none;
+}
 .lesson .stage:focus-visible {
   outline-offset: -3px;
 }
@@ -220,6 +223,9 @@
   white-space: nowrap;
 }
 .lesson .route th {
+  position: sticky;
+  top: 0;
+  background: #15161e;
   color: #eee8ce99;
 }
 .lesson .route tr[data-current] td {

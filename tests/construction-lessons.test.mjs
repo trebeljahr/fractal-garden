@@ -15,10 +15,14 @@ import {
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
 import {
   ESCAPE_RADIUS,
+  handJump,
   jumpControl,
   jumpExit,
   jumpPoint,
+  ORBIT_LESSON_LIMIT,
+  traceHandJumps,
   traceTeachingOrbit,
+  traceUntilLoop,
 } from "../utils/orbitLesson.ts";
 import { pythagorasFork } from "../utils/pythagorasFork.ts";
 import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket.ts";
@@ -119,6 +123,81 @@ test("orbit lesson shows bounded cycles and stops after an escaping iterate", ()
       .map((s) => s.point.real),
     [0, -1, 0, -1, 0],
   );
+});
+test("orbit lesson stops counting when a point lands back on an earlier one", () => {
+  const zero = { real: 0, imaginary: 0 };
+  const rabbit = { real: -0.12256, imaginary: 0.74486 };
+  const minusOne = traceUntilLoop({ real: -1, imaginary: 0 }, zero);
+  assert.deepEqual(minusOne.loop, { from: 0, period: 2 });
+  assert.deepEqual(
+    minusOne.orbit.map((s) => s.point.real),
+    [0, -1, 0],
+  );
+  const inside = traceUntilLoop(rabbit, { real: 0.3, imaginary: 0 });
+  assert.deepEqual(inside.loop, { from: 13, period: 3 });
+  assert.equal(inside.orbit.at(-1).iteration, 16);
+  // Exact loops on repelling points count too: 0, i, -1 + i, -i, -1 + i.
+  assert.deepEqual(traceUntilLoop({ real: 0, imaginary: 1 }, zero).loop, { from: 2, period: 2 });
+  // 0, -2, 2, 2: a point that stays put is a loop of one jump.
+  assert.deepEqual(traceUntilLoop({ real: -2, imaginary: 0 }, zero).loop, { from: 2, period: 1 });
+});
+test("orbit lesson does not call a slow or escaping orbit a loop", () => {
+  const zero = { real: 0, imaginary: 0 };
+  const leaving = traceUntilLoop({ real: 1, imaginary: 0 }, zero);
+  assert.equal(leaving.loop, null);
+  assert.deepEqual(
+    leaving.orbit.map((s) => s.point.real),
+    [0, 1, 2, 5],
+  );
+  // 1.0001 barely moves at first, then doubles its distance from 1 and leaves.
+  const lingering = traceUntilLoop(zero, { real: 1.0001, imaginary: 0 });
+  assert.equal(lingering.loop, null);
+  assert.ok(lingering.orbit.at(-1).point.real > ESCAPE_RADIUS);
+  // c = 0.25 creeps toward 0.5 and never lands within the tolerance of its last point.
+  const creeping = traceUntilLoop({ real: 0.25, imaginary: 0 }, zero);
+  assert.equal(creeping.loop, null);
+  assert.equal(creeping.orbit.length, ORBIT_LESSON_LIMIT + 1);
+  // This pixel spirals in to one place. Every second landing is close, but it is not a two-jump loop.
+  const spiraling = traceUntilLoop({ real: -0.56, imaginary: -0.18 }, zero);
+  assert.notEqual(spiraling.loop?.period, 2);
+  // Every loop found across the picture visits separate places.
+  for (let x = -2; x <= 0.5; x += 0.05) {
+    for (let y = -1.2; y <= 1.2; y += 0.05) {
+      const { orbit, loop } = traceUntilLoop({ real: x, imaginary: y }, zero);
+      if (!loop || loop.period === 1) continue;
+      const places = orbit.slice(loop.from, -1).map((s) => s.point);
+      for (const [index, place] of places.entries()) {
+        for (const other of places.slice(index + 1))
+          assert.ok(
+            Math.hypot(place.real - other.real, place.imaginary - other.imaginary) > 0.001,
+            `(${x}, ${y})`,
+          );
+      }
+    }
+  }
+});
+test("a jump by hand adds up exactly at the written five decimals", () => {
+  const rabbit = { real: -0.12256, imaginary: 0.74486 };
+  const first = handJump({ real: 0.3, imaginary: 0 }, rabbit);
+  assert.deepEqual(first.squared, { real: 0.09, imaginary: 0 });
+  assert.deepEqual(first.next, { real: -0.03256, imaginary: 0.74486 });
+  const second = handJump(first.next, rabbit);
+  assert.deepEqual(second.squared, { real: -0.55376, imaginary: -0.04851 });
+  assert.deepEqual(second.next, { real: -0.67632, imaginary: 0.69635 });
+
+  const { jumps, repeats } = traceHandJumps(rabbit, { real: 0.3, imaginary: 0 });
+  assert.equal(jumps.length, 19);
+  assert.equal(repeats, 16);
+  assert.deepEqual(jumps.at(-1).next, jumps[15].next);
+  const exact = traceTeachingOrbit(rabbit, { real: 0.3, imaginary: 0 }, false, jumps.length);
+  jumps.forEach((jump, index) => {
+    const point = exact[index + 1].point;
+    assert.ok(Math.abs(jump.next.real - point.real) < 0.001, `jump ${index + 1} horizontal`);
+    assert.ok(
+      Math.abs(jump.next.imaginary - point.imaginary) < 0.001,
+      `jump ${index + 1} vertical`,
+    );
+  });
 });
 test("Julia changes the starting point while Burning Ship folds both components before the square", () => {
   const c = { real: -0.8, imaginary: 0.156 };

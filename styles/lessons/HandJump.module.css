@@ -1,0 +1,158 @@
+.lesson .sums {
+  --row: 3.6rem;
+  --head: 2.8rem;
+  position: relative;
+  margin-top: 1rem;
+  padding-left: 2.4rem;
+}
+.lesson table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font:
+    1.4rem / 1.5 "Montserrat",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.lesson th,
+.lesson td {
+  padding: 0.4rem 0.8rem 0.4rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-weight: 400;
+}
+.lesson thead tr {
+  height: var(--head);
+}
+.lesson thead th {
+  color: #eee8ce99;
+}
+.lesson tbody th {
+  width: 8.5rem;
+  color: #eee8ce99;
+}
+.lesson thead td {
+  width: 8.5rem;
+}
+.lesson td span {
+  display: inline-block;
+}
+.input,
+.output {
+  height: var(--row);
+  font-weight: 600;
+}
+.input td span,
+.output td span {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #eee8ce70;
+  background: #10151a;
+}
+.output td span {
+  position: relative;
+  z-index: 1;
+  border-color: var(--lesson-accent);
+  color: var(--lesson-accent);
+}
+.square,
+.add,
+.output td {
+  transition: opacity 260ms ease;
+}
+.input td span,
+.backArrow {
+  transition:
+    opacity 260ms ease,
+    border-color 260ms ease;
+}
+/* The arrow runs from the middle of the last row back to the middle of the first. */
+.backArrow {
+  position: absolute;
+  left: 0.2rem;
+  top: calc(var(--head) + var(--row) / 2);
+  bottom: calc(var(--row) / 2);
+  width: 1.8rem;
+  border: 1.5px solid #eee8ce70;
+  border-right: 0;
+  border-radius: 0.8rem 0 0 0.8rem;
+}
+.backArrow::after {
+  content: "";
+  position: absolute;
+  top: -0.55rem;
+  right: -0.2rem;
+  border-block: 0.45rem solid transparent;
+  border-left: 0.7rem solid #eee8ce70;
+}
+[data-phase="glide"] .backArrow {
+  border-color: var(--lesson-accent);
+}
+[data-phase="glide"] .backArrow::after {
+  border-left-color: var(--lesson-accent);
+}
+[data-phase="glide"] .square,
+[data-phase="glide"] .add {
+  opacity: 0.2;
+}
+[data-phase="glide"] .input td span {
+  opacity: 0;
+}
+[data-phase="square"] .add,
+[data-phase="square"] .output td,
+[data-phase="add"] .output td {
+  opacity: 0;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-left: 2.4rem;
+  font:
+    1.4rem / 1.5 "Montserrat",
+    sans-serif;
+}
+@media (max-width: 700px) {
+  .lesson table,
+  .lesson tbody,
+  .lesson tbody tr {
+    display: block;
+  }
+  .lesson thead {
+    display: none;
+  }
+  .lesson .sums {
+    --head: 0rem;
+  }
+  .lesson tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.8rem;
+    padding-bottom: 0.6rem;
+  }
+  .lesson tbody th {
+    grid-column: 1 / -1;
+    width: auto;
+    padding-bottom: 0;
+  }
+  .input,
+  .output {
+    height: auto;
+  }
+  .backArrow {
+    top: 3rem;
+    bottom: 2.4rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .square,
+  .add,
+  .output td,
+  .input td span,
+  .backArrow {
+    transition: none;
+  }
+}
