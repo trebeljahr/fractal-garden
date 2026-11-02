@@ -88,14 +88,13 @@ test("shared camera state round-trips and rejects invalid or excessive values", 
 
 test("Buddhabrot opens as a populated still and samples only when playback is enabled", () => {
   const renderer = new BuddhabrotRenderer();
-  const labels = [];
+  let pixels;
   const ctx = {
     canvas: { width: 80, height: 60 },
     createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-    putImageData() {},
-    setTransform() {},
-    measureText: () => ({ width: 20 }),
-    fillText: (text) => labels.push(text),
+    putImageData: (image) => {
+      pixels = image.data.slice();
+    },
   };
   const params = {
     maxIterations: 40,
@@ -108,12 +107,16 @@ test("Buddhabrot opens as a populated still and samples only when playback is en
   };
   renderer.update(params);
   assert.equal(renderer.draw(ctx, 80, 60), false);
-  assert.equal(labels.at(-1), "Samples: 12,000");
+  assert.equal(renderer.samples, 12000);
+  const still = pixels;
+  assert.ok(still.some((value, i) => i % 4 === 0 && value > 0x25));
   assert.equal(renderer.draw(ctx, 80, 60), false);
-  assert.equal(labels.at(-1), "Samples: 12,000");
+  assert.equal(renderer.samples, 12000);
+  assert.deepEqual(pixels, still);
   renderer.update({ ...params, paused: false });
   assert.equal(renderer.draw(ctx, 80, 60), true);
   renderer.update(params);
   assert.equal(renderer.draw(ctx, 80, 60), false);
-  assert.equal(labels.at(-1), "Samples: 12,050");
+  assert.equal(renderer.samples, 12050);
+  assert.notDeepEqual(pixels, still);
 });
