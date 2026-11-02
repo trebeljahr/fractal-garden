@@ -93,23 +93,24 @@ export function isArticleImageKind(value: unknown): value is ArticleImageKind {
   return typeof value === "string" && Object.hasOwn(IMAGES, value);
 }
 
+export function openView(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    return;
+  event.preventDefault();
+  if (window.location.hash !== new URL(href, window.location.origin).hash)
+    window.history.pushState(null, "", href);
+  // A view that saves no camera opens at the page's usual framing.
+  window.dispatchEvent(new Event("garden:reset-pose"));
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => {
+    document
+      .querySelector<HTMLCanvasElement>('canvas[aria-label="Explore the fractal interior"]')
+      ?.focus({ preventScroll: true });
+  });
+}
+
 export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
-  const openView = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-      return;
-    event.preventDefault();
-    if (window.location.hash !== new URL(href, window.location.origin).hash)
-      window.history.pushState(null, "", href);
-    // A view that saves no camera opens at the page's usual framing.
-    window.dispatchEvent(new Event("garden:reset-pose"));
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-    window.scrollTo(0, 0);
-    requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLCanvasElement>('canvas[aria-label="Explore the fractal interior"]')
-        ?.focus({ preventScroll: true });
-    });
-  };
   return (
     <div className={styles.images}>
       {IMAGES[kind].map((image) => {

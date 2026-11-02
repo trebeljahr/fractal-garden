@@ -1,0 +1,72 @@
+.figure {
+  position: relative;
+  width: 100%;
+  /* The whole figure fits on one screen, so every arrow can be followed. */
+  max-width: calc((100vh - 4rem) * 0.85);
+  margin: 2rem auto 2.5rem;
+  container-type: inline-size;
+}
+.map,
+.tile {
+  position: absolute;
+  display: block;
+}
+.tile {
+  color: var(--yellow-white);
+  text-decoration: none;
+}
+.tile:hover img,
+.tile:focus-visible img {
+  outline: 2px solid #f5c56d;
+  outline-offset: -2px;
+}
+.caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  padding-top: 0.25em;
+  font-size: clamp(9px, 1.9cqw, 13.5px);
+  line-height: 1.2;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tile[data-side="top"] .caption {
+  top: auto;
+  bottom: 100%;
+  padding: 0 0 0.25em;
+}
+.figure svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  pointer-events: none;
+}
+.casing,
+.line {
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.casing {
+  fill: #10151a;
+  stroke: #10151a;
+  stroke-width: 3.5px;
+}
+.line {
+  fill: none;
+  stroke: #f5c56d;
+  stroke-width: 1.5px;
+}
+.mark {
+  fill: #f5c56d;
+}
+.active .line {
+  stroke: #fffbe8;
+  stroke-width: 2.5px;
+}
+.active .mark {
+  fill: #fffbe8;
+}

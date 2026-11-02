@@ -10,6 +10,7 @@ const JuliaAttractorLesson = dynamic(() => import("./lessons/JuliaAttractorLesso
 const JuliaEdgeLesson = dynamic(() => import("./lessons/JuliaEdgeLesson"));
 const PaintLesson = dynamic(() => import("./lessons/PaintLesson"));
 const EscapeNeckLesson = dynamic(() => import("./lessons/EscapeNeckLesson"));
+const JuliaMapLesson = dynamic(() => import("./lessons/JuliaMapLesson"));
 const StepLimitLesson = dynamic(() => import("./lessons/StepLimitLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
 const DragonTilingLesson = dynamic(() => import("./lessons/DragonTilingLesson"));
@@ -45,6 +46,7 @@ const LESSONS = [
   "paint-julia",
   "paint-mandelbrot",
   "escape-neck",
+  "julia-map",
   "step-limit-mandelbrot",
   "step-limit-julia",
   "koch-measurement",
@@ -101,6 +103,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <PaintLesson kind={kind} />;
     case "escape-neck":
       return <EscapeNeckLesson />;
+    case "julia-map":
+      return <JuliaMapLesson />;
     case "step-limit-mandelbrot":
       return <StepLimitLesson formula="mandelbrot" />;
     case "step-limit-julia":
