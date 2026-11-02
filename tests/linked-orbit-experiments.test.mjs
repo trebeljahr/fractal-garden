@@ -119,5 +119,6 @@ test("full Julia explorer links retain off-center parameters without clipping", 
     { path: "cImag", kind: "number", min: -2, max: 2 },
   ]);
   assert.deepEqual(config, { cReal: c.real, cImag: c.imaginary });
-  assert.deepEqual(saved.parts.viewport, { center: [0, 0], zoomSize: 1.8 });
+  // No saved camera, so the page opens at its own framing for this window size.
+  assert.equal(saved.parts.viewport, undefined);
 });

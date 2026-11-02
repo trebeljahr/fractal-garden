@@ -1,5 +1,7 @@
 import Image from "next/legacy/image";
+import type { ReactNode } from "react";
 import styles from "../styles/ArticleImages.module.css";
+import { juliaExplorerLink } from "../utils/lessons/linkedJulia";
 import { MOSELY_KOCH_LINK } from "../utils/moselyKochView";
 
 const IMAGES = {
@@ -10,6 +12,8 @@ const IMAGES = {
       caption:
         "With the center cubes removed, look from inside toward a missing corner cube. The opening has a snowflake outline.",
       href: MOSELY_KOCH_LINK,
+      label: "Explore the Koch snowflake opening",
+      action: "Explore this view",
       width: 1160,
       height: 648,
     },
@@ -50,11 +54,15 @@ const IMAGES = {
       name: "julia-star-clusters",
       alt: "Branching Julia set with star-shaped clusters, drawn for c = (−0.70176, −0.3842)",
       caption: "c = (−0.70176, −0.3842)",
+      href: juliaExplorerLink({ real: -0.70176, imaginary: -0.3842 }),
+      label: "Show c = (−0.70176, −0.3842) in the renderer above",
     },
     {
       name: "julia-sea-spiral",
       alt: "Julia set with paired curls along a twisting thread, drawn for c = (−0.8, 0.156)",
       caption: "c = (−0.8, 0.156)",
+      href: juliaExplorerLink({ real: -0.8, imaginary: 0.156 }),
+      label: "Show c = (−0.8, 0.156) in the renderer above",
     },
   ],
   "burning-ship": [
@@ -92,6 +100,8 @@ export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
     event.preventDefault();
     if (window.location.hash !== new URL(href, window.location.origin).hash)
       window.history.pushState(null, "", href);
+    // A view that saves no camera opens at the page's usual framing.
+    window.dispatchEvent(new Event("garden:reset-pose"));
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     window.scrollTo(0, 0);
     requestAnimationFrame(() => {
@@ -104,37 +114,33 @@ export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
     <div className={styles.images}>
       {IMAGES[kind].map((image) => {
         const href = "href" in image ? image.href : undefined;
-        const picture = (
-          <Image
-            src={`/assets/article-images/${image.name}.webp`}
-            width={"width" in image ? image.width : 1280}
-            height={"height" in image ? image.height : 720}
-            alt={image.alt}
-            layout="responsive"
-          />
-        );
+        const link = (content: ReactNode, label?: string) =>
+          href ? (
+            <a href={href} onClick={(event) => openView(event, href)} aria-label={label}>
+              {content}
+            </a>
+          ) : (
+            content
+          );
         return (
           <figure key={image.name}>
-            {href ? (
-              <a
-                href={href}
-                onClick={(event) => openView(event, href)}
-                aria-label="Explore the Koch snowflake opening"
-              >
-                {picture}
-              </a>
-            ) : (
-              picture
+            {link(
+              <Image
+                src={`/assets/article-images/${image.name}.webp`}
+                width={"width" in image ? image.width : 1280}
+                height={"height" in image ? image.height : 720}
+                alt={image.alt}
+                layout="responsive"
+              />,
+              "label" in image ? image.label : undefined,
             )}
             <figcaption>
-              {image.caption}
-              {href && (
+              {"action" in image ? (
                 <>
-                  {" "}
-                  <a href={href} onClick={(event) => openView(event, href)}>
-                    Explore this view
-                  </a>
+                  {image.caption} {link(image.action)}
                 </>
+              ) : (
+                link(image.caption)
               )}
             </figcaption>
           </figure>

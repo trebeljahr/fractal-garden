@@ -10,7 +10,7 @@ import {
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
-import { juliaExplorerLink, LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
+import { LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame } from "./LessonFrame";
@@ -246,9 +246,6 @@ export default function LinkedJuliaLesson() {
           <p data-selected-start={`${start.real},${start.imaginary}`}>{text(start)}</p>
         </div>
       </div>
-      <p>
-        <a href={juliaExplorerLink(c)}>Explore this Julia set</a>
-      </p>
     </LessonFrame>
   );
 }
