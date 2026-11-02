@@ -78,26 +78,6 @@ Close to a bulb's rim the dots need far more jumps, and the count may not find t
 
 Not every $c$ in the Mandelbrot set has an attracting loop. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup>
 
-## How a pixel gets its color
-
-The computer repeats the calculation until the point is more than 256 units from zero, or until it has done 200 calculations. A pixel that reaches the limit is drawn dark. Some explorer views raise the limit.
-
-Every other pixel is colored by how many calculations it needed. Call that count $n$. Pixels near the shape need more.
-
-Using $n$ directly would draw flat stripes, because neighboring pixels can differ by a whole calculation. So the color uses a number that also depends on how far past 256 the point landed:<sup><a id="julia-set-ref-11" href="#julia-set-source-7">7</a></sup>
-
-$$
-\nu = n - \log_2 \ln |z_n|
-$$
-
-Here $|z_n|$ is the point's distance from zero after the last calculation. $\ln$ is the natural logarithm, which doubles when its input is squared. $\log_2$ counts doublings, so it goes up by 1 when its input doubles.
-
-Take two neighboring pixels. One passes 256 after $n$ calculations. The other lands just short, so it needs one more calculation, and that squares its distance to about $256^2$. Its count is 1 higher, and its $\log_2 \ln$ term is also about 1 higher. The subtraction removes that difference, so the two pixels get nearly the same $\nu$.
-
-This needs the point to be far from zero, where adding $c$ hardly changes its distance. That is why the picture uses 256 instead of the 2 in the first demo.
-
-Last, $\nu$ sets the color. As $\nu$ rises, the color goes from dark blue through light blue, white, orange and dark red, then back to dark blue. One round takes about 89 counts.<sup><a id="julia-set-ref-12" href="#julia-set-source-8">8</a></sup> Pixels far from the shape are dark blue. Pixels near its edge turn white and orange.
-
 ## Further reading
 
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)
@@ -121,5 +101,3 @@ Last, $\nu$ sets the color. As $\nu$ rises, the color goes from dark blue throug
 4. <span id="julia-set-source-4"></span> [Dynamics in One Complex Variable: Introductory Lectures](https://arxiv.org/abs/math/9201272). Lemmas 10.2 and 10.4 and Remark 10.5 cover the loop and $0$, Lemma 14.2 the lobes, Lemma 3.1 the edge, and Figure 1c the case $c = (0, 1)$. [Back](#julia-set-ref-4) [Back](#julia-set-ref-5) [Back](#julia-set-ref-6) [Back](#julia-set-ref-10)
 5. <span id="julia-set-source-5"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#julia-set-ref-7)
 6. <span id="julia-set-source-6"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#julia-set-ref-8) [Back](#julia-set-ref-9)
-7. <span id="julia-set-source-7"></span> [Renormalizing the Mandelbrot Escape](https://linas.org/art-gallery/escape/escape.html). [Back](#julia-set-ref-11)
-8. <span id="julia-set-source-8"></span> Calculation, using the explorer's opening color settings. Red, green and blue each equal $\tfrac12 + \tfrac12\cos(2\pi(t + d))$, with $t = 0.45\,\nu/40 + 0.45$ and $d = 0,\ 0.1,\ 0.2$. The colors repeat when $t$ rises by 1, which takes $40/0.45 \approx 89$ counts. [Back](#julia-set-ref-12)
