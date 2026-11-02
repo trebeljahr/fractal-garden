@@ -48,7 +48,7 @@ Every starting point in one picture uses the same $c$. Change it, and you change
 
 <figure data-article-images="julia"></figure>
 
-A starting point **escapes** if its distance from zero grows without limit. The starting points that never escape make up the **filled Julia set**, the dark shape. Its edge is the **Julia set**. With $c=0$ the calculation is plain squaring again, so the filled Julia set is a solid disk and the Julia set is the circle around it.
+A starting point **escapes** if its distance from zero grows without limit. The edge of the dark shape is the **Julia set**. The whole dark shape, edge and inside together, is the **filled Julia set**: every starting point that never escapes. With $c=0$ the calculation is plain squaring again, so the Julia set is the circle and the filled Julia set is the solid disk it encloses.
 
 The computer tests only a limited number of steps. Dark pixels haven't escaped yet; some may escape later.
 
