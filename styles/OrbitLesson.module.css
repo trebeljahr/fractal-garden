@@ -10,24 +10,11 @@
     600 1.8rem / 1.4 "Montserrat",
     sans-serif;
 }
-.lesson h3,
-.lesson h4,
-.parameters legend {
-  margin: 0 0 0.8rem;
-  font:
-    600 1.5rem / 1.5 "Montserrat",
-    sans-serif;
-}
-.lesson p {
-  margin: 0.8rem 0;
-  font-size: 1.6rem;
-  line-height: 1.6;
-}
 .lesson .examples {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  margin: 1rem 0 1.5rem;
+  margin: 1rem 0;
 }
 .lesson button {
   color: inherit;
@@ -50,146 +37,228 @@
   outline: 2px solid #f5c56d;
   outline-offset: 4px;
 }
-.selection {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 2rem;
-  margin-bottom: 2rem;
-  align-items: center;
-}
-.lesson .pixelMap {
-  display: block;
-  position: relative;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  touch-action: manipulation;
-}
-.pixelMap canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.selectedPixel {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border: 2px solid white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 2px #10151a;
-  pointer-events: none;
-}
 .lesson fieldset {
   border: 0;
   padding: 0;
   margin: 0;
   min-width: 0;
 }
-.parameters label {
+.lesson .rule {
+  margin: 0 0 1rem;
+  font:
+    1.4rem / 1.5 "Montserrat",
+    sans-serif;
+  color: #eee8cecc;
+}
+.layout {
   display: grid;
-  gap: 0.3rem;
-  margin-bottom: 0.6rem;
-  font-size: 1.5rem;
-}
-.parameters label span {
-  display: flex;
-  justify-content: space-between;
-}
-.parameters input {
-  width: 100%;
-  min-height: 28px;
-  accent-color: #f5c56d;
-  cursor: pointer;
-}
-.lesson .mapCaption,
-.lesson .caption {
-  font-size: 1.4rem;
-  line-height: 1.5;
-}
-.calculation {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, calc(68vh * 5.6 / 4.4)) 16rem;
+  justify-content: start;
   gap: 1.5rem;
-  align-items: center;
-  margin-bottom: 1rem;
 }
-.calculation svg {
+.main {
+  min-width: 0;
+}
+.lesson .stage {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5.6 / 4.4;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #10151a;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+.lesson .stage:focus-visible {
+  outline-offset: -3px;
+}
+.stage canvas,
+.stage svg {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  background: #10151a;
+  height: 100%;
 }
+.stage svg {
+  pointer-events: none;
+}
+.gridHalf,
+.gridUnit,
 .axis,
-.guide {
+.escapeCircle,
+.hop,
+.hopCurrent,
+.fold {
   fill: none;
-  stroke: #eee8ce60;
+}
+.gridHalf {
+  stroke: #eee8ce1f;
   stroke-width: 1;
 }
-.guide {
-  stroke-dasharray: 4 5;
+.gridUnit {
+  stroke: #eee8ce47;
+  stroke-width: 1;
 }
-.axisLabel {
-  fill: #eee8ce99;
-  font:
-    13px "Montserrat",
-    sans-serif;
-}
-.trail {
-  fill: none;
-  stroke: #eee8ce66;
+.axis {
+  stroke: #eee8cee0;
   stroke-width: 1.5;
 }
-.change {
+.escapeCircle {
+  stroke: #eee8ce;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 6;
+}
+.tick,
+.jumpNumber,
+.ringTag {
+  fill: #eee8ce;
+  paint-order: stroke;
+  stroke: #10151a;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  font-family: "Montserrat", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.tick {
+  font-size: 12px;
+}
+.jumpNumber {
+  font-size: 12px;
+  font-weight: 600;
+}
+.ringTag {
+  font-size: 13px;
+  font-weight: 600;
+}
+.hop {
+  stroke: #eee8ce;
+  stroke-width: 1.5;
+}
+.hopCurrent {
+  stroke: #f5c56d;
+  stroke-width: 2.5;
+}
+.fold {
+  stroke: #eee8ce;
+  stroke-width: 1.5;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.landing {
+  fill: #eee8ce;
+  stroke: #10151a;
+  stroke-width: 1.5;
+}
+.ring {
+  stroke: white;
+  stroke-width: 2.5;
+}
+.point {
+  fill: #f5c56d;
+  stroke: #10151a;
+  stroke-width: 2;
+}
+.exit {
+  fill: #f5c56d;
+  stroke: #10151a;
+  stroke-width: 1.5;
+}
+.ripple {
   fill: none;
   stroke: #f5c56d;
   stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ripple 420ms ease-out forwards;
 }
-.before {
-  fill: #10151a;
-  stroke: #eee8ce;
-  stroke-width: 2;
+@keyframes ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
 }
-.summary {
-  min-height: 23rem;
-  grid-column: 2;
-  grid-row: 1 / span 2;
+.lesson .outcome {
+  flex: none;
+  min-height: 6.5rem;
+  margin: 0;
+  padding-top: 0.8rem;
+  font:
+    1.3rem / 1.5 "Montserrat",
+    sans-serif;
 }
-.calculation > fieldset {
-  grid-column: 1;
-  grid-row: 2;
+.swatch {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.6rem;
+  vertical-align: -0.1rem;
+  border: 1px solid #eee8ce80;
 }
-.summary dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.3rem 1rem;
-  font-size: 1.6rem;
-  line-height: 1.5;
+.routeColumn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 0;
+  min-height: 100%;
+}
+.route {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.lesson .route table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font:
+    1.3rem / 1.7 "Montserrat",
+    sans-serif;
   font-variant-numeric: tabular-nums;
 }
-.summary dd {
-  margin: 0;
-  overflow-wrap: anywhere;
+.lesson .route th,
+.lesson .route td {
+  padding: 0 0.4rem;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-weight: 400;
+  white-space: nowrap;
 }
-.summary dt {
+.lesson .route th {
   color: #eee8ce99;
 }
-.outcome {
-  border-left: 2px solid #f5c56d;
-  padding-left: 1rem;
+.lesson .route tr[data-current] td {
+  color: #f5c56d;
+  font-weight: 600;
 }
-@media (max-width: 600px) {
-  .selection,
-  .calculation {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
   }
-  .pixelMap {
-    max-width: 32rem;
-    margin: auto;
-  }
-  .summary {
+  .routeColumn {
+    height: auto;
     min-height: 0;
-    grid-column: 1;
-    grid-row: 3;
+  }
+  .route {
+    flex: none;
+    max-height: 18rem;
+  }
+  .lesson .outcome {
+    min-height: 3rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ripple {
+    animation: none;
+    opacity: 0;
   }
 }

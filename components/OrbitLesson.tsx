@@ -1,18 +1,23 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { memo, type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import styles from "../styles/OrbitLesson.module.css";
 import { JULIA_COLORING } from "../utils/escapeTimeColoring";
+import { useLessonPlayback } from "../utils/hooks/useLessonPlayback";
+import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
   type ComplexPoint,
   ESCAPE_RADIUS,
-  type OrbitFrame,
+  isOutside,
+  jumpControl,
+  jumpExit,
+  jumpPoint,
   type OrbitKind,
+  type Pixel,
   TEACHING_LIMIT,
-  teachingFrames,
   teachingPixelEscape,
   traceTeachingOrbit,
 } from "../utils/orbitLesson";
 import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
-import { LessonSteps } from "./lessons/LessonFrame";
+import { LessonStepControls } from "./lessons/LessonFrame";
 
 export function isOrbitKind(value: unknown): value is OrbitKind {
   return value === "mandelbrot" || value === "julia" || value === "burning-ship";
@@ -23,184 +28,242 @@ const DEFAULTS: Record<OrbitKind, ComplexPoint> = {
   julia: { real: 0.5, imaginary: 0 },
   "burning-ship": { real: -1.76, imaginary: -0.03 },
 };
-const BOUNDS = {
-  mandelbrot: [-2, 1, -1.3, 1.3],
-  julia: [-1.8, 1.8, -1.5, 1.5],
-  "burning-ship": [-2, 1, -1.8, 0.6],
-} as const;
-const OPERATION = { start: "Start", fold: "Fold", square: "Square", add: "Add" };
+// Every formula shares one view, so the whole escape circle is always on screen.
+const VIEW = { left: -2.8, right: 2.8, bottom: -2.2, top: 2.2 };
+const VIEW_BOUNDS = [VIEW.left, VIEW.right, VIEW.bottom, VIEW.top] as const;
+const VIEW_WIDTH = VIEW.right - VIEW.left;
+const VIEW_HEIGHT = VIEW.top - VIEW.bottom;
+const CANVAS_WIDTH = 960;
+const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * VIEW_HEIGHT) / VIEW_WIDTH);
+const HOP_MS = 650;
+const REST_MS = 300;
+const FIRST_HOP_DELAY_MS = 350;
+const TINY_HOP_DELAY_MS = 150;
+const FOLD_SHARE = 0.35;
 
 function number(value: number) {
-  if (value !== 0 && (Math.abs(value) < 0.001 || Math.abs(value) > 999))
-    return value.toExponential(2);
-  return String(Number(value.toFixed(3)));
+  if (Math.abs(value) < 0.0005) return "0";
+  return String(Number(value.toFixed(3))).replace("-", "−");
 }
 function coordinates(point: ComplexPoint) {
   return `(${number(point.real)}, ${number(point.imaginary)})`;
 }
-function pixelColor(escapeCount: number | null) {
-  if (escapeCount === null) return "#10151a";
-  const shade = 0.25 + (0.75 * escapeCount) / TEACHING_LIMIT;
-  return `rgb(${245 * shade}, ${197 * shade}, ${109 * shade})`;
+function pixelRgb(escapeCount: number | null) {
+  if (escapeCount === null) return [16, 21, 26];
+  const shade = 0.16 + 0.54 * Math.sqrt(escapeCount / TEACHING_LIMIT);
+  return [245 * shade, 197 * shade, 109 * shade];
 }
-function position(point: ComplexPoint) {
-  const length = Math.hypot(point.real, point.imaginary);
-  const scale = length > 4.7 ? 4.7 / length : 1;
+function pixelColor(escapeCount: number | null) {
+  return `rgb(${pixelRgb(escapeCount).join(", ")})`;
+}
+function distance(a: Pixel, b: Pixel) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+function ease(t: number) {
+  return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+}
+function lerp(a: Pixel, b: Pixel, t: number) {
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+}
+function clampToView(point: ComplexPoint) {
   return {
-    x: 200 + point.real * scale * 35,
-    y: 180 - point.imaginary * scale * 35,
-    clipped: scale < 1,
+    real: Number(Math.max(VIEW.left, Math.min(VIEW.right, point.real)).toFixed(2)),
+    imaginary: Number(Math.max(VIEW.bottom, Math.min(VIEW.top, point.imaginary)).toFixed(2)),
   };
 }
-function movement(c: ComplexPoint) {
-  const shifts = [
-    c.real !== 0 && `${number(Math.abs(c.real))} ${c.real < 0 ? "left" : "right"}`,
-    c.imaginary !== 0 && `${number(Math.abs(c.imaginary))} ${c.imaginary < 0 ? "down" : "up"}`,
-  ].filter(Boolean);
-  return shifts.length
-    ? `Move ${shifts.join(" and ")}.`
-    : "Adding zero leaves the point where it is.";
-}
-function instruction(frame: OrbitFrame, c: ComplexPoint, kind: OrbitKind) {
-  switch (frame.operation) {
-    case "start":
-      return kind === "julia"
-        ? "Begin at the pixel inside the ring. Square this point to find the next position."
-        : "Begin at zero. The pixel inside the ring gives the number you will add after every square.";
-    case "fold":
-      return frame.before.real < 0 || frame.before.imaginary < 0
-        ? "Reflect a point on the left across the vertical axis. Reflect a point below the horizontal axis upward. The result has no negative coordinates."
-        : "Neither coordinate is negative, so this fold leaves the point in place.";
-    case "square":
-      return frame.before.real === 0 && frame.before.imaginary === 0
-        ? "Zero squared is zero. The point stays at the center."
-        : "Multiply the distance from zero by itself. Double the angle measured from the line pointing right.";
-    case "add":
-      return `${movement(c)} Now use this point for the next ${kind === "burning-ship" ? "fold" : "square"}.`;
-  }
-}
 
-function PixelMap({
-  kind,
-  value,
-  c,
-  onChange,
-}: {
-  kind: OrbitKind;
-  value: ComplexPoint;
-  c: ComplexPoint;
-  onChange: (point: ComplexPoint) => void;
-}) {
+// Julia uses the explorer's shader. These two tie each pixel's color to its jump count.
+const JumpCountPicture = memo(function JumpCountPicture({ kind }: { kind: OrbitKind }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [left, right, bottom, top] = BOUNDS[kind];
   const flip = kind === "burning-ship";
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
     if (!context) return;
-    const { width, height } = context.canvas;
-    const pixels = context.createImageData(width, height);
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const pixel = {
-          real: left + ((x + 0.5) / width) * (right - left),
-          imaginary: flip
-            ? bottom + ((y + 0.5) / height) * (top - bottom)
-            : top - ((y + 0.5) / height) * (top - bottom),
-        };
-        const escapeCount = teachingPixelEscape(kind, pixel, c);
-        const index = (y * width + x) * 4;
-        const shade = escapeCount === null ? 0 : 0.25 + (0.75 * escapeCount) / TEACHING_LIMIT;
-        pixels.data[index] = escapeCount === null ? 16 : 245 * shade;
-        pixels.data[index + 1] = escapeCount === null ? 21 : 197 * shade;
-        pixels.data[index + 2] = escapeCount === null ? 26 : 109 * shade;
+    const pixels = context.createImageData(CANVAS_WIDTH, CANVAS_HEIGHT);
+    const pixel = { real: 0, imaginary: 0 };
+    for (let y = 0; y < CANVAS_HEIGHT; y++) {
+      const down = ((y + 0.5) / CANVAS_HEIGHT) * VIEW_HEIGHT;
+      pixel.imaginary = flip ? VIEW.bottom + down : VIEW.top - down;
+      for (let x = 0; x < CANVAS_WIDTH; x++) {
+        pixel.real = VIEW.left + ((x + 0.5) / CANVAS_WIDTH) * VIEW_WIDTH;
+        const [red, green, blue] = pixelRgb(teachingPixelEscape(kind, pixel, ZERO));
+        const index = (y * CANVAS_WIDTH + x) * 4;
+        pixels.data[index] = red;
+        pixels.data[index + 1] = green;
+        pixels.data[index + 2] = blue;
         pixels.data[index + 3] = 255;
       }
     }
     context.putImageData(pixels, 0, 0);
-  }, [kind, c, left, right, bottom, top, flip]);
-  const select = (real: number, imaginary: number) =>
-    onChange({
-      real: Number(Math.max(left, Math.min(right, real)).toFixed(2)),
-      imaginary: Number(Math.max(bottom, Math.min(top, imaginary)).toFixed(2)),
-    });
+  }, [kind, flip]);
+  return <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />;
+});
+
+const CoordinateGrid = memo(function CoordinateGrid({
+  width,
+  height,
+  flip,
+}: {
+  width: number;
+  height: number;
+  flip: boolean;
+}) {
+  const scale = width / VIEW_WIDTH;
+  const originX = width / 2;
+  const originY = height / 2;
+  const across = [-2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5];
+  const down = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2];
+  const px = (value: number) => originX + value * scale;
+  const py = (value: number) => originY + (flip ? value : -value) * scale;
+  const unit = (value: number) => Number.isInteger(value);
+  const showHalves = width >= 480;
   return (
-    <button
-      type="button"
-      className={styles.pixelMap}
-      aria-label={`Selected pixel ${coordinates(value)}. Click to choose a pixel, or use the arrow keys.`}
-      onClick={(event) => {
-        if (event.detail === 0) return;
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        select(
-          left + x * (right - left),
-          flip ? bottom + y * (top - bottom) : top - y * (top - bottom),
-        );
-      }}
-      onKeyDown={(event) => {
-        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
-        event.preventDefault();
-        const dx = event.key === "ArrowLeft" ? -0.05 : event.key === "ArrowRight" ? 0.05 : 0;
-        const dy = event.key === "ArrowUp" ? 0.05 : event.key === "ArrowDown" ? -0.05 : 0;
-        select(value.real + dx, value.imaginary + (flip ? -dy : dy));
-      }}
-    >
-      {kind === "julia" ? (
-        <EscapeTimePicture formula="julia" bounds={BOUNDS.julia} coloring={JULIA_COLORING} c={c} />
-      ) : (
-        <canvas
-          ref={canvas}
-          width={300}
-          height={Math.round((300 * (top - bottom)) / (right - left))}
+    <g>
+      {across.map((value) => (
+        <path
+          key={`x${value}`}
+          d={`M${px(value)} 0V${height}`}
+          className={unit(value) ? styles.gridUnit : styles.gridHalf}
         />
-      )}
-      <span
-        className={styles.selectedPixel}
-        style={{
-          backgroundColor:
-            kind === "julia" ? "transparent" : pixelColor(teachingPixelEscape(kind, value, c)),
-          left: `${((value.real - left) / (right - left)) * 100}%`,
-          top: `${((flip ? value.imaginary - bottom : top - value.imaginary) / (top - bottom)) * 100}%`,
-        }}
-      />
-    </button>
+      ))}
+      {down.map((value) => (
+        <path
+          key={`y${value}`}
+          d={`M0 ${py(value)}H${width}`}
+          className={unit(value) ? styles.gridUnit : styles.gridHalf}
+        />
+      ))}
+      <path d={`M0 ${originY}H${width}M${originX} 0V${height}`} className={styles.axis} />
+      <circle cx={originX} cy={originY} r={ESCAPE_RADIUS * scale} className={styles.escapeCircle} />
+      {across
+        .filter((value) => unit(value) || showHalves)
+        .map((value) => (
+          <text
+            key={`xl${value}`}
+            x={px(value)}
+            y={originY + 16}
+            textAnchor="middle"
+            className={styles.tick}
+          >
+            {number(value)}
+          </text>
+        ))}
+      {down
+        .filter((value) => unit(value) || showHalves)
+        .map((value) => (
+          <text
+            key={`yl${value}`}
+            x={originX - 7}
+            y={py(value) + 4}
+            textAnchor="end"
+            className={styles.tick}
+          >
+            {number(value)}
+          </text>
+        ))}
+      <text x={originX - 7} y={originY + 16} textAnchor="end" className={styles.tick}>
+        0
+      </text>
+    </g>
   );
-}
+});
 
 export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [value, setValue] = useState(DEFAULTS[kind]);
   const [juliaC, setJuliaC] = useState(ZERO);
-  const [step, setStep] = useState(0);
+  const [motion, setMotion] = useState({ step: 0, animate: false });
+  const [hop, setHop] = useState(1);
+  const [dragging, setDragging] = useState(false);
+  const [width, setWidth] = useState(640);
+  const stage = useRef<HTMLButtonElement>(null);
+  const route = useRef<HTMLDivElement>(null);
+  const pointer = useRef<number | null>(null);
   const id = useId().replace(/:/g, "");
+  const reduced = useReducedMotion();
+  const flip = kind === "burning-ship";
+  const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
   const c = kind === "julia" ? juliaC : value;
-  const start = kind === "julia" ? value : ZERO;
   const orbit = useMemo(
-    () => traceTeachingOrbit(c, start, kind === "burning-ship"),
-    [c, start, kind],
+    () => traceTeachingOrbit(c, kind === "julia" ? value : ZERO, flip),
+    [c, value, kind, flip],
   );
-  const frames = useMemo(() => teachingFrames(orbit), [orbit]);
-  const current = frames[Math.min(step, frames.length - 1)];
-  const completed =
-    current.operation === "add" ? current.iteration : Math.max(0, current.iteration - 1);
-  const escaped =
-    current.operation === "add" &&
-    Math.hypot(current.point.real, current.point.imaginary) > ESCAPE_RADIUS;
-  const after = position(current.point);
-  const before = position(current.before);
-  const unchanged =
-    current.before.real === current.point.real &&
-    current.before.imaginary === current.point.imaginary;
-  const update = (point: ComplexPoint) => {
-    setValue(point);
-    setStep(0);
+  const max = orbit.length - 1;
+  const shown = dragging ? max : Math.min(motion.step, max);
+  const landed = hop < 1 ? shown - 1 : shown;
+
+  const project = (point: ComplexPoint): Pixel => ({
+    x: ((point.real - VIEW.left) / VIEW_WIDTH) * width,
+    y: ((flip ? point.imaginary - VIEW.bottom : VIEW.top - point.imaginary) / VIEW_HEIGHT) * height,
+  });
+  // A jump draws in two stages when the Burning Ship folds the point first.
+  const jump = (index: number) => {
+    const from = project(orbit[index - 1].point);
+    const via = project(orbit[index].folded ?? orbit[index - 1].point);
+    const to = project(orbit[index].point);
+    return { from, via, to, control: jumpControl(via, to), folds: distance(from, via) > 1 };
   };
+  const hopPixels = (() => {
+    if (shown === 0) return 0;
+    const { from, via, to } = jump(shown);
+    return distance(from, via) + distance(via, to);
+  })();
+  const fade = (index: number) => Math.max(0.2, 1 - 0.15 * (shown - index));
+
+  const goTo = (next: number) => {
+    const animate = next === shown + 1 && !reduced;
+    setHop(animate ? 0 : 1);
+    setMotion({ step: next, animate });
+  };
+  const delay =
+    shown === 0 ? FIRST_HOP_DELAY_MS : hopPixels < 2 ? TINY_HOP_DELAY_MS : HOP_MS + REST_MS;
+  const playback = useLessonPlayback(shown, max, goTo, delay);
+
+  useEffect(() => {
+    if (!motion.animate) return;
+    const begun = performance.now();
+    let frame = requestAnimationFrame(function tick(now) {
+      const t = Math.max(0, Math.min(1, (now - begun) / HOP_MS));
+      setHop(t);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [motion]);
+  useEffect(() => {
+    const element = stage.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    const element = route.current;
+    if (element && landed >= 0) element.scrollTop = element.scrollHeight;
+  }, [landed]);
+
+  const pointAt = (event: PointerEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const across = (event.clientX - rect.left) / rect.width;
+    const down = (event.clientY - rect.top) / rect.height;
+    return clampToView({
+      real: VIEW.left + across * VIEW_WIDTH,
+      imaginary: flip ? VIEW.bottom + down * VIEW_HEIGHT : VIEW.top - down * VIEW_HEIGHT,
+    });
+  };
+
+  const crossed = isOutside(orbit[max].point);
+  const finished = landed === max;
+  const outcome = !finished
+    ? ""
+    : !crossed
+      ? `Still inside the dashed circle after ${max} jumps.`
+      : max === 0
+        ? "Already outside the dashed circle."
+        : `Crossed the dashed circle on jump ${max}.`;
+  const escapeCount = crossed ? max : null;
   const title =
     kind === "julia" ? "Follow one starting point" : "Why does this pixel have this color?";
-  const stage =
-    current.operation === "start"
-      ? "Start"
-      : `Calculation ${current.iteration} · ${OPERATION[current.operation]}`;
   const presets =
     kind === "mandelbrot"
       ? [
@@ -217,7 +280,68 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             { label: "Nearby pixel", value: { real: -1.8, imaginary: -0.03 } },
             { label: "Repeating", value: { real: -1, imaginary: 0 } },
           ];
-  const [left, right, bottom, top] = BOUNDS[kind];
+  const rule =
+    kind === "julia"
+      ? `Start at the ring. Each jump: square${juliaC.real === 0 ? "" : `, then add ${number(juliaC.real)}`}.`
+      : `Start at 0. Each jump: ${flip ? "fold, " : ""}square, then add the ring's coordinates.`;
+
+  const ring = project(value);
+  const flipTag = ring.x > width - 130;
+  const tag = { x: ring.x + (flipTag ? -16 : 16), y: ring.y + (ring.y < 26 ? 18 : -14) };
+  const tagWidth = coordinates(value).length * 7.5;
+  const tagLeft = flipTag ? tag.x - tagWidth : tag.x;
+  // A jump number sits up and right of its dot; skip it where the ring's tag already is.
+  const clearOfRing = (at: Pixel) =>
+    distance(at, ring) > 24 &&
+    !(
+      Math.abs(at.y - 8 - tag.y) < 14 &&
+      at.x + 8 > tagLeft - 12 &&
+      at.x + 8 < tagLeft + tagWidth + 4
+    );
+  const lastJump = max > 0 ? jump(max) : null;
+  const exit = lastJump && finished ? jumpExit(lastJump.via, lastJump.to, width, height) : null;
+
+  const trail = [];
+  for (let index = 1; index <= shown; index++) {
+    const { from, via, to, control, folds } = jump(index);
+    const t = index === shown ? hop : 1;
+    const foldShare = folds ? FOLD_SHARE : 0;
+    const foldEnd = foldShare ? lerp(from, via, ease(Math.min(1, t / foldShare))) : via;
+    const arcT = ease(Math.max(0, (t - foldShare) / (1 - foldShare)));
+    const current = index === shown;
+    const end = jumpPoint(via, control, to, arcT);
+    const partial = lerp(via, control, arcT);
+    trail.push(
+      <g key={index} opacity={fade(index)}>
+        {folds && (
+          <path d={`M${from.x} ${from.y}L${foldEnd.x} ${foldEnd.y}`} className={styles.fold} />
+        )}
+        {arcT > 0 && (
+          <path
+            d={`M${via.x} ${via.y}Q${partial.x} ${partial.y} ${end.x} ${end.y}`}
+            className={current ? styles.hopCurrent : styles.hop}
+            markerEnd={!current && distance(via, to) > 16 ? `url(#${id}-arrow)` : undefined}
+          />
+        )}
+      </g>,
+    );
+  }
+  const head = (() => {
+    if (shown === 0) return project(orbit[0].point);
+    const { from, via, to, control, folds } = jump(shown);
+    const foldShare = folds ? FOLD_SHARE : 0;
+    if (foldShare && hop < foldShare) return lerp(from, via, ease(hop / foldShare));
+    return jumpPoint(via, control, to, ease((hop - foldShare) / (1 - foldShare)));
+  })();
+  const headLift = hop < 1 ? Math.sin(Math.PI * hop) * 2.5 : 0;
+  const labelled: Pixel[] = [];
+  const landings = orbit.slice(0, Math.max(0, landed) + 1).map(({ iteration, point }) => {
+    const at = project(point);
+    const fresh = labelled.every((other) => distance(other, at) > 18);
+    if (fresh) labelled.push(at);
+    return { iteration, at, fresh: fresh && clearOfRing(at) };
+  });
+
   return (
     <figure className={styles.lesson} data-orbit-lesson={kind} aria-labelledby={`${id}-title`}>
       <figcaption id={`${id}-title`} className={styles.title}>
@@ -235,7 +359,8 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             }
             onClick={() => {
               if (kind === "julia") setJuliaC(ZERO);
-              update(preset.value);
+              setValue(preset.value);
+              playback.play();
             }}
           >
             {preset.label}
@@ -247,196 +372,183 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             aria-pressed={juliaC.real === -1}
             onClick={() => {
               setJuliaC({ real: -1, imaginary: 0 });
-              update(DEFAULTS.julia);
+              setValue(DEFAULTS.julia);
+              playback.play();
             }}
           >
             Add −1
           </button>
         )}
       </fieldset>
-      <div className={styles.selection}>
-        <div>
-          <h3>The pixel being tested</h3>
-          <PixelMap
-            kind={kind}
-            value={value}
-            c={kind === "julia" ? juliaC : ZERO}
-            onChange={update}
-          />
-          <p className={styles.mapCaption}>
-            Choose a pixel. The ring marks the one whose calculation we will follow.
-          </p>
-        </div>
-        <fieldset className={styles.parameters}>
-          <legend>
-            {kind === "julia" ? "Starting point" : "Number to add (c)"} {coordinates(value)}
-          </legend>
-          {(["real", "imaginary"] as const).map((part) => (
-            <label key={part}>
-              <span>
-                {part === "real" ? "Horizontal" : "Vertical"} <output>{number(value[part])}</output>
-              </span>
-              <input
-                type="range"
-                aria-label={`${kind === "julia" ? "Starting point" : "Number to add (c)"} ${part}`}
-                min={part === "real" ? left : bottom}
-                max={part === "real" ? right : top}
-                step={0.01}
-                value={value[part]}
-                onChange={(event) => update({ ...value, [part]: Number(event.target.value) })}
+      <p className={styles.rule}>{rule}</p>
+      <div className={styles.layout}>
+        <div className={styles.main}>
+          <button
+            type="button"
+            ref={stage}
+            className={styles.stage}
+            aria-label={`Ring at ${coordinates(value)}. Drag it, or use the arrow keys. Press Enter to play.`}
+            data-orbit-stage
+            onPointerDown={(event) => {
+              if (!event.isPrimary || event.button !== 0) return;
+              pointer.current = event.pointerId;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setValue(pointAt(event));
+              playback.change(0);
+            }}
+            onPointerMove={(event) => {
+              if (pointer.current !== event.pointerId) return;
+              setDragging(true);
+              setValue(pointAt(event));
+            }}
+            onPointerUp={(event) => {
+              if (pointer.current !== event.pointerId) return;
+              pointer.current = null;
+              event.currentTarget.releasePointerCapture(event.pointerId);
+              setValue(pointAt(event));
+              setDragging(false);
+              playback.play();
+            }}
+            onPointerCancel={() => {
+              pointer.current = null;
+              setDragging(false);
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) playback.play();
+            }}
+            onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+              event.preventDefault();
+              const dx = event.key === "ArrowLeft" ? -0.05 : event.key === "ArrowRight" ? 0.05 : 0;
+              const dy = event.key === "ArrowUp" ? 0.05 : event.key === "ArrowDown" ? -0.05 : 0;
+              setValue(
+                clampToView({
+                  real: value.real + dx,
+                  imaginary: value.imaginary + (flip ? -dy : dy),
+                }),
+              );
+              playback.change(TEACHING_LIMIT);
+            }}
+          >
+            {kind === "julia" ? (
+              <EscapeTimePicture
+                formula="julia"
+                bounds={VIEW_BOUNDS}
+                coloring={JULIA_COLORING}
+                c={juliaC}
               />
-            </label>
-          ))}
-          <p>
-            {kind === "julia"
-              ? `Start at the chosen pixel. After each square, add c = ${coordinates(c)}.`
-              : "Start at zero. After each square, add the chosen pixel's coordinates."}
-          </p>
-          <p>
-            {kind === "julia"
-              ? `Dark pixels have not escaped in ${JULIA_COLORING.iterations} calculations. The other colors show how long escape took.`
-              : `This image tests each pixel for ${TEACHING_LIMIT} calculations. Dark pixels have not escaped. Among the others, lighter pixels took longer.`}
-          </p>
-        </fieldset>
-      </div>
-      <h3>Follow the calculation</h3>
-      <p>
-        Press Next step to {kind === "burning-ship" ? "fold, square, then add" : "square, then add"}
-        . The amber arrow shows where that operation moves the point.
-      </p>
-      <div className={styles.calculation}>
-        <svg
-          viewBox="0 0 400 360"
-          role="img"
-          aria-labelledby={`${id}-diagram-title ${id}-diagram-desc`}
-        >
-          <title id={`${id}-diagram-title`}>{`${stage}: ${coordinates(current.point)}`}</title>
-          <desc id={`${id}-diagram-desc`}>
-            White dots show completed calculations. The amber point shows the current result. The
-            dashed circle is four units from zero. Points beyond the window are shown at its edge.
-          </desc>
-          <defs>
-            <marker
-              id={`${id}-arrow`}
-              markerWidth="7"
-              markerHeight="7"
-              refX="5"
-              refY="3"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M0 0L6 3L0 6" fill="#f5c56d" />
-            </marker>
-          </defs>
-          <path d="M25 180H375M200 20V340" className={styles.axis} />
-          <circle cx="200" cy="180" r="140" className={styles.guide} />
-          <text x="208" y="198" className={styles.axisLabel}>
-            0
-          </text>
-          <text x="340" y="198" className={styles.axisLabel}>
-            4
-          </text>
-          <text x="275" y="170" className={styles.axisLabel}>
-            horizontal
-          </text>
-          <text x="210" y="30" className={styles.axisLabel}>
-            vertical
-          </text>
-          <polyline
-            points={orbit
-              .slice(0, completed + 1)
-              .map(({ point }) => {
-                const p = position(point);
-                return `${p.x},${p.y}`;
-              })
-              .join(" ")}
-            className={styles.trail}
+            ) : (
+              <JumpCountPicture kind={kind} />
+            )}
+            <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+              <defs>
+                <marker
+                  id={`${id}-arrow`}
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="6"
+                  refY="3"
+                  orient="auto"
+                  markerUnits="strokeWidth"
+                >
+                  <path d="M0 0L6 3L0 6Z" fill="#eee8ce" />
+                </marker>
+              </defs>
+              <CoordinateGrid width={width} height={height} flip={flip} />
+              {trail}
+              {landings.map(({ iteration, at, fresh }) => (
+                <g key={iteration} opacity={fade(iteration)}>
+                  <circle cx={at.x} cy={at.y} r="3.5" className={styles.landing} />
+                  {fresh && (
+                    <text x={at.x + 8} y={at.y - 8} className={styles.jumpNumber}>
+                      {iteration}
+                    </text>
+                  )}
+                </g>
+              ))}
+              <circle
+                cx={ring.x}
+                cy={ring.y}
+                r="10"
+                fill={kind === "julia" ? "none" : pixelColor(escapeCount)}
+                className={styles.ring}
+              />
+              <text
+                x={tag.x}
+                y={tag.y}
+                textAnchor={flipTag ? "end" : "start"}
+                className={styles.ringTag}
+              >
+                {coordinates(value)}
+              </text>
+              {motion.animate && hop >= 1 && !exit && (
+                <circle
+                  key={`ripple-${shown}`}
+                  cx={head.x}
+                  cy={head.y}
+                  r="6"
+                  className={styles.ripple}
+                />
+              )}
+              <circle
+                cx={head.x}
+                cy={head.y}
+                r={6 + headLift}
+                className={styles.point}
+                data-orbit-point
+              />
+              {exit && (
+                <path
+                  d="M-16 -9L0 0L-16 9Z"
+                  className={styles.exit}
+                  transform={`translate(${exit.x} ${exit.y}) rotate(${(exit.angle * 180) / Math.PI})`}
+                />
+              )}
+            </svg>
+          </button>
+          <LessonStepControls
+            step={shown}
+            max={max}
+            playback={playback}
+            label={title}
+            stepDescription={shown === 0 ? "Start" : `Jump ${shown}`}
           />
-          {orbit.slice(0, completed + 1).map(({ point, iteration }) => {
-            const p = position(point);
-            return <circle key={iteration} cx={p.x} cy={p.y} r="3" fill="#eee8ce" />;
-          })}
-          {current.operation === "square" && (
-            <path
-              d={`M${before.x} ${before.y}L200 180L${after.x} ${after.y}`}
-              className={styles.guide}
-            />
-          )}
-          {current.operation !== "start" && !unchanged && (
-            <path
-              d={`M${before.x} ${before.y}L${after.x} ${after.y}`}
-              className={styles.change}
-              markerEnd={`url(#${id}-arrow)`}
-            />
-          )}
-          <circle cx={before.x} cy={before.y} r="6" className={styles.before} />
-          <circle cx={after.x} cy={after.y} r="4" fill="#f5c56d" />
-          {(after.clipped || before.clipped) && (
-            <text x="200" y="353" textAnchor="middle" className={styles.axisLabel}>
-              The point is beyond the picture. Its coordinates are below.
-            </text>
-          )}
-        </svg>
-        <LessonSteps
-          key={`${value.real}:${value.imaginary}:${juliaC.real}`}
-          step={step}
-          max={frames.length - 1}
-          onChange={setStep}
-          label={title}
-          stepDescription={stage}
-          duration={(frames.length - 1) * 1600}
-        />
-        <div
-          className={styles.summary}
-          aria-live="polite"
-          aria-atomic="true"
-          data-orbit-operation={current.operation}
-        >
-          <h4>{stage}</h4>
-          <p>{instruction(current, c, kind)}</p>
-          <dl>
-            {current.operation !== "start" && (
+        </div>
+        <div className={styles.routeColumn}>
+          <div ref={route} className={styles.route}>
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Jump</th>
+                  <th scope="col">Point</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orbit.slice(0, Math.max(0, landed) + 1).map(({ iteration, point }) => (
+                  <tr key={iteration} data-current={iteration === landed || undefined}>
+                    <td>{iteration}</td>
+                    <td>{coordinates(point)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className={styles.outcome} aria-live="polite" data-orbit-outcome>
+            {outcome && (
               <>
-                <dt>Before</dt>
-                <dd>{coordinates(current.before)}</dd>
+                {kind !== "julia" && (
+                  <span
+                    className={styles.swatch}
+                    style={{ backgroundColor: pixelColor(escapeCount) }}
+                    aria-hidden="true"
+                  />
+                )}
+                {outcome}
               </>
             )}
-            <dt>{current.operation === "start" ? "Starting point" : "After"}</dt>
-            <dd>{coordinates(current.point)}</dd>
-          </dl>
-          {current.operation === "square" && current.before.imaginary === 0 && (
-            <p>
-              {number(current.before.real)} × {number(current.before.real)} ={" "}
-              {number(current.point.real)}
-            </p>
-          )}
-          {current.operation === "add" && (
-            <p className={styles.outcome}>
-              {escaped
-                ? `After ${current.iteration} calculations, the point has passed the dashed circle. From here it will keep moving farther away. The escape count sets the pixel's color.`
-                : step === frames.length - 1
-                  ? kind === "julia"
-                    ? `Still inside after ${current.iteration} calculations. The picture keeps testing up to ${JULIA_COLORING.iterations}.`
-                    : `Still inside after ${current.iteration} calculations, so this pixel stays dark. A longer test might still find an escape.`
-                  : `The point is still inside the dashed circle. ${kind === "burning-ship" ? "Fold, square and add" : "Square and add"} again to see what happens next.`}
-            </p>
-          )}
+          </p>
         </div>
       </div>
-      <p className={styles.caption}>
-        The hollow point shows where this step began. The amber point shows where it ended. White
-        dots mark the earlier answers.
-      </p>
-      <p className={styles.caption}>
-        The dashed circle is four units from zero. For the numbers you can choose here, crossing it
-        after an addition guarantees escape.
-      </p>
-      {kind === "burning-ship" && (
-        <p className={styles.caption}>
-          The ship image has positive vertical coordinates downward. The calculation diagram has
-          them upward, so you can see the fold.
-        </p>
-      )}
     </figure>
   );
 }

@@ -49,6 +49,33 @@ export function LessonSteps({
     duration ? Math.max(1, Math.ceil(max / 100)) : 1,
   );
   return (
+    <LessonStepControls
+      step={step}
+      max={max}
+      playback={playback}
+      label={label}
+      stepDescription={stepDescription}
+      disabled={disabled}
+    />
+  );
+}
+
+export function LessonStepControls({
+  step,
+  max,
+  playback,
+  label,
+  stepDescription,
+  disabled = false,
+}: {
+  step: number;
+  max: number;
+  playback: ReturnType<typeof useLessonPlayback>;
+  label: string;
+  stepDescription?: string;
+  disabled?: boolean;
+}) {
+  return (
     <fieldset
       disabled={disabled}
       ref={playback.ref}

@@ -79,7 +79,7 @@ test("displayed Julia traces square and add the chosen parameter from the chosen
       { real: 0.5, imaginary: 0 },
       { real: 1.4, imaginary: 0.8 },
     ]) {
-      const orbit = traceTeachingOrbit(c, start, false, 96);
+      const orbit = traceTeachingOrbit(c, start, false, 96, 4);
       for (let i = 1; i < orbit.length; i++) {
         const p = orbit[i - 1].point,
           next = orbit[i].point;
@@ -89,8 +89,11 @@ test("displayed Julia traces square and add the chosen parameter from the chosen
     }
   }
   const zero = { real: 0, imaginary: 0 };
-  assert.equal(traceTeachingOrbit(zero, { real: 1, imaginary: 0 }, false, 96).length, 97);
-  assert.equal(traceTeachingOrbit(zero, { real: 2, imaginary: 0 }, false, 96).at(-1).iteration, 2);
+  assert.equal(traceTeachingOrbit(zero, { real: 1, imaginary: 0 }, false, 96, 4).length, 97);
+  assert.equal(
+    traceTeachingOrbit(zero, { real: 2, imaginary: 0 }, false, 96, 4).at(-1).iteration,
+    2,
+  );
 });
 
 test("full Julia explorer links retain off-center parameters without clipping", () => {

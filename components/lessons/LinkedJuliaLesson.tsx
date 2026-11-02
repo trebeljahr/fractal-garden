@@ -3,8 +3,8 @@ import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
-import { juliaExplorerLink, LINKED_LIMIT } from "../../utils/lessons/linkedJulia";
-import { type ComplexPoint, ESCAPE_RADIUS, traceTeachingOrbit } from "../../utils/orbitLesson";
+import { juliaExplorerLink, LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
+import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame } from "./LessonFrame";
 
@@ -166,14 +166,16 @@ export default function LinkedJuliaLesson() {
   const [step, setStep] = useState(LINKED_LIMIT);
   const lastPick = useRef(Number.NEGATIVE_INFINITY);
   const reducedMotion = useReducedMotion();
-  const orbit = useMemo(() => traceTeachingOrbit(c, start, false, LINKED_LIMIT), [c, start]);
+  const orbit = useMemo(
+    () => traceTeachingOrbit(c, start, false, LINKED_LIMIT, LINKED_RADIUS),
+    [c, start],
+  );
   const max = orbit.length - 1;
   const shown = orbit.slice(0, Math.min(step, max) + 1);
   const end = orbit[max];
-  const outcome =
-    Math.hypot(end.point.real, end.point.imaginary) > ESCAPE_RADIUS
-      ? `Escapes after ${end.iteration} calculations. `
-      : `No escape after ${end.iteration} calculations. `;
+  const outcome = isOutside(end.point, LINKED_RADIUS)
+    ? `Escapes after ${end.iteration} calculations. `
+    : `No escape after ${end.iteration} calculations. `;
   useEffect(() => {
     if (step >= max) return;
     const timer = window.setTimeout(() => setStep(step + 1), STEP_MS);

@@ -46,6 +46,10 @@ export function useLessonPlayback(
       if (!playing && value >= max) change.current(0);
       setPlaying(!playing);
     },
+    play: () => {
+      change.current(0);
+      setPlaying(true);
+    },
     change: (next: number) => {
       setPlaying(false);
       onChange(next);

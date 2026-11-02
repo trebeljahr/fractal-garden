@@ -13,7 +13,14 @@ import {
   kochEdge,
 } from "../utils/constructionDiagrams.ts";
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
-import { teachingFrames, teachingPixelEscape, traceTeachingOrbit } from "../utils/orbitLesson.ts";
+import {
+  ESCAPE_RADIUS,
+  jumpControl,
+  jumpExit,
+  jumpPoint,
+  teachingPixelEscape,
+  traceTeachingOrbit,
+} from "../utils/orbitLesson.ts";
 import { pythagorasFork } from "../utils/pythagorasFork.ts";
 import { buildApollonianGasket } from "../utils/render/drawings/apollonianGasket.ts";
 
@@ -126,33 +133,63 @@ test("Julia changes the starting point while Burning Ship folds both components 
   assert.deepEqual(traceTeachingOrbit(c, start)[0].point, start);
 });
 
-test("Ship stages name the actual input and output of each operation", () => {
-  const frames = teachingFrames(
-    traceTeachingOrbit({ real: -1.76, imaginary: -0.03 }, { real: 0, imaginary: 0 }, true, 2),
+test("each Burning Ship jump records the fold that happens before it", () => {
+  const orbit = traceTeachingOrbit(
+    { real: -1.76, imaginary: -0.03 },
+    { real: 0, imaginary: 0 },
+    true,
+    2,
   );
-  assert.deepEqual(
-    frames.map((frame) => frame.operation),
-    ["start", "fold", "square", "add", "fold", "square", "add"],
-  );
-  assert.deepEqual(frames[4].before, { real: -1.76, imaginary: -0.03 });
-  assert.deepEqual(frames[4].point, { real: 1.76, imaginary: 0.03 });
-  close(frames[5].point.real, 3.0967);
-  close(frames[5].point.imaginary, 0.1056);
-  close(frames[6].point.real, 1.3367);
-  close(frames[6].point.imaginary, 0.0756);
-  for (let i = 1; i < frames.length; i++) {
-    assert.deepEqual(frames[i].before, frames[i - 1].point);
+  assert.deepEqual(orbit[1].point, { real: -1.76, imaginary: -0.03 });
+  assert.deepEqual(orbit[2].folded, { real: 1.76, imaginary: 0.03 });
+  close(orbit[2].point.real, 1.3367);
+  close(orbit[2].point.imaginary, 0.0756);
+});
+
+test("a point past the dashed circle only moves farther away", () => {
+  const step = (z, c, fold) => {
+    const x = fold ? Math.abs(z.real) : z.real;
+    const y = fold ? Math.abs(z.imaginary) : z.imaginary;
+    return { real: x * x - y * y + c.real, imaginary: 2 * x * y + c.imaginary };
+  };
+  const zero = { real: 0, imaginary: 0 };
+  const followAfterCrossing = (c, start, fold) => {
+    const last = traceTeachingOrbit(c, start, fold).at(-1).point;
+    if (Math.hypot(last.real, last.imaginary) <= ESCAPE_RADIUS) return;
+    let z = last;
+    for (let i = 0; i < 4; i++) {
+      const next = step(z, c, fold);
+      assert.ok(Math.hypot(next.real, next.imaginary) > Math.hypot(z.real, z.imaginary));
+      z = next;
+    }
+  };
+  for (let x = -2.8; x <= 2.8; x += 0.2) {
+    for (let y = -2.2; y <= 2.2; y += 0.2) {
+      const pixel = { real: x, imaginary: y };
+      followAfterCrossing(pixel, zero, false);
+      followAfterCrossing(pixel, zero, true);
+      followAfterCrossing(zero, pixel, false);
+      followAfterCrossing({ real: -1, imaginary: 0 }, pixel, false);
+    }
   }
 });
 
-test("a square outside the escape circle can return inside after addition", () => {
-  const c = { real: -1, imaginary: 0 };
-  const start = { real: 2.1, imaginary: 0 };
-  const frames = teachingFrames(traceTeachingOrbit(c, start));
-  close(frames[1].point.real, 4.41);
-  close(frames[2].point.real, 3.41);
-  assert.equal(frames.at(-1).iteration, 2);
-  assert.equal(teachingPixelEscape("julia", start, c), 2);
+test("jumps there and back curve to opposite sides, so a two-point repeat is visible", () => {
+  const a = { x: 100, y: 200 };
+  const b = { x: 300, y: 200 };
+  const there = jumpControl(a, b);
+  const back = jumpControl(b, a);
+  assert.ok((there.y - 200) * (back.y - 200) < 0);
+  assert.deepEqual(jumpPoint(a, there, b, 0), a);
+  assert.deepEqual(jumpPoint(a, there, b, 1), b);
+  assert.deepEqual(jumpControl(a, a), a);
+});
+
+test("a jump off the picture reports the edge it leaves through", () => {
+  const exit = jumpExit({ x: 300, y: 200 }, { x: 900, y: 200 }, 400, 300);
+  assert.equal(exit.x, 400);
+  assert.ok(exit.y >= 0 && exit.y <= 300);
+  assert.equal(jumpExit({ x: 300, y: 200 }, { x: 390, y: 200 }, 400, 300), null);
 });
 
 test("pixel map colors agree with lesson escape counts for all three formulas", () => {
@@ -161,9 +198,10 @@ test("pixel map colors agree with lesson escape counts for all three formulas", 
     ["mandelbrot", { real: -1, imaginary: 0 }, zero, null],
     ["mandelbrot", { real: 1, imaginary: 0 }, zero, 3],
     ["julia", { real: 0.5, imaginary: 0 }, zero, null],
-    ["julia", { real: 1.25, imaginary: 0 }, zero, 3],
-    ["burning-ship", { real: -1.76, imaginary: -0.03 }, zero, 14],
-    ["burning-ship", { real: -1.8, imaginary: -0.03 }, zero, 9],
+    ["julia", { real: 1.25, imaginary: 0 }, zero, 2],
+    ["julia", { real: 2.5, imaginary: 0 }, zero, 0],
+    ["burning-ship", { real: -1.76, imaginary: -0.03 }, zero, 12],
+    ["burning-ship", { real: -1.8, imaginary: -0.03 }, zero, 7],
   ];
   for (const [kind, pixel, c, expected] of examples) {
     assert.equal(teachingPixelEscape(kind, pixel, c), expected);
@@ -174,10 +212,9 @@ test("pixel map colors agree with lesson escape counts for all three formulas", 
     );
     const last = orbit.at(-1);
     assert.equal(
-      Math.hypot(last.point.real, last.point.imaginary) > 4 ? last.iteration : null,
+      Math.hypot(last.point.real, last.point.imaginary) > ESCAPE_RADIUS ? last.iteration : null,
       expected,
     );
-    assert.equal(teachingFrames(orbit).at(-1).operation, "add");
   }
 });
 

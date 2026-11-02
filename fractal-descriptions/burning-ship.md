@@ -6,7 +6,7 @@ The Burning Ship adds one operation before each squaring. A point left of the ve
 
 <figure data-article-images="burning-ship"></figure>
 
-Follow the calculation below. Whenever a coordinate is negative, the **Fold** step reflects it across an axis before squaring. Compare **Little ship** with **Nearby pixel** to see how a small change affects the route.
+Follow the jumps below. Whenever a coordinate is negative, the dotted line shows the fold before the jump. This picture draws positive vertical coordinates downward so the ship stands upright, so a fold moves a point down. Compare **Little ship** with **Nearby pixel** to see how a small change affects the route.
 
 <figure data-orbit="burning-ship"></figure>
 
