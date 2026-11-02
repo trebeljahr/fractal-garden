@@ -16,7 +16,7 @@ Each pixel gives us a number to try. Its horizontal coordinate tells us how far 
 
 Adding $c$ moves the point by those two amounts. Squaring changes both its distance from zero and its direction: multiply the distance by itself and double the angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-Follow the two examples below, then drag the ring to another pixel. The ring stays on the number you chose. The amber point starts at zero and jumps once for each square and add. If it crosses the dashed circle, two units from zero, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
+In the picture below, the ring marks the number you chose. The amber point starts at zero and jumps once for each square and add. If it crosses the dashed circle, two units from zero, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> The ring starts on $-1$, so press **Play** to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the point leave.
 
 <figure data-orbit="mandelbrot"></figure>
 

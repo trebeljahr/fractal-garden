@@ -10,12 +10,6 @@
     600 1.8rem / 1.4 "Montserrat",
     sans-serif;
 }
-.lesson .examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 1rem 0;
-}
 .lesson button {
   color: inherit;
   background: transparent;
@@ -26,11 +20,6 @@
   font:
     1.4rem / 1.4 "Montserrat",
     sans-serif;
-}
-.examples button:hover,
-.examples button[aria-pressed="true"] {
-  background: #f5c56d22;
-  border-color: #f5c56d;
 }
 .lesson button:focus-visible,
 .lesson input:focus-visible {
@@ -44,7 +33,7 @@
   min-width: 0;
 }
 .lesson .rule {
-  margin: 0 0 1rem;
+  margin: 0.4rem 0 1rem;
   font:
     1.4rem / 1.5 "Montserrat",
     sans-serif;
@@ -156,6 +145,12 @@
 .ring {
   stroke: white;
   stroke-width: 2.5;
+}
+.ghost {
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+  stroke-dasharray: 3 4;
 }
 .point {
   fill: #f5c56d;

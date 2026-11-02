@@ -170,7 +170,7 @@ const CoordinateGrid = memo(function CoordinateGrid({
 
 export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [value, setValue] = useState(DEFAULTS[kind]);
-  const [juliaC, setJuliaC] = useState(ZERO);
+  const [hover, setHover] = useState<ComplexPoint | null>(null);
   const [motion, setMotion] = useState({ step: 0, animate: false });
   const [hop, setHop] = useState(1);
   const [dragging, setDragging] = useState(false);
@@ -182,7 +182,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const reduced = useReducedMotion();
   const flip = kind === "burning-ship";
   const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
-  const c = kind === "julia" ? juliaC : value;
+  const c = kind === "julia" ? ZERO : value;
   const orbit = useMemo(
     () => traceTeachingOrbit(c, kind === "julia" ? value : ZERO, flip),
     [c, value, kind, flip],
@@ -264,32 +264,24 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const escapeCount = crossed ? max : null;
   const title =
     kind === "julia" ? "Follow one starting point" : "Why does this pixel have this color?";
-  const presets =
-    kind === "mandelbrot"
-      ? [
-          { label: "Repeating (c = −1)", value: { real: -1, imaginary: 0 } },
-          { label: "Escaping (c = 1)", value: { real: 1, imaginary: 0 } },
-        ]
-      : kind === "julia"
-        ? [
-            { label: "Inside the circle", value: { real: 0.5, imaginary: 0 } },
-            { label: "Outside the circle", value: { real: 1.25, imaginary: 0 } },
-          ]
-        : [
-            { label: "Little ship", value: DEFAULTS[kind] },
-            { label: "Nearby pixel", value: { real: -1.8, imaginary: -0.03 } },
-            { label: "Repeating", value: { real: -1, imaginary: 0 } },
-          ];
   const rule =
     kind === "julia"
-      ? `Start at the ring. Each jump: square${juliaC.real === 0 ? "" : `, then add ${number(juliaC.real)}`}.`
-      : `Start at 0. Each jump: ${flip ? "fold, " : ""}square, then add the ring's coordinates.`;
+      ? "Pick a pixel to start there. Each jump squares the point."
+      : `Pick a pixel to test it. The point starts at 0. Each jump ${flip ? "folds and squares it" : "squares it"}, then adds the pixel's coordinates.`;
 
   const ring = project(value);
-  const flipTag = ring.x > width - 130;
-  const tag = { x: ring.x + (flipTag ? -16 : 16), y: ring.y + (ring.y < 26 ? 18 : -14) };
+  const tagAt = (at: Pixel) => {
+    const flipped = at.x > width - 130;
+    return {
+      x: at.x + (flipped ? -16 : 16),
+      y: at.y + (at.y < 26 ? 18 : -14),
+      textAnchor: flipped ? ("end" as const) : ("start" as const),
+    };
+  };
+  const tag = tagAt(ring);
   const tagWidth = coordinates(value).length * 7.5;
-  const tagLeft = flipTag ? tag.x - tagWidth : tag.x;
+  const tagLeft = tag.textAnchor === "end" ? tag.x - tagWidth : tag.x;
+  const ghost = hover && project(hover);
   // A jump number sits up and right of its dot; skip it where the ring's tag already is.
   const clearOfRing = (at: Pixel) =>
     distance(at, ring) > 24 &&
@@ -347,39 +339,6 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       <figcaption id={`${id}-title`} className={styles.title}>
         {title}
       </figcaption>
-      <fieldset className={styles.examples} aria-label="Examples">
-        {presets.map((preset) => (
-          <button
-            type="button"
-            key={preset.label}
-            aria-pressed={
-              value.real === preset.value.real &&
-              value.imaginary === preset.value.imaginary &&
-              (kind !== "julia" || juliaC.real === 0)
-            }
-            onClick={() => {
-              if (kind === "julia") setJuliaC(ZERO);
-              setValue(preset.value);
-              playback.play();
-            }}
-          >
-            {preset.label}
-          </button>
-        ))}
-        {kind === "julia" && (
-          <button
-            type="button"
-            aria-pressed={juliaC.real === -1}
-            onClick={() => {
-              setJuliaC({ real: -1, imaginary: 0 });
-              setValue(DEFAULTS.julia);
-              playback.play();
-            }}
-          >
-            Add −1
-          </button>
-        )}
-      </fieldset>
       <p className={styles.rule}>{rule}</p>
       <div className={styles.layout}>
         <div className={styles.main}>
@@ -387,20 +346,25 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             type="button"
             ref={stage}
             className={styles.stage}
-            aria-label={`Ring at ${coordinates(value)}. Drag it, or use the arrow keys. Press Enter to play.`}
+            aria-label={`Chosen pixel ${coordinates(value)}. Click or drag to choose another, or use the arrow keys. Press Enter to play.`}
             data-orbit-stage
             onPointerDown={(event) => {
               if (!event.isPrimary || event.button !== 0) return;
               pointer.current = event.pointerId;
               event.currentTarget.setPointerCapture(event.pointerId);
+              setHover(null);
               setValue(pointAt(event));
               playback.change(0);
             }}
             onPointerMove={(event) => {
-              if (pointer.current !== event.pointerId) return;
+              if (pointer.current !== event.pointerId) {
+                if (event.pointerType === "mouse") setHover(pointAt(event));
+                return;
+              }
               setDragging(true);
               setValue(pointAt(event));
             }}
+            onPointerLeave={() => setHover(null)}
             onPointerUp={(event) => {
               if (pointer.current !== event.pointerId) return;
               pointer.current = null;
@@ -431,12 +395,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             }}
           >
             {kind === "julia" ? (
-              <EscapeTimePicture
-                formula="julia"
-                bounds={VIEW_BOUNDS}
-                coloring={JULIA_COLORING}
-                c={juliaC}
-              />
+              <EscapeTimePicture formula="julia" bounds={VIEW_BOUNDS} coloring={JULIA_COLORING} />
             ) : (
               <JumpCountPicture kind={kind} />
             )}
@@ -473,14 +432,18 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                 fill={kind === "julia" ? "none" : pixelColor(escapeCount)}
                 className={styles.ring}
               />
-              <text
-                x={tag.x}
-                y={tag.y}
-                textAnchor={flipTag ? "end" : "start"}
-                className={styles.ringTag}
-              >
-                {coordinates(value)}
-              </text>
+              {ghost && hover ? (
+                <g data-orbit-ghost>
+                  <circle cx={ghost.x} cy={ghost.y} r="10" className={styles.ghost} />
+                  <text {...tagAt(ghost)} className={styles.ringTag}>
+                    {coordinates(hover)}
+                  </text>
+                </g>
+              ) : (
+                <text {...tag} className={styles.ringTag}>
+                  {coordinates(value)}
+                </text>
+              )}
               {motion.animate && hop >= 1 && !exit && (
                 <circle
                   key={`ripple-${shown}`}
