@@ -26,9 +26,7 @@ Pick a pixel in the dark shape and the point ends up jumping around three places
 
 <figure data-orbit="julia"></figure>
 
-Here is one jump from $(0.3, 0)$, where the ring starts, worked out by hand and rounded to five decimals. Press **Next jump** and the new point goes back in as the next starting point.
-
-<figure data-lesson="julia-by-hand"></figure>
+Under the picture, the current jump is worked out by hand and rounded to five decimals. Press **Next jump** and the new point goes back in as the next starting point.
 
 Here are 1920 starting points spread across the picture, one dot each. All the dots jump together. The rings mark the three places: $(0, 0)$, $c$ and $(-0.66236, 0.56228)$.
 

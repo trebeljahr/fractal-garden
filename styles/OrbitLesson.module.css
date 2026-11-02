@@ -45,6 +45,12 @@
   justify-content: start;
   gap: 1.5rem;
 }
+/* The picture and the sums under it fit on one screen, so a jump can be followed in both. */
+@media (min-width: 701px) {
+  .layout[data-sums] {
+    grid-template-columns: minmax(0, calc(max(30rem, 100vh - 25rem) * 5.6 / 4.4)) 16rem;
+  }
+}
 .main {
   min-width: 0;
 }

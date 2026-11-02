@@ -15,12 +15,11 @@ import {
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
 import {
   ESCAPE_RADIUS,
-  handJump,
   jumpControl,
   jumpExit,
   jumpPoint,
   ORBIT_LESSON_LIMIT,
-  traceHandJumps,
+  squarePoint,
   traceTeachingOrbit,
   traceUntilLoop,
 } from "../utils/orbitLesson.ts";
@@ -176,28 +175,20 @@ test("orbit lesson does not call a slow or escaping orbit a loop", () => {
     }
   }
 });
-test("a jump by hand adds up exactly at the written five decimals", () => {
+test("the written Add c sums add up at five decimals for every jump in the picture", () => {
   const rabbit = { real: -0.12256, imaginary: 0.74486 };
-  const first = handJump({ real: 0.3, imaginary: 0 }, rabbit);
-  assert.deepEqual(first.squared, { real: 0.09, imaginary: 0 });
-  assert.deepEqual(first.next, { real: -0.03256, imaginary: 0.74486 });
-  const second = handJump(first.next, rabbit);
-  assert.deepEqual(second.squared, { real: -0.55376, imaginary: -0.04851 });
-  assert.deepEqual(second.next, { real: -0.67632, imaginary: 0.69635 });
-
-  const { jumps, repeats } = traceHandJumps(rabbit, { real: 0.3, imaginary: 0 });
-  assert.equal(jumps.length, 19);
-  assert.equal(repeats, 16);
-  assert.deepEqual(jumps.at(-1).next, jumps[15].next);
-  const exact = traceTeachingOrbit(rabbit, { real: 0.3, imaginary: 0 }, false, jumps.length);
-  jumps.forEach((jump, index) => {
-    const point = exact[index + 1].point;
-    assert.ok(Math.abs(jump.next.real - point.real) < 0.001, `jump ${index + 1} horizontal`);
-    assert.ok(
-      Math.abs(jump.next.imaginary - point.imaginary) < 0.001,
-      `jump ${index + 1} vertical`,
-    );
-  });
+  const five = (value) => Number(value.toFixed(5)) + 0;
+  for (let x = -2.8; x <= 2.8; x += 0.2) {
+    for (let y = -2.2; y <= 2.2; y += 0.2) {
+      const { orbit } = traceUntilLoop(rabbit, { real: five(x), imaginary: five(y) });
+      for (let jump = 1; jump < orbit.length; jump++) {
+        const squared = squarePoint(orbit[jump - 1].point);
+        const next = orbit[jump].point;
+        assert.equal(five(five(squared.real) + rabbit.real), five(next.real));
+        assert.equal(five(five(squared.imaginary) + rabbit.imaginary), five(next.imaginary));
+      }
+    }
+  }
 });
 test("Julia changes the starting point while Burning Ship folds both components before the square", () => {
   const c = { real: -0.8, imaginary: 0.156 };

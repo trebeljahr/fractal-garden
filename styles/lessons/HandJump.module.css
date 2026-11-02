@@ -1,11 +1,13 @@
-.lesson .sums {
-  --row: 3.6rem;
-  --head: 2.8rem;
-  position: relative;
-  margin-top: 1rem;
+.panel {
+  margin-top: 1.5rem;
   padding-left: 2.4rem;
 }
-.lesson table {
+.sums {
+  --row: 3.6rem;
+  --head: 3.2rem;
+  position: relative;
+}
+.panel table {
   width: 100%;
   margin: 0;
   border-collapse: collapse;
@@ -15,62 +17,59 @@
     sans-serif;
   font-variant-numeric: tabular-nums;
 }
-.lesson th,
-.lesson td {
+.panel th,
+.panel td {
   padding: 0.4rem 0.8rem 0.4rem 0;
   border: 0;
   background: none;
   text-align: left;
   font-weight: 400;
 }
-.lesson thead tr {
+.panel thead tr {
   height: var(--head);
 }
-.lesson thead th {
+.panel thead th,
+.panel tbody th {
   color: #eee8ce99;
 }
-.lesson tbody th {
-  width: 8.5rem;
-  color: #eee8ce99;
-}
-.lesson thead td {
+.panel thead td,
+.panel tbody th {
   width: 8.5rem;
 }
-.lesson td span {
-  display: inline-block;
+.panel .jump {
+  color: var(--lesson-accent);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.square,
+.add {
+  height: 3rem;
 }
 .input,
 .output {
   height: var(--row);
   font-weight: 600;
 }
-.input td span,
-.output td span {
+.numbers,
+.numbers span {
+  display: inline-block;
+}
+.input .numbers,
+.output .numbers {
   padding: 0.1rem 0.5rem;
   border: 1px solid #eee8ce70;
   background: #10151a;
 }
-.output td span {
+.output .numbers {
   position: relative;
   z-index: 1;
   border-color: var(--lesson-accent);
   color: var(--lesson-accent);
 }
-.square,
-.add,
-.output td {
-  transition: opacity 260ms ease;
-}
-.input td span,
-.backArrow {
-  transition:
-    opacity 260ms ease,
-    border-color 260ms ease;
-}
 /* The arrow runs from the middle of the last row back to the middle of the first. */
 .backArrow {
   position: absolute;
-  left: 0.2rem;
+  left: -2.2rem;
   top: calc(var(--head) + var(--row) / 2);
   bottom: calc(var(--row) / 2);
   width: 1.8rem;
@@ -86,73 +85,83 @@
   border-block: 0.45rem solid transparent;
   border-left: 0.7rem solid #eee8ce70;
 }
-[data-phase="glide"] .backArrow {
+[data-phase="wipe"] .backArrow {
   border-color: var(--lesson-accent);
 }
-[data-phase="glide"] .backArrow::after {
+[data-phase="wipe"] .backArrow::after {
   border-left-color: var(--lesson-accent);
 }
-[data-phase="glide"] .square,
-[data-phase="glide"] .add {
-  opacity: 0.2;
+/* Numbers are erased and then written from left to right, like working on a board. */
+@keyframes wipe {
+  to {
+    clip-path: inset(0 0 0 100%);
+  }
 }
-[data-phase="glide"] .input td span {
-  opacity: 0;
+@keyframes write {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
 }
-[data-phase="square"] .add,
-[data-phase="square"] .output td,
-[data-phase="add"] .output td {
-  opacity: 0;
+[data-phase="wipe"] .input .numbers,
+[data-phase="wipe"] .square .numbers,
+[data-phase="wipe"] .add .numbers {
+  animation: wipe var(--wipe) linear forwards;
 }
-.footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-left: 2.4rem;
-  font:
-    1.4rem / 1.5 "Montserrat",
-    sans-serif;
+[data-phase="square"] .square .numbers,
+[data-phase="add"] .add .numbers,
+[data-phase="result"] .output .numbers {
+  animation: write var(--write) linear;
+}
+[data-phase="square"] .add .numbers,
+[data-phase="square"] .output .numbers,
+[data-phase="add"] .output .numbers {
+  visibility: hidden;
+}
+.panel .next {
+  margin-top: 0.8rem;
+}
+.panel .next:hover:not(:disabled) {
+  background: #f5c56d22;
+  border-color: var(--lesson-accent);
+}
+.panel .next:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 @media (max-width: 700px) {
-  .lesson table,
-  .lesson tbody,
-  .lesson tbody tr {
+  .sums {
+    --head: 5.4rem;
+  }
+  .panel table,
+  .panel thead,
+  .panel tbody {
     display: block;
   }
-  .lesson thead {
-    display: none;
-  }
-  .lesson .sums {
-    --head: 0rem;
-  }
-  .lesson tbody tr {
+  .panel tr {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 0.8rem;
     padding-bottom: 0.6rem;
   }
-  .lesson tbody th {
+  .panel thead tr {
+    height: var(--head);
+    padding-bottom: 0;
+  }
+  .panel thead td,
+  .panel tbody th {
     grid-column: 1 / -1;
     width: auto;
     padding-bottom: 0;
   }
+  .square,
+  .add,
   .input,
   .output {
     height: auto;
+    min-height: 6rem;
   }
   .backArrow {
-    top: 3rem;
-    bottom: 2.4rem;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .square,
-  .add,
-  .output td,
-  .input td span,
-  .backArrow {
-    transition: none;
+    top: calc(var(--head) + 3.9rem);
+    bottom: 2rem;
   }
 }

@@ -98,43 +98,6 @@ export function traceUntilLoop(
   return untilLoop((jumps) => traceTeachingOrbit(c, start, fold, jumps, radius), limit);
 }
 
-export type HandJump = { point: ComplexPoint; squared: ComplexPoint; next: ComplexPoint };
-const HAND_LIMIT = 40;
-const fiveDecimals = (value: number) => Number(value.toFixed(5));
-
-// Carries five decimals, as a person would, so every written sum adds up exactly.
-export function handJump(point: ComplexPoint, c: ComplexPoint): HandJump {
-  const squared = {
-    real: fiveDecimals(point.real ** 2 - point.imaginary ** 2),
-    imaginary: fiveDecimals(2 * point.real * point.imaginary),
-  };
-  return {
-    point,
-    squared,
-    next: {
-      real: fiveDecimals(squared.real + c.real),
-      imaginary: fiveDecimals(squared.imaginary + c.imaginary),
-    },
-  };
-}
-
-// `repeats` is the earlier jump whose landing the last jump lands on exactly.
-export function traceHandJumps(c: ComplexPoint, start: ComplexPoint) {
-  const place = ({ real, imaginary }: ComplexPoint) => `${real},${imaginary}`;
-  const seen = new Map([[place(start), 0]]);
-  const jumps: HandJump[] = [];
-  let point = start;
-  while (jumps.length < HAND_LIMIT) {
-    const jump = handJump(point, c);
-    jumps.push(jump);
-    const repeats = seen.get(place(jump.next));
-    if (repeats !== undefined) return { jumps, repeats };
-    seen.set(place(jump.next), jumps.length);
-    point = jump.next;
-  }
-  return { jumps, repeats: null };
-}
-
 type OrbitJump = { via?: ComplexPoint; next: ComplexPoint };
 
 function followOrbit(

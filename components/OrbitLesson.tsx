@@ -30,6 +30,7 @@ import {
   untilLoop,
 } from "../utils/orbitLesson";
 import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
+import { HandJump } from "./lessons/HandJump";
 
 export function isOrbitKind(value: unknown): value is OrbitKind {
   return (
@@ -108,6 +109,8 @@ const REST_MS = 300;
 const FIRST_HOP_DELAY_MS = 350;
 const TINY_HOP_DELAY_MS = 150;
 const FOLD_SHARE = 0.35;
+// A jump the reader asks for runs slower than playback, so the sums can be read.
+const HAND_SPEED = 2;
 
 function coordinates(point: ComplexPoint, digits = 3) {
   return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
@@ -220,7 +223,11 @@ const CoordinateGrid = memo(function CoordinateGrid({
 export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [value, setValue] = useState(DEFAULTS[kind]);
   const [hover, setHover] = useState<ComplexPoint | null>(null);
-  const [motion, setMotion] = useState({ step: 0, animate: false });
+  const [motion, setMotion] = useState({
+    step: kind === "julia" ? 1 : 0,
+    animate: false,
+    speed: 1,
+  });
   const [hop, setHop] = useState(1);
   const [dragging, setDragging] = useState(false);
   const [width, setWidth] = useState(640);
@@ -263,7 +270,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const goTo = (next: number) => {
     const animate = next === shown + 1 && !reduced;
     setHop(animate ? 0 : 1);
-    setMotion({ step: next, animate });
+    setMotion({ step: next, animate, speed: pace(next) });
   };
   const delay =
     shown === 0
@@ -273,11 +280,15 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         : (HOP_MS + REST_MS) * pace(shown);
   const playback = useLessonPlayback<HTMLButtonElement>(shown, max, goTo, delay);
   const stage = playback.ref;
+  const nextJump = () => {
+    playback.change(shown === max ? 0 : shown + 1);
+    setMotion((current) => ({ ...current, speed: HAND_SPEED }));
+  };
 
   useEffect(() => {
     if (!motion.animate) return;
     const begun = performance.now();
-    const duration = HOP_MS * pace(motion.step);
+    const duration = HOP_MS * motion.speed;
     let frame = requestAnimationFrame(function tick(now) {
       const t = Math.max(0, Math.min(1, (now - begun) / duration));
       setHop(t);
@@ -403,7 +414,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         {title}
       </figcaption>
       <p className={styles.rule}>{rule}</p>
-      <div className={styles.layout}>
+      <div className={styles.layout} data-sums={kind === "julia" || undefined}>
         <div className={styles.main}>
           <button
             type="button"
@@ -585,6 +596,17 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           </p>
         </div>
       </div>
+      {kind === "julia" && (
+        <HandJump
+          orbit={orbit}
+          c={JULIA_C}
+          jump={dragging ? Math.min(1, max) : shown}
+          animate={motion.animate}
+          duration={(HOP_MS + REST_MS) * motion.speed}
+          announce={!playback.playing}
+          onNext={nextJump}
+        />
+      )}
     </figure>
   );
 }
