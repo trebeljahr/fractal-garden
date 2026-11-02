@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-// Playback is always reader initiated. Stop when the lesson leaves the screen,
-// the tab hides, or the reader changes a setting.
-export function useLessonPlayback<Watched extends HTMLElement = HTMLFieldSetElement>(
+// Playback is always reader initiated. It keeps going while the reader scrolls,
+// and stops when the tab hides or the reader changes a setting.
+export function useLessonPlayback(
   value: number,
   max: number,
   onChange: (value: number) => void,
@@ -10,25 +10,15 @@ export function useLessonPlayback<Watched extends HTMLElement = HTMLFieldSetElem
   increment = 1,
 ) {
   const [playing, setPlaying] = useState(false);
-  const ref = useRef<Watched>(null);
   const change = useRef(onChange);
   change.current = onChange;
   useEffect(() => {
     if (!playing) return;
-    const element = ref.current;
-    const stop = () => setPlaying(false);
     const visibility = () => {
-      if (document.hidden) stop();
+      if (document.hidden) setPlaying(false);
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) stop();
-    });
-    if (element) observer.observe(element);
     document.addEventListener("visibilitychange", visibility);
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", visibility);
-    };
+    return () => document.removeEventListener("visibilitychange", visibility);
   }, [playing]);
   useEffect(() => {
     if (!playing) return;
@@ -40,7 +30,6 @@ export function useLessonPlayback<Watched extends HTMLElement = HTMLFieldSetElem
     return () => window.clearTimeout(timer);
   }, [playing, value, max, delay, increment]);
   return {
-    ref,
     playing,
     toggle: () => {
       if (!playing && value >= max) change.current(0);

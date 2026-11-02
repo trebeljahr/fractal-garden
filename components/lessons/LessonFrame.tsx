@@ -71,18 +71,13 @@ export function LessonStepControls({
 }: {
   step: number;
   max: number;
-  playback: ReturnType<typeof useLessonPlayback<HTMLFieldSetElement>>;
+  playback: ReturnType<typeof useLessonPlayback>;
   label: string;
   stepDescription?: string;
   disabled?: boolean;
 }) {
   return (
-    <fieldset
-      disabled={disabled}
-      ref={playback.ref}
-      className={styles.controls}
-      aria-label={`${label} steps`}
-    >
+    <fieldset disabled={disabled} className={styles.controls} aria-label={`${label} steps`}>
       <button
         type="button"
         aria-label="Previous step"

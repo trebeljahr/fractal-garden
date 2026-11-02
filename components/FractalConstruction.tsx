@@ -243,10 +243,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
         setVisible(entry.isIntersecting);
         if (entry.isIntersecting) setSeen(true);
         setInView(entry.intersectionRatio >= 0.35);
-        if (!entry.isIntersecting) {
-          if (!lsystem) setReady(false);
-          setPlaying(false);
-        }
+        if (!entry.isIntersecting && !lsystem) setReady(false);
       },
       { threshold: [0, 0.35] },
     );
@@ -269,10 +266,11 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     }
   }, [inView, ready, pageVisible, reduced, max]);
   useEffect(() => {
-    if (!inView || reduced) setPlaying(false);
-  }, [inView, reduced]);
+    if (reduced) setPlaying(false);
+  }, [reduced]);
   useEffect(() => {
-    if (!playing || !ready || renderedLevel !== level || !inView || !pageVisible) return;
+    // Scrolling away only holds playback, because the picture isn't drawn off screen.
+    if (!playing || !ready || renderedLevel !== level || !visible || !pageVisible) return;
     if (lsystem && !processComplete) return;
     if (selected >= max) {
       setPlaying(false);
@@ -285,7 +283,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
     ready,
     renderedLevel,
     level,
-    inView,
+    visible,
     pageVisible,
     selected,
     max,

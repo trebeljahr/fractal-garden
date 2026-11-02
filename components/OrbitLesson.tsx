@@ -231,6 +231,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [hop, setHop] = useState(1);
   const [dragging, setDragging] = useState(false);
   const [width, setWidth] = useState(640);
+  const stage = useRef<HTMLButtonElement>(null);
   const route = useRef<HTMLDivElement>(null);
   const pointer = useRef<number | null>(null);
   const id = useId().replace(/:/g, "");
@@ -278,8 +279,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       : hopPixels < 2
         ? TINY_HOP_DELAY_MS
         : (HOP_MS + REST_MS) * pace(shown);
-  const playback = useLessonPlayback<HTMLButtonElement>(shown, max, goTo, delay);
-  const stage = playback.ref;
+  const playback = useLessonPlayback(shown, max, goTo, delay);
   const nextJump = () => {
     playback.change(shown === max ? 0 : shown + 1);
     setMotion((current) => ({ ...current, speed: HAND_SPEED }));
@@ -304,7 +304,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [stage]);
+  }, []);
   useEffect(() => {
     const element = route.current;
     if (element && landed >= 0) element.scrollTop = element.scrollHeight;

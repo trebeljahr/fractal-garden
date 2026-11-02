@@ -204,10 +204,6 @@ export default function BuddhabrotConnection() {
     const visibility = () => {
       if (document.hidden) stop();
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) stop();
-    });
-    if (container.current) observer.observe(container.current);
     document.addEventListener("visibilitychange", visibility);
     const tick = (now: number) => {
       const next = Math.min(90, from + (now - start) * 0.018);
@@ -220,7 +216,6 @@ export default function BuddhabrotConnection() {
     frame = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(frame);
-      observer.disconnect();
       document.removeEventListener("visibilitychange", visibility);
     };
   }, [playing]);
