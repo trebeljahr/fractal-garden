@@ -2,6 +2,7 @@ import { type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "
 import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
+import { JULIA_PRESETS } from "../../utils/escapeTimePlaces";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import { juliaExplorerLink, LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../../utils/orbitLesson";
@@ -20,7 +21,10 @@ const text = (p: ComplexPoint) =>
 const PRESETS = [
   { name: "Circle", c: ZERO },
   { name: "Two lobes", c: { real: -1, imaginary: 0 } },
-  { name: "Rabbit", c: { real: -0.123, imaginary: 0.745 } },
+  {
+    name: "Rabbit",
+    c: { real: JULIA_PRESETS.Rabbit.cReal, imaginary: JULIA_PRESETS.Rabbit.cImag },
+  },
   { name: "Dust", c: { real: 0.3, imaginary: 0.6 } },
 ];
 

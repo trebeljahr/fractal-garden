@@ -21,6 +21,13 @@ test("large zooms use powers of ten and smaller ones keep plain digits", () => {
   assert.deepEqual(formatZoom(1.5 / 1.5e-100), { exponent: 100 });
 });
 
+test("the Rabbit preset sends zero through a three-step repeat", () => {
+  const { cReal, cImag } = JULIA_PRESETS.Rabbit;
+  let [x, y] = [0, 0];
+  for (let step = 0; step < 3; step++) [x, y] = [x * x - y * y + cReal, 2 * x * y + cImag];
+  assert.ok(Math.hypot(x, y) < 1e-4);
+});
+
 test("every destination has a preview on disk", () => {
   for (const view of [...JULIA_PLACES, ...MANDELBROT_PLACES, ...BURNING_SHIP_PLACES]) {
     assert.ok(view.preview, view.id);

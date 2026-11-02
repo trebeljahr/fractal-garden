@@ -1,7 +1,8 @@
 import type { EscapeTimePlace } from "./fractalPlaces";
 
 export const JULIA_PRESETS: Record<string, { cReal: number; cImag: number }> = {
-  Rabbit: { cReal: -0.70176, cImag: -0.3842 },
+  Rabbit: { cReal: -0.12256, cImag: 0.74486 },
+  Stars: { cReal: -0.70176, cImag: -0.3842 },
   Spiral: { cReal: -0.8, cImag: 0.156 },
   Dendrite: { cReal: 0.285, cImag: 0.01 },
   Cauliflower: { cReal: -0.4, cImag: 0.6 },
@@ -14,6 +15,7 @@ export const JULIA_PRESETS: Record<string, { cReal: number; cImag: number }> = {
 
 export const JULIA_PRESET_LABELS: Record<string, string> = {
   Rabbit: "Rabbit spiral",
+  Stars: "Star clusters",
   Spiral: "Sea spiral",
   Dendrite: "Electric dendrite",
   Cauliflower: "Cauliflower bloom",
@@ -51,7 +53,7 @@ export const JULIA_PLACES: EscapeTimePlace[] = [
   julia(
     "rabbit",
     "Rabbit spiral",
-    "The whole shape, with curls branching from each lobe.",
+    "Three lobes meet at every joint.",
     "Rabbit",
     [0, 0],
     1.8,
@@ -119,20 +121,30 @@ export const JULIA_PLACES: EscapeTimePlace[] = [
     "Spirals",
   ),
   julia(
-    "rabbit-knot",
-    "Rabbit knot",
-    "A small knot where the rabbit's branches meet.",
-    "Rabbit",
+    "stars",
+    "Star clusters",
+    "The whole shape, with curls branching from each lobe.",
+    "Stars",
+    [0, 0],
+    1.8,
+    300,
+    "Branches and blooms",
+  ),
+  julia(
+    "stars-knot",
+    "Star knot",
+    "A small knot where the branches meet.",
+    "Stars",
     [-0.49452008674849657, -0.19315849177873864],
     0.08,
     1000,
     "Branches and blooms",
   ),
   julia(
-    "rabbit-deep",
-    "Rabbit lace",
+    "stars-deep",
+    "Star lace",
     "Tiny branches repeat along the knot's edges.",
-    "Rabbit",
+    "Stars",
     [-0.49452008674849657, -0.19315849177873864],
     0.008,
     1400,

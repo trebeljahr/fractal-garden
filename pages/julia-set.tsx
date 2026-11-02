@@ -26,9 +26,9 @@ const presetLabels: Record<string, string> = { ...JULIA_PRESET_LABELS, Custom: "
 
 const JuliaSet = ({ description }: Props) => {
   const [config, setConfig] = useState<Config>(() => ({
-    preset: "Rabbit",
-    cReal: presets.Rabbit.cReal,
-    cImag: presets.Rabbit.cImag,
+    preset: "Stars",
+    cReal: presets.Stars.cReal,
+    cImag: presets.Stars.cImag,
     ...JULIA_COLORING,
   }));
 

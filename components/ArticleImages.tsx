@@ -47,7 +47,7 @@ const IMAGES = {
   ],
   julia: [
     {
-      name: "julia-rabbit",
+      name: "julia-star-clusters",
       alt: "Branching Julia set with star-shaped clusters, drawn for c = (−0.70176, −0.3842)",
       caption: "c = (−0.70176, −0.3842)",
     },
