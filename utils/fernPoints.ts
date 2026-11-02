@@ -4,10 +4,18 @@ import {
   fixedToFloatExp,
   rescaleFixed,
   viewportDelta,
+  zoomViewport,
 } from "./deepZoom/math";
 
 export const FERN_TILE_SIZE = 64;
+/** Most dots per screen pixel a tile keeps once it is finer than the screen. */
+const FERN_DENSITY = 2;
+/** WebGL caps attribute stride at 255 bytes, which is 16 points as a power of two. */
+const FERN_MAX_STRIDE = 16;
+/** Camera offsets stay subpixel in fernPointTransform's float32 mantissa within this reach. */
+const FERN_FRAME_REACH = 2 ** 14;
 export type FernPointView = { view: DeepViewport; width: number; height: number };
+type FernFrame = FernPointView & { epoch: number };
 export type FernPointTile = FernPointView & {
   id: number;
   epoch: number;
@@ -16,8 +24,9 @@ export type FernPointTile = FernPointView & {
   count: number;
   points: Float64Array;
   fixed?: { x: bigint[]; y: bigint[] };
+  occupied?: Uint8Array;
 };
-export type FernPointAppend = Omit<FernPointTile, "points" | "fixed"> & {
+export type FernPointAppend = Omit<FernPointTile, "points" | "fixed" | "occupied"> & {
   start: number;
   points: Float64Array;
 };
@@ -37,6 +46,22 @@ export function fernPointTransform(
     scale:
       (Math.min(target.width, target.height) / sourceSide) *
       2 ** (source.view.logZoom - target.view.logZoom),
+  };
+}
+
+/**
+ * A tile that shrank on screen draws a nested subset of its points. Dots per
+ * pixel fall with its size, so a densely sampled old view fades into the sparser
+ * dots around it instead of staying a bright rectangle. A tile at its own zoom
+ * level stays above half size, so even a full one keeps every point.
+ */
+export function fernTileLod(count: number, scale: number) {
+  const density = Math.min(FERN_DENSITY, 2 * FERN_DENSITY * scale);
+  const wanted = Math.max(1, density * (FERN_TILE_SIZE * scale) ** 2);
+  const stride = Math.min(FERN_MAX_STRIDE, 2 ** Math.max(0, Math.floor(Math.log2(count / wanted))));
+  return {
+    stride,
+    count: Math.ceil(stride < FERN_MAX_STRIDE ? count / stride : Math.min(count / stride, wanted)),
   };
 }
 
@@ -104,7 +129,8 @@ export function projectFernTile(tile: FernPointTile, target: FernPointView) {
       : (m * 2 ** (e - target.view.logZoom) * Math.min(target.width, target.height)) / 2;
   };
   const points: number[] = [];
-  for (let i = 0; i < tile.count; i++) {
+  const lod = fernTileLod(tile.count, transform.scale);
+  for (let n = 0, i = 0; n < lod.count; n++, i += lod.stride) {
     const x = precise
       ? target.width / 2 + pixels(rescaleFixed(tile.fixed!.x[i], tile.view.bits, bits) - targetX)
       : target.width / 2 + (tile.points[i * 2] - transform.centerX) * transform.scale;
@@ -116,40 +142,73 @@ export function projectFernTile(tile: FernPointTile, target: FernPointView) {
   return new Float32Array(points);
 }
 
-/** Append-only spatial batches: a viewport change never resamples existing points. */
+/**
+ * Append-only spatial batches: a viewport change never resamples existing points.
+ * Each octave shares one coordinate frame, so every view at that scale extends
+ * the same tiles and keeps at most one point per frame pixel.
+ */
 export class FernPointCloud {
   readonly tiles = new Map<number, FernPointTile>();
   private cells = new Map<string, FernPointTile>();
+  private frames = new Map<string, FernFrame>();
   private sequence = 0;
+  private epochs = 0;
   private openingEpoch: number | null = null;
   count = 0;
 
-  append(source: FernPointView, epoch: number, points: number[]): FernPointAppend[] {
+  private frame(source: FernPointView) {
+    const logZoom = Math.floor(source.view.logZoom);
+    const key = `${logZoom}:${Math.min(source.width, source.height)}`;
+    const known = this.frames.get(key);
+    if (known) {
+      const { centerX, centerY } = fernPointTransform({ ...known, x: 0, y: 0 }, source);
+      const reach = Math.max(
+        Math.abs(centerX - known.width / 2),
+        Math.abs(centerY - known.height / 2),
+      );
+      if (reach < FERN_FRAME_REACH) return known;
+    }
+    const frame = {
+      view: zoomViewport(source.view, logZoom),
+      width: source.width,
+      height: source.height,
+      epoch: ++this.epochs,
+    };
+    this.frames.set(key, frame);
+    return frame;
+  }
+
+  append(source: FernPointView, points: number[]): FernPointAppend[] {
+    if (!points.length) return [];
     const changed = new Map<FernPointTile, number>();
-    if (points.length && this.openingEpoch === null) this.openingEpoch = epoch;
+    const frame = this.frame(source);
+    const { centerX, centerY, scale } = fernPointTransform({ ...frame, x: 0, y: 0 }, source);
+    this.openingEpoch ??= frame.epoch;
     for (let i = 0; i < points.length; i += 2) {
-      const x = points[i],
-        y = points[i + 1];
-      if (x < 0 || x >= source.width || y < 0 || y >= source.height) continue;
+      if (points[i] < 0 || points[i] >= source.width) continue;
+      if (points[i + 1] < 0 || points[i + 1] >= source.height) continue;
+      const x = centerX + (points[i] - source.width / 2) / scale,
+        y = centerY + (points[i + 1] - source.height / 2) / scale;
       const tx = Math.floor(x / FERN_TILE_SIZE) * FERN_TILE_SIZE,
         ty = Math.floor(y / FERN_TILE_SIZE) * FERN_TILE_SIZE;
-      const key = `${epoch}:${tx}:${ty}`;
+      const key = `${frame.epoch}:${tx}:${ty}`;
       let tile = this.cells.get(key);
       if (!tile) {
         tile = {
-          ...source,
-          view: { ...source.view },
-          id: ++this.sequence,
-          epoch,
+          ...frame,
           x: tx,
           y: ty,
+          id: ++this.sequence,
           count: 0,
           points: new Float64Array(FERN_TILE_SIZE ** 2 * 2),
+          occupied: new Uint8Array(FERN_TILE_SIZE ** 2),
         };
         this.cells.set(key, tile);
         this.tiles.set(tile.id, tile);
       }
-      if (tile.count >= FERN_TILE_SIZE ** 2) continue;
+      const cell = Math.floor(y - ty) * FERN_TILE_SIZE + Math.floor(x - tx);
+      if (tile.occupied![cell]) continue;
+      tile.occupied![cell] = 1;
       if (!changed.has(tile)) changed.set(tile, tile.count);
       tile.points[tile.count * 2] = x - tx;
       tile.points[tile.count * 2 + 1] = y - ty;
@@ -158,7 +217,7 @@ export class FernPointCloud {
     }
     return Array.from(changed, ([tile, start]) => ({
       id: tile.id,
-      epoch,
+      epoch: tile.epoch,
       view: tile.view,
       width: tile.width,
       height: tile.height,
@@ -183,17 +242,29 @@ export class FernPointCloud {
     return { occupied, projections };
   }
 
-  /** Evict only offscreen detail under pressure; always keep the opening cloud. */
+  /**
+   * Under pressure evict offscreen detail, then detail far finer than the
+   * screen: the sampler refills any pixels it covered. Always keep the opening cloud.
+   */
   prune(target: FernPointView, maxTiles = 2048) {
     const removed: number[] = [];
-    for (const [key, tile] of Array.from(this.cells)) {
-      if (this.tiles.size <= maxTiles) break;
-      if (tile.epoch === this.openingEpoch || fernTileIntersects(tile, target)) continue;
-      this.cells.delete(key);
-      this.tiles.delete(tile.id);
-      this.count -= tile.count;
-      removed.push(tile.id);
-    }
+    const evict = (tiles: [string, FernPointTile][]) => {
+      for (const [key, tile] of tiles) {
+        if (this.tiles.size <= maxTiles) break;
+        this.cells.delete(key);
+        this.tiles.delete(tile.id);
+        this.count -= tile.count;
+        removed.push(tile.id);
+      }
+    };
+    if (this.tiles.size <= maxTiles) return removed;
+    const entries = Array.from(this.cells).filter(([, tile]) => tile.epoch !== this.openingEpoch);
+    evict(entries.filter(([, tile]) => !fernTileIntersects(tile, target)));
+    evict(
+      entries
+        .filter(([key, tile]) => this.cells.has(key) && tile.view.logZoom < target.view.logZoom - 2)
+        .sort(([, a], [, b]) => a.view.logZoom - b.view.logZoom),
+    );
     return removed;
   }
 }

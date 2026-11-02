@@ -6,6 +6,7 @@ import {
   type FernPointView,
   fernPointTransform,
   fernTileIntersects,
+  fernTileLod,
   projectFernTile,
 } from "./fernPoints";
 import { createFernSampling, type FernPointMessage, type FernPointRequest } from "./fernSampling";
@@ -277,8 +278,19 @@ export class FernViewportRenderer {
       // A dot remains one CSS pixel at every magnification; it never becomes a scaled bitmap block.
       gl.uniform1f(this.uniforms.dotSize, this.canvas.width / width);
       gl.enableVertexAttribArray(this.attribute);
+      // Tiles in a frame share one camera offset, so the exact math runs once per frame.
+      const frames = new Map<number, ReturnType<typeof fernPointTransform>>();
       for (const tile of Array.from(this.tiles.values())) {
-        let transform = fernPointTransform(tile, target),
+        let frame = frames.get(tile.epoch);
+        if (!frame) {
+          frame = fernPointTransform({ ...tile, x: 0, y: 0 }, target);
+          frames.set(tile.epoch, frame);
+        }
+        let transform = {
+            ...frame,
+            centerX: frame.centerX - tile.x,
+            centerY: frame.centerY - tile.y,
+          },
           buffer = tile.buffer,
           count = tile.count;
         if (transform.scale > 1024 || !Number.isFinite(transform.scale)) {
@@ -318,11 +330,12 @@ export class FernViewportRenderer {
           top + span * transform.scale < 0
         )
           continue;
+        const lod = fernTileLod(count, transform.scale);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.vertexAttribPointer(this.attribute, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(this.attribute, 2, gl.FLOAT, false, lod.stride * 8, 0);
         gl.uniform2f(this.uniforms.center, transform.centerX, transform.centerY);
         gl.uniform1f(this.uniforms.scale, transform.scale);
-        gl.drawArrays(gl.POINTS, 0, count);
+        gl.drawArrays(gl.POINTS, 0, lod.count);
       }
       gl.disableVertexAttribArray(this.attribute);
     } else if (this.ctx) {

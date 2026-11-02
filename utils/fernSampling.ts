@@ -46,13 +46,13 @@ export function createFernSampling(
     if (pending && (!active || active.added || active.complete)) {
       const request = pending;
       pending = null;
+      const removed = cloud.prune(request);
+      if (removed.length) emit({ type: "remove", ids: removed }, []);
       const { occupied, projections } = cloud.coverage(request);
       for (const p of projections)
         emit({ type: "projection", id: p.id, source: request, points: p.points }, [
           p.points.buffer,
         ]);
-      const removed = cloud.prune(request);
-      if (removed.length) emit({ type: "remove", ids: removed }, []);
       active = {
         request,
         added: false,
@@ -81,7 +81,7 @@ export function createFernSampling(
     } while ((!complete || (!paused && walker.tiles > 0)) && performance.now() - started < 3);
     active.added ||= points.length > 0;
     active.complete = complete;
-    const appends = cloud.append(request, request.id, points);
+    const appends = cloud.append(request, points);
     emit(
       {
         type: "points",

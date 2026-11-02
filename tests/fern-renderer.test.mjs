@@ -19,7 +19,13 @@ const {
   moveViewport,
   zoomViewport,
 } = require("../utils/deepZoom/math.ts");
-const { FernPointCloud, projectFernTile, fernTileIntersects } = require("../utils/fernPoints.ts");
+const {
+  FERN_TILE_SIZE,
+  FernPointCloud,
+  fernTileIntersects,
+  fernTileLod,
+  projectFernTile,
+} = require("../utils/fernPoints.ts");
 const { createFernWalker, fernBounds, fernOpeningSpan } = require("../utils/fernViewport.ts");
 const { FERN_PRESETS } = require("../utils/fernPresets.ts");
 const { FernViewportRenderer } = require("../utils/fernRenderer.ts");
@@ -28,12 +34,12 @@ const source = () => ({ view: createViewport([0, 0], 1), width: 800, height: 600
 test("camera changes keep point coordinates and identities; later samples append", () => {
   const cloud = new FernPointCloud(),
     frame = source();
-  const first = cloud.append(frame, 1, [400.125, 300.25, 410.75, 310.5]);
+  const first = cloud.append(frame, [400.125, 300.25, 410.75, 310.5]);
   const tile = cloud.tiles.get(first[0].id),
     old = Array.from(tile.points.subarray(0, 4));
   const target = { ...frame, view: zoomViewport(frame.view, frame.view.logZoom - 1, 0, 0) };
   assert.deepEqual(Array.from(projectFernTile(tile, target)), [400.25, 300.5, 421.5, 321]);
-  cloud.append(target, 2, [405, 305]);
+  cloud.append(target, [405, 305]);
   assert.equal(cloud.tiles.get(tile.id), tile);
   assert.deepEqual(Array.from(tile.points.subarray(0, 4)), old);
   assert.equal(cloud.count, 3);
@@ -46,7 +52,7 @@ test("point projection retains exact subpixel camera differences beyond float ra
   for (const log of [-60, -2000]) {
     const frame = { ...source(), view: createViewportAtLog([0, 1], log) };
     const cloud = new FernPointCloud();
-    const [append] = cloud.append(frame, 1, [400, 300]);
+    const [append] = cloud.append(frame, [400, 300]);
     const tile = cloud.tiles.get(append.id);
     const target = {
       ...frame,
@@ -95,14 +101,124 @@ test("viewport sampling yields only subpixel points in gaps and preserves covera
 test("cache pressure evicts only offscreen detail and retains the opening points", () => {
   const cloud = new FernPointCloud(),
     frame = source();
-  const [root] = cloud.append(frame, 1, [400, 300]);
+  const [root] = cloud.append(frame, [400, 300]);
   const away = { ...frame, view: createViewport([100, 100], 0.01) };
-  const [outside] = cloud.append(away, 2, [400, 300]);
-  const [visible] = cloud.append(frame, 3, [410, 300]);
+  const [outside] = cloud.append(away, [400, 300]);
+  const [visible] = cloud.append(frame, [480, 300]);
   const removed = cloud.prune(frame, 2);
   assert.deepEqual(removed, [outside.id]);
   assert(cloud.tiles.has(root.id));
   assert(cloud.tiles.has(visible.id));
+});
+
+test("views within an octave extend one set of tiles and one pixel grid", () => {
+  const cloud = new FernPointCloud(),
+    frame = source();
+  const inOctave = (log) => ({ ...frame, view: zoomViewport(frame.view, log, 0, 0) });
+  for (let k = 1; k < 100; k++) cloud.append(inOctave(-k / 100), [400 + k / 10, 300]);
+  assert.equal(new Set(Array.from(cloud.tiles.values(), (t) => t.epoch)).size, 1);
+  assert(cloud.tiles.size <= 2, `views fragmented the cloud into ${cloud.tiles.size} tiles`);
+  // The same frame pixel seen from another view adds nothing: its grid does not move.
+  const screen = (log, framePixel) => 400 + (framePixel - 400) * 2 ** (-1 - log);
+  const [added] = cloud.append(inOctave(-0.5), [screen(-0.5, 500.5), 300]);
+  const before = cloud.count;
+  assert.deepEqual(cloud.append(inOctave(-0.25), [screen(-0.25, 500.5), 300]), []);
+  assert.equal(cloud.count, before);
+  assert.equal(cloud.tiles.get(added.id).count, 1);
+});
+
+test("a far pan within an octave starts a new frame so float offsets stay subpixel", () => {
+  const cloud = new FernPointCloud(),
+    frame = source();
+  const [near] = cloud.append(frame, [400, 300]);
+  const far = { ...frame, view: moveViewport(frame.view, 2 ** 8, 0) };
+  const [other] = cloud.append(far, [400, 300]);
+  assert.notEqual(other.epoch, near.epoch);
+  assert.deepEqual(Array.from(projectFernTile(cloud.tiles.get(other.id), far)), [400, 300]);
+});
+
+test("finer tiles thin to what their pixels can show; their own level keeps every point", () => {
+  const full = FERN_TILE_SIZE ** 2;
+  assert.deepEqual(fernTileLod(full, 1), { stride: 1, count: full });
+  assert.deepEqual(fernTileLod(full, 0.51), { stride: 1, count: full });
+  assert.deepEqual(fernTileLod(10, 0.1), { stride: 1, count: 10 });
+  assert.deepEqual(fernTileLod(full, 0.4), { stride: 2, count: full / 2 }, "one level finer");
+  // Half a dot per pixel three levels out, so an old view fades into sparser dots.
+  assert.deepEqual(fernTileLod(full, 1 / 8), { stride: 16, count: 32 });
+  assert.deepEqual(fernTileLod(full, 1e-9), { stride: 16, count: 1 });
+  assert.deepEqual(fernTileLod(full, 0), { stride: 16, count: 1 });
+  assert.deepEqual(fernTileLod(0, 0), { stride: 1, count: 0 });
+  assert.deepEqual(fernTileLod(full, Infinity), { stride: 1, count: full });
+  assert(fernTileLod(full, 1 / 64).stride * 8 <= 255, "WebGL rejects a stride above 255 bytes");
+  // Subsets nest, so a halving only removes dots and never swaps them.
+  const subset = (lod) => new Set(Array.from({ length: lod.count }, (_, i) => i * lod.stride));
+  const coarse = subset(fernTileLod(full, 0.1)),
+    fine = subset(fernTileLod(full, 0.2));
+  for (const i of coarse) assert(fine.has(i));
+});
+
+test("mask only marks drawn dots, so the sampler can fill behind thinned detail", () => {
+  const cloud = new FernPointCloud(),
+    frame = { ...source(), view: createViewportAtLog([0, 0], -8) };
+  const points = [];
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) points.push(x + 0.5, y + 0.5);
+  cloud.append(frame, points);
+  const out = { ...source(), view: createViewportAtLog([0, 0], 0) };
+  const projected = projectFernTile(Array.from(cloud.tiles.values())[0], out);
+  const { occupied } = cloud.coverage(out);
+  assert.equal(projected.length, 2);
+  assert.equal(
+    occupied.reduce((sum, v) => sum + v, 0),
+    1,
+  );
+});
+
+test("zooming out sheds detail far finer than the screen, finest first", () => {
+  const cloud = new FernPointCloud(),
+    frame = source();
+  const at = (log) => ({ ...frame, view: createViewportAtLog([0, 0], log) });
+  const [opening] = cloud.append(frame, [400, 300]);
+  const [near] = cloud.append(at(-1), [400, 300]);
+  const [fine] = cloud.append(at(-4), [400, 300]);
+  const [finest] = cloud.append(at(-9), [400, 300]);
+  assert.deepEqual(cloud.prune(frame, 3), [finest.id]);
+  assert.deepEqual(cloud.prune(frame, 1), [fine.id]);
+  assert(cloud.tiles.has(opening.id) && cloud.tiles.has(near.id));
+  assert.equal(cloud.count, 2);
+});
+
+test("a zoom round trip stays bounded by the screen, not by how many views it took", () => {
+  const matrix = FERN_PRESETS.barnsley.matrix,
+    b = fernBounds(matrix);
+  const width = 400,
+    height = 300,
+    cloud = new FernPointCloud();
+  const opening = createViewport([b.x, b.y], fernOpeningSpan(b, width, height));
+  const visit = (view, burst = 2000) => {
+    const request = { view, width, height };
+    cloud.prune(request);
+    const { occupied } = cloud.coverage(request);
+    const walker = createFernWalker(matrix, view, width, height, "chaos", 42, occupied);
+    cloud.append(request, walker.step(burst));
+  };
+  let view = opening;
+  visit(view, 60000);
+  for (let k = 1; k <= 120; k++) {
+    view = zoomViewport(opening, opening.logZoom - k / 15, -0.05, 0.1);
+    visit(view);
+  }
+  const deep = cloud.count;
+  for (let k = 120; k >= 0; k--) {
+    view = zoomViewport(opening, opening.logZoom - k / 15, -0.05, 0.1);
+    visit(view);
+  }
+  const drawn = Array.from(cloud.tiles.values()).reduce((sum, tile) => {
+    const scale = 2 ** (tile.view.logZoom - view.logZoom);
+    return sum + fernTileLod(tile.count, scale).count;
+  }, 0);
+  assert(cloud.tiles.size <= 2048, `${cloud.tiles.size} tiles retained`);
+  assert(cloud.count < deep + 8 * width * height, `${cloud.count} points after ${deep}`);
+  assert(drawn <= 4 * width * height, `${drawn} dots drawn on a ${width}x${height} screen`);
 });
 
 function harness(t) {
@@ -111,6 +227,7 @@ function harness(t) {
     uploads = [],
     deletes = [],
     draws = [],
+    pointers = [],
     uniforms = {};
   let worker;
   const gl = new Proxy(
@@ -122,6 +239,7 @@ function harness(t) {
       getUniformLocation: (_, name) => name,
       bufferData: (...args) => uploads.push({ type: "allocate", args }),
       bufferSubData: (...args) => uploads.push({ type: "append", args }),
+      vertexAttribPointer: (...args) => pointers.push(args),
       deleteBuffer: (x) => deletes.push(x),
       uniform1f: (key, value) => (uniforms[key] = value),
       uniform2f: (key, ...value) => (uniforms[key] = value),
@@ -214,7 +332,7 @@ function harness(t) {
         complete: true,
       },
     });
-  return { renderer, worker, tick, append, uploads, deletes, draws, frames };
+  return { renderer, worker, tick, append, uploads, deletes, draws, frames, pointers };
 }
 
 test("GPU camera movement reuses point buffers, keeps dots one pixel and never replaces a frame", (t) => {
@@ -242,6 +360,60 @@ test("GPU camera movement reuses point buffers, keeps dots one pixel and never r
   h.renderer.dispose();
   assert.equal(h.frames.size, 0);
   assert(h.worker.terminated);
+});
+
+test("zooming out draws a nested subset of a tile from the same buffer", (t) => {
+  const h = harness(t);
+  h.tick();
+  h.append(
+    1,
+    0,
+    Array.from({ length: 8192 }, (_, i) => (i % 64) + 0.5),
+  );
+  h.tick();
+  assert.equal(h.draws.at(-1).count, 4096);
+  assert.equal(h.pointers.at(-1)[4], 8);
+  const uploads = h.uploads.length;
+  const out = zoomViewport(source().view, source().view.logZoom + 3, 0, 0);
+  h.renderer.setView(out);
+  h.tick();
+  assert.equal(h.uploads.length, uploads, "thinning must not upload");
+  assert.equal(h.pointers.at(-1)[4], 16 * 8);
+  assert.equal(h.draws.at(-1).count, 32, "half a dot per pixel over an 8 px tile");
+  h.renderer.dispose();
+});
+
+test("tiles in one frame share one exact camera calculation per paint", (t) => {
+  const h = harness(t);
+  h.tick();
+  h.append(1, 0, [16, 44]);
+  h.worker.onmessage({
+    data: {
+      type: "points",
+      id: 1,
+      appends: [
+        {
+          ...source(),
+          id: 2,
+          epoch: 1,
+          x: 448,
+          y: 256,
+          start: 0,
+          count: 1,
+          points: new Float64Array([16, 44]),
+        },
+      ],
+      samples: 1,
+      visited: 1,
+      resolution: 24,
+      count: 2,
+      complete: true,
+    },
+  });
+  h.tick();
+  const [left, right] = h.draws.slice(-2);
+  assert.equal(left.uniforms.u_center[0] - right.uniforms.u_center[0], 64);
+  h.renderer.dispose();
 });
 
 test("deep camera movement immediately reprojects retained points from their original coordinates", (t) => {
