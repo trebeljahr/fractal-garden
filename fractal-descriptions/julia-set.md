@@ -52,25 +52,25 @@ The pictures below start on $c = -1$: a point starting at $0.5$ ends up jumping 
 
 <figure data-lesson="linked-julia"></figure>
 
-## Where the points end up
+## Where the orbits go
 
-Go back to the first demo's $c$. A point there has two possible futures. It escapes, or it ends up repeating three exact places forever: $(0, 0)$, $c$ and $(-0.66236, 0.56228)$. These three places are called the **attractor**. The one exception is a point exactly on the edge of the dark shape, which stays on the edge forever.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
+The route a point follows, jump after jump, is called its **orbit**. With the first demo's $c$, an orbit can do two things. It can escape, or it can fall into one repeating loop: $(0, 0)$, then $c$, then $(-0.66236, 0.56228)$, then $(0, 0)$ again. The point goes round that loop forever and never stops at any of the three places. This loop is called the **attractor**. The one exception is a point exactly on the edge of the dark shape, which stays on the edge forever.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
 
-The demo below colors each starting point by its future. Gray points escape. Points of one color all land on the same place on the same jump. Play it and watch each color bunch together.
+The demo below colors each starting point by its turn on the loop. Points of one color reach the same place on the same jump, then move on together. Gray points escape. Play it and watch each color bunch together, join the loop and keep going round it until you pause.
 
 <figure data-lesson="julia-attractor"></figure>
 
-The dark shape is made of rounded pieces called lobes, and each lobe has one color. A jump moves a whole lobe onto another lobe, so its points stay together. After enough jumps, every lobe has landed on one of the three lobes that hold the attractor.<sup><a id="julia-set-ref-5" href="#julia-set-source-4">4</a></sup>
+The dark shape is made of rounded pieces called lobes, and each lobe has one color. A jump moves a whole lobe onto another lobe, so its points stay together. After enough jumps, every lobe has landed on one of the three lobes that hold the loop's places.<sup><a id="julia-set-ref-5" href="#julia-set-source-4">4</a></sup>
 
-The attractor passes through $0$. Start at $0$ and you land on $c$, then on $(-0.66236, 0.56228)$, then back on $0$.<sup><a id="julia-set-ref-6" href="#julia-set-source-5">5</a></sup> Squaring makes small numbers much smaller: $0.1$ becomes $0.01$. So each time a point comes back near $0$, its distance from $0$ shrinks fast. A point $0.1$ from $0$ is $0.026$ away three jumps later, then $0.0018$, then $0.000009$. The gap keeps shrinking forever. After about 30 jumps it is too small for the computer to store, so the numbers repeat exactly.
+The loop passes through $0$. Start at $0$ and you land on $c$, then on $(-0.66236, 0.56228)$, then back on $0$.<sup><a id="julia-set-ref-6" href="#julia-set-source-5">5</a></sup> Squaring makes small numbers much smaller: $0.1$ becomes $0.01$. So each time a point comes back near $0$, its distance from $0$ shrinks fast. A point $0.1$ from $0$ is $0.026$ away three jumps later, then $0.0018$, then $0.000009$. The gap keeps shrinking forever. After about 30 jumps it is too small for the computer to store, so the numbers repeat exactly.
 
-Can the same $c$ have a second attractor? No. Pierre Fatou and Gaston Julia proved that if a $c$ has an attractor, $0$ ends up on it.<sup><a id="julia-set-ref-7" href="#julia-set-source-4">4</a></sup> The point $0$ follows only one route, so it can end up on only one attractor. To find the attractor, start at $0$ and follow the jumps. That is the point the Mandelbrot test follows.
+Can the same $c$ have a second attractor? No. Pierre Fatou and Gaston Julia proved that if a $c$ has an attractor, $0$ falls into it.<sup><a id="julia-set-ref-7" href="#julia-set-source-4">4</a></sup> The point $0$ follows only one route, so it can fall into only one attractor. To find the attractor, start at $0$ and follow the jumps. That is the point the Mandelbrot test follows.
 
-So the Mandelbrot picture shows the attractor's size. Drag the ring in the demo. Inside the heart-shaped body, the attractor is one place, called a **fixed point**: one jump lands it on itself. Inside the round bulb on the left, it has two places: $c = -1$ sends $0$ to $-1$ and back. Inside the big bulbs above and below the heart, it has three.<sup><a id="julia-set-ref-8" href="#julia-set-source-6">6</a></sup> The numbers on the Mandelbrot picture mark more bulbs. Outside the black shape, $0$ escapes, there is no attractor and all the dots escape.
+So the Mandelbrot picture shows how long the loop is. Drag the ring in the demo. Inside the heart-shaped body, the loop has one place, called a **fixed point**: one jump lands it on itself, so here the points do end up in one spot. Inside the round bulb on the left, it has two places: $c = -1$ sends $0$ to $-1$ and back. Inside the big bulbs above and below the heart, it has three.<sup><a id="julia-set-ref-8" href="#julia-set-source-6">6</a></sup> The numbers on the Mandelbrot picture mark more bulbs. Outside the black shape, $0$ escapes, there is no attractor and all the dots escape.
 
 Count the colors that meet at a joint of the dark shape. For a bulb that touches the heart, that count is the number of places. The lines that meet at the main fork of the bulb's largest antenna give the same count.<sup><a id="julia-set-ref-9" href="#julia-set-source-6">6</a></sup>
 
-Not every $c$ in the Mandelbrot set has an attractor. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup> Close to a bulb's rim, the points need far more jumps than this demo shows, and it may not find the attractor.
+Not every $c$ in the Mandelbrot set has an attractor. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup> Close to a bulb's rim, the points need far more jumps, and the demo may not find the attractor.
 
 ## Further reading
 - [Julia set — Wikipedia](https://en.wikipedia.org/wiki/Julia_set)

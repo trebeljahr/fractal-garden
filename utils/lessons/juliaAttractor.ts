@@ -1,6 +1,7 @@
 import type { ComplexPoint } from "../orbitLesson";
 
-export const ATTRACTOR_JUMPS = 72;
+// Long enough for nearly every Rabbit dot to join the loop. Playback keeps going past this.
+export const ATTRACTOR_JUMPS = 60;
 export const ATTRACTOR_BOUNDS = [-1.8, 1.8, -1.5, 1.5] as const;
 export const ESCAPES = -1;
 export const STAYS_UNSETTLED = -2;
@@ -82,10 +83,6 @@ export function fateOf(
   }
   return STAYS_UNSETTLED;
 }
-
-/** The color on a given place after a given jump. */
-export const colorOnPlace = (place: number, step: number, places: number) =>
-  wrap(place - step, places);
 
 /** Fates for a grid across the picture, row by row from the top. */
 export function fateGrid(

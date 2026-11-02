@@ -6,7 +6,6 @@ import {
   attractingLoop,
   attractorDots,
   BULB_LOOPS,
-  colorOnPlace,
   dotsAfter,
   ESCAPES,
   fateOf,
@@ -66,7 +65,7 @@ test("a pick on a number beside a small bulb chooses that bulb", () => {
   assert.equal(pickBulb(open), open);
 });
 
-test("every Rabbit dot escapes or lands exactly where its color says", () => {
+test("every Rabbit dot escapes or joins the loop at the turn its color says", () => {
   const loop = attractingLoop(RABBIT);
   const { starts, colors } = attractorDots(RABBIT, loop);
   const jumps = 601;
@@ -79,7 +78,7 @@ test("every Rabbit dot escapes or lands exactly where its color says", () => {
   assert.equal(escaped + onPlace.reduce((sum, count) => sum + count, 0), colors.length);
   for (let dot = 0; dot < colors.length; dot++) {
     if (colors[dot] === ESCAPES) assert.equal(landedOn[dot], -1);
-    else assert.equal(colorOnPlace(landedOn[dot], jumps, 3), colors[dot], `dot ${dot}`);
+    else assert.equal((((landedOn[dot] - jumps) % 3) + 3) % 3, colors[dot], `dot ${dot}`);
   }
 });
 
@@ -165,4 +164,19 @@ test("the article's numbers for the Rabbit", () => {
   repeatAt.sort((a, b) => a - b);
   const median = repeatAt[repeatAt.length >> 1];
   assert.ok(median >= 20 && median <= 40, `median ${median}`);
+});
+
+test("a dot on the loop keeps moving: it lands on a different place every jump", () => {
+  const loop = attractingLoop(RABBIT);
+  const { starts, colors } = attractorDots(RABBIT, loop);
+  const dot = colors.findIndex((color) => color !== ESCAPES);
+  const seen = [];
+  let positions = dotsAfter(RABBIT, starts, 300);
+  for (let jump = 0; jump < 6; jump++) {
+    seen.push(tallyDots(RABBIT, positions, loop).landedOn[dot]);
+    positions = dotsAfter(RABBIT, positions, 1);
+  }
+  assert.equal(new Set(seen).size, 3);
+  for (let jump = 3; jump < 6; jump++) assert.equal(seen[jump], seen[jump - 3]);
+  for (let jump = 1; jump < 6; jump++) assert.notEqual(seen[jump], seen[jump - 1]);
 });

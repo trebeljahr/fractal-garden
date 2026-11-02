@@ -10,14 +10,13 @@ import {
   attractingLoop,
   attractorDots,
   BULB_LOOPS,
-  colorOnPlace,
   dotsAfter,
   ESCAPES,
   fateGrid,
   pickBulb,
   tallyDots,
 } from "../../utils/lessons/juliaAttractor";
-import type { ComplexPoint } from "../../utils/orbitLesson";
+import { type ComplexPoint, jumpControl, jumpPoint } from "../../utils/orbitLesson";
 import { LessonFrame, LessonStepControls } from "./LessonFrame";
 import { LinkedMap, parameterPixel } from "./LinkedJuliaLesson";
 
@@ -27,17 +26,21 @@ const BACKGROUND = "#10151a";
 const INK = "#eee8ce";
 const ESCAPING_DOT = "#8a95a1";
 const ESCAPING_FILL = "#39424c";
+const ORBIT = "#f5c56d";
 const [LEFT, RIGHT, BOTTOM, TOP] = ATTRACTOR_BOUNDS;
 const ASPECT = (TOP - BOTTOM) / (RIGHT - LEFT);
 // A quick picture follows the drag. The sharp one waits until the ring rests.
 const QUICK_COLUMNS = 150;
 const SHARPEST_COLUMNS = 640;
 const SHARPEN_AFTER_MS = 120;
-// Labels and rows stop being readable past these many places.
+// Labels, the written loop, arrows and lines stop being readable past these many places.
 const MOST_LABELS = 5;
-const MOST_ROWS = 6;
-// The first jumps move the most, so they play slowly enough to follow.
-const hopMs = (step: number) => (step <= 6 ? 620 : 150);
+const MOST_WRITTEN = 6;
+const MOST_ARROWS = 8;
+const MOST_LINES = 32;
+// The first jumps move the most, so they play slowly enough to follow. Once the dots
+// have joined the loop, it plays slowly enough to follow them around it.
+const hopMs = (step: number) => (step <= 6 ? 620 : step <= ATTRACTOR_JUMPS ? 150 : 520);
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -46,6 +49,12 @@ function number(value: number, digits: number) {
 }
 function coordinates(point: ComplexPoint, digits = 5) {
   return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
+}
+function orbitText(loop: ComplexPoint[] | null) {
+  if (!loop) return "No attractor found";
+  if (loop.length === 1) return `Fixed point: ${coordinates(loop[0])}`;
+  if (loop.length > MOST_WRITTEN) return `Loop of ${loop.length} places`;
+  return `Loop: ${[...loop, loop[0]].map((place) => coordinates(place)).join(" → ")} → …`;
 }
 // More colors than the palette holds would need repeats, so a long loop shares one color.
 function fateColor(fate: number, places: number) {
@@ -92,6 +101,7 @@ type Frame = {
   landedOn: Int16Array;
   landedBefore: Int16Array;
   onPlace: number[];
+  moving: number;
 };
 
 function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
@@ -125,9 +135,39 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
     }
   }
 
-  // A dot that has landed joins its bunch, which is drawn once at the exact place.
-  const landed = t < 1 ? frame.landedBefore : frame.landedOn;
   const places = loop?.length ?? 0;
+  const pixel = (place: ComplexPoint) => ({ x: px(place.real), y: py(place.imaginary) });
+  // The loop itself. It firms up as dots join it.
+  const joined = onPlace.reduce((sum, count) => sum + count, 0);
+  if (loop && joined && places > 1 && places <= MOST_LINES) {
+    context.globalAlpha = 0.3 + (0.7 * joined) / (joined + frame.moving);
+    context.strokeStyle = ORBIT;
+    context.fillStyle = ORBIT;
+    context.lineWidth = 1.5 * scale;
+    loop.forEach((place, index) => {
+      const from = pixel(place);
+      const to = pixel(loop[(index + 1) % places]);
+      const bend = jumpControl(from, to);
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.quadraticCurveTo(bend.x, bend.y, to.x, to.y);
+      context.stroke();
+      if (places > MOST_ARROWS) return;
+      const tip = jumpPoint(from, bend, to, 0.78);
+      const behind = jumpPoint(from, bend, to, 0.74);
+      const angle = Math.atan2(tip.y - behind.y, tip.x - behind.x);
+      const size = 7 * scale;
+      context.beginPath();
+      context.moveTo(tip.x + Math.cos(angle) * size, tip.y + Math.sin(angle) * size);
+      context.lineTo(tip.x + Math.cos(angle + 2.5) * size, tip.y + Math.sin(angle + 2.5) * size);
+      context.lineTo(tip.x + Math.cos(angle - 2.5) * size, tip.y + Math.sin(angle - 2.5) * size);
+      context.fill();
+    });
+    context.globalAlpha = 1;
+  }
+
+  // A dot on the loop joins its bunch, which is drawn once and travels along the loop.
+  const landed = t < 1 ? frame.landedBefore : frame.landedOn;
   const radius = Math.max(1.3, canvas.clientWidth / 340) * scale;
   const bunches = new Array<number>(places).fill(0);
   for (const fate of Array.from(new Set(colors))) {
@@ -152,17 +192,12 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
   if (!loop) return;
   bunches.forEach((count, color) => {
     if (!count) return;
-    const to = loop[(color + step) % places];
-    const from = loop[(color + Math.max(0, step - 1)) % places];
+    const to = pixel(loop[(color + step) % places]);
+    const from = pixel(loop[(color + Math.max(0, step - 1)) % places]);
+    const at = jumpPoint(from, jumpControl(from, to), to, t);
     context.fillStyle = fateColor(color, places);
     context.beginPath();
-    context.arc(
-      px(lerp(from.real, to.real, t)),
-      py(lerp(from.imaginary, to.imaginary, t)),
-      Math.min(7, 2.5 + 0.14 * Math.sqrt(count)) * scale,
-      0,
-      Math.PI * 2,
-    );
+    context.arc(at.x, at.y, Math.min(7, 2.5 + 0.14 * Math.sqrt(count)) * scale, 0, Math.PI * 2);
     context.fill();
   });
   if (places > MOST_LABELS) return;
@@ -185,21 +220,38 @@ function paintDots(canvas: HTMLCanvasElement, frame: Frame, t: number) {
 
 export default function JuliaAttractorLesson() {
   const [c, setC] = useState<ComplexPoint>(RABBIT);
-  const [motion, setMotion] = useState({ step: 0, animate: false });
+  const [motion, setMotion] = useState({ step: 0, animate: false, furthest: ATTRACTOR_JUMPS });
   const starts = useRef<HTMLCanvasElement>(null);
   const dotsCanvas = useRef<HTMLCanvasElement>(null);
+  const lastFrame = useRef<{ dots: Float64Array; step: number; positions: Float64Array } | null>(
+    null,
+  );
   const reduced = useReducedMotion();
-  const { step, animate } = motion;
+  const { step, animate, furthest } = motion;
   const field = useMemo(() => {
     const loop = attractingLoop(c);
     return { loop, ...attractorDots(c, loop) };
   }, [c]);
   const { loop } = field;
-  const goTo = (next: number) => setMotion({ step: next, animate: next === step + 1 && !reduced });
-  const playback = useLessonPlayback(step, ATTRACTOR_JUMPS, goTo, hopMs(step + 1) + 40);
+  const goTo = (next: number) =>
+    setMotion({
+      step: next,
+      animate: next === step + 1 && !reduced,
+      furthest: Math.max(furthest, next + 1),
+    });
+  // The orbit never ends, so playing has no last jump. Pausing or scrolling away stops it.
+  const playback = useLessonPlayback(step, Number.POSITIVE_INFINITY, goTo, hopMs(step + 1) + 40);
   const frame = useMemo(() => {
-    const positions = dotsAfter(c, field.starts, step);
-    const previous = animate ? dotsAfter(c, field.starts, step - 1) : positions;
+    const last = lastFrame.current;
+    const before =
+      last?.dots === field.starts && last.step === step - 1
+        ? last.positions
+        : animate
+          ? dotsAfter(c, field.starts, step - 1)
+          : null;
+    const positions = before ? dotsAfter(c, before, 1) : dotsAfter(c, field.starts, step);
+    lastFrame.current = { dots: field.starts, step, positions };
+    const previous = animate && before ? before : positions;
     const tally = tallyDots(c, positions, loop);
     return {
       ...tally,
@@ -241,16 +293,13 @@ export default function JuliaAttractorLesson() {
   }, [frame, animate]);
 
   const places = loop?.length ?? 0;
-  const placesText = !loop
-    ? "No attractor found"
-    : places === 1
-      ? "Attractor: 1 exact place"
-      : `Attractor: ${places} exact places`;
+  const orbit = orbitText(loop);
+  const joinedDots = frame.onPlace.reduce((sum, count) => sum + count, 0);
   return (
-    <LessonFrame title="Where each point ends up" kind="julia-attractor">
+    <LessonFrame title="Where each point's orbit goes" kind="julia-attractor">
       <LessonStepControls
         step={step}
-        max={ATTRACTOR_JUMPS}
+        max={Math.max(ATTRACTOR_JUMPS, furthest)}
         playback={playback}
         label="Points"
         stepDescription={step === 0 ? "Start" : `Jump ${step}`}
@@ -266,6 +315,7 @@ export default function JuliaAttractorLesson() {
               onChange={(point) => {
                 setC(pickBulb(point));
                 playback.change(ATTRACTOR_JUMPS);
+                setMotion({ step: ATTRACTOR_JUMPS, animate: false, furthest: ATTRACTOR_JUMPS });
               }}
               onRelease={playback.play}
               overlay={BULB_LOOPS.map(({ places: count, at }) => {
@@ -289,7 +339,7 @@ export default function JuliaAttractorLesson() {
             <canvas
               ref={starts}
               role="img"
-              aria-label={`Starting points colored by where they end up, for c = ${coordinates(c, 3)}. ${placesText}.`}
+              aria-label={`Starting points colored by their turn on the loop, for c = ${coordinates(c, 3)}. ${orbit}.`}
             />
           </div>
         </div>
@@ -299,43 +349,32 @@ export default function JuliaAttractorLesson() {
             <canvas
               ref={dotsCanvas}
               role="img"
-              aria-label={`The points after ${step} jumps. ${frame.escaped} have escaped and ${frame.moving} are still moving.`}
+              aria-label={`The points after ${step} jumps. ${frame.escaped} have escaped, ${joinedDots} are on the loop and ${frame.moving} are still on the way.`}
             />
           </div>
           <div className={styles.key}>
-            <p data-attractor-places={places}>{placesText}</p>
+            <p data-attractor-places={places}>{orbit}</p>
             <table>
-              <thead>
-                <tr>
-                  <th scope="col">Place</th>
-                  <th scope="col">Dots</th>
-                </tr>
-              </thead>
               <tbody>
-                {loop && places <= MOST_ROWS
-                  ? loop.map((place, index) => (
-                      <tr key={`${place.real}:${place.imaginary}`}>
-                        <td>
+                {loop && (
+                  <tr>
+                    <td>
+                      {places <= ATTRACTOR_COLORS.length ? (
+                        ATTRACTOR_COLORS.slice(0, places).map((color) => (
                           <span
+                            key={color}
                             className={styles.swatch}
-                            style={{
-                              background: fateColor(colorOnPlace(index, step, places), places),
-                            }}
+                            style={{ background: color }}
                           />
-                          {coordinates(place)}
-                        </td>
-                        <td>{frame.onPlace[index]}</td>
-                      </tr>
-                    ))
-                  : loop && (
-                      <tr>
-                        <td>
-                          <span className={styles.swatch} style={{ background: INK }} />
-                          {places} places
-                        </td>
-                        <td>{frame.onPlace.reduce((sum, count) => sum + count, 0)}</td>
-                      </tr>
-                    )}
+                        ))
+                      ) : (
+                        <span className={styles.swatch} style={{ background: INK }} />
+                      )}
+                      {places === 1 ? "On the fixed point" : "On the loop"}
+                    </td>
+                    <td>{joinedDots}</td>
+                  </tr>
+                )}
                 <tr>
                   <td>
                     <span className={styles.swatch} style={{ background: ESCAPING_DOT }} />
@@ -346,7 +385,7 @@ export default function JuliaAttractorLesson() {
                 <tr>
                   <td>
                     <span className={styles.hollow} />
-                    Still moving
+                    Still on the way
                   </td>
                   <td>{frame.moving}</td>
                 </tr>

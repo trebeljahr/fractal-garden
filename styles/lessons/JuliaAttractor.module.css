@@ -71,16 +71,10 @@
     sans-serif;
   font-variant-numeric: tabular-nums;
 }
-.key th {
-  font-weight: 600;
-  text-align: left;
-}
-.key th,
 .key td {
   padding: 0.25rem 0;
   border-bottom: 1px solid #eee8ce26;
 }
-.key th:last-child,
 .key td:last-child {
   width: 6em;
   text-align: right;
@@ -90,7 +84,7 @@
   display: inline-block;
   width: 10px;
   height: 10px;
-  margin-right: 0.8rem;
+  margin-right: 0.5rem;
   border-radius: 50%;
 }
 .hollow {
