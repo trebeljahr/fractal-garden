@@ -1,0 +1,98 @@
+.layout {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.side {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-content: start;
+}
+.main {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+@media (min-width: 800px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+  .side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.layout h3 {
+  font:
+    600 1.4rem / 1.4 "Montserrat",
+    sans-serif;
+  margin: 0 0 0.6rem;
+}
+.layout canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.now canvas {
+  aspect-ratio: 6 / 5;
+}
+.layout .choose button {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  touch-action: none;
+}
+.layout .choose p,
+.key p {
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+  margin: 0.6rem 0 0;
+}
+.bulbNumber {
+  fill: #eee8ce;
+  stroke: #10151a;
+  stroke-width: 3px;
+  paint-order: stroke;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font:
+    600 15px "Montserrat",
+    sans-serif;
+}
+.key table {
+  width: 100%;
+  margin-top: 0.6rem;
+  border-collapse: collapse;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.key th {
+  font-weight: 600;
+  text-align: left;
+}
+.key th,
+.key td {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #eee8ce26;
+}
+.key th:last-child,
+.key td:last-child {
+  width: 6em;
+  text-align: right;
+}
+.swatch,
+.hollow {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.8rem;
+  border-radius: 50%;
+}
+.hollow {
+  border: 1px solid #eee8ce;
+}

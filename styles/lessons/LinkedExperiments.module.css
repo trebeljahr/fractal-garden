@@ -34,30 +34,6 @@
   background: none;
   pointer-events: none;
 }
-.stage {
-  position: relative;
-}
-.solo {
-  max-width: 62rem;
-  margin: 1rem auto 0;
-}
-.map canvas.dots {
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  pointer-events: none;
-}
-.bulbNumber {
-  fill: #eee8ce;
-  stroke: #10151a;
-  stroke-width: 3px;
-  paint-order: stroke;
-  text-anchor: middle;
-  dominant-baseline: central;
-  font:
-    600 14px "Montserrat",
-    sans-serif;
-}
 .readout {
   font-variant-numeric: tabular-nums;
 }

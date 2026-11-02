@@ -28,22 +28,6 @@ Pick a pixel in the dark shape and the point ends up jumping around three places
 
 Under the picture, the current jump is worked out by hand and rounded to five decimals. Press **Next jump** and the new point goes back in as the next starting point.
 
-Here are 1920 starting points spread across the picture, one dot each. All the dots jump together. The rings mark the three places: $(0, 0)$, $c$ and $(-0.66236, 0.56228)$.
-
-<figure data-lesson="julia-swarm"></figure>
-
-Dots outside the dark shape leave the picture. Dots inside it all end up on the rings. Dots near the edge take longest.
-
-Why the same three? Start at $0$ and jump. You land on $c$, then on $(-0.66236, 0.56228)$, then back on $0$.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> So the loop goes through $0$.
-
-Squaring makes small numbers much smaller: $0.1$ becomes $0.01$. So each time a point comes back near $0$, its distance from $0$ shrinks fast. A point $0.1$ from $0$ is $0.026$ away three jumps later, then $0.0018$, then $0.000009$.
-
-A point far from the rings gets there in stages. The dark shape is made of rounded pieces called lobes, and a jump moves a whole lobe onto another lobe. After enough jumps, every lobe has landed on one of the three lobes that hold the rings, and points in those lobes end up near the rings.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
-
-The one exception is the edge. A point exactly on the edge stays on the edge forever.<sup><a id="julia-set-ref-5" href="#julia-set-source-4">4</a></sup> It never reaches the rings and it never leaves. One such point is $(-0.27634, 0.47973)$, where three lobes meet: one jump lands it on itself. Move it a little and it ends up on the rings or leaves.
-
-Can the same $c$ have a second loop like this? No. Call a loop **attracting** if points near it end up on it. Pierre Fatou and Gaston Julia proved that $0$ always ends up on an attracting loop.<sup><a id="julia-set-ref-6" href="#julia-set-source-4">4</a></sup> The point $0$ follows only one route, so one $c$ can have only one attracting loop. To find it, start at $0$ and follow the jumps.
-
 Every starting point in one picture uses the same $c$. Change it, and you change the whole picture.
 
 <figure data-article-images="julia"></figure>
@@ -62,21 +46,31 @@ Almost all of these points must pass close to $0.5$, and that takes about 300 st
 
 Some points land near $0.5$ again and repeat the slow trip. You can see more of them change color at about 650 and 1000 steps.
 
-Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-7" href="#julia-set-source-5">5</a></sup> The shape above is dust too: $c = 0.2501$ lies just outside.
+Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> The shape above is dust too: $c = 0.2501$ lies just outside.
 
-The Mandelbrot test starts every calculation at $0$, the point that finds the loop. So each part of the Mandelbrot set has its own loop length.
+The pictures below start on $c = -1$: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Move the amber ring to $(0, 0)$ and you get the circle again. Move it outside the black shape and the Julia set breaks into dust.
 
-Inside the heart-shaped body, the loop has one place. One jump lands that place on itself, so it is called a **fixed point**. Inside the round bulb on the left, the loop has two places: $c = -1$ sends $0$ to $-1$ and back. Inside the big bulbs above and below the heart, it has three, and the first picture's $c$ is the center of the top one.<sup><a id="julia-set-ref-8" href="#julia-set-source-6">6</a></sup> The numbers in the Mandelbrot picture mark more bulbs.
+<figure data-lesson="linked-julia"></figure>
 
-Drag the ring in the Mandelbrot picture. The rings in the Julia picture and the count show the loop you get by following $0$. Let go and the dots start again from across the picture. Move the ring to $(0, 0)$ and you get the circle from the start of this article, where every point inside ends up on $0$. Move it outside the black shape and all the dots leave.
+## Where the points end up
 
-<figure data-lesson="julia-loops"></figure>
+Go back to the first demo's $c$. A point there has two possible futures. It escapes, or it ends up repeating three exact places forever: $(0, 0)$, $c$ and $(-0.66236, 0.56228)$. These three places are called the **attractor**. The one exception is a point exactly on the edge of the dark shape, which stays on the edge forever.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
 
-You can read the number off either picture. Take a bulb that touches the heart. Count the lines that meet at the main fork of its largest antenna. Then, in its Julia picture, count the lobes that meet at each joint. Both counts give the length of the loop.<sup><a id="julia-set-ref-9" href="#julia-set-source-6">6</a></sup>
+The demo below colors each starting point by its future. Gray points escape. Points of one color all land on the same place on the same jump. Play it and watch each color bunch together.
 
-Close to a bulb's rim the dots need far more jumps, and the count may not find the loop.
+<figure data-lesson="julia-attractor"></figure>
 
-Not every $c$ in the Mandelbrot set has an attracting loop. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup>
+The dark shape is made of rounded pieces called lobes, and each lobe has one color. A jump moves a whole lobe onto another lobe, so its points stay together. After enough jumps, every lobe has landed on one of the three lobes that hold the attractor.<sup><a id="julia-set-ref-5" href="#julia-set-source-4">4</a></sup>
+
+The attractor passes through $0$. Start at $0$ and you land on $c$, then on $(-0.66236, 0.56228)$, then back on $0$.<sup><a id="julia-set-ref-6" href="#julia-set-source-5">5</a></sup> Squaring makes small numbers much smaller: $0.1$ becomes $0.01$. So each time a point comes back near $0$, its distance from $0$ shrinks fast. A point $0.1$ from $0$ is $0.026$ away three jumps later, then $0.0018$, then $0.000009$. The gap keeps shrinking forever. After about 30 jumps it is too small for the computer to store, so the numbers repeat exactly.
+
+Can the same $c$ have a second attractor? No. Pierre Fatou and Gaston Julia proved that if a $c$ has an attractor, $0$ ends up on it.<sup><a id="julia-set-ref-7" href="#julia-set-source-4">4</a></sup> The point $0$ follows only one route, so it can end up on only one attractor. To find the attractor, start at $0$ and follow the jumps. That is the point the Mandelbrot test follows.
+
+So the Mandelbrot picture shows the attractor's size. Drag the ring in the demo. Inside the heart-shaped body, the attractor is one place, called a **fixed point**: one jump lands it on itself. Inside the round bulb on the left, it has two places: $c = -1$ sends $0$ to $-1$ and back. Inside the big bulbs above and below the heart, it has three.<sup><a id="julia-set-ref-8" href="#julia-set-source-6">6</a></sup> The numbers on the Mandelbrot picture mark more bulbs. Outside the black shape, $0$ escapes, there is no attractor and all the dots escape.
+
+Count the colors that meet at a joint of the dark shape. For a bulb that touches the heart, that count is the number of places. The lines that meet at the main fork of the bulb's largest antenna give the same count.<sup><a id="julia-set-ref-9" href="#julia-set-source-6">6</a></sup>
+
+Not every $c$ in the Mandelbrot set has an attractor. With $c = (0, 1)$, $0$ lands on a two-place loop that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-10" href="#julia-set-source-4">4</a></sup> Close to a bulb's rim, the points need far more jumps than this demo shows, and it may not find the attractor.
 
 ## Further reading
 
@@ -97,7 +91,7 @@ Not every $c$ in the Mandelbrot set has an attracting loop. With $c = (0, 1)$, $
 
 1. <span id="julia-set-source-1"></span> [Introduction to Complex Dynamics](https://pi.math.cornell.edu/~lipa/mec/lesson5.html). [Back](#julia-set-ref-1)
 2. <span id="julia-set-source-2"></span> Calculation: if $|z|>2$ and $|z|\ge|c|$, then $|z^2+c|\ge|z|^2-|c|\ge|z|(|z|-1)>|z|$. Here $|c|\approx0.75$. [Back](#julia-set-ref-2)
-3. <span id="julia-set-source-3"></span> Calculation: this $c$ is rounded to five decimals, so the third jump lands about $0.000004$ from $0$, and the loop's place sits that close to $0$. Distances are measured from that place. [Back](#julia-set-ref-3)
-4. <span id="julia-set-source-4"></span> [Dynamics in One Complex Variable: Introductory Lectures](https://arxiv.org/abs/math/9201272). Lemmas 10.2 and 10.4 and Remark 10.5 cover the loop and $0$, Lemma 14.2 the lobes, Lemma 3.1 the edge, and Figure 1c the case $c = (0, 1)$. [Back](#julia-set-ref-4) [Back](#julia-set-ref-5) [Back](#julia-set-ref-6) [Back](#julia-set-ref-10)
-5. <span id="julia-set-source-5"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#julia-set-ref-7)
+3. <span id="julia-set-source-3"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#julia-set-ref-3)
+4. <span id="julia-set-source-4"></span> [Dynamics in One Complex Variable: Introductory Lectures](https://arxiv.org/abs/math/9201272). Lemma 14.2 covers the two futures and the lobes, Lemma 3.1 the edge, Lemmas 10.2 and 10.4 and Remark 10.5 the attractor and $0$, and Figure 1c the case $c = (0, 1)$. [Back](#julia-set-ref-4) [Back](#julia-set-ref-5) [Back](#julia-set-ref-7) [Back](#julia-set-ref-10)
+5. <span id="julia-set-source-5"></span> Calculation: this $c$ is rounded to five decimals, so the third jump lands about $0.000004$ from $0$, and the attractor's place sits that close to $0$. Distances are measured from that place. [Back](#julia-set-ref-6)
 6. <span id="julia-set-source-6"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#julia-set-ref-8) [Back](#julia-set-ref-9)
