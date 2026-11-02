@@ -97,6 +97,10 @@
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
+.places .zoom sup {
+  font-size: 0.8em;
+  line-height: 0;
+}
 .places small {
   font-size: 12px;
   line-height: 1.45;

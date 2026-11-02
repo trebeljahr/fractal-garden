@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { type ReactNode, useEffect, useRef } from "react";
 import styles from "../styles/FractalPlaces.module.css";
-import { type FractalPlace, matchesPlace } from "../utils/fractalPlaces";
+import { type FractalPlace, formatZoom, matchesPlace } from "../utils/fractalPlaces";
 
 export type { FractalPlace } from "../utils/fractalPlaces";
 
@@ -31,18 +31,24 @@ export function FractalPlaces<T extends FractalPlace>({
       activePlace={activePlace}
       onSelect={onSelect}
       annotation={
-        initialZoomSize
-          ? (view) => (
-              <small className={styles.zoom}>
-                {new Intl.NumberFormat("en", { maximumSignificantDigits: 3 }).format(
-                  initialZoomSize / view.zoomSize,
-                )}
-                × zoom
-              </small>
-            )
-          : undefined
+        initialZoomSize ? (view) => <ZoomLabel zoom={initialZoomSize / view.zoomSize} /> : undefined
       }
     />
+  );
+}
+
+function ZoomLabel({ zoom }: { zoom: number }) {
+  const label = formatZoom(zoom);
+  return (
+    <small className={styles.zoom}>
+      {"digits" in label ? (
+        `${label.digits}× zoom`
+      ) : (
+        <>
+          {label.mantissa && `${label.mantissa} × `}10<sup>{label.exponent}</sup> zoom
+        </>
+      )}
+    </small>
   );
 }
 

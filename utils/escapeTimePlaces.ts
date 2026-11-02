@@ -273,11 +273,25 @@ export const JULIA_PLACES: EscapeTimePlace[] = [
 function places(formula: string, views: EscapeTimePlace[]) {
   return views.map((view) => ({
     ...view,
-    preview: view.preciseCenter ? undefined : `/assets/place-previews/${formula}-${view.id}.webp`,
+    preview: `/assets/place-previews/${formula}-${view.id}.webp`,
   }));
 }
 
+// Deep centers are decimal approximations from Newton's method; see utils/deepZoom/README.md.
 export const MANDELBROT_PLACES = places("mandelbrot", [
+  {
+    id: "pinwheel",
+    label: "Pinwheel",
+    detail: "Striped arms wind around one small round bulb.",
+    group: "Deep zoom",
+    center: [0.2549870375144766, -0.0005679790528465003],
+    preciseCenter: [
+      "0.25498703751447662069315322819805899506635775391330126079551426599589",
+      "-0.00056797905284650029532583021338759095511294135232100007655723492518",
+    ],
+    zoomSize: 3e-28,
+    iterations: 8000,
+  },
   {
     id: "deep-branches",
     label: "Deep branches",
@@ -290,6 +304,32 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     ],
     zoomSize: 1e-30,
     iterations: 1200,
+  },
+  {
+    id: "deep-miniature",
+    label: "Deep miniature",
+    detail: "Nearly the whole set again, close to the antenna's tip.",
+    group: "Deep zoom",
+    center: [-2, 0],
+    preciseCenter: [
+      "-1.9999999999999999967898060400299264075709409029383741791330318271418356907229",
+      "0",
+    ],
+    zoomSize: 5e-36,
+    iterations: 2000,
+  },
+  {
+    id: "googol-spiral",
+    label: "Googol spiral",
+    detail: "A ringed spiral. The zoom is 1 followed by 100 zeros.",
+    group: "Deep zoom",
+    center: [-0.7449821833457955, 0.1309479505208441],
+    preciseCenter: [
+      "-0.74498218334579547221223736514484682645861582295250522072299357824678428389465271322007156656429644537064608500159632198735108469741205670545",
+      "0.13094795052084410609715701615512066750654263678561605825874255675156637089709526201606000700058721448718127747275699103864801035834586205037",
+    ],
+    zoomSize: 1.5e-100,
+    iterations: 1500,
   },
   {
     id: "whole",

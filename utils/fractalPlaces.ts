@@ -20,6 +20,17 @@ export function matchesPlace(
   );
 }
 
+/** Plain digits up to six places; beyond that, mantissa × 10^exponent. */
+export function formatZoom(
+  zoom: number,
+): { digits: string } | { mantissa?: string; exponent: number } {
+  const [mantissa, exponent] = zoom.toExponential(2).split("e").map(Number);
+  if (exponent < 6) {
+    return { digits: new Intl.NumberFormat("en", { maximumSignificantDigits: 3 }).format(zoom) };
+  }
+  return mantissa === 1 ? { exponent } : { mantissa: String(mantissa), exponent };
+}
+
 export type EscapeTimePlace = FractalPlace & {
   id: string;
   /** Exact decimal coordinates for destinations beyond binary64 resolution. */
