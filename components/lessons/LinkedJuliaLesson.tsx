@@ -1,4 +1,12 @@
-import { type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type PointerEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
@@ -8,31 +16,42 @@ import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame } from "./LessonFrame";
 
 const ZERO = { real: 0, imaginary: 0 };
-const WIDTH = 360;
-const HEIGHT = 300;
+export const MAP_WIDTH = 360;
+export const MAP_HEIGHT = 300;
 const STEP_MS = 100;
 // Picks closer together than this are one drag, so the orbit keeps growing through them.
 const SAME_DRAG_MS = 250;
 const BOUNDS = { parameter: [-2, 1, -1.25, 1.25], start: [-1.8, 1.8, -1.5, 1.5] } as const;
 const text = (p: ComplexPoint) =>
   `(${Number(p.real.toFixed(3))}, ${Number(p.imaginary.toFixed(3))})`;
+export const parameterPixel = (p: ComplexPoint) => {
+  const [left, right, bottom, top] = BOUNDS.parameter;
+  return [
+    ((p.real - left) / (right - left)) * MAP_WIDTH,
+    ((top - p.imaginary) / (top - bottom)) * MAP_HEIGHT,
+  ];
+};
 
-function LinkedMap({
+export function LinkedMap({
   mapKind,
   c,
   value,
   onChange,
+  onRelease,
   orbit,
   loop,
   outcome = "",
+  overlay,
 }: {
   mapKind: "parameter" | "start";
   c: ComplexPoint;
   value: ComplexPoint;
   onChange: (point: ComplexPoint) => void;
+  onRelease?: () => void;
   orbit?: ComplexPoint[];
   loop?: ComplexPoint[];
   outcome?: string;
+  overlay?: ReactNode;
 }) {
   const pointer = useRef<number | null>(null);
   const [left, right, bottom, top] = BOUNDS[mapKind];
@@ -49,8 +68,8 @@ function LinkedMap({
     );
   };
   const xy = (p: ComplexPoint) => [
-    ((p.real - left) / (right - left)) * WIDTH,
-    ((top - p.imaginary) / (top - bottom)) * HEIGHT,
+    ((p.real - left) / (right - left)) * MAP_WIDTH,
+    ((top - p.imaginary) / (top - bottom)) * MAP_HEIGHT,
   ];
   const point = xy(value);
   const id = useId().replace(/:/g, "");
@@ -75,6 +94,7 @@ function LinkedMap({
         move(event);
         pointer.current = null;
         event.currentTarget.releasePointerCapture(event.pointerId);
+        onRelease?.();
       }}
       onPointerCancel={() => {
         pointer.current = null;
@@ -103,13 +123,14 @@ function LinkedMap({
       ) : (
         <EscapeTimePicture formula="julia" bounds={BOUNDS.start} coloring={JULIA_COLORING} c={c} />
       )}
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
+      <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} aria-hidden="true">
         <defs>
           <clipPath id={id}>
-            <rect width={WIDTH} height={HEIGHT} />
+            <rect width={MAP_WIDTH} height={MAP_HEIGHT} />
           </clipPath>
         </defs>
         <g clipPath={`url(#${id})`}>
+          {overlay}
           {orbit && (
             <polyline
               points={orbit.map((p) => xy(p).join(",")).join(" ")}

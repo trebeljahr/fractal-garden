@@ -6,6 +6,7 @@ const HilbertJoinLesson = dynamic(() => import("./lessons/HilbertJoinLesson"));
 const KochMeasurementLesson = dynamic(() => import("./lessons/KochMeasurementLesson"));
 const DlaContactsLesson = dynamic(() => import("./lessons/DlaContactsLesson"));
 const LinkedJuliaLesson = dynamic(() => import("./lessons/LinkedJuliaLesson"));
+const JuliaSwarmLesson = dynamic(() => import("./lessons/JuliaSwarmLesson"));
 const StepLimitLesson = dynamic(() => import("./lessons/StepLimitLesson"));
 const HandJumpLesson = dynamic(() => import("./lessons/HandJumpLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
@@ -28,6 +29,8 @@ const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
 
 const LESSONS = [
   "linked-julia",
+  "julia-swarm",
+  "julia-loops",
   "step-limit-mandelbrot",
   "step-limit-julia",
   "julia-by-hand",
@@ -67,6 +70,10 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <DlaContactsLesson />;
     case "linked-julia":
       return <LinkedJuliaLesson />;
+    case "julia-swarm":
+      return <JuliaSwarmLesson />;
+    case "julia-loops":
+      return <JuliaSwarmLesson linked />;
     case "step-limit-mandelbrot":
       return <StepLimitLesson formula="mandelbrot" />;
     case "step-limit-julia":
