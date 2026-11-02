@@ -30,7 +30,15 @@ Starting points whose results stay within a fixed distance of zero forever make 
 
 The computer tests only a limited number of steps. Dark pixels haven't escaped yet; some may escape later.
 
-Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup>
+Take $c = 0.2501$. From 100 steps to 300 steps, this picture barely changes: it shows a solid dark shape. Now move the slider to 320.
+
+<figure data-lesson="step-limit-julia"></figure>
+
+Most of the shape changes color between 310 and 330 steps. Almost all of its points must pass close to $0.5$, and that takes about 300 steps. With $c = 0.25$, the point $0.5$ would never move: $0.5^2 + 0.25 = 0.5$. With $c = 0.2501$, it moves by only $0.0001$, so jumps near $0.5$ are very small. The point in the ring spends 274 of its 315 steps within $0.05$ of $0.5$.
+
+Some points land near $0.5$ again and repeat the slow trip. You can see more of them change color at about 650 and 1000 steps.
+
+Which choices of $c$ keep the shape connected? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> The shape above is dust too: $c = 0.2501$ lies just outside.
 
 Try **Circle**, **Two lobes**, then **Dust** below. Watch where the amber ring sits in the Mandelbrot picture as the Julia shape changes. **Two lobes** subtracts one: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$.
 

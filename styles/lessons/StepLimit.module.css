@@ -1,0 +1,19 @@
+.picture {
+  position: relative;
+}
+.picture canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.picture svg {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: none;
+  pointer-events: none;
+}
+.readout {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

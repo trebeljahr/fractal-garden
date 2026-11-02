@@ -6,6 +6,7 @@ const HilbertJoinLesson = dynamic(() => import("./lessons/HilbertJoinLesson"));
 const KochMeasurementLesson = dynamic(() => import("./lessons/KochMeasurementLesson"));
 const DlaContactsLesson = dynamic(() => import("./lessons/DlaContactsLesson"));
 const LinkedJuliaLesson = dynamic(() => import("./lessons/LinkedJuliaLesson"));
+const StepLimitLesson = dynamic(() => import("./lessons/StepLimitLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
 const DragonTilingLesson = dynamic(() => import("./lessons/DragonTilingLesson"));
 const NewtonLesson = dynamic(() => import("./lessons/NewtonLesson"));
@@ -26,6 +27,8 @@ const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
 
 const LESSONS = [
   "linked-julia",
+  "step-limit-mandelbrot",
+  "step-limit-julia",
   "koch-measurement",
   "dragon-fold",
   "hilbert-join",
@@ -62,6 +65,10 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <DlaContactsLesson />;
     case "linked-julia":
       return <LinkedJuliaLesson />;
+    case "step-limit-mandelbrot":
+      return <StepLimitLesson formula="mandelbrot" />;
+    case "step-limit-julia":
+      return <StepLimitLesson formula="julia" />;
     case "lsystem-koch":
       return <LSystemLesson preset="koch" />;
     case "lsystem-dragon":
