@@ -36,27 +36,6 @@ export function traceTeachingOrbit(
   return orbit;
 }
 
-// Runs once per canvas pixel, so it avoids allocating a point per iteration.
-export function teachingPixelEscape(kind: OrbitKind, pixel: ComplexPoint, juliaC: ComplexPoint) {
-  const c = kind === "julia" ? juliaC : pixel;
-  const fold = kind === "burning-ship";
-  const limit = ESCAPE_RADIUS * ESCAPE_RADIUS;
-  let x = kind === "julia" ? pixel.real : 0;
-  let y = kind === "julia" ? pixel.imaginary : 0;
-  for (let iteration = 0; iteration <= TEACHING_LIMIT; iteration++) {
-    if (x * x + y * y > limit) return iteration;
-    if (iteration === TEACHING_LIMIT) break;
-    if (fold) {
-      x = Math.abs(x);
-      y = Math.abs(y);
-    }
-    const next = x * x - y * y + c.real;
-    y = 2 * x * y + c.imaginary;
-    x = next;
-  }
-  return null;
-}
-
 // A jump curves to its left, so A to B and B to A draw as a visible loop, not one line.
 export function jumpControl(from: Pixel, to: Pixel): Pixel {
   const dx = to.x - from.x;

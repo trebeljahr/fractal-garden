@@ -137,6 +137,12 @@ export const JULIA_COLORING = createColoring("classic", {
   colorOffset: 0.45,
   interior: "#252424",
 });
+export const BURNING_SHIP_COLORING = createColoring("classic", {
+  iterations: 200,
+  colorDensity: 0.5,
+  colorOffset: 0.55,
+  interior: "#000000",
+});
 
 /**
  * Merges a dat-gui update. Picking a look applies its values; tweaking any

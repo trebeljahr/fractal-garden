@@ -1,6 +1,10 @@
 import { memo, type PointerEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import styles from "../styles/OrbitLesson.module.css";
-import { JULIA_COLORING } from "../utils/escapeTimeColoring";
+import {
+  BURNING_SHIP_COLORING,
+  JULIA_COLORING,
+  MANDELBROT_COLORING,
+} from "../utils/escapeTimeColoring";
 import { useLessonPlayback } from "../utils/hooks/useLessonPlayback";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
@@ -13,7 +17,6 @@ import {
   type OrbitKind,
   type Pixel,
   TEACHING_LIMIT,
-  teachingPixelEscape,
   traceTeachingOrbit,
 } from "../utils/orbitLesson";
 import { EscapeTimePicture } from "./lessons/EscapeTimePicture";
@@ -33,8 +36,11 @@ const VIEW = { left: -2.8, right: 2.8, bottom: -2.2, top: 2.2 };
 const VIEW_BOUNDS = [VIEW.left, VIEW.right, VIEW.bottom, VIEW.top] as const;
 const VIEW_WIDTH = VIEW.right - VIEW.left;
 const VIEW_HEIGHT = VIEW.top - VIEW.bottom;
-const CANVAS_WIDTH = 960;
-const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * VIEW_HEIGHT) / VIEW_WIDTH);
+const COLORING = {
+  mandelbrot: MANDELBROT_COLORING,
+  julia: JULIA_COLORING,
+  "burning-ship": BURNING_SHIP_COLORING,
+};
 const HOP_MS = 650;
 const REST_MS = 300;
 const FIRST_HOP_DELAY_MS = 350;
@@ -47,14 +53,6 @@ function number(value: number) {
 }
 function coordinates(point: ComplexPoint) {
   return `(${number(point.real)}, ${number(point.imaginary)})`;
-}
-function pixelRgb(escapeCount: number | null) {
-  if (escapeCount === null) return [16, 21, 26];
-  const shade = 0.16 + 0.54 * Math.sqrt(escapeCount / TEACHING_LIMIT);
-  return [245 * shade, 197 * shade, 109 * shade];
-}
-function pixelColor(escapeCount: number | null) {
-  return `rgb(${pixelRgb(escapeCount).join(", ")})`;
 }
 function distance(a: Pixel, b: Pixel) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -71,33 +69,6 @@ function clampToView(point: ComplexPoint) {
     imaginary: Number(Math.max(VIEW.bottom, Math.min(VIEW.top, point.imaginary)).toFixed(2)),
   };
 }
-
-// Julia uses the explorer's shader. These two tie each pixel's color to its jump count.
-const JumpCountPicture = memo(function JumpCountPicture({ kind }: { kind: OrbitKind }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const flip = kind === "burning-ship";
-  useEffect(() => {
-    const context = canvas.current?.getContext("2d");
-    if (!context) return;
-    const pixels = context.createImageData(CANVAS_WIDTH, CANVAS_HEIGHT);
-    const pixel = { real: 0, imaginary: 0 };
-    for (let y = 0; y < CANVAS_HEIGHT; y++) {
-      const down = ((y + 0.5) / CANVAS_HEIGHT) * VIEW_HEIGHT;
-      pixel.imaginary = flip ? VIEW.bottom + down : VIEW.top - down;
-      for (let x = 0; x < CANVAS_WIDTH; x++) {
-        pixel.real = VIEW.left + ((x + 0.5) / CANVAS_WIDTH) * VIEW_WIDTH;
-        const [red, green, blue] = pixelRgb(teachingPixelEscape(kind, pixel, ZERO));
-        const index = (y * CANVAS_WIDTH + x) * 4;
-        pixels.data[index] = red;
-        pixels.data[index + 1] = green;
-        pixels.data[index + 2] = blue;
-        pixels.data[index + 3] = 255;
-      }
-    }
-    context.putImageData(pixels, 0, 0);
-  }, [kind, flip]);
-  return <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />;
-});
 
 const CoordinateGrid = memo(function CoordinateGrid({
   width,
@@ -261,9 +232,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       : max === 0
         ? "Already outside the dashed circle."
         : `Crossed the dashed circle on jump ${max}.`;
-  const escapeCount = crossed ? max : null;
-  const title =
-    kind === "julia" ? "Follow one starting point" : "Why does this pixel have this color?";
+  const title = kind === "julia" ? "Follow one starting point" : "Follow one pixel";
   const rule =
     kind === "julia"
       ? "Pick a pixel to start there. Each jump squares the point."
@@ -394,11 +363,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
               playback.change(TEACHING_LIMIT);
             }}
           >
-            {kind === "julia" ? (
-              <EscapeTimePicture formula="julia" bounds={VIEW_BOUNDS} coloring={JULIA_COLORING} />
-            ) : (
-              <JumpCountPicture kind={kind} />
-            )}
+            <EscapeTimePicture formula={kind} bounds={VIEW_BOUNDS} coloring={COLORING[kind]} />
             <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
               <defs>
                 <marker
@@ -425,13 +390,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                   )}
                 </g>
               ))}
-              <circle
-                cx={ring.x}
-                cy={ring.y}
-                r="10"
-                fill={kind === "julia" ? "none" : pixelColor(escapeCount)}
-                className={styles.ring}
-              />
+              <circle cx={ring.x} cy={ring.y} r="10" fill="none" className={styles.ring} />
               {ghost && hover ? (
                 <g data-orbit-ghost>
                   <circle cx={ghost.x} cy={ghost.y} r="10" className={styles.ghost} />
@@ -497,18 +456,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
             </table>
           </div>
           <p className={styles.outcome} aria-live="polite" data-orbit-outcome>
-            {outcome && (
-              <>
-                {kind !== "julia" && (
-                  <span
-                    className={styles.swatch}
-                    style={{ backgroundColor: pixelColor(escapeCount) }}
-                    aria-hidden="true"
-                  />
-                )}
-                {outcome}
-              </>
-            )}
+            {outcome}
           </p>
         </div>
       </div>

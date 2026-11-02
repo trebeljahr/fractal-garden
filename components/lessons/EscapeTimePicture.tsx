@@ -19,7 +19,7 @@ const ZERO = { real: 0, imaginary: 0 };
 function startPicture(canvas: HTMLCanvasElement, formula: string, view: () => View) {
   const gl = canvas.getContext("webgl", { antialias: false });
   if (!gl) return { redraw: () => {}, stop: () => {} };
-  const define = `#define FORMULA_${formula.toUpperCase()}\n`;
+  const define = `#define FORMULA_${formula.replace("-", "_").toUpperCase()}\n`;
   const build = () => {
     const output = createShaderProgram(gl, vertexShader, define + escapeShader);
     const buffer = gl.createBuffer();
@@ -109,7 +109,7 @@ export function EscapeTimePicture({
   coloring,
   c = ZERO,
 }: {
-  formula: "mandelbrot" | "julia";
+  formula: "mandelbrot" | "julia" | "burning-ship";
   bounds: Bounds;
   coloring: EscapeTimeColoring;
   c?: ComplexPoint;

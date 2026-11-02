@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { EscapeTimeFractal } from "../components/EscapeTimeFractal";
 import {
-  createColoring,
+  BURNING_SHIP_COLORING,
   type EscapeTimeColoring,
   updateColoring,
 } from "../utils/escapeTimeColoring";
@@ -13,14 +13,7 @@ type Props = {
 };
 
 const BurningShip = ({ description }: Props) => {
-  const [config, setConfig] = useState<EscapeTimeColoring>(() =>
-    createColoring("classic", {
-      iterations: 200,
-      colorDensity: 0.5,
-      colorOffset: 0.55,
-      interior: "#000000",
-    }),
-  );
+  const [config, setConfig] = useState<EscapeTimeColoring>(BURNING_SHIP_COLORING);
 
   return (
     <EscapeTimeFractal

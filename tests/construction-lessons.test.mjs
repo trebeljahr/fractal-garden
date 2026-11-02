@@ -18,7 +18,6 @@ import {
   jumpControl,
   jumpExit,
   jumpPoint,
-  teachingPixelEscape,
   traceTeachingOrbit,
 } from "../utils/orbitLesson.ts";
 import { pythagorasFork } from "../utils/pythagorasFork.ts";
@@ -192,7 +191,7 @@ test("a jump off the picture reports the edge it leaves through", () => {
   assert.equal(jumpExit({ x: 300, y: 200 }, { x: 390, y: 200 }, 400, 300), null);
 });
 
-test("pixel map colors agree with lesson escape counts for all three formulas", () => {
+test("lesson escape counts hold for all three formulas", () => {
   const zero = { real: 0, imaginary: 0 };
   const examples = [
     ["mandelbrot", { real: -1, imaginary: 0 }, zero, null],
@@ -204,7 +203,6 @@ test("pixel map colors agree with lesson escape counts for all three formulas", 
     ["burning-ship", { real: -1.8, imaginary: -0.03 }, zero, 7],
   ];
   for (const [kind, pixel, c, expected] of examples) {
-    assert.equal(teachingPixelEscape(kind, pixel, c), expected);
     const orbit = traceTeachingOrbit(
       kind === "julia" ? c : pixel,
       kind === "julia" ? pixel : zero,
