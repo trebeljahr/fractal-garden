@@ -274,6 +274,84 @@ test("stopping at a new camera replaces an unfinished native pass with one final
     assert.equal(h.motion.getStats().completedSources, 1);
   }));
 
+test("moving sources swap in whole, leaving the native pass as the only visible sweep", () =>
+  harness(
+    (h) => {
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -20.5, 0, 0) };
+      h.update(true, { state, version: 2 });
+      h.tick();
+      const { workSubmittedFraction } = h.motion.getStats();
+      assert.ok(workSubmittedFraction > 0 && workSubmittedFraction < 1);
+      assert.deepEqual(
+        h.presents.at(-1).u_workOverHistory,
+        [0],
+        "partial motion work stays hidden",
+      );
+      h.flush();
+      assert.equal(h.motion.getStats().completedSources, 1);
+      assert.ok(h.presents.every((present) => present.u_workOverHistory[0] === 0));
+      h.update(false);
+      h.tick();
+      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [1], "the native pass sweeps");
+      h.flush();
+      assert.deepEqual(h.completions, [2]);
+    },
+    { initial: true },
+  ));
+
+test("partial motion work appears once zooming outruns the finished sources", () =>
+  harness(
+    (h) => {
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -23, 0, 0) };
+      h.update(true, { state, version: 2 });
+      h.tick();
+      assert.ok(h.motion.getStats().workSubmittedFraction > 0);
+      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [1]);
+    },
+    { initial: true },
+  ));
+
+test("settling finishes a moving source that alone fills edges exposed by zooming out", () =>
+  harness(
+    (h) => {
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -19.8, 0, 0) };
+      h.update(true, { state, version: 2 });
+      const moving = h.tick();
+      assert.equal(h.motion.getStats().historyCoversViewport, false);
+      h.update(false);
+      const next = h.tick();
+      assert.equal(h.motion.getStats().discardedSources, 0);
+      assert.ok(next.every(({ source }) => source === moving[0].source));
+      h.flush();
+      assert.equal(h.motion.getStats().completedSources, 2);
+      const native = h.paints.filter(({ source }) => source !== moving[0].source);
+      assert.equal(new Set(native.map(({ source }) => source)).size, 1);
+      assert.equal(
+        native.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0),
+        640 * 360,
+        "the native pass still paints the final camera exactly once",
+      );
+      assert.deepEqual(h.completions, [2]);
+    },
+    { initial: true },
+  ));
+
+test("settling drops a moving source that cannot fill the exposed edges either", () =>
+  harness(
+    (h) => {
+      const first = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -19.8, 0, 0) };
+      h.update(true, { state: first, version: 2 });
+      const moving = h.tick();
+      const last = { ...first, view: zoomViewport(first.view, -19.4, 0, 0) };
+      h.update(false, { state: last, version: 3 });
+      const next = h.tick();
+      assert.equal(h.motion.getStats().discardedSources, 1);
+      assert.ok(next.every(({ source }) => source !== moving[0].source));
+      assert.ok(next.every(({ target }) => target.width === 640 && target.height === 360));
+    },
+    { initial: true },
+  ));
+
 test("same-camera version changes retain native work and never repaint its completed source", () =>
   harness((h) => {
     h.update(false);

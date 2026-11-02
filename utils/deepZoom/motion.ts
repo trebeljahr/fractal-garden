@@ -55,6 +55,7 @@ uniform vec3 u_historyTransform;
 uniform vec3 u_workTransform;
 uniform float u_historyValid;
 uniform float u_workValid;
+uniform float u_workOverHistory;
 vec4 sampleSource(sampler2D image, vec2 size, vec3 transform, float valid, vec2 uv) {
   if (valid < 0.5) return vec4(0.0);
   vec2 p = 0.5 + 0.5 * (transform.xy + uv * transform.z) * min(size.x,size.y) / size;
@@ -66,7 +67,7 @@ void main() {
   vec4 history = sampleSource(u_history,u_historySize,u_historyTransform,u_historyValid,uv);
   vec4 work = sampleSource(u_work,u_workSize,u_workTransform,u_workValid,uv);
   vec3 color = history.a > 0.999 ? history.rgb : vec3(0.02,0.025,0.03);
-  if (work.a > 0.999) color = work.rgb;
+  if (work.a > 0.999 && (u_workOverHistory > 0.5 || history.a <= 0.999)) color = work.rgb;
   gl_FragColor = vec4(color,1.0);
 }`;
 
@@ -99,6 +100,8 @@ function sameCamera(a: Source, b: Source) {
   const [x, y, ratio] = transform(a.state.view, b.state.view);
   return x === 0 && y === 0 && ratio === 1;
 }
+/** Below this, zooming has outrun finished sources, so partial detail beats none. */
+const MIN_HISTORY_DENSITY = 0.25;
 
 /** Merge only adjoining rectangles, after the center-priority budget is selected. */
 function coalesce(tiles: Tile[]): Tile[] {
@@ -180,6 +183,7 @@ export function createMandelbrotMotion(
         "workTransform",
         "historyValid",
         "workValid",
+        "workOverHistory",
       ].map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
     );
     const extension = gl.getExtension("EXT_disjoint_timer_query") as Timer | null;
@@ -236,6 +240,11 @@ export function createMandelbrotMotion(
     const schedule = () => {
       if (!destroyed && !frame) frame = requestAnimationFrame(tick);
     };
+    const density = (surface: Surface) =>
+      latest && surface.source
+        ? (Math.min(surface.width, surface.height) / Math.min(latest.width, latest.height)) *
+          2 ** (latest.state.view.logZoom - surface.source.state.view.logZoom)
+        : null;
     const present = () => {
       if (!latest) return;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -261,6 +270,12 @@ export function createMandelbrotMotion(
         gl.uniform1f(uniforms[`${name}Valid`], valid ? 1 : 0);
         gl.uniform3f(uniforms[`${name}Transform`], t[0], t[1], t[2]);
       }
+      // Moving sources swap in whole, so the final native pass is the only
+      // sweep seen outward from the center. They still fill uncovered space.
+      gl.uniform1f(
+        uniforms.workOverHistory,
+        work.native || (density(history) ?? 0) < MIN_HISTORY_DENSITY ? 1 : 0,
+      );
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       presentations++;
       gl.activeTexture(gl.TEXTURE0);
@@ -336,21 +351,31 @@ export function createMandelbrotMotion(
       work.source = null;
       work.origin = null;
       work.snapshot = null;
+      work.native = false;
       work.tiles = [];
       work.cursor = 0;
       work.submittedPixels = 0;
     };
-    const historyCoversViewport = () => {
-      if (!latest || !history.source || !compatible(latest, history.source)) return false;
-      const [x, y, ratio] = transform(latest.state.view, history.source.state.view);
+    const coversViewport = (image: Surface) => {
+      if (!latest || !image.source || !compatible(latest, image.source)) return false;
+      const [x, y, ratio] = transform(latest.state.view, image.source.state.view);
       const nativeSize = Math.min(latest.width, latest.height);
-      const sourceSize = Math.min(history.width, history.height);
+      const sourceSize = Math.min(image.width, image.height);
       return (
         Number.isFinite(x + y + ratio) &&
-        Math.abs(x) + (ratio * latest.width) / nativeSize <= history.width / sourceSize &&
-        Math.abs(y) + (ratio * latest.height) / nativeSize <= history.height / sourceSize
+        Math.abs(x) + (ratio * latest.width) / nativeSize <= image.width / sourceSize &&
+        Math.abs(y) + (ratio * latest.height) / nativeSize <= image.height / sourceSize
       );
     };
+    // After zooming out, the moving source alone fills the edges. Dropping it
+    // would blank them and make the native pass fill them a second time.
+    const workFillsGap = () =>
+      !work.native &&
+      latest !== null &&
+      history.source !== null &&
+      compatible(latest, history.source) &&
+      !coversViewport(history) &&
+      coversViewport(work);
     const prioritizeVisibleWork = () => {
       if (!latest || !work.source || !work.snapshot) return;
       if (
@@ -498,6 +523,7 @@ export function createMandelbrotMotion(
         (staleWork() ||
           (!moving &&
             work.cursor < work.tiles.length &&
+            !workFillsGap() &&
             (!work.native || !work.origin || !sameCamera(latest, work.origin))))
       ) {
         discardedSources++;
@@ -625,11 +651,6 @@ export function createMandelbrotMotion(
       },
       getStats() {
         const now = performance.now();
-        const density = (surface: Surface) =>
-          latest && surface.source
-            ? (Math.min(surface.width, surface.height) / Math.min(latest.width, latest.height)) *
-              2 ** (latest.state.view.logZoom - surface.source.state.view.logZoom)
-            : null;
         return {
           presentations,
           completedSources,
@@ -644,7 +665,7 @@ export function createMandelbrotMotion(
           workAgeMs: work.source ? now - work.receivedAt : null,
           historyEffectiveDensity: density(history),
           workEffectiveDensity: density(work),
-          historyCoversViewport: historyCoversViewport(),
+          historyCoversViewport: coversViewport(history),
           workSubmittedFraction: work.source
             ? work.submittedPixels / (work.width * work.height)
             : 0,
