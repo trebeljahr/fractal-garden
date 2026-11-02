@@ -72,8 +72,9 @@ export function traceUntilLoop(
   start: ComplexPoint,
   fold = false,
   limit = ORBIT_LESSON_LIMIT,
+  radius = ESCAPE_RADIUS,
 ): { orbit: OrbitStep[]; loop: OrbitLoop | null } {
-  const orbit = traceTeachingOrbit(c, start, fold, limit + LOOP_CONFIRMATION);
+  const orbit = traceTeachingOrbit(c, start, fold, limit + LOOP_CONFIRMATION, radius);
   const last = Math.min(limit, orbit.length - 1);
   for (let end = 1; end <= last; end++) {
     for (let from = end - 1; from >= 0; from--) {

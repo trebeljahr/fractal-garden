@@ -3,7 +3,7 @@ import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import { juliaExplorerLink, LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
-import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../../utils/orbitLesson";
+import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame } from "./LessonFrame";
 
@@ -23,6 +23,7 @@ function LinkedMap({
   value,
   onChange,
   orbit,
+  loop,
   outcome = "",
 }: {
   mapKind: "parameter" | "start";
@@ -30,6 +31,7 @@ function LinkedMap({
   value: ComplexPoint;
   onChange: (point: ComplexPoint) => void;
   orbit?: ComplexPoint[];
+  loop?: ComplexPoint[];
   outcome?: string;
 }) {
   const pointer = useRef<number | null>(null);
@@ -116,6 +118,15 @@ function LinkedMap({
               strokeWidth="2"
             />
           )}
+          {loop && (
+            <polyline
+              points={loop.map((p) => xy(p).join(",")).join(" ")}
+              fill="none"
+              stroke="#f5c56d"
+              strokeWidth="2.5"
+              data-linked-loop
+            />
+          )}
           {Array.from(new Map(orbit?.map((p) => [`${p.real}:${p.imaginary}`, p])).values()).map(
             (p) => (
               <circle
@@ -159,16 +170,18 @@ export default function LinkedJuliaLesson() {
   const [step, setStep] = useState(LINKED_LIMIT);
   const lastPick = useRef(Number.NEGATIVE_INFINITY);
   const reducedMotion = useReducedMotion();
-  const orbit = useMemo(
-    () => traceTeachingOrbit(c, start, false, LINKED_LIMIT, LINKED_RADIUS),
+  const { orbit, loop } = useMemo(
+    () => traceUntilLoop(c, start, false, LINKED_LIMIT, LINKED_RADIUS),
     [c, start],
   );
   const max = orbit.length - 1;
   const shown = orbit.slice(0, Math.min(step, max) + 1);
   const end = orbit[max];
-  const outcome = isOutside(end.point, LINKED_RADIUS)
-    ? `Escapes after ${end.iteration} calculations. `
-    : `No escape after ${end.iteration} calculations. `;
+  const outcome = loop
+    ? `Lands back on an earlier point after ${end.iteration} calculations. `
+    : isOutside(end.point, LINKED_RADIUS)
+      ? `Escapes after ${end.iteration} calculations. `
+      : `No escape after ${end.iteration} calculations. `;
   useEffect(() => {
     if (step >= max) return;
     const timer = window.setTimeout(() => setStep(step + 1), STEP_MS);
@@ -182,6 +195,8 @@ export default function LinkedJuliaLesson() {
     if (point.real === start.real && point.imaginary === start.imaginary) return;
     const now = performance.now();
     if (!reducedMotion && now - lastPick.current > SAME_DRAG_MS) setStep(0);
+    // A route that finished stays whole for the rest of the drag, so its loop doesn't flicker.
+    else if (step >= max) setStep(LINKED_LIMIT);
     lastPick.current = now;
     setStart(point);
   };
@@ -202,6 +217,9 @@ export default function LinkedJuliaLesson() {
             value={start}
             onChange={chooseStart}
             orbit={shown.map((item) => item.point)}
+            loop={
+              loop && step >= max ? orbit.slice(loop.from).map((item) => item.point) : undefined
+            }
             outcome={outcome}
           />
           <p data-selected-start={`${start.real},${start.imaginary}`}>{text(start)}</p>

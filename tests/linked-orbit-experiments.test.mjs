@@ -20,7 +20,21 @@ const {
 const { histogramOrbit } = require("../utils/lessons/specialLessons.ts");
 const { juliaExplorerLink } = require("../utils/lessons/linkedJulia.ts");
 const { decodeView, restoreConfig } = require("../utils/explorerShare.ts");
-const { traceTeachingOrbit } = require("../utils/orbitLesson.ts");
+const { traceTeachingOrbit, traceUntilLoop } = require("../utils/orbitLesson.ts");
+
+test("linked Julia routes end when they land back on an earlier point", () => {
+  const trace = (c, start) => traceUntilLoop(c, start, false, 96, 4);
+  const spiral = trace({ real: -0.132, imaginary: 0.785 }, { real: 0.107, imaginary: 0.103 });
+  assert.deepEqual(spiral.loop, { from: 19, period: 3 });
+  assert.equal(spiral.orbit.length, 23);
+  const twoJumps = trace({ real: -1, imaginary: 0 }, { real: 0.5, imaginary: 0 });
+  assert.equal(twoJumps.loop.period, 2);
+  // This lesson's wider circle still applies: 2 and 4 stay inside it, 16 does not.
+  const zero = { real: 0, imaginary: 0 };
+  const leaving = trace(zero, { real: 2, imaginary: 0 });
+  assert.equal(leaving.loop, null);
+  assert.equal(leaving.orbit.at(-1).iteration, 2);
+});
 
 test("only escaped routes contribute their in-window visits", () => {
   const escaped = histogramOrbit({ x: 0.3, y: 0.6 });
