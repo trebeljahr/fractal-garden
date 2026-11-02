@@ -8,7 +8,7 @@ Pixels whose points never run away form the two prickly black bodies. Try a pixe
 
 <figure data-orbit="cactus"></figure>
 
-At $c = 0.15$, in the right body, the route settles on one point. At $c = -0.2$, in the left body, it settles into bouncing between two points.
+At $c = 0.3$, in the right body, the route settles on one point. At $c = -0.2$, in the left body, it settles into bouncing between two points.
 
 The two bodies meet at exactly $c = 0$, for a reason you can check. Near the settling point, each jump multiplies a small distance by about $c - 1$. Just right of zero that number is a little smaller than 1 in size, so distances shrink and the route settles. Just left of zero it is a little larger, so distances grow and the single point stops holding the route. At zero the number is exactly $-1$: distances keep their size and flip sides.<sup><a id="cactus-fractal-ref-2" href="#cactus-fractal-source-2">2</a></sup>
 

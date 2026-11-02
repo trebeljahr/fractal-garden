@@ -53,7 +53,7 @@ const DEFAULTS: Record<OrbitKind, ComplexPoint> = {
   julia: { real: 0.3, imaginary: 0 },
   "burning-ship": { real: -1.76, imaginary: -0.03 },
   mandelbar: { real: -1, imaginary: 0.5 },
-  cactus: { real: 0.15, imaginary: 0 },
+  cactus: { real: 0.3, imaginary: 0 },
   "barnsley-tree": { real: 0.9, imaginary: 0.6 },
 };
 // Each view shows its whole escape circle.
