@@ -24,10 +24,6 @@ export default function HilbertJoinLesson() {
   const fit = links.filter((link) => link.fits).length;
   return (
     <LessonFrame title="Join four smaller routes" kind="hilbert-join">
-      <p>
-        Try rotating route 1 until its filled end sits beside route 2’s hollow start. A join should
-        be as short as the other lines.
-      </p>
       <div className={extra.hilbertLayout}>
         <svg
           viewBox="0 0 400 400"
@@ -131,12 +127,7 @@ export default function HilbertJoinLesson() {
               Reverse direction
             </button>
           </div>
-          <p aria-live="polite">
-            {fit} of 3 links fit.
-            {fit === 3
-              ? " You can now follow one route through every dot, visiting each just once."
-              : " The dashed joins are too long. Turn a route or reverse its start and end."}
-          </p>
+          <p aria-live="polite">{fit} of 3 links fit</p>
           <button
             type="button"
             onClick={() => {
@@ -155,10 +146,6 @@ export default function HilbertJoinLesson() {
           </fieldset>
         </div>
       </div>
-      <p>
-        Try the 8 × 8 grid. Each colored route now contains four smaller routes, joined in the same
-        way. Reverse one to see why the positions of its start and end matter.
-      </p>
     </LessonFrame>
   );
 }

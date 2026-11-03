@@ -4,9 +4,13 @@ Place a dot at each corner of a square. Join them with three lines to make a U. 
 
 To visit more dots, divide the square into four smaller squares. Put a smaller U in each one. Their ends need to face one another so you can join them into a single path.
 
+Below, try rotating route 1 until its filled end sits beside route 2's hollow start. A join should be as short as the other lines. The dashed joins are too long.
+
 <figure data-lesson="hilbert-join"></figure>
 
-Once the four paths join, you have a route through sixteen dots. Repeat the arrangement with four copies of this new route. Each round visits four times as many dots, still without lifting the pen or visiting a dot twice.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
+Once the four paths join, you have a route through sixteen dots. Repeat the arrangement with four copies of this new route. Choose the 8 × 8 grid to see this. Each colored route now contains four smaller routes, joined in the same way. Reverse one. Its start and end swap places, and the joins beside it stop fitting.
+
+Each round visits four times as many dots, still without lifting the pen or visiting a dot twice.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
 
 <figure data-construction-player="lsystem-hilbert"></figure>
 
