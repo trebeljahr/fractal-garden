@@ -152,7 +152,9 @@ void main() {
   float along = mix(-cap, len + cap, a_corner.x);
   vec2 position = a + dir * along + normal * halfWidth * a_corner.y;
 
-  v_color = vec4(mix(u_color, u_colorEnd, a_t), width / drawn);
+  // Color positions of 2 and 3 are 0 and 1 faded, for a tiling's copies.
+  float copy = step(1.5, a_t);
+  v_color = vec4(mix(u_color, u_colorEnd, a_t - 2.0 * copy), mix(1.0, 0.35, copy) * width / drawn);
   v_local = vec2(along, halfWidth * a_corner.y);
   v_length = len;
   v_halfWidth = halfWidth;

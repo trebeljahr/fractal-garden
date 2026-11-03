@@ -7,6 +7,7 @@ import {
   latticeTint,
   SEVEN_ISLANDS,
 } from "../../gosperIsland";
+import { MAX_TILE_RANGE, TILING_PADDING, TWIN_PADDING } from "../../lsystem/twindragon";
 import { hexColor } from "../../miraMap";
 import { buildStars, type StarSettings, starReach, traceStars } from "../../starFractal";
 import { drawFittedCurve, expandLSystem, traceTurtle } from "../../turtleCurve";
@@ -243,10 +244,7 @@ export function drawFibonacciWordFractal(
 
 // --- Twindragon ---
 
-const TWIN_PADDING = 0.08;
-const TILING_PADDING = 0.25;
 const TILING_ALPHA = 0.35;
-const MAX_TILE_RANGE = 8;
 
 // Two Heighway dragons back to back: the second one is the first one turned
 // 180° around the midpoint of its chord, so it runs from the end back to the start.

@@ -3,7 +3,7 @@
 // validator (scripts/validate-lsystem-presets.mjs) can load it with plain Node.
 
 export type Dimension = "2d" | "3d";
-export type ColorMode = "solid" | "gradient" | "depth";
+export type ColorMode = "solid" | "gradient" | "depth" | "tiles";
 
 export type Rule = {
   symbol: string;

@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { EndlessZoom } from "../../components/EndlessZoom";
 import { PanelBoolean, PanelColor, PanelNumber } from "../../components/ExplorerControls";
 import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
-import type { CanvasViewport } from "../../utils/canvasViewport";
-import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { fittedFrame } from "../../utils/lsystem/pageZoom";
+import { TILING_PADDING, TWIN_PADDING, twindragonSpec } from "../../utils/lsystem/twindragon";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -15,7 +16,6 @@ type Props = {
 };
 
 type Config = {
-  viewport?: CanvasViewport;
   iterations: number;
   showTiling: boolean;
   background: string;
@@ -37,7 +37,7 @@ const Twindragon = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
-  const { containerRef, canvas, setParams } = useFractalRenderer({
+  const { containerRef, ready } = useFractalRenderer({
     kind: "twindragon",
     storageKey: `twindragon:${config.showTiling ? "tiling" : "single"}`,
     config,
@@ -51,10 +51,28 @@ const Twindragon = ({ description }: Props) => {
     holdDelay: 1800,
   });
 
-  const viewport = useCanvasViewport(canvas);
-  useEffect(() => {
-    setParams({ ...config, viewport });
-  }, [config, viewport, setParams]);
+  const spec = useMemo(() => twindragonSpec(config), [config]);
+  const { iterations, firstDragon, secondDragon, background, lineWidth, showTiling } = config;
+  // The tiling is fitted around its middle tile, so the frame comes from one tile.
+  const frame = useCallback(
+    (fitWidth: number, fitHeight: number) =>
+      fittedFrame(
+        twindragonSpec({
+          iterations,
+          firstDragon,
+          secondDragon,
+          background,
+          lineWidth,
+          showTiling: false,
+        }),
+        iterations,
+        fitWidth,
+        fitHeight,
+        showTiling ? TILING_PADDING : TWIN_PADDING,
+        1,
+      ),
+    [iterations, firstDragon, secondDragon, background, lineWidth, showTiling],
+  );
 
   const handleUpdate = (newData: Config) => {
     setConfig((old) => ({ ...old, ...newData }));
@@ -76,6 +94,14 @@ const Twindragon = ({ description }: Props) => {
           className={styles.viewport}
           style={{ background: config.background }}
           ref={containerRef}
+        />
+        <EndlessZoom
+          ready={ready}
+          spec={spec}
+          generation={iterations}
+          frame={frame}
+          width={width}
+          height={height}
         />
         <SideDrawer description={description} />
         <NavElement />
