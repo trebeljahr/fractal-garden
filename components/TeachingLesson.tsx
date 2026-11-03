@@ -49,6 +49,7 @@ const FernCollageLesson = dynamic(() => import("./lessons/FernCollageLesson"));
 const ApollonianCurvaturesLesson = dynamic(() => import("./lessons/ApollonianCurvaturesLesson"));
 const KochCubeLesson = dynamic(() => import("./lessons/KochCubeLesson"));
 const TSquareCoverLesson = dynamic(() => import("./lessons/TSquareCoverLesson"));
+const HTreeRouteLesson = dynamic(() => import("./lessons/HTreeRouteLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -98,6 +99,7 @@ const LESSONS = [
   "apollonian-curvatures",
   "koch-cube",
   "t-square-cover",
+  "h-tree-route",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -200,5 +202,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <KochCubeLesson />;
     case "t-square-cover":
       return <TSquareCoverLesson />;
+    case "h-tree-route":
+      return <HTreeRouteLesson />;
   }
 }

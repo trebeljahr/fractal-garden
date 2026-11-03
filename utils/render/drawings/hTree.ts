@@ -25,16 +25,22 @@ function mixColors(from: string, to: string, t: number) {
   return `rgb(${r}, ${g}, ${bl})`;
 }
 
-export function drawHTree(ctx: Context2D, width: number, height: number, config: HTreeParams) {
-  // Fit the limit shape, not the current iteration, so the tree grows in place
-  // while animating. Horizontal segments sit at even depths, vertical at odd.
-  const r2 = config.ratio * config.ratio;
+/**
+ * Fit the limit shape, not the current iteration, so the tree grows in place
+ * while animating. Horizontal segments sit at even depths, vertical at odd.
+ */
+export function hTreeRootLength(width: number, height: number, ratio: number) {
+  const r2 = ratio * ratio;
   const halfWidth = 0.5 / (1 - r2);
-  const halfHeight = (0.5 * config.ratio) / (1 - r2);
-  const rootLength = Math.min(
+  const halfHeight = (0.5 * ratio) / (1 - r2);
+  return Math.min(
     (width * (1 - 2 * PADDING)) / (2 * halfWidth),
     (height * (1 - 2 * PADDING)) / (2 * halfHeight),
   );
+}
+
+export function drawHTree(ctx: Context2D, width: number, height: number, config: HTreeParams) {
+  const rootLength = hTreeRootLength(width, height, config.ratio);
 
   // One path per depth keeps the number of stroke calls tiny.
   const paths = [...new Array(config.iterations + 1)].map(() => new Path2D());

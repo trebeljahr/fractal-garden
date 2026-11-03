@@ -4,6 +4,9 @@
   gap: 1.5rem;
   align-items: start;
 }
+.wideLayout {
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+}
 figure button.stage {
   display: block;
   position: relative;
@@ -66,4 +69,17 @@ figure button.stage:active {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.8rem;
   }
+}
+figure button.wide {
+  aspect-ratio: 1.41421356;
+  cursor: crosshair;
+}
+figure button.wide:active {
+  cursor: crosshair;
+}
+.layout .sum {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+  color: #eee8cebb;
+  font-variant-numeric: tabular-nums;
 }
