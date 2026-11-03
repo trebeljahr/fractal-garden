@@ -32,7 +32,9 @@ button.picture {
   padding: 0;
   border: 0;
   cursor: crosshair;
-  touch-action: none;
+  /* Up-and-down swipes scroll the page; a tap or a sideways slide picks a point. */
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 button.picture svg {

@@ -1,6 +1,11 @@
 .options {
   margin-bottom: 1rem;
 }
+/* Up-and-down swipes scroll the page; a tap or a sideways slide picks a point. */
+.layout button.stage {
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
+}
 .options button[aria-pressed="true"] {
   background: #f5c56d22;
   border-color: #f5c56d;

@@ -4,6 +4,7 @@ import styles from "../../styles/lessons/MirrorPair.module.css";
 import orbitStyles from "../../styles/OrbitLesson.module.css";
 import { BURNING_SHIP_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { useLessonPlayback } from "../../utils/hooks/useLessonPlayback";
+import { usePointPicker, useTriedPoint } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   type ComplexPoint,
@@ -34,40 +35,20 @@ function outcome(route: OrbitStep[], shown: number) {
 }
 
 export default function MirrorPairLesson() {
-  const [pixel, setPixel] = useState<ComplexPoint>(START);
+  const spot = useTriedPoint<ComplexPoint>(START);
+  const pixel = spot.value;
   const [fold, setFold] = useState(true);
   const [step, setStep] = useState(2);
-  const [dragging, setDragging] = useState(false);
   const [width, setWidth] = useState(640);
-  const stage = useRef<HTMLButtonElement>(null);
   const table = useRef<HTMLDivElement>(null);
-  const pointer = useRef<number | null>(null);
   const reduced = useReducedMotion();
   const routes = useMemo(() => mirrorRoutes(pixel, fold), [pixel, fold]);
   const max = Math.max(routes[0].length, routes[1].length) - 1;
-  const shown = dragging ? max : Math.min(step, max);
+  // A spot being tried shows its whole route. A kept spot can be stepped through.
+  const shown = spot.tried ? max : Math.min(step, max);
   const playback = useLessonPlayback(shown, max, setStep, JUMP_MS);
   const height = (width * VIEW_HEIGHT) / VIEW_WIDTH;
 
-  useEffect(() => {
-    const element = stage.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a new jump adds a row to scroll to
-  useEffect(() => {
-    if (table.current) table.current.scrollTop = table.current.scrollHeight;
-  }, [shown]);
-
-  // Positive vertical coordinates point down, as in the rest of this article.
-  const project = (point: ComplexPoint): Pixel => ({
-    x: ((point.real - VIEW.left) / VIEW_WIDTH) * width,
-    y: ((point.imaginary - VIEW.bottom) / VIEW_HEIGHT) * height,
-  });
   const pointAt = (event: PointerEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     return clampToView(
@@ -78,6 +59,35 @@ export default function MirrorPairLesson() {
       VIEW,
     );
   };
+  const picker = usePointPicker({
+    under: pointAt,
+    onChange: (point) => {
+      spot.keep(snap(point));
+      playback.change(ORBIT_LESSON_LIMIT);
+    },
+    onHover: (point) => spot.tryOut(point),
+  });
+
+  const stage = picker.ref;
+  useEffect(() => {
+    const element = stage.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [stage]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new jump adds a row to scroll to
+  useEffect(() => {
+    if (table.current) table.current.scrollTop = table.current.scrollHeight;
+  }, [shown]);
+
+  // Positive vertical coordinates point down, as in the rest of this article.
+  const project = (point: ComplexPoint): Pixel => ({
+    x: ((point.real - VIEW.left) / VIEW_WIDTH) * width,
+    y: ((point.imaginary - VIEW.bottom) / VIEW_HEIGHT) * height,
+  });
   const replay = () => (reduced ? playback.change(ORBIT_LESSON_LIMIT) : playback.play());
   const starts = [pixel, mirrorPixel(pixel)];
 
@@ -97,35 +107,9 @@ export default function MirrorPairLesson() {
         <div className={orbitStyles.main}>
           <button
             type="button"
-            ref={stage}
-            className={orbitStyles.stage}
-            aria-label={`Chosen pixel ${coordinates(pixel, 2)} and its mirror image ${coordinates(starts[1], 2)}. Click or drag to choose another, or use the arrow keys. Press Enter to play.`}
-            data-dragging={dragging || undefined}
-            onPointerDown={(event) => {
-              if (!event.isPrimary || event.button !== 0) return;
-              pointer.current = event.pointerId;
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setPixel(snap(pointAt(event)));
-              playback.change(0);
-            }}
-            onPointerMove={(event) => {
-              if (pointer.current !== event.pointerId) return;
-              setDragging(true);
-              setPixel(pointAt(event));
-            }}
-            onPointerUp={(event) => {
-              if (pointer.current !== event.pointerId) return;
-              pointer.current = null;
-              event.currentTarget.releasePointerCapture(event.pointerId);
-              setPixel(snap(pointAt(event)));
-              setDragging(false);
-              replay();
-            }}
-            onPointerCancel={() => {
-              pointer.current = null;
-              setPixel(snap(pixel));
-              setDragging(false);
-            }}
+            className={`${orbitStyles.stage} ${styles.stage}`}
+            aria-label={`Chosen pixel ${coordinates(pixel, 2)} and its mirror image ${coordinates(starts[1], 2)}. Move the pointer to try another, click or tap to keep it, or use the arrow keys. Press Enter to play.`}
+            {...picker}
             onClick={(event) => {
               if (event.detail === 0) replay();
             }}
@@ -134,7 +118,7 @@ export default function MirrorPairLesson() {
               event.preventDefault();
               const dx = event.key === "ArrowLeft" ? -0.05 : event.key === "ArrowRight" ? 0.05 : 0;
               const dy = event.key === "ArrowUp" ? -0.05 : event.key === "ArrowDown" ? 0.05 : 0;
-              setPixel(
+              spot.keep(
                 snap(clampToView({ real: pixel.real + dx, imaginary: pixel.imaginary + dy }, VIEW)),
               );
               playback.change(ORBIT_LESSON_LIMIT);

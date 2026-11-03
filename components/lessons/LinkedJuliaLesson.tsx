@@ -1,15 +1,7 @@
-import {
-  type PointerEvent,
-  type ReactNode,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { flushSync } from "react-dom";
+import { type PointerEvent, type ReactNode, useId, useMemo } from "react";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
+import { usePointPicker, useTriedPoint } from "../../utils/hooks/usePointPicker";
 import { LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
@@ -18,8 +10,6 @@ import { LessonFrame } from "./LessonFrame";
 const ZERO = { real: 0, imaginary: 0 };
 export const MAP_WIDTH = 360;
 export const MAP_HEIGHT = 300;
-// Safari reports a small move before it starts a scroll, so a finger must clearly go sideways.
-const SIDEWAYS_SLIDE_PX = 10;
 const BOUNDS = { parameter: [-2, 1, -1.25, 1.25], start: [-1.8, 1.8, -1.5, 1.5] } as const;
 const text = (p: ComplexPoint) =>
   `(${Number(p.real.toFixed(3))}, ${Number(p.imaginary.toFixed(3))})`;
@@ -54,19 +44,6 @@ export function LinkedMap({
   outcome?: string;
   overlay?: ReactNode;
 }) {
-  const button = useRef<HTMLButtonElement>(null);
-  const pointer = useRef<{ id: number; x: number; y: number; picking: boolean } | null>(null);
-  // Once a finger slides sideways it can go anywhere on the picture without scrolling the page.
-  // React's own touch listeners are passive and can't stop a scroll.
-  useEffect(() => {
-    const element = button.current;
-    if (!element) return;
-    const holdPage = (event: TouchEvent) => {
-      if (pointer.current?.picking && event.cancelable) event.preventDefault();
-    };
-    element.addEventListener("touchmove", holdPage, { passive: false });
-    return () => element.removeEventListener("touchmove", holdPage);
-  }, []);
   const [left, right, bottom, top] = BOUNDS[mapKind];
   const clamped = (real: number, imaginary: number) => ({
     real: Number(Math.max(left, Math.min(right, real)).toFixed(3)),
@@ -84,53 +61,14 @@ export function LinkedMap({
     ((top - p.imaginary) / (top - bottom)) * MAP_HEIGHT,
   ];
   const point = xy(value);
+  const picker = usePointPicker({ under, onChange, onHover, onRelease });
   const id = useId().replace(/:/g, "");
   return (
     <button
-      ref={button}
       type="button"
       className={styles.map}
       aria-label={`${mapKind === "parameter" ? "Mandelbrot parameter" : "Julia starting point"} ${text(value)}. ${outcome}${onHover ? "Move the pointer" : "Drag"} or use arrow keys.`}
-      onPointerDown={(event) => {
-        if (!event.isPrimary || event.button !== 0) return;
-        const mouse = event.pointerType === "mouse";
-        pointer.current = {
-          id: event.pointerId,
-          x: event.clientX,
-          y: event.clientY,
-          picking: mouse,
-        };
-        event.currentTarget.setPointerCapture(event.pointerId);
-        // A finger may be starting to scroll, so it picks only when it slides sideways or lifts.
-        if (mouse) onChange(under(event));
-      }}
-      onPointerMove={(event) => {
-        const press = pointer.current;
-        if (press?.id === event.pointerId) {
-          const sideways = Math.abs(event.clientX - press.x);
-          if (sideways > SIDEWAYS_SLIDE_PX && sideways > Math.abs(event.clientY - press.y))
-            press.picking = true;
-          if (press.picking) onChange(under(event));
-        }
-        // React would otherwise commit after this frame paints, one frame behind the pointer.
-        else if (onHover && event.pointerType !== "touch") flushSync(() => onHover(under(event)));
-      }}
-      onPointerLeave={(event) => {
-        if (event.pointerType !== "touch" && pointer.current === null) onHover?.(null);
-      }}
-      onPointerUp={(event) => {
-        if (pointer.current?.id !== event.pointerId) return;
-        onChange(under(event));
-        pointer.current = null;
-        event.currentTarget.releasePointerCapture(event.pointerId);
-        onRelease?.();
-      }}
-      onPointerCancel={() => {
-        pointer.current = null;
-      }}
-      onLostPointerCapture={() => {
-        pointer.current = null;
-      }}
+      {...picker}
       onKeyDown={(event) => {
         if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
         event.preventDefault();
@@ -203,17 +141,6 @@ export function LinkedMap({
       </svg>
     </button>
   );
-}
-
-// A pointer over a picture tries a spot out. Leaving brings back the spot that was kept.
-function useTriedPoint(first: ComplexPoint) {
-  const [kept, setKept] = useState(first);
-  const [tried, setTried] = useState<ComplexPoint | null>(null);
-  const keep = (point: ComplexPoint) => {
-    setKept(point);
-    setTried(null);
-  };
-  return { value: tried ?? kept, keep, tryOut: setTried };
 }
 
 export default function LinkedJuliaLesson() {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../styles/lessons/BulbSlice.module.css";
 import common from "../../styles/lessons/Lesson.module.css";
 import { watchDisplayResolution } from "../../utils/displayResolution";
+import { usePointPicker, useTriedPoint } from "../../utils/hooks/usePointPicker";
 import {
   type BulbPoint,
   bulbRoute,
@@ -174,8 +175,8 @@ function ShaderPicture({
 export default function BulbSliceLesson() {
   const [power, setPower] = useState(8);
   const [height, setHeight] = useState(0);
-  const [chosen, setChosen] = useState(START);
-  const pointer = useRef<number | null>(null);
+  const spot = useTriedPoint<[number, number]>(START);
+  const chosen = spot.value;
   const copies = power - 1;
   const start: BulbPoint = [chosen[0], chosen[1], height];
   const routes = useMemo(
@@ -223,6 +224,12 @@ export default function BulbSliceLesson() {
     return [limit(-SPAN + across * 2 * SPAN), limit(SPAN - down * 2 * SPAN)];
   };
 
+  const picker = usePointPicker({
+    under: pointAt,
+    onChange: spot.keep,
+    onHover: spot.tryOut,
+  });
+
   return (
     <LessonFrame title="Cut the bulb" kind="bulb-slice">
       <div className={styles.views}>
@@ -244,24 +251,8 @@ export default function BulbSliceLesson() {
           <button
             type="button"
             className={styles.picture}
-            aria-label={`Chosen point (${written(chosen[0])}, ${written(chosen[1])}) at height ${written(height)}, with its ${copies} matching routes. Click or drag to choose another, or use the arrow keys.`}
-            onPointerDown={(event) => {
-              if (!event.isPrimary || event.button !== 0) return;
-              pointer.current = event.pointerId;
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setChosen(pointAt(event));
-            }}
-            onPointerMove={(event) => {
-              if (pointer.current === event.pointerId) setChosen(pointAt(event));
-            }}
-            onPointerUp={(event) => {
-              if (pointer.current !== event.pointerId) return;
-              pointer.current = null;
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }}
-            onPointerCancel={() => {
-              pointer.current = null;
-            }}
+            aria-label={`Chosen point (${written(chosen[0])}, ${written(chosen[1])}) at height ${written(height)}, with its ${copies} matching routes. Move the pointer to try another, click or tap to keep it, or use the arrow keys.`}
+            {...picker}
             onKeyDown={(event) => {
               const moves: Record<string, [number, number]> = {
                 ArrowLeft: [-0.02, 0],
@@ -272,7 +263,7 @@ export default function BulbSliceLesson() {
               const move = moves[event.key];
               if (!move) return;
               event.preventDefault();
-              setChosen(([x, y]) => [x + move[0], y + move[1]]);
+              spot.keep([chosen[0] + move[0], chosen[1] + move[1]]);
             }}
           >
             <ShaderPicture

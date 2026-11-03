@@ -1,6 +1,7 @@
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../styles/lessons/LogisticColumns.module.css";
 import { MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   acrossToR,
@@ -37,7 +38,6 @@ export default function LogisticColumnsLesson() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const painted = useRef(new Uint8Array(COLUMNS));
   const last = useRef<number | null>(null);
-  const pressed = useRef<number | null>(null);
   const sweep = useRef(0);
   const reduced = useReducedMotion();
   const r = acrossToR(across);
@@ -75,6 +75,19 @@ export default function LogisticColumnsLesson() {
     const rect = event.currentTarget.getBoundingClientRect();
     return (event.clientX - rect.left) / rect.width;
   };
+
+  const picker = usePointPicker({
+    under: acrossAt,
+    onChange: moveTo,
+    onHover: (point) => {
+      if (point === null) last.current = null;
+      else moveTo(point);
+    },
+    // A later tap marks its own column, not every column since this one.
+    onRelease: () => {
+      last.current = null;
+    },
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: The first column is painted once.
   useEffect(() => {
@@ -119,28 +132,7 @@ export default function LogisticColumnsLesson() {
         type="button"
         className={styles.stage}
         aria-label={`r = ${written(r)}, c = ${written(mandelbrotNumber(r))}: ${outcome}. Move the pointer or use the left and right arrow keys to mark more columns.`}
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0) return;
-          pressed.current = event.pointerId;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          last.current = null;
-          moveTo(acrossAt(event));
-        }}
-        onPointerMove={(event) => {
-          if (event.pointerType === "mouse" || pressed.current === event.pointerId)
-            moveTo(acrossAt(event));
-        }}
-        onPointerUp={(event) => {
-          if (pressed.current !== event.pointerId) return;
-          pressed.current = null;
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }}
-        onPointerCancel={() => {
-          pressed.current = null;
-        }}
-        onPointerLeave={() => {
-          last.current = null;
-        }}
+        {...picker}
         onKeyDown={(event) => {
           const moves: Record<string, number> = { ArrowLeft: -0.005, ArrowRight: 0.005 };
           const move = moves[event.key];

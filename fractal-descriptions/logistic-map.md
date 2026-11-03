@@ -18,7 +18,7 @@ Try $r=3.2$. The answers no longer settle on one number. They approach a pair an
 
 The change at $r=3$ has a cause. Near the settling number, each step multiplies the gap by $2-r$.<sup><a id="logistic-map-ref-2" href="#logistic-map-source-2">2</a></sup> With $r=2.8$ that is $-0.8$: the answer changes sides and the gap shrinks, which is the swing you saw. With $r=3$ it is $-1$: the gap keeps its size. Past $3$ the gap grows, so the answers can't settle on one number.
 
-Now give each $r$ a column. Run the calculation, leave out the first 2,000 answers, and mark the next 300. One lasting number makes one mark and a pair makes two. Move your pointer across the picture below, or drag on a phone.
+Now give each $r$ a column. Run the calculation, leave out the first 2,000 answers, and mark the next 300. One lasting number makes one mark and a pair makes two. Move your pointer across the picture below, or slide a finger sideways on a phone.
 
 <figure data-lesson="logistic-columns"></figure>
 

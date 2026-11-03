@@ -7,7 +7,9 @@ figure button.stage {
   border: 0;
   background: transparent;
   cursor: crosshair;
-  touch-action: none;
+  /* Up-and-down swipes scroll the page; a tap or a sideways slide marks a column. */
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 figure button.stage:hover:not(:disabled) {
