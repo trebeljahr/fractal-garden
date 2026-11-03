@@ -8,10 +8,12 @@ export const NEWTON_ROOTS: readonly NewtonPoint[] = [
   { real: -0.5, imaginary: Math.sqrt(3) / 2 },
   { real: -0.5, imaginary: -Math.sqrt(3) / 2 },
 ];
-// Match the full image's stopping thresholds, with a shorter teaching trace.
+// Match the full image's stopping thresholds. Starts near zero land very far away and need
+// many jumps back, so these are wide enough to follow them.
 export const NEWTON_ROOT_TOLERANCE = 0.0008;
-export const NEWTON_SLOPE_SQUARED_TOLERANCE = 0.0001;
-export const NEWTON_MAX_COMPONENT = 1_000_000;
+export const NEWTON_SLOPE_SQUARED_TOLERANCE = 1e-24;
+export const NEWTON_MAX_COMPONENT = 1e12;
+export const NEWTON_JUMP_LIMIT = 96;
 
 export function newtonFunction(z: NewtonPoint): NewtonPoint {
   return {
@@ -78,6 +80,31 @@ export function traceNewton(start: NewtonPoint, limit = 12): NewtonTraceState[] 
   const last = trace[trace.length - 1];
   if (last.reason === "active") last.reason = "limit";
   return trace;
+}
+
+/** Which root a first guess reaches, or null. Allocates nothing, so a picture can call it often. */
+export function newtonDestination(real: number, imaginary: number, limit = NEWTON_JUMP_LIMIT) {
+  let x = real;
+  let y = imaginary;
+  for (let jumps = 0; jumps <= limit; jumps++) {
+    for (let root = 0; root < NEWTON_ROOTS.length; root++) {
+      const dx = x - NEWTON_ROOTS[root].real;
+      const dy = y - NEWTON_ROOTS[root].imaginary;
+      if (dx * dx + dy * dy < NEWTON_ROOT_TOLERANCE ** 2) return { root, jumps };
+    }
+    const squareX = x * x - y * y;
+    const squareY = 2 * x * y;
+    const size = squareX * squareX + squareY * squareY;
+    if (9 * size < NEWTON_SLOPE_SQUARED_TOLERANCE) return { root: null, jumps };
+    // z − (z³ − 1) / (3z²) is the same as 2z/3 + 1/(3z²).
+    const nextX = (2 * x + squareX / size) / 3;
+    const nextY = (2 * y - squareY / size) / 3;
+    if (Math.abs(nextX) > NEWTON_MAX_COMPONENT || Math.abs(nextY) > NEWTON_MAX_COMPONENT)
+      return { root: null, jumps };
+    x = nextX;
+    y = nextY;
+  }
+  return { root: null, jumps: limit };
 }
 
 export function realNewtonTangent(x: number) {

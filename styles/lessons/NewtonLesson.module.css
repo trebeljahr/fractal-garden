@@ -13,22 +13,7 @@
   stroke: var(--lesson-accent);
   stroke-width: 2.5;
 }
-.root {
-  fill: var(--lesson-bg);
-  stroke: var(--lesson-ink);
-  stroke-width: 1.5;
-}
-.oldPoint {
-  fill: var(--lesson-ink);
-}
 .status {
-  min-height: 5rem;
-}
-.status p {
-  margin: 0.65rem 0;
-}
-@media (max-width: 600px) {
-  .status {
-    min-height: 0;
-  }
+  min-height: 2.6rem;
+  font-variant-numeric: tabular-nums;
 }

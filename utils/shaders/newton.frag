@@ -4,10 +4,11 @@ uniform vec2 u_resolution;
 uniform vec2 u_center;
 uniform float u_zoomSize;
 
-const int maxIterations = 48;
-const float tolerance = 0.0001;
+// Starts near zero land very far away and need many jumps back to a root.
+const int maxIterations = 96;
+const float tolerance = 1e-24;
 const float rootTolerance = 0.0008;
-const float maxStableValue = 1000000.0;
+const float maxStableValue = 1e12;
 
 vec2 cAdd(vec2 a, vec2 b) {
     return a + b;
