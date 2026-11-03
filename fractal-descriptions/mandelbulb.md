@@ -1,20 +1,24 @@
 # Mandelbulb
 
-Choose a point in space. We will use its position in a calculation, repeating the same two steps: change the current point's distance and direction, then add the position we chose.
+The [Mandelbrot set](/mandelbrot) tests points on a plane. Pick a point and start at the center. Square the current point, add the point you picked, and repeat. If the distance from the center grows without limit, the point you picked is out. Otherwise it is in.
 
-Start at the center. Adding the chosen position takes us to that point. The next calculation can move somewhere else.
+Squaring a point on a plane multiplies its distance by itself and doubles its angle. This works because points on a plane are complex numbers, which can be multiplied and divided. Numbers like that do not exist with three coordinates.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup> So squaring a point in space has no single right answer. Someone has to choose a rule.
 
-To change the distance and direction, measure how far the point is from the center and the two angles that locate it. With **Power** set to $8$, multiply eight copies of the distance together and multiply each angle by eight.
+Daniel White chose this one in 2007. A point in space has a distance from the center and two angles: one measured from the vertical axis, one measured around it. Square the distance and double both angles.<sup><a id="mandelbulb-ref-2" href="#mandelbulb-source-2">2</a></sup> Paul Nylander then tried higher powers. With power 8, raise the distance to the eighth power and multiply both angles by eight. Add the point you picked and repeat. Each repeat is one jump.
 
-Follow that one operation below. The hollow dot stays at the start while the amber dot moves to the result.
+A point whose distance passes 2 only moves farther away, so that is the test.<sup><a id="mandelbulb-ref-3" href="#mandelbulb-source-3">3</a></sup> Test every point in space, and the ones that stay make a solid.
 
-<figure data-investigation="mandelbulb"></figure>
+To see inside a solid, cut it. Move **Height** below to choose where the cut goes. Everything above it is removed, and the amber face is the set of points that stay.
 
-After this operation, add the chosen position again. Repeat. For some chosen positions, the current point's distance from the center grows without limit. For the rest, it doesn't. The boundary between these two groups forms the bulb's surface.
+<figure data-lesson="bulb-slice"></figure>
 
-The [Mandelbrot set](/mandelbrot) tests points in a plane this way. The Mandelbulb uses distance and two angles to extend the idea into space. Changing **Power** changes the operation, so the whole surface changes too.
+At height 0, count the bumps around the edge of the amber shape. Power 8 has seven, not eight. Move **Power**: 6 has five and 4 has three.
 
-Daniel White published the construction in 2007. Paul Nylander's later experiments with higher powers led to the eighth-power images made in 2009.<sup><a id="mandelbulb-ref-1" href="#mandelbulb-source-1">1</a></sup>
+The rule causes this. Pick a point, then turn it one seventh of a circle around the vertical axis. Its distance and its angle from the axis stay the same. Its angle around the axis grows by 1/7 of a circle. Multiplying by 8 makes that 8/7 of a circle, which is one full turn plus 1/7. So the power step lands on the same result as before, turned by 1/7. Adding the turned point keeps it turned, and the same happens at every jump.
+
+The route of a turned point is the original route, turned. Both points get the same answer, so the solid looks the same after each seventh of a circle. Pick a point in the flat view to see this: the white route is yours, and the others start from the same point, turned by equal parts of a circle. The [Mandelbar set](/mandelbar-set) gets its three corners the same way.
+
+This rule does not make a perfect copy of the Mandelbrot set. The Mandelbrot set has detail all along its edge. Parts of the bulb's surface do not: White himself describes "smeared 'whipped cream' sections" in the power 8 bulb, and expects a real 3D Mandelbrot would show more.<sup><a id="mandelbulb-ref-4" href="#mandelbulb-source-2">2</a></sup>
 
 ## Further exploring
 
@@ -32,4 +36,6 @@ Daniel White published the construction in 2007. Paul Nylander's later experimen
 
 ## Sources and notes
 
-1. <span id="mandelbulb-source-1"></span> [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html) and [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). [Back](#mandelbulb-ref-1)
+1. <span id="mandelbulb-source-1"></span> [Frobenius theorem](https://en.wikipedia.org/wiki/Frobenius_theorem_(real_division_algebras)): associative number systems with division exist only with 1, 2 or 4 coordinates. [Back](#mandelbulb-ref-1)
+2. <span id="mandelbulb-source-2"></span> [Mandelbulb: The Unravelling of the Real 3D Mandelbrot Fractal](https://www.skytopia.com/project/fractal/mandelbulb.html), [its formula and epilogue](https://www.skytopia.com/project/fractal/2mandelbulb.html) and [2007 construction account](https://www.skytopia.com/project/fractal/mandelbrot.html). [Back](#mandelbulb-ref-2) [Back](#mandelbulb-ref-4)
+3. <span id="mandelbulb-source-3"></span> Calculation: if $|z|>2$ and $|z|\ge|c|$, then one jump gives at least $|z|^n-|c|\ge|z|(|z|^{n-1}-1)>|z|$. [Back](#mandelbulb-ref-3)

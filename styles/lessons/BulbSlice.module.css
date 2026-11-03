@@ -1,0 +1,59 @@
+.views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.label {
+  min-height: 2.2rem;
+  margin-bottom: 0.4rem;
+  font:
+    1.3rem / 1.5 "Montserrat",
+    sans-serif;
+  color: #eee8cecc;
+}
+.picture {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #10151a;
+}
+.picture canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+button.picture {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+button.picture svg {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+.readout {
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+.sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+@media (max-width: 700px) {
+  .views,
+  .sliders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -18,6 +18,10 @@ uniform vec3 u_paletteC;
 uniform vec3 u_paletteD;
 uniform float u_solid;
 uniform float u_shadows;
+#ifdef CUT
+// Everything above this height is removed.
+uniform float u_cut;
+#endif
 
 const int MAX_STEPS = 256;
 const int MAX_ITERATIONS = 48;
@@ -65,7 +69,11 @@ float mandelbulb(vec3 position, out vec4 trap) {
 
 float distanceTo(vec3 position) {
     vec4 trap;
+#ifdef CUT
+    return max(mandelbulb(position, trap), position.z - u_cut);
+#else
     return mandelbulb(position, trap);
+#endif
 }
 
 // Tetrahedral differences: four estimates instead of six.
@@ -156,6 +164,13 @@ void main() {
     }
 
     vec3 position = rayOrigin + rayDirection * totalDistance;
+#ifdef CUT
+    // The cut face matches the flat view beside it.
+    if (position.z > u_cut - 4.0 * epsilon) {
+        gl_FragColor = vec4(0.961, 0.773, 0.427, 1.0);
+        return;
+    }
+#endif
     vec4 trap;
     mandelbulb(position, trap);
     vec3 normal = estimateNormal(position, epsilon);

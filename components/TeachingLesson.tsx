@@ -40,6 +40,7 @@ const LevyTapestryLesson = dynamic(() => import("./lessons/LevyTapestryLesson"))
 const CircleGhostLesson = dynamic(() => import("./lessons/CircleGhostLesson"));
 const MiraLesson = dynamic(() => import("./lessons/MiraLesson"));
 const MirrorPairLesson = dynamic(() => import("./lessons/MirrorPairLesson"));
+const BulbSliceLesson = dynamic(() => import("./lessons/BulbSliceLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -80,6 +81,7 @@ const LESSONS = [
   "circle-ghosts",
   "mira",
   "mirror-pair",
+  "bulb-slice",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -164,5 +166,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <MiraLesson />;
     case "mirror-pair":
       return <MirrorPairLesson />;
+    case "bulb-slice":
+      return <BulbSliceLesson />;
   }
 }

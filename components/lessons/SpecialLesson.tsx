@@ -1,101 +1,9 @@
 import { useMemo, useState } from "react";
 import extra from "../../styles/lessons/Investigations.module.css";
 import styles from "../../styles/lessons/Lesson.module.css";
-import { bulbPower } from "../../utils/lessons/specialLessons";
 import { contractingProjection, tribonacciWord } from "../../utils/rauzy";
 import BuddhabrotAccumulation from "./BuddhabrotAccumulation";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
-
-function MandelbulbLesson() {
-  const [step, setStep] = useState(0);
-  const [power, setPower] = useState(8);
-  const [latitude, setLatitude] = useState(52);
-  const radius = 0.9,
-    theta = (latitude * Math.PI) / 180,
-    phi = 0.6;
-  const t = step / 100;
-  const input = bulbPower(radius, theta, phi, 1);
-  // Interpolate radius and angles separately so both endpoints match the true power map.
-  const r = radius ** (1 + (power - 1) * t);
-  const unit = bulbPower(1, theta, phi, 1 + (power - 1) * t);
-  const output = unit.map((v) => v * r);
-  const project = (p: number[]) => [
-    240 + 125 * (p[0] + p[1] * 0.5),
-    160 - 125 * (p[2] - p[1] * 0.3),
-  ];
-  const origin = [240, 160],
-    a = project(input),
-    b = project(output);
-  return (
-    <LessonFrame title="Change the distance and the angles" kind="mandelbulb">
-      <p>
-        The point starts 0.9 units from the center. Press Play to follow one power calculation: its
-        angles turn and that distance shrinks. The hollow dot marks where it began.
-      </p>
-      <svg
-        viewBox="0 0 480 320"
-        role="img"
-        aria-label={`Spherical power ${power}, transformation ${step}% complete. Radius changes from 0.9 to ${(radius ** power).toFixed(3)}.`}
-      >
-        <path d="M80 160H400M240 20V300M165 205L315 115" className={styles.axis} />
-        <circle cx="240" cy="160" r="125" className={extra.reference} />
-        <path d={`M${origin}L${a}`} className={extra.reference} />
-        <circle cx={a[0]} cy={a[1]} r="5" fill="none" stroke="#eee8ce" />
-        <path d={`M${origin}L${b}`} className={styles.accent} />
-        <circle cx={b[0]} cy={b[1]} r="5" className={styles.point} />
-      </svg>
-      <LessonSteps
-        key={`${power}-${latitude}`}
-        step={step}
-        max={100}
-        onChange={setStep}
-        label="Spherical power transformation"
-      />
-      <label className={styles.parameter}>
-        <span>
-          Power <output>{power}</output>
-        </span>
-        <input
-          type="range"
-          aria-label="Power"
-          min={2}
-          max={10}
-          value={power}
-          onChange={(e) => {
-            setPower(Number(e.target.value));
-            setStep(0);
-          }}
-        />
-      </label>
-      <label className={styles.parameter}>
-        <span>
-          Starting angle from vertical <output>{latitude}°</output>
-        </span>
-        <input
-          type="range"
-          aria-label="Starting angle from vertical"
-          min={10}
-          max={170}
-          value={latitude}
-          onChange={(e) => {
-            setLatitude(Number(e.target.value));
-            setStep(0);
-          }}
-        />
-      </label>
-      <p>
-        Distance from the center: 0.900 → {(radius ** power).toFixed(3)}. Angle from vertical:{" "}
-        {latitude}° → {latitude * power}°. Angle around the vertical axis: 34.4° →{" "}
-        {(((phi * 180) / Math.PI) * power).toFixed(1)}°.
-      </p>
-      <p>
-        Try a different Power. It multiplies both angles and changes how much the distance shrinks.
-        These are the two changes shown here; the full calculation then adds the chosen position
-        before repeating.
-      </p>
-    </LessonFrame>
-  );
-}
 
 function RauzyLesson() {
   const [step, setStep] = useState(0);
@@ -204,15 +112,9 @@ function RauzyLesson() {
   );
 }
 
-export type SpecialLessonKind = "buddhabrot" | "mandelbulb" | "rauzy";
+export type SpecialLessonKind = "buddhabrot" | "rauzy";
 export const isSpecialLessonKind = (value: unknown): value is SpecialLessonKind =>
-  value === "buddhabrot" || value === "mandelbulb" || value === "rauzy";
+  value === "buddhabrot" || value === "rauzy";
 export default function SpecialLesson({ kind }: { kind: SpecialLessonKind }) {
-  return kind === "buddhabrot" ? (
-    <BuddhabrotAccumulation />
-  ) : kind === "mandelbulb" ? (
-    <MandelbulbLesson />
-  ) : (
-    <RauzyLesson />
-  );
+  return kind === "buddhabrot" ? <BuddhabrotAccumulation /> : <RauzyLesson />;
 }

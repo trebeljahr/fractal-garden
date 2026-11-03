@@ -17,7 +17,13 @@ require.extensions[".ts"] = (module, filename) => {
 };
 const { lessonSegments, PATH_LESSONS } = require("../utils/lessons/pathLessons.ts");
 const { GEOMETRY_LESSONS } = require("../utils/lessons/geometryLessons.ts");
-const { histogramOrbit, buddhaSamples, bulbPower } = require("../utils/lessons/specialLessons.ts");
+const {
+  histogramOrbit,
+  buddhaSamples,
+  bulbPower,
+  bulbRoute,
+  turnAroundAxis,
+} = require("../utils/lessons/specialLessons.ts");
 const { tribonacciWord, contractingProjection } = require("../utils/rauzy.ts");
 const { generateJerusalemCube } = require("../utils/voxelFractals.ts");
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} != ${b}`);
@@ -28,7 +34,6 @@ test("every article has a resolved interactive teaching figure", () => {
     ...Object.keys(GEOMETRY_LESSONS),
     "buddhabrot",
     "buddhabrot-connection",
-    "mandelbulb",
     "rauzy",
   ]);
   for (const file of readdirSync(new URL("../fractal-descriptions", import.meta.url))) {
@@ -125,6 +130,37 @@ test("spherical powers preserve the raised radius and collapse all directions at
     for (const power of [2, 8, 10])
       for (const theta of [0.3, 1.1, 2.4])
         close(Math.hypot(...bulbPower(radius, theta, 0.6, power)), radius ** power);
+});
+
+test("the bulb repeats one fewer time than its power, because a turned point's route turns too", () => {
+  const sameRoute = (a, b) =>
+    a.length === b.length &&
+    a.every((point, jump) => Math.hypot(...point.map((v, i) => v - b[jump][i])) < 1e-6);
+  for (const power of [3, 4, 5, 6, 8, 9, 10]) {
+    for (const start of [
+      [0.74, 0.42, 0],
+      [0.31, -0.62, 0.25],
+      [-0.2, 0.5, -0.5],
+    ]) {
+      const route = bulbRoute(start, power, 4);
+      const turned = bulbRoute(turnAroundAxis(start, 1 / (power - 1)), power, 4);
+      assert.ok(
+        sameRoute(
+          route.map((point) => turnAroundAxis(point, 1 / (power - 1))),
+          turned,
+        ),
+        `power ${power}`,
+      );
+      const wrong = bulbRoute(turnAroundAxis(start, 1 / power), power, 4);
+      assert.ok(
+        !sameRoute(
+          route.map((point) => turnAroundAxis(point, 1 / power)),
+          wrong,
+        ),
+        `power ${power} does not repeat ${power} times`,
+      );
+    }
+  }
 });
 
 test("Rauzy prefix projections stay bounded while the word grows", () => {

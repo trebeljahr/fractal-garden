@@ -6,7 +6,7 @@ const PathLesson = dynamic(() => import("./PathLesson"));
 const GeometryLesson = dynamic(() => import("./GeometryLesson"));
 const SpecialLesson = dynamic(() => import("./SpecialLesson"));
 const BuddhabrotConnection = dynamic(() => import("./BuddhabrotConnection"));
-type SpecialKind = "buddhabrot" | "mandelbulb" | "rauzy";
+type SpecialKind = "buddhabrot" | "rauzy";
 export type InvestigationKind =
   | PathLessonKind
   | GeometryLessonKind
@@ -17,7 +17,6 @@ export const isInvestigationKind = (value: unknown): value is InvestigationKind 
   isGeometryLessonKind(value) ||
   value === "buddhabrot" ||
   value === "buddhabrot-connection" ||
-  value === "mandelbulb" ||
   value === "rauzy";
 export default function Investigation({ kind }: { kind: InvestigationKind }) {
   if (kind === "buddhabrot-connection") return <BuddhabrotConnection />;
