@@ -169,7 +169,16 @@ export function drawPlane(
 }
 
 /** One line per route: how far the point is from zero after each jump. */
-export function DistanceChart({ route, shown }: { route: OrbitStep[]; shown?: number }) {
+export function DistanceChart({
+  route,
+  shown,
+  mark = ESCAPE_CIRCLE,
+}: {
+  route: OrbitStep[];
+  shown?: number;
+  /** The distance to mark with a dashed line, or null for none. */
+  mark?: number | null;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const element = canvas.current;
@@ -188,16 +197,18 @@ export function DistanceChart({ route, shown }: { route: OrbitStep[]; shown?: nu
       context.font = `${11 * scale}px Montserrat, sans-serif`;
       context.fillStyle = `${LINE}aa`;
       context.textBaseline = "middle";
-      context.fillText("2", 2 * scale, py(ESCAPE_CIRCLE));
       context.fillText("0", 2 * scale, py(0) - 4 * scale);
-      context.strokeStyle = `${LINE}aa`;
-      context.lineWidth = scale;
-      context.setLineDash([6 * scale, 5 * scale]);
-      context.beginPath();
-      context.moveTo(gutter, py(ESCAPE_CIRCLE));
-      context.lineTo(width, py(ESCAPE_CIRCLE));
-      context.stroke();
-      context.setLineDash([]);
+      if (mark !== null) {
+        context.fillText(String(mark), 2 * scale, py(mark));
+        context.strokeStyle = `${LINE}aa`;
+        context.lineWidth = scale;
+        context.setLineDash([6 * scale, 5 * scale]);
+        context.beginPath();
+        context.moveTo(gutter, py(mark));
+        context.lineTo(width, py(mark));
+        context.stroke();
+        context.setLineDash([]);
+      }
       const last = Math.min(shown ?? route.length, route.length, span + 1);
       context.strokeStyle = LINE;
       context.lineWidth = 1.5 * scale;
@@ -215,7 +226,7 @@ export function DistanceChart({ route, shown }: { route: OrbitStep[]; shown?: nu
     const resized = new ResizeObserver(draw);
     resized.observe(element);
     return () => resized.disconnect();
-  }, [route, shown]);
+  }, [route, shown, mark]);
   return (
     <figure className={styles.chart}>
       <figcaption>Distance from zero at each jump</figcaption>

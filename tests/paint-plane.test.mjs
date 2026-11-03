@@ -3,7 +3,6 @@ import { test } from "node:test";
 import {
   createGrid,
   crossingJump,
-  juliaEdge,
   paintDab,
   paintRow,
   paintStroke,
@@ -78,35 +77,4 @@ test("filling every row gives the Mandelbrot set's area", () => {
   for (const step of grid.steps) if (step === STAYED) dark++;
   // 50 cells per unit, and the set's area is about 1.5066. A step limit counts a little extra.
   assert.ok(Math.abs(dark / (1.5066 * 2500) - 1) < 0.06, String(dark));
-});
-
-test("running the jumps backward draws the unit circle for c = 0", () => {
-  const columns = 400;
-  const rows = 400;
-  const bounds = [-2, 2, -2, 2];
-  const hits = juliaEdge(ZERO, bounds, columns, rows);
-  let marked = 0;
-  for (let row = 0; row < rows; row++) {
-    for (let column = 0; column < columns; column++) {
-      if (!hits[row * columns + column]) continue;
-      marked++;
-      const distance = Math.hypot(
-        -2 + ((column + 0.5) / columns) * 4,
-        2 - ((row + 0.5) / rows) * 4,
-      );
-      assert.ok(Math.abs(distance - 1) < 0.02, String(distance));
-    }
-  }
-  // The circle is 2 pi units long and each cell is 0.01 across.
-  assert.ok(marked > 400, String(marked));
-});
-
-test("every marked edge cell stays bounded, in one piece or as dust", () => {
-  const bounds = [-2.1, 2.1, -1.75, 1.75];
-  for (const c of [RABBIT, { real: 0.36, imaginary: 0.3 }, { real: 0.3, imaginary: 0.6 }]) {
-    const hits = juliaEdge(c, bounds, 560, 467);
-    let marked = 0;
-    for (const hit of hits) if (hit) marked++;
-    assert.ok(marked > 200, `${c.real} ${marked}`);
-  }
 });

@@ -64,9 +64,6 @@ button.plane.plane {
   align-items: center;
   gap: 0.6rem;
 }
-.pair .actions {
-  margin-top: 1rem;
-}
 .mode {
   --explorer-field: var(--lesson-bg);
   --explorer-accent: var(--lesson-accent);
@@ -121,37 +118,8 @@ button.plane.plane {
   height: 72px;
   background: #10151a;
 }
-.pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-.pair > div {
-  min-width: 0;
-}
-.pair h3 {
-  font:
-    600 1.5rem / 1.5 "Montserrat",
-    sans-serif;
-  margin: 0 0 0.6rem;
-}
-.pair .wrap {
-  margin-top: 0;
-}
-.edge {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: #eee8ce;
-}
 .neck {
   position: relative;
   aspect-ratio: 5.6 / 4.4;
   background: #eee8ce;
-}
-@media (max-width: 600px) {
-  .pair {
-    grid-template-columns: 1fr;
-  }
 }

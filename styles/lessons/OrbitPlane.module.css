@@ -1,0 +1,105 @@
+button.line.line {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0;
+  border: 0;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.tick {
+  fill: #eee8cebb;
+  font:
+    15px "Montserrat",
+    sans-serif;
+}
+.frame .chain,
+.chain {
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0;
+}
+.fate {
+  font:
+    600 1.5rem / 1.5 "Montserrat",
+    sans-serif;
+}
+.lesson {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.lesson > * {
+  min-width: 0;
+}
+.lesson p {
+  margin: 0;
+}
+.lesson [data-orbit-named] {
+  margin: 0;
+}
+button.plane.plane {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+.edge {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #10151a;
+  outline: 1px solid #eee8ce26;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.mode {
+  --explorer-field: var(--lesson-bg);
+  --explorer-accent: var(--lesson-accent);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 44px;
+  cursor: pointer;
+  font:
+    1.4rem / 1.4 "Montserrat",
+    sans-serif;
+}
+.mode button[role="switch"] {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.mode button[aria-checked="true"]:hover:not(:disabled) {
+  background: var(--lesson-accent);
+}
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 0.8rem;
+  border-radius: 50%;
+}
+@media (min-width: 800px) {
+  .lesson {
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    gap: 1rem 1.5rem;
+  }
+  .lesson button.plane {
+    grid-column: 1;
+    grid-row: 1 / span 8;
+    align-self: start;
+  }
+  .lesson > :not(button) {
+    grid-column: 2;
+  }
+}
