@@ -16,7 +16,8 @@ export type NFlakeParams = {
 const PADDING = 0.08;
 const MAX_POLYGONS = 22000;
 
-function getScaleFactor(sides: number) {
+/** How wide each copy is, as a share of its parent. */
+export function getScaleFactor(sides: number) {
   let sum = 0;
 
   for (let k = 1; k <= Math.floor(sides / 4); k++) {
@@ -73,9 +74,14 @@ function tracePolygon(
   path.closePath();
 }
 
+/** The distance from the middle of the drawing to a corner of the first polygon. */
+export function nFlakeRadius(width: number, height: number) {
+  return (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
+}
+
 export function drawNFlake(ctx: Context2D, width: number, height: number, config: NFlakeParams) {
   const scaleFactor = getScaleFactor(config.sides);
-  const rootRadius = (Math.min(width, height) * (1 - 2 * PADDING)) / 2;
+  const rootRadius = nFlakeRadius(width, height);
   const rotation = radians(config.rotation + (config.sides === 4 ? 45 : 0));
   const centeredVariant = usesCenterPolygon(config.sides, config.includeCenter);
 
