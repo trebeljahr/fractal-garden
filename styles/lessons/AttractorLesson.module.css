@@ -1,32 +1,48 @@
+/* The explorer's colors for each attractor. */
+.lorenz {
+  --trail: #ffd166;
+  --nearby-trail: #ef476f;
+}
+.rossler {
+  --trail: #9bf6ff;
+  --nearby-trail: var(--lesson-accent);
+}
 .history,
 .nearbyHistory {
   fill: none;
-  stroke: var(--lesson-ink);
+  stroke: var(--trail);
   stroke-width: 1.5;
   stroke-opacity: 0.55;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .nearbyHistory {
-  stroke: var(--lesson-accent);
+  stroke: var(--nearby-trail);
   stroke-dasharray: 5 4;
+}
+.current {
+  fill: none;
+  stroke: var(--trail);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .nearby {
   fill: none;
-  stroke: var(--lesson-accent);
+  stroke: var(--nearby-trail);
   stroke-width: 1.8;
   stroke-dasharray: 5 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .head {
-  fill: var(--lesson-ink);
+  fill: var(--trail);
   stroke: var(--lesson-bg);
   stroke-width: 1.5;
 }
 .nearbyHead {
   fill: var(--lesson-bg);
-  stroke: var(--lesson-accent);
+  stroke: var(--nearby-trail);
   stroke-width: 2;
 }
 .compare {

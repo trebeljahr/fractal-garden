@@ -12,6 +12,7 @@ export const ATTRACTOR_LESSONS: Record<
     batches: number;
     start: AttractorPoint;
     projection: AttractorProjection;
+    pathStride: number;
   }
 > = {
   lorenz: {
@@ -21,6 +22,7 @@ export const ATTRACTOR_LESSONS: Record<
     batches: 32,
     start: [0.1, 0, 0],
     projection: "xz",
+    pathStride: 8,
   },
   rossler: {
     name: "Rössler",
@@ -29,6 +31,8 @@ export const ATTRACTOR_LESSONS: Record<
     batches: 32,
     start: [1, 1, 0],
     projection: "xy",
+    // Its time step is four times longer, and z rises quickly.
+    pathStride: 2,
   },
 };
 
@@ -84,4 +88,44 @@ export function sampleTrace(points: AttractorPoint[], end: number, stride = 8) {
   for (let index = 0; index <= last; index += every) sampled.push(points[index]);
   if (last > 0 && last % every !== 0) sampled.push(points[last]);
   return sampled;
+}
+
+// Lorenz's restart, tried on this page's three equations. A settled point with x = 0.506127.
+export const RESTART_POINT: AttractorPoint = [0.506127, 4.411434, 25.859555];
+// Each notch is ten times smaller. The fourth is the rounding from 0.506127 to 0.506.
+export const RESTART_NOTCHES = 12;
+export const LORENZ_ROUNDING_NOTCH = 3;
+export const RESTART_STEPS = 7000;
+// At this distance between the points, their two x curves are visibly different.
+export const APART_DISTANCE = 5;
+
+export function restartDifference(notch: number) {
+  return 0.127 / 10 ** notch;
+}
+
+/** The difference as a decimal, in full. Exponents would hide how small it is. */
+export function restartDifferenceLabel(notch: number) {
+  return restartDifference(notch).toFixed(3 + notch);
+}
+
+export function restartStartLabel(notch: number) {
+  const decimals = Math.max(6, 3 + notch);
+  return String(Number((RESTART_POINT[0] - restartDifference(notch)).toFixed(decimals)));
+}
+
+export function restartRuns() {
+  const { dt } = ATTRACTOR_LESSONS.lorenz;
+  const original = traceAttractor("lorenz", RESTART_POINT, RESTART_STEPS, dt);
+  const restarts = Array.from({ length: RESTART_NOTCHES }, (_, notch) => {
+    const start: AttractorPoint = [
+      RESTART_POINT[0] - restartDifference(notch),
+      RESTART_POINT[1],
+      RESTART_POINT[2],
+    ];
+    const run = traceAttractor("lorenz", start, RESTART_STEPS, dt);
+    const gaps = run.map((point, index) => pointSeparation(point, original[index]));
+    const apart = gaps.findIndex((gap) => gap > APART_DISTANCE);
+    return { notch, run, gaps, apartTime: apart < 0 ? null : apart * dt };
+  });
+  return { original, restarts };
 }

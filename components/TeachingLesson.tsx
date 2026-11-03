@@ -21,6 +21,8 @@ const NewtonPlaneLesson = dynamic(() => import("./lessons/NewtonPlaneLesson"));
 const LogisticLesson = dynamic(() => import("./lessons/LogisticLesson"));
 const LogisticColumnsLesson = dynamic(() => import("./lessons/LogisticColumnsLesson"));
 const AttractorLesson = dynamic(() => import("./lessons/AttractorLesson"));
+// Runs a dozen chaotic calculations that the server has no need to repeat.
+const LorenzRestartLesson = dynamic(() => import("./lessons/LorenzRestartLesson"), { ssr: false });
 const DlaLesson = dynamic(() => import("./lessons/DlaLesson"));
 const SierpinskiSeedsLesson = dynamic(() => import("./lessons/SierpinskiSeedsLesson"));
 const ChaosGameLesson = dynamic(() =>
@@ -79,6 +81,7 @@ const LESSONS = [
   "logistic",
   "logistic-columns",
   "lorenz",
+  "lorenz-restart",
   "rossler",
   "dla",
   "penrose",
@@ -162,6 +165,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <LogisticColumnsLesson />;
     case "lorenz":
       return <AttractorLesson system="lorenz" />;
+    case "lorenz-restart":
+      return <LorenzRestartLesson />;
     case "rossler":
       return <AttractorLesson system="rossler" />;
     case "dla":

@@ -69,7 +69,7 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
   const otherHead = fit.project(nearby);
   const batchStart = Math.max(0, index - config.batchSteps);
   const tracePath = (points: AttractorPoint[], start = 0) =>
-    sampleTrace(points.slice(start, index + 1), index - start)
+    sampleTrace(points.slice(start, index + 1), index - start, config.pathStride)
       .map((point, order) => {
         const p = fit.project(point);
         return `${order ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)}`;
@@ -91,12 +91,8 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           : "A spiral seen from two sides"
       }
       kind={system}
+      className={system === "lorenz" ? styles.lorenz : styles.rossler}
     >
-      <p>
-        {system === "lorenz"
-          ? "Follow the cream point, then turn on Compare a nearby start. The amber point begins just 0.001 away. Both use the same rules. Watch where their trails start to separate."
-          : "Play the x–y view to follow the outward spiral. Pause, then switch to x–z view. Can you find where the point rises and turns back toward the center?"}
-      </p>
       <fieldset className={shared.options} aria-label="View">
         <button
           type="button"
@@ -130,7 +126,7 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           </text>
           <path d={tracePath(traces.reference)} className={styles.history} />
           {compare && <path d={tracePath(traces.nearby)} className={styles.nearbyHistory} />}
-          <path d={tracePath(traces.reference, batchStart)} className={shared.line} />
+          <path d={tracePath(traces.reference, batchStart)} className={styles.current} />
           {compare && <path d={tracePath(traces.nearby, batchStart)} className={styles.nearby} />}
           <circle cx={head.x} cy={head.y} r="4.5" className={styles.head} />
           {compare && (
@@ -138,20 +134,9 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
           )}
         </svg>
         <div id={`${id}-summary`} aria-live="polite" aria-atomic="true">
-          <p>Time elapsed: {(index * config.dt).toFixed(2)}.</p>
-          {step > 0 && (
-            <p>
-              The bold line shows the latest part of the trail. The faint line shows where the point
-              has already been.
-            </p>
-          )}
-          <p>The cream point is at ({coordinates(current)}).</p>
-          {compare && (
-            <p>
-              Distance between the points in space:{" "}
-              {distanceLabel(pointSeparation(current, nearby))}.
-            </p>
-          )}
+          <p>Time {(index * config.dt).toFixed(2)}</p>
+          <p>Point ({coordinates(current)})</p>
+          {compare && <p>Distance {distanceLabel(pointSeparation(current, nearby))}</p>}
         </div>
       </div>
       <LessonSteps
@@ -168,15 +153,6 @@ export default function AttractorLesson({ system }: { system: AttractorSystem })
         />
         Compare a nearby start
       </label>
-      <p>
-        Compare a nearby start adds a second point, just 0.001 away at the beginning. Its trail is
-        dashed amber. Their distance can shrink as well as grow, even though both follow the same
-        rules.
-      </p>
-      <p>
-        The points move in three dimensions. The x–y view looks down on them; the x–z view shows
-        their height. Switch views to see a separation that one view may hide.
-      </p>
     </LessonFrame>
   );
 }

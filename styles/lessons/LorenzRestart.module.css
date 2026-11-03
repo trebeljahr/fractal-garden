@@ -1,0 +1,80 @@
+.plot {
+  --run-1: #ffd166;
+  --run-2: #ef476f;
+  margin-top: 1rem;
+}
+.grid {
+  fill: none;
+  stroke: #eee8ce22;
+  stroke-width: 1;
+}
+.original,
+.rerun {
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.original {
+  stroke: var(--run-1);
+}
+.rerun {
+  stroke: var(--run-2);
+  stroke-width: 1.8;
+}
+.otherGap {
+  fill: none;
+  stroke: #eee8ce;
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+}
+.gap {
+  fill: none;
+  stroke: var(--run-2);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.apartLine {
+  fill: none;
+  stroke: #eee8ce88;
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.marker {
+  fill: none;
+  stroke: #eee8cebb;
+  stroke-width: 1;
+}
+.dot {
+  fill: #eee8ce;
+}
+.chosenDot {
+  fill: var(--run-2);
+  stroke: var(--lesson-bg);
+  stroke-width: 1.5;
+}
+/* A dark edge keeps the labels readable where the gap lines cross them. */
+.tick,
+.apartLabel {
+  fill: #eee8cecc;
+  font:
+    15px "Montserrat",
+    sans-serif;
+  paint-order: stroke;
+  stroke: var(--lesson-bg);
+  stroke-width: 3px;
+}
+.apartLabel {
+  fill: var(--lesson-ink);
+}
+.readout {
+  font-variant-numeric: tabular-nums;
+}
+.readout p {
+  margin: 0.4rem 0;
+}
+.originalName {
+  color: #ffd166;
+}
+.rerunName {
+  color: #ff7f9d;
+}

@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  APART_DISTANCE,
   ATTRACTOR_LESSONS,
   attractorFlow,
+  LORENZ_ROUNDING_NOTCH,
   MAX_ATTRACTOR_STEPS,
   NEARBY_START_OFFSET,
   pointSeparation,
+  RESTART_NOTCHES,
+  RESTART_STEPS,
+  restartDifference,
+  restartDifferenceLabel,
+  restartRuns,
+  restartStartLabel,
   rk4Step,
   sampleTrace,
   traceAttractor,
@@ -76,4 +84,51 @@ test("render sampling retains the current point without changing the numerical p
     traceAttractor("lorenz", [0, 0, 0], MAX_ATTRACTOR_STEPS + 10, config.dt).length,
     MAX_ATTRACTOR_STEPS + 1,
   );
+});
+
+test("the rounding Lorenz made is one notch of the restart, and every notch separates", () => {
+  assert.equal(restartDifferenceLabel(LORENZ_ROUNDING_NOTCH), "0.000127");
+  assert.equal(restartStartLabel(LORENZ_ROUNDING_NOTCH), "0.506");
+  assert.equal(restartStartLabel(0), "0.379127");
+  assert.equal(restartStartLabel(RESTART_NOTCHES - 1), "0.50612699999873");
+  assert.equal(restartDifferenceLabel(RESTART_NOTCHES - 1), "0.00000000000127");
+  assert.equal(RESTART_STEPS <= MAX_ATTRACTOR_STEPS, true);
+  const { original, restarts } = restartRuns();
+  assert.equal(original.length, RESTART_STEPS + 1);
+  close(restarts[LORENZ_ROUNDING_NOTCH].gaps[0], 0.000127, 1e-12);
+  const times = restarts.map(({ apartTime }) => apartTime);
+  assert.ok(times.every((time) => time !== null));
+  for (let i = 1; i < times.length; i++) assert.ok(times[i] > times[i - 1]);
+  // Each tenfold adds a steady amount here, which is what the article tells the reader to check.
+  const perTenfold = (times.at(-1) - times[0]) / (times.length - 1);
+  assert.ok(perTenfold > 2.2 && perTenfold < 2.7, `${perTenfold}`);
+  // The numbers the article quotes.
+  close(times[LORENZ_ROUNDING_NOTCH], 10.79, 0.01);
+  close(times[LORENZ_ROUNDING_NOTCH + 1], 13.1, 0.01);
+  close(times[LORENZ_ROUNDING_NOTCH + 2], 15.44, 0.01);
+  close(times[LORENZ_ROUNDING_NOTCH + 6], 25.29, 0.01);
+});
+
+test("across many restart points, a tenfold smaller difference buys about 2.5 time units", () => {
+  const { dt } = ATTRACTOR_LESSONS.lorenz;
+  let point = traceAttractor("lorenz", [0.1, 0, 0], MAX_ATTRACTOR_STEPS, dt).at(-1);
+  const notches = [2, 5, 8, 11];
+  const totals = notches.map(() => 0);
+  const restarts = 200;
+  for (let k = 0; k < restarts; k++) {
+    point = traceAttractor("lorenz", point, 1000, dt).at(-1);
+    const original = traceAttractor("lorenz", point, MAX_ATTRACTOR_STEPS, dt);
+    notches.forEach((notch, slot) => {
+      const start = [point[0] - restartDifference(notch), point[1], point[2]];
+      const run = traceAttractor("lorenz", start, MAX_ATTRACTOR_STEPS, dt);
+      const apart = run.findIndex(
+        (value, i) => pointSeparation(value, original[i]) > APART_DISTANCE,
+      );
+      assert.ok(apart > 0);
+      totals[slot] += apart * dt;
+    });
+  }
+  const means = totals.map((total) => total / restarts);
+  const perTenfold = (means.at(-1) - means[0]) / (notches.at(-1) - notches[0]);
+  assert.ok(perTenfold > 2.4 && perTenfold < 2.7, `${perTenfold}`);
 });
