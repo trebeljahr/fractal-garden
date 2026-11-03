@@ -8,6 +8,7 @@ import type { CanvasViewport } from "../../utils/canvasViewport";
 import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { CESARO_LEAD } from "../../utils/lessons/cesaroAngle";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -47,6 +48,7 @@ const CesaroFractal = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 900,
     holdDelay: 1800,
+    constructionLead: CESARO_LEAD,
   });
 
   const viewport = useCanvasViewport(canvas);
@@ -65,7 +67,7 @@ const CesaroFractal = ({ description }: Props) => {
           <PanelColor path="background" />
           <PanelColor path="color" />
           <PanelNumber path="iterations" min={1} max={MAX_ITERATIONS} step={1} />
-          <PanelNumber path="angle" min={60} max={89} step={1} />
+          <PanelNumber path="angle" min={60} max={90} step={1} />
           <PanelNumber path="lineWidth" min={0.5} max={4} step={0.1} />
         </ExplorerPanel>
         <div
