@@ -32,10 +32,6 @@ export default function DragonFoldLesson() {
   const selected = project(points[crease + 1]);
   return (
     <LessonFrame title="Open the folded strip" kind="dragon-fold" className={extra.pathConnections}>
-      <p>
-        After {folds} folds, {2 ** folds} sections lie on top of one another. Open the creases
-        slowly and follow the two amber sections as they separate.
-      </p>
       <div className={styles.options}>
         <button type="button" disabled={folds === 1} onClick={() => changeFolds(folds - 1)}>
           One fewer fold
@@ -85,7 +81,7 @@ export default function DragonFoldLesson() {
         />
       </label>
       <fieldset className={extra.creaseButtons} aria-label="Choose a crease">
-        <legend>Choose a turn along the strip</legend>
+        <legend>Turns from the pale dot</legend>
         {turns.map((turn, i) => (
           <button
             key={i}
@@ -99,14 +95,8 @@ export default function DragonFoldLesson() {
         ))}
       </fieldset>
       <p aria-live="polite">
-        Crease {crease + 1}: turn {turns[crease] === 1 ? "left" : "right"}.{" "}
-        {opening === 90
-          ? "Each crease is a right angle. Follow the left and right turns from the pale dot to trace the dragon."
-          : "Keep opening the strip until each crease makes a right angle."}
-      </p>
-      <p>
-        L and R mean left and right as you follow the strip from the pale dot. Choose one to
-        highlight its crease.
+        {folds} {folds === 1 ? "fold" : "folds"} · {2 ** folds} sections · crease {crease + 1} turns{" "}
+        {turns[crease] === 1 ? "left" : "right"}
       </p>
     </LessonFrame>
   );

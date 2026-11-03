@@ -8,11 +8,6 @@ import { LessonFrame } from "./LessonFrame";
 
 const COLORS = ["#f5c56d", "#7ec9bb", "#d68fa3", "#97ade0"];
 const VIEWS = ["One dragon", "Fit four together", "Tile the plane"];
-const EXPLANATIONS = [
-  "Show the path to see how each line sits inside a small square. The squares together make the dragon tile.",
-  "These are four copies of the same tile, turned a quarter turn apart. Their starting points meet at the center.",
-  "Follow one color to find copies of the same dragon. Groups of four fit together across the picture.",
-];
 
 export default function DragonTilingLesson() {
   const id = useId().replace(/:/g, "");
@@ -29,9 +24,6 @@ export default function DragonTilingLesson() {
   const separation = view === 0 ? 0 : gap;
   const size = view === 2 ? 4.6 : 3.1 + separation / 80;
   const spread = 1 + separation / 140;
-  const explanation = separation
-    ? "Follow a tile’s edge while the tiles are apart. Move Pull apart back to zero to see how the neighboring edge fits."
-    : EXPLANATIONS[view];
   return (
     <LessonFrame title="Dragon tiles" kind="dragon-tiling">
       <fieldset className={shared.options} aria-label="Dragon tiling view">
@@ -54,7 +46,6 @@ export default function DragonTilingLesson() {
       >
         <title id={`${id}-title`}>{VIEWS[view]}</title>
         <desc id={`${id}-description`}>
-          {explanation}{" "}
           {separation
             ? "Tiles are pulled apart to show their edges."
             : "Tiles are fitted together."}
@@ -83,9 +74,6 @@ export default function DragonTilingLesson() {
           {view === 1 && <circle r="0.025" fill="#10151a" stroke="#eee8ce" strokeWidth="0.012" />}
         </g>
       </svg>
-      <p className={styles.explanation} aria-live="polite">
-        {explanation}
-      </p>
       <div className={styles.parameters}>
         <label className={shared.parameter}>
           <span>
@@ -118,10 +106,6 @@ export default function DragonTilingLesson() {
       <button type="button" aria-pressed={showPath} onClick={() => setShowPath(!showPath)}>
         {showPath ? "Hide the path" : "Show the path"}
       </button>
-      <p>
-        Lower the detail to see the squares around the path. As you raise it again, the squares get
-        smaller and the edge of the dragon becomes more detailed.
-      </p>
     </LessonFrame>
   );
 }

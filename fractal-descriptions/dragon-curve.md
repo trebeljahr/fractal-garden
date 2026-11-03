@@ -4,6 +4,8 @@ Fold a paper strip in half. Fold it in half again, in the same direction. Repeat
 
 Now open the strip until each crease makes a right angle. Follow it from one end: some creases turn left, others turn right. This is the **dragon curve**.<sup><a id="dragon-curve-ref-1" href="#dragon-curve-source-1">1</a></sup>
 
+Open the creases below slowly and follow the two amber sections as they separate. The letters list the turns as you follow the strip from the pale dot: L for left, R for right. Choose one to highlight its crease.
+
 <figure data-lesson="dragon-fold"></figure>
 
 Each fold doubles the number of sections in the strip. The drawing below shows how the path changes as you add more folds.
@@ -14,13 +16,13 @@ Press **Lévy** to swap the rule. Both rules replace every line with two lines a
 
 Keep the two ends in the same places as you add folds. The sections must get shorter. In the infinite limit, the path fills a region with area.<sup><a id="dragon-curve-ref-2" href="#dragon-curve-source-2">2</a></sup>
 
-To see that region, draw a small square around each section, with the section joining two opposite corners. These squares make the filled dragon below. Increasing the detail makes both the sections and their squares smaller.
+To see that region, draw a small square around each section, with the section joining two opposite corners. These squares make the filled dragon below. Choose **One dragon** and **Show the path** to see each section inside its square. Lower the detail to see the squares themselves. Raise it again and the sections and their squares get smaller, while the dragon's edge gets more detailed.
 
-Four copies fit around the same starting point, each turned a quarter turn from the last.<sup><a id="dragon-curve-ref-3" href="#dragon-curve-source-1">1</a></sup> Pull them apart to follow their edges, then bring them back together.
+Choose **Fit four together**. Four copies fit around the same starting point, each turned a quarter turn from the last.<sup><a id="dragon-curve-ref-3" href="#dragon-curve-source-1">1</a></sup> Pull them apart to follow their edges, then bring them back together.
 
 <figure data-lesson="dragon-tiling"></figure>
 
-The four-copy groups fit together in diagonal rows. Repeating them covers the plane without gaps.<sup><a id="dragon-curve-ref-4" href="#dragon-curve-source-3">3</a></sup> The [Twindragon](/l-system/twindragon) makes another tile by joining just two dragon paths at their ends.
+Choose **Tile the plane** and follow one color to find copies of the same dragon. The four-copy groups fit together in diagonal rows. Repeating them covers the plane without gaps.<sup><a id="dragon-curve-ref-4" href="#dragon-curve-source-3">3</a></sup> The [Twindragon](/l-system/twindragon) makes another tile by joining just two dragon paths at their ends.
 
 ## Further exploring
 
