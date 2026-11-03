@@ -55,28 +55,6 @@
     "kind": "actual runtime rendering"
   },
   {
-    "name": "julia-star-clusters",
-    "sourceWidth": 2560,
-    "sourceHeight": 1440,
-    "width": 1280,
-    "height": 720,
-    "bytes": 35242,
-    "sourceCommit": "6689c30",
-    "method": "Main explorer Save PNG control; no interface overlays",
-    "kind": "actual runtime rendering"
-  },
-  {
-    "name": "julia-sea-spiral",
-    "sourceWidth": 2560,
-    "sourceHeight": 1440,
-    "width": 1280,
-    "height": 720,
-    "bytes": 49310,
-    "sourceCommit": "6689c30",
-    "method": "Main explorer Save PNG control; no interface overlays",
-    "kind": "actual runtime rendering"
-  },
-  {
     "name": "burning-ship-little",
     "sourceWidth": 2560,
     "sourceHeight": 1440,

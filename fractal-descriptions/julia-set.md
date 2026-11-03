@@ -42,8 +42,6 @@ Each arrow below starts at a value of $c$ on the Mandelbrot picture and points t
 
 <figure data-lesson="julia-map"></figure>
 
-<figure data-article-images="julia"></figure>
-
 A starting point **escapes** if its distance from zero grows without limit. The edge of the dark shape is the **Julia set**. The whole dark shape, edge and inside together, is the **filled Julia set**: every starting point that never escapes. With $c=0$ the calculation is plain squaring again, so the Julia set is the circle and the filled Julia set is the solid disk it encloses.
 
 The computer tests only a limited number of steps. Dark pixels haven't escaped yet; some may escape later.
