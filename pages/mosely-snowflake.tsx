@@ -1,4 +1,5 @@
 import { SceneFractalExplorer, type SceneVariant } from "../components/SceneFractalExplorer";
+import { MOSELY_LEAD } from "../utils/lessons/moselyMeasure";
 import { MOSELY_PLACES } from "../utils/moselyPlaces";
 import { getDescription } from "../utils/readFiles";
 
@@ -38,6 +39,7 @@ const MoselySnowflake = ({ description }: Props) => (
     rotationY={45}
     rotationSpeed={0.45}
     places={MOSELY_PLACES}
+    constructionLead={MOSELY_LEAD}
   />
 );
 

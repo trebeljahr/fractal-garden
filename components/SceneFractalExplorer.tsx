@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../styles/Fullscreen.module.css";
+import type { ConstructionLead } from "../utils/constructionLead";
 import type { ConstructionView } from "../utils/constructionView";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import type { Orientation } from "../utils/orientation";
@@ -67,6 +68,8 @@ type Props<V extends string> = {
   /** Degrees of yaw added per frame while auto-rotating. */
   rotationSpeed?: number;
   places?: ScenePlace<V>[];
+  /** The control the article leans on, shown in the construction figure. */
+  constructionLead?: ConstructionLead;
 };
 
 const INITIAL_CAMERA_DISTANCE = 6;
@@ -92,6 +95,7 @@ export function SceneFractalExplorer<V extends string>({
   lighting = "depth",
   rotationSpeed = 0.4,
   places = [],
+  constructionLead,
 }: Props<V>) {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config<V>>({
@@ -155,6 +159,7 @@ export function SceneFractalExplorer<V extends string>({
           kind: "scene3d" as const,
           gpuSpec: variant.spec.kind === "romanesco" ? variant.spec : undefined,
           identity: `${storageKey}:${config.variant}`,
+          lead: constructionLead,
           params: {
             spec: variant.spec,
             iterations: 0,
@@ -198,6 +203,7 @@ export function SceneFractalExplorer<V extends string>({
     config.lineWidth,
     config.lighting,
     config.occlusion,
+    constructionLead,
   ]);
   useConstructionRegistration(construction);
 
