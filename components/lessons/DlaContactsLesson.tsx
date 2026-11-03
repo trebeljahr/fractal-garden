@@ -25,11 +25,6 @@ export default function DlaContactsLesson() {
   })).filter((p) => p.count > 0);
   return (
     <LessonFrame title="Where do the particles land?" kind="dla-contacts">
-      <p>
-        {grow
-          ? "Press Play to release particles around the fork. This time they stay where they first touch. Watch which branches extend."
-          : "Press Play to release particles around the fork. Mark each first touch, then remove the particle so the fork stays the same. Where do the most marks collect?"}
-      </p>
       <div className={common.options}>
         <button
           type="button"
@@ -113,21 +108,11 @@ export default function DlaContactsLesson() {
         stepDescription={`${released} particles released`}
       />
       <p aria-live="polite" data-contact-accounting={`${stuck},${discarded},${unfinished}`}>
-        {stuck} first contacts · {discarded} walks discarded · {unfinished} reached the move limit.
+        {stuck} first contacts · {discarded} discarded · {unfinished} hit the move limit
       </p>
       <p>
-        {grow
-          ? "This time, each amber particle stays where it first touches. Later particles can stick to it, extending the branch."
-          : "Brighter squares mark more contacts. Compare the exposed tips with the gap: particles that hit a branch stop before reaching farther inside."}
-      </p>
-      <p>
-        The cream fork is where we started. A teal ring appears around the last particle if it
-        sticks. Particles begin near the dotted border and move up, down, left or right; touching at
-        a corner counts.
-      </p>
-      <p>
-        Walks that leave the picture are discarded, as are starts already covered by growth. Each
-        walk stops after at most 2,048 moves.
+        {grow ? "Amber: stuck particles" : "Brighter: more contacts"} · Teal ring: last particle, if
+        it stuck
       </p>
     </LessonFrame>
   );

@@ -38,22 +38,18 @@ export default function DlaLesson() {
   const location = `(${current.point.x}, ${current.point.y})`;
   const description =
     current.status === "stuck"
-      ? `The particle touches ${diagonal ? "a corner" : "an edge"} of the fixed square at ${location}. It sticks here. The next particle could stick to either square.`
+      ? `Stuck at ${location}, touching ${diagonal ? "a corner" : "an edge"}`
       : current.status === "discarded"
-        ? `The particle left the picture at ${location} without touching the fixed square. This walk adds nothing to the cluster.`
+        ? `Left the picture at ${location}`
         : current.status === "limit"
-          ? `The walk reached its move limit at ${location} without touching the fixed square.`
-          : `The particle is at ${location}. It has not touched the fixed square yet. Take another step to see where it moves.`;
+          ? `Move limit at ${location}`
+          : `At ${location}, still moving`;
   const chooseReplay = (next: number) => {
     setReplay(next);
     setStep(0);
   };
   return (
     <LessonFrame title="Follow one particle until it sticks" kind="dla">
-      <p>
-        The cream square stays fixed. Press the next-step button to move the amber particle one
-        square in a random direction. Watch for its first touch.
-      </p>
       <fieldset className={common.options} aria-label="Random walk replay">
         {REPLAYS.map((item, index) => (
           <button
@@ -158,25 +154,16 @@ export default function DlaLesson() {
           <p id={`${id}-summary`} aria-live="polite" aria-atomic="true">
             {description}
           </p>
-          <p>
-            The particle stops when it touches the cream square. Touching at a corner counts too.
-          </p>
           <p className={styles.legend}>
-            <span>Cream square: fixed particle</span>
-            <span>Dashed amber line: past moves</span>
+            <span>Cream: fixed particle</span>
+            <span>Dashed: past moves</span>
             <span>
-              {current.status === "stuck"
-                ? "Amber square: newly stuck particle"
-                : "Outlined amber dot: moving particle"}
+              {current.status === "stuck" ? "Amber square: newly stuck" : "Amber dot: moving"}
             </span>
           </p>
         </div>
       </div>
       <LessonSteps label="DLA walker" step={step} max={frames.length - 1} onChange={setStep} />
-      <p>
-        Try another walk. Random moves can carry a particle out of the picture before it touches
-        anything. That particle adds nothing; we release another and try again.
-      </p>
     </LessonFrame>
   );
 }
