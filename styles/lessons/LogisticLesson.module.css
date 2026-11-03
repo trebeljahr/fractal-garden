@@ -1,35 +1,17 @@
-.plots {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 1rem;
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
 }
-.diagonal {
+.grid {
   fill: none;
-  stroke: #eee8ce66;
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
+  stroke: #eee8ce30;
 }
-.history {
-  fill: none;
-  stroke: #eee8ce88;
-  stroke-width: 1.2;
+.answer {
+  fill: #eee8ce;
 }
-.seriesPoint {
-  fill: var(--lesson-ink);
-}
-.parameters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-@media (max-width: 600px) {
-  .plots,
-  .parameters {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  .plots svg {
-    max-height: 24rem;
-  }
+.worked {
+  min-height: 2.6rem;
+  font-variant-numeric: tabular-nums;
 }

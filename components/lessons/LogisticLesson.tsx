@@ -1,190 +1,113 @@
-import { useId, useState } from "react";
+// biome-ignore-all lint/suspicious/noArrayIndexKey: An answer's step never changes.
+import { useState } from "react";
 import shared from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/LogisticLesson.module.css";
 import {
-  cobwebSegments,
   LOGISTIC_LESSON_STEPS,
-  type LogisticPoint,
-  logisticNext,
   logisticOrbit,
+  SECOND_START_GAP,
 } from "../../utils/lessons/logisticLesson";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
 
-const PRESETS = [
-  { name: "Settling", r: 2.8 },
-  { name: "Alternating", r: 3.2 },
-  { name: "Irregular", r: 3.9 },
-];
-
-const chart = (point: LogisticPoint) => ({ x: 42 + point.x * 274, y: 258 - point.y * 220 });
-const series = (value: number, index: number) =>
-  chart({ x: index / LOGISTIC_LESSON_STEPS, y: value });
-const path = (points: LogisticPoint[]) =>
-  points.map((p, index) => `${index ? "L" : "M"}${p.x},${p.y}`).join(" ");
-const segmentPath = (segments: ReturnType<typeof cobwebSegments>) =>
-  segments.map(({ from, to }) => path([chart(from), chart(to)])).join(" ");
+const PRESETS = [2.8, 3.2, 3.5, 3.9];
+const START = 0.5;
+const SECOND = "#7ec9bb";
+const x = (step: number) => 44 + (step / LOGISTIC_LESSON_STEPS) * 656;
+const y = (value: number) => 262 - value * 240;
+const line = (values: number[]) =>
+  values.map((value, step) => `${step ? "L" : "M"}${x(step)},${y(value)}`).join(" ");
+const written = (value: number) => String(Number(value.toFixed(4)));
 
 export default function LogisticLesson() {
   const [r, setR] = useState(2.8);
-  const [start, setStart] = useState(0.5);
-  const [step, setStep] = useState(0);
-  const id = useId();
-  const values = logisticOrbit(r, start);
-  const visible = values.slice(0, step + 1);
-  const samples = visible.map((value, iteration) => ({ value, iteration }));
-  const segments = cobwebSegments(visible);
+  const [step, setStep] = useState(2);
+  const [second, setSecond] = useState(false);
+  const values = logisticOrbit(r, START);
+  const others = logisticOrbit(r, START + SECOND_START_GAP);
   const current = values[step];
-  const currentPosition = chart({ x: current, y: step ? current : 0 });
-  const timePosition = series(current, step);
-  const curve = Array.from({ length: 101 }, (_, i) =>
-    chart({ x: i / 100, y: logisticNext(r, i / 100) }),
-  );
-  const changeR = (value: number) => {
-    setR(value);
-    setStep(0);
-  };
-  const changeStart = (value: number) => {
-    setStart(value);
-    setStep(0);
-  };
-  const choosePreset = (value: number) => {
-    setR(value);
-    setStart(0.5);
-    setStep(0);
-  };
+  const previous = values[step - 1];
   return (
-    <LessonFrame title="One calculation, two pictures" kind="logistic">
-      <p>
-        The curve turns each starting number into the next answer. Press the next-step button to go
-        to the curve, then across to the diagonal. On that diagonal, height and width are equal: the
-        answer is now in place to become the next input.
-      </p>
-      <fieldset className={shared.options} aria-label="Logistic example">
+    <LessonFrame title="Keep repeating the calculation" kind="logistic">
+      <div className={styles.options}>
         {PRESETS.map((preset) => (
           <button
-            key={preset.r}
+            key={preset}
             type="button"
-            aria-pressed={r === preset.r && start === 0.5}
-            onClick={() => choosePreset(preset.r)}
+            aria-pressed={r === preset}
+            onClick={() => setR(preset)}
           >
-            {`${preset.name} · r=${preset.r}`}
+            r = {preset}
           </button>
         ))}
-      </fieldset>
-      <div className={styles.plots}>
-        <svg viewBox="0 0 360 300" role="img" aria-labelledby={`${id}-cobweb ${id}-summary`}>
-          <title
-            id={`${id}-cobweb`}
-          >{`Cobweb for r=${r.toFixed(2)}, after ${step} iterations`}</title>
-          <path d="M42 38V258H316" className={shared.axis} />
-          <path d="M42 258L316 38" className={styles.diagonal} />
-          <path d={path(curve)} className={shared.line} />
-          <path d={segmentPath(segments)} className={styles.history} />
-          <path d={segmentPath(segments.slice(-2))} className={shared.accent} />
-          <circle cx={currentPosition.x} cy={currentPosition.y} r="4" className={shared.point} />
-          <text x="44" y="23" className={shared.label}>
-            next value
-          </text>
-          <text x="254" y="286" className={shared.label}>
-            current value
-          </text>
-          <text x="27" y="274" className={shared.label}>
-            0
-          </text>
-          <text x="309" y="274" className={shared.label}>
-            1
-          </text>
-          <text x="25" y="44" className={shared.label}>
-            1
-          </text>
-          <text x="246" y="53" className={shared.label}>
-            y = x
-          </text>
-        </svg>
-        <svg viewBox="0 0 360 300" role="img" aria-labelledby={`${id}-series ${id}-summary`}>
-          <title id={`${id}-series`}>{`The same ${step + 1} orbit values in time order`}</title>
-          <path d="M42 38V258H316" className={shared.axis} />
-          <path d={path(visible.map(series))} className={shared.line} />
-          {samples.map(({ value, iteration }) => {
-            const point = series(value, iteration);
-            return (
-              <circle
-                key={iteration}
-                cx={point.x}
-                cy={point.y}
-                r="2.5"
-                className={styles.seriesPoint}
-              />
-            );
-          })}
-          <circle cx={timePosition.x} cy={timePosition.y} r="4" className={shared.point} />
-          <text x="44" y="23" className={shared.label}>
-            answer
-          </text>
-          <text x="179" y="294" textAnchor="middle" className={shared.label}>
-            step
-          </text>
-          <text x="37" y="274" className={shared.label}>
-            0
-          </text>
-          <text x="303" y="274" className={shared.label}>
-            32
-          </text>
-          <text x="25" y="44" className={shared.label}>
-            1
-          </text>
-        </svg>
+        <button type="button" aria-pressed={second} onClick={() => setSecond(!second)}>
+          Second start, {SECOND_START_GAP} higher
+        </button>
       </div>
-      <p id={`${id}-summary`} aria-live="polite" aria-atomic="true">
+      <svg
+        viewBox="0 0 720 296"
+        role="img"
+        aria-label={`The first ${LOGISTIC_LESSON_STEPS} answers for r = ${r.toFixed(2)}, starting at ${START}.`}
+      >
+        <path d="M44 22V262H700" className={shared.axis} />
+        <path d={`M44 ${y(0.5)}H700`} className={styles.grid} />
+        {second && (
+          <>
+            <path d={line(others)} fill="none" stroke={SECOND} strokeWidth="1.5" />
+            {others.map((value, index) => (
+              <circle key={index} cx={x(index)} cy={y(value)} r="2.5" fill={SECOND} />
+            ))}
+          </>
+        )}
+        <path d={line(values)} className={shared.line} />
+        {values.map((value, index) => (
+          <circle key={index} cx={x(index)} cy={y(value)} r="2.5" className={styles.answer} />
+        ))}
+        <circle cx={x(step)} cy={y(current)} r="5.5" className={shared.point} />
+        <text x="10" y="28" className={shared.label}>
+          1
+        </text>
+        <text x="10" y={y(0.5) + 5} className={shared.label}>
+          0.5
+        </text>
+        <text x="10" y="266" className={shared.label}>
+          0
+        </text>
+        <text x="372" y="288" textAnchor="middle" className={shared.label}>
+          step
+        </text>
+        <text x="44" y="288" textAnchor="middle" className={shared.label}>
+          0
+        </text>
+        <text x="700" y="288" textAnchor="middle" className={shared.label}>
+          {LOGISTIC_LESSON_STEPS}
+        </text>
+      </svg>
+      <p className={styles.worked} aria-live="polite" data-logistic-worked>
         {step === 0
-          ? `Start at ${start.toFixed(4)}. Press the next-step button to calculate r × x × (1 − x).`
-          : `x${step} = ${r.toFixed(2)} × ${values[step - 1].toFixed(4)} × (1 − ${values[step - 1].toFixed(4)}) = ${current.toFixed(4)}.`}{" "}
-        Both amber dots show this same answer. The right graph puts the answers in order.
+          ? `Start at ${START}`
+          : `Step ${step}: ${written(r)} × ${written(previous)} × (1 − ${written(previous)}) = ${written(current)}`}
+        {second && ` · Gap ${written(Math.abs(current - others[step]))}`}
       </p>
       <LessonSteps
         step={step}
         max={LOGISTIC_LESSON_STEPS}
         onChange={setStep}
-        label="Logistic iteration"
+        label="Logistic step"
       />
-      <div className={styles.parameters}>
-        <label className={shared.parameter}>
-          <span>
-            Multiplier r <output>{r.toFixed(2)}</output>
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={4}
-            step={0.01}
-            value={r}
-            aria-label="Logistic parameter r"
-            onChange={(event) => changeR(Number(event.target.value))}
-          />
-        </label>
-        <label className={shared.parameter}>
-          <span>
-            Starting number <output>{start.toFixed(2)}</output>
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={start}
-            aria-label="Logistic starting value"
-            onChange={(event) => changeStart(Number(event.target.value))}
-          />
-        </label>
-      </div>
-      <p>
-        Play Settling and watch the swings narrow. Then try Alternating: the answers approach two
-        different heights. Irregular uses the same rule, but this short sequence shows no repeat.
-      </p>
-      <p>
-        Each example starts at 0.5. Change the starting number to see whether its later answers
-        approach the same pattern.
-      </p>
+      <label className={shared.parameter}>
+        <span>
+          r <output>{r.toFixed(2)}</output>
+        </span>
+        <input
+          type="range"
+          min={1}
+          max={4}
+          step={0.01}
+          value={r}
+          aria-label="Logistic parameter r"
+          onChange={(event) => setR(Number(event.target.value))}
+        />
+      </label>
     </LessonFrame>
   );
 }

@@ -1,0 +1,95 @@
+figure button.stage {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  margin-top: 1rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+figure button.stage:hover:not(:disabled) {
+  background: transparent;
+}
+.scale {
+  display: block;
+  position: relative;
+  height: 2.2rem;
+  font:
+    1.2rem / 2.2rem "Montserrat",
+    sans-serif;
+  color: #eee8cecc;
+}
+.scale > span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+.pictures {
+  display: block;
+  position: relative;
+  background: #10151a;
+}
+.strip {
+  display: block;
+  position: relative;
+  aspect-ratio: 2.25 / 1;
+  overflow: hidden;
+}
+/* The Mandelbrot set runs left to right from 1/4 to -2, so r grows to the right. */
+.strip canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+.columns {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 900 / 330;
+}
+.guide,
+.cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  pointer-events: none;
+}
+.guide {
+  border-left: 1px dashed #eee8ce66;
+}
+.cursor {
+  border-left: 1.5px solid #f5c56d;
+}
+/* The ring sits on the Mandelbrot set's horizontal axis. */
+.ring {
+  position: absolute;
+  top: 50%;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: -0.8rem 0 0 -0.8rem;
+  border: 2px solid #f5c56d;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.readout {
+  margin: 0.8rem 0;
+  font-variant-numeric: tabular-nums;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+/* Close to the first label on a phone. */
+@media (max-width: 700px) {
+  .scale > span:nth-child(2) {
+    display: none;
+  }
+}

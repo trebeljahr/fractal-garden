@@ -1,12 +1,10 @@
 export const LOGISTIC_LESSON_STEPS = 32;
-
-export type LogisticPoint = { x: number; y: number };
-export type CobwebSegment = {
-  from: LogisticPoint;
-  to: LogisticPoint;
-  iteration: number;
-  leg: "curve" | "diagonal";
-};
+export const SECOND_START_GAP = 0.001;
+// A column leaves out this many answers, then marks the next ones.
+export const SETTLE_STEPS = 2000;
+export const KEPT_ANSWERS = 300;
+const LONGEST_REPEAT = 64;
+const REPEAT_TOLERANCE = 1e-4;
 
 export function logisticNext(r: number, x: number) {
   return r * x * (1 - x);
@@ -30,22 +28,43 @@ export function logisticOrbit(r: number, start: number, steps = LOGISTIC_LESSON_
   return values;
 }
 
-export function cobwebSegments(values: number[]): CobwebSegment[] {
-  const segments: CobwebSegment[] = [];
-  for (let i = 1; i < values.length; i++) {
-    const input = values[i - 1];
-    const next = values[i];
-    const curve = { x: input, y: next };
-    const diagonal = { x: next, y: next };
-    segments.push(
-      {
-        from: { x: input, y: i === 1 ? 0 : input },
-        to: curve,
-        iteration: i,
-        leg: "curve",
-      },
-      { from: curve, to: diagonal, iteration: i, leg: "diagonal" },
-    );
+/** The answers one column marks. Every column starts at 0.5, as the explorer does. */
+export function logisticColumn(r: number, settle = SETTLE_STEPS, keep = KEPT_ANSWERS) {
+  let x = 0.5;
+  for (let i = 0; i < settle; i++) x = logisticNext(r, x);
+  const answers: number[] = [];
+  for (let i = 0; i < keep; i++) {
+    x = logisticNext(r, x);
+    answers.push(x);
   }
-  return segments;
+  return answers;
+}
+
+/** The shortest repeat in these answers, or null. A short list can't prove there is no repeat. */
+export function repeatLength(answers: number[]) {
+  for (let length = 1; length <= LONGEST_REPEAT; length++) {
+    let matches = true;
+    for (let i = 0; matches && i + length < answers.length; i++)
+      matches = Math.abs(answers[i] - answers[i + length]) < REPEAT_TOLERANCE;
+    if (matches) return length;
+  }
+  return null;
+}
+
+/** The number c on the Mandelbrot set's horizontal axis that runs the same calculation as r. */
+export function mandelbrotNumber(r: number) {
+  return (r * (2 - r)) / 4;
+}
+
+const AXIS_RIGHT = 0.25;
+const AXIS_LEFT = -2;
+
+/** Position across a picture that runs c from 1/4 to -2, so r runs from 1 to 4. */
+export function rToAcross(r: number) {
+  return (AXIS_RIGHT - mandelbrotNumber(r)) / (AXIS_RIGHT - AXIS_LEFT);
+}
+
+export function acrossToR(across: number) {
+  const c = AXIS_RIGHT - across * (AXIS_RIGHT - AXIS_LEFT);
+  return 1 + Math.sqrt(Math.max(0, 1 - 4 * c));
 }

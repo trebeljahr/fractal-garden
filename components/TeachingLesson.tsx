@@ -18,6 +18,7 @@ const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
 const DragonTilingLesson = dynamic(() => import("./lessons/DragonTilingLesson"));
 const NewtonLesson = dynamic(() => import("./lessons/NewtonLesson"));
 const LogisticLesson = dynamic(() => import("./lessons/LogisticLesson"));
+const LogisticColumnsLesson = dynamic(() => import("./lessons/LogisticColumnsLesson"));
 const AttractorLesson = dynamic(() => import("./lessons/AttractorLesson"));
 const DlaLesson = dynamic(() => import("./lessons/DlaLesson"));
 const SierpinskiSeedsLesson = dynamic(() => import("./lessons/SierpinskiSeedsLesson"));
@@ -64,6 +65,7 @@ const LESSONS = [
   "lsystem-hilbert",
   "newton",
   "logistic",
+  "logistic-columns",
   "lorenz",
   "rossler",
   "dla",
@@ -132,6 +134,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <NewtonLesson />;
     case "logistic":
       return <LogisticLesson />;
+    case "logistic-columns":
+      return <LogisticColumnsLesson />;
     case "lorenz":
       return <AttractorLesson system="lorenz" />;
     case "rossler":
