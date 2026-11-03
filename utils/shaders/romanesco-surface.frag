@@ -21,10 +21,10 @@ const float LATTICE_A=0.03444185374863303,LATTICE_B=0.05572809000084122;
 const vec2 BASIS_A=vec2(-8.0*DECAY,TAU*LATTICE_B),BASIS_B=vec2(-13.0*DECAY,-TAU*LATTICE_A);
 // Half the smaller altitude of the physical log-polar parallelogram.
 const float CELL_RADIUS=0.12730;
-const float PATCH_EPS=0.06,RIM_WIDTH=0.25;
+const float PATCH_EPS=0.14,RIM_WIDTH=0.25;
 const float HEX_COVER=0.5773502691896258;
 const float BASE_RADIUS=0.86,RELIEF_HEIGHT=0.13,BASE_DEPTH=0.28;
-const float SIDE_LIPSCHITZ=2.75,BOTTOM_LIPSCHITZ=2.0;
+const float SIDE_LIPSCHITZ=3.25,BOTTOM_LIPSCHITZ=2.75,HEX_LIPSCHITZ=4.0;
 const int RELIEF_LEVELS=64,MARCH_STEPS=8192;
 int fieldEvaluations=0;bool reliefBracketUsed=false;
 struct Root {vec3 center;mat3 axes;float size;};
@@ -53,7 +53,7 @@ float hexRim(vec2 q){
 }
 // The primary conical height agrees across each nearest-center cell edge.
 // Only the nested tail vanishes there. No flat gaps surround the heads.
-// H lies in[0,1]; the hex reliefSample has L<1.878 with epsilon=.06.
+// H lies in[0,1]; the hex reliefSample has measured L<3.6 with epsilon=.14.
 float patchHeight(vec2 p,float amplitude,float pixel,int firstRank){
  float value=0.0,weight=1.0;
  for(int level=0;level<RELIEF_LEVELS;level++){
@@ -199,7 +199,7 @@ bool monotoneSideBracket(vec3 o,vec3 d,float begin,float end,out float lo,out fl
  float ratioLo=1.0/(1.0+cmax*RELIEF_HEIGHT);
  float qlo=min(sprimeLo,ratioLo*sprimeLo),qhi=max(sprimeHi,ratioLo*sprimeHi);
  float foldSpeed=max(max(length(m0*qlo+m1*zlo),length(m0*qlo+m1*zhi)),max(length(m0*qhi+m1*zlo),length(m0*qhi+m1*zhi)));
- float upper=radialDerivative-BASE_RADIUS*dh+RELIEF_HEIGHT*max(0.0,-dh)+RELIEF_HEIGHT*1.878*foldSpeed;
+ float upper=radialDerivative-BASE_RADIUS*dh+RELIEF_HEIGHT*max(0.0,-dh)+RELIEF_HEIGHT*HEX_LIPSCHITZ*foldSpeed;
  float derivativeGuard=.0001*(1.0+length(d));
  decrease=-upper-derivativeGuard;return decrease>0.0;
 }

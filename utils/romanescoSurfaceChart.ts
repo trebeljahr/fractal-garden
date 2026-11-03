@@ -199,12 +199,12 @@ export function buildRomanescoSurfaceChart(
   };
   const residualRecords: Record<string, ResidualRecord[]> = { side: [], ring: [], bottom: [] };
   const residualTails: Record<string, bigint> = { side: zero, ring: zero, bottom: zero };
-  // The hex tail coefficient never exceeds .03. Resolve derivatives only while
+  // The hex tail coefficient never exceeds half of epsilon. Resolve derivatives only while
   // that tail can affect this view; its fixed-point value is still evaluated to
   // the requested model depth. The circular seed is covered by maxAmplitude.
   const anchorY = fixed.toNumber(rescaleFixed(anchor[1], anchorBits, bits));
   const maxAmplitude = Math.max(0.5, model.reliefHeight * Math.max(0, (1 - anchorY + region) / 2));
-  const tailRatio = 0.03;
+  const tailRatio = model.patchEpsilon / 2;
   const resolvedLevels = Math.min(
     levels,
     Math.max(
@@ -564,7 +564,7 @@ export function buildRomanescoSurfaceChart(
     top = patch(fold(chartH, theta), "side", amplitude);
   path = "surface";
   level = 0;
-  const sideDivisor = shear > 0 ? 2.75 : model.sideLipschitz;
+  const sideDivisor = model.sideLipschitz;
   const rawSide = subtract(subtract(radial, times(h, model.baseRadius)), multiply(amplitude, top));
   const side = divideConstant(rawSide, sideDivisor);
   // Hdisk >= 0, so this upper bound proves the underside cannot win anywhere
@@ -664,7 +664,9 @@ export function buildRomanescoSurfaceChart(
     // In this chart h is tiny. Replacing c(h) by c(0) changes the raw side
     // field by O(h^5); keep the resulting bound in working units.
     const apexError =
-      (2 * model.reliefHeight ** 2 * shear * 1.878 * 5.625 * apexReach ** 5) / scale ** 4 + 2e-6;
+      (2 * model.reliefHeight ** 2 * shear * model.hexLipschitz * 5.625 * apexReach ** 5) /
+        scale ** 4 +
+      2e-6;
     if (apexError <= tolerance)
       active = {
         mode: 2,
@@ -734,7 +736,7 @@ export function buildRomanescoSurfaceChart(
       const sigma =
         2 ** Math.ceil(Math.log2(Math.max(1, norm3(q[0].gradient), norm3(q[1].gradient))));
       const localScale = fixed.mul(viewScale, fixed.fromNumber(sigma));
-      const divisor = 3;
+      const divisor = model.sideLipschitz;
       const activeError =
         ((0.500001 *
           (carrier.hessianBound +
@@ -815,7 +817,7 @@ export function buildRomanescoSurfaceChart(
         const sigma =
           2 ** Math.ceil(Math.log2(Math.max(1, norm3(q[0].gradient), norm3(q[1].gradient))));
         const localScale = fixed.mul(viewScale, fixed.fromNumber(sigma));
-        const divisor = 3;
+        const divisor = model.sideLipschitz;
         const weightMaximum = absMaximum(weight);
         const activeError =
           ((0.500001 *

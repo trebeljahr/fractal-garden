@@ -14,6 +14,8 @@ const { createRomanescoPrecision } = require("../../utils/romanescoPrecision.ts"
 const { buildRomanescoSurfaceChart } = require("../../utils/romanescoSurfaceChart.ts");
 const { buildRomanescoSurfaceFrame } = require("../../utils/spatialGpu/romanescoSurfaceFrame.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
+const { reframeSpatialEye } = require("../../utils/spatial/flight.ts");
+const { rotationOf } = require("../../utils/spatial/camera.ts");
 
 test("surface construction grows each rank from the preceding surface", () => {
   for (let rank = 1; rank <= 6; rank++) {
@@ -164,6 +166,69 @@ test("the signed field remains a conservative distance bound across surface join
       Math.abs(field(a) - field(b)) <= Math.hypot(...a.map((v, axis) => v - b[axis])) + 1e-12,
     );
   }
+});
+
+test("the signed field stays a lower distance bound right at the relief", () => {
+  let seed = 11;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 2 ** 32;
+  };
+  for (let i = 0; i < 20000; i++) {
+    const y = random() * 1.96 - 0.98;
+    const h = (1 - y) / 2,
+      angle = random() * model.tau;
+    const radial = (model.baseRadius + random() * model.reliefHeight) * h;
+    const a = [radial * Math.cos(angle), y, radial * Math.sin(angle)];
+    const b = a.map((v) => v + (random() - 0.5) * 2e-5);
+    assert.ok(
+      Math.abs(field(a) - field(b)) <= Math.hypot(...a.map((v, axis) => v - b[axis])) + 1e-12,
+    );
+  }
+});
+
+test("nested florets stay steep enough to read as relief when zoomed in", () => {
+  let seed = 3,
+    total = 0,
+    count = 0;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 2 ** 32;
+  };
+  const tail = (p) => patch(p) - patch(p, 1, { levels: 5 });
+  const step = 1e-7;
+  for (let i = 0; i < 20000; i++) {
+    const point = [(random() - 0.5) * 1.2, (random() - 0.5) * 1.2];
+    const dx = tail([point[0] + step, point[1]]) - tail([point[0] - step, point[1]]);
+    const dy = tail([point[0], point[1] + step]) - tail([point[0], point[1] - step]);
+    total += (dx * dx + dy * dy) / (4 * step * step);
+    count++;
+  }
+  // Epsilon .14 measures .042 here. Epsilon .06 measured .0006 and rendered as a blank wall.
+  assert.ok(Math.sqrt(total / count) > 0.02);
+});
+
+test("turning the camera in place does not change the surface it sees", () => {
+  const zoom = 12,
+    bits = 160 + zoom;
+  const camera = {
+    target: [0.7, 0.2, 0.2].map((v) => String(fixedFromNumber(v, bits))),
+    bits,
+    zoom,
+  };
+  const before = { rotationX: 65, rotationY: 28 },
+    after = { rotationX: 40, rotationY: 70 };
+  const a = buildRomanescoSurfaceFrame(camera, before);
+  const b = buildRomanescoSurfaceFrame(
+    reframeSpatialEye(camera, rotationOf(before), rotationOf(after)),
+    after,
+  );
+  for (let axis = 0; axis < 3; axis++) {
+    const gap = a.surface.canonicalEyeFixed[axis] - BigInt(b.surface.canonicalEyeFixed[axis]);
+    assert.ok(Math.abs(Number(gap) * 2 ** (zoom - bits)) < 1e-9);
+  }
+  assert.equal(a.chart.kind, b.chart.kind);
+  assert.ok(Math.abs(a.chart.offset - b.chart.offset) < 1e-6);
 });
 
 test("each deep camera has a finite GPU coordinate model", () => {

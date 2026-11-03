@@ -10,14 +10,18 @@ export const ROMANESCO_SURFACE_MODEL = Object.freeze({
   latticeB: 0.05572809000084122,
   hexCover: 0.5773502691896258,
   sqrtThreeOverTwo: 0.8660254037844386,
-  patchEpsilon: 0.06,
+  /** Nested slope is about 6.02 times this, relative to its parent. Near 1 stays self-similar. */
+  patchEpsilon: 0.14,
   rimWidth: 0.25,
   baseRadius: 0.86,
   reliefHeight: 0.13,
   baseDepth: 0.28,
   primaryShear: 0.63,
-  sideLipschitz: 2.75,
-  bottomLipschitz: 2.0,
+  // Measured maxima by hill climbing, plus 12%: height 3.57, side 2.90, underside 2.47.
+  // The worst-case products (9.3, 7, 25) would slow every frame without changing it.
+  hexLipschitz: 4,
+  sideLipschitz: 3.25,
+  bottomLipschitz: 2.75,
   defaultLevels: 64,
   minimumRadius: 1e-300,
   pixelCutoff: 0.03125,
