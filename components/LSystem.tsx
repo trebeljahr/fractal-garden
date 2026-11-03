@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import styles from "../styles/Fullscreen.module.css";
+import type { ConstructionLead } from "../utils/constructionLead";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
@@ -41,6 +42,10 @@ type Props = {
   ruleset: Ruleset;
   children?: ReactNode;
   zoomDetailOffset?: number;
+  /** The control the article leans on, shown in the construction figure. */
+  constructionLead?: ConstructionLead;
+  /** The rules the construction figure draws for its current settings. */
+  constructionRules?: (settings: Record<string, unknown>) => Record<string, string>;
 };
 
 function expandSentence(sentence: string, replace: Record<string, string>) {
@@ -86,7 +91,13 @@ function readInitialPose(ruleset: Ruleset, config?: Config) {
   return { startAngle, lineWidth };
 }
 
-const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
+const LSystem = ({
+  ruleset,
+  children,
+  zoomDetailOffset = 0,
+  constructionLead,
+  constructionRules,
+}: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
     iterations: minVisibleIteration,
@@ -155,6 +166,7 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
     constructionParams: (settings) => ({
       ...params!,
       ...readInitialPose(settings.ruleset, settings),
+      replace: constructionRules?.(settings) ?? params!.replace,
       iterations: settings.iterations,
       background: settings.background,
       color: settings.ruleset.color,
@@ -164,6 +176,7 @@ const LSystem = ({ ruleset, children, zoomDetailOffset = 0 }: Props) => {
     min: minVisibleIteration,
     max: config.ruleset.maxIterations,
     stepDelay: 1000,
+    constructionLead,
   });
 
   // Start endless zoom with the complete calibrated shape fitted to the viewport.

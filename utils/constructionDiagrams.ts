@@ -62,7 +62,10 @@ export function kochEdge(step: number): Point[] {
   return points;
 }
 
-export function canopyBranches(step: number, angle: number): Branch[] {
+/** One route's length if followed forever, in trunks: 1 + r + r² + ... */
+export const canopyRouteLimit = (ratio: number) => 1 / (1 - ratio);
+
+export function canopyBranches(step: number, angle: number, ratio: number): Branch[] {
   const branches: Branch[] = [];
   function grow(start: Point, heading: number, length: number, depth: number) {
     const end = {
@@ -72,8 +75,8 @@ export function canopyBranches(step: number, angle: number): Branch[] {
     branches.push({ start, end, depth });
     if (depth === step) return;
     const spread = (angle * Math.PI) / 360;
-    grow(end, heading - spread, length * 0.62, depth + 1);
-    grow(end, heading + spread, length * 0.62, depth + 1);
+    grow(end, heading - spread, length * ratio, depth + 1);
+    grow(end, heading + spread, length * ratio, depth + 1);
   }
   grow({ x: 0, y: 0 }, 0, 1, 0);
   return branches;

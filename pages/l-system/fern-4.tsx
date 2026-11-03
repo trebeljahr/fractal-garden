@@ -2,6 +2,7 @@ import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { FERN4_LEAD, fern4Rules } from "../../utils/lessons/fern4Plus";
 import { getDescription } from "../../utils/readFiles";
 
 export async function getStaticProps() {
@@ -39,7 +40,7 @@ const Fern4 = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={fern4} />
+        <LSystem ruleset={fern4} constructionLead={FERN4_LEAD} constructionRules={fern4Rules} />
         <SideDrawer description={description} />
 
         <NavElement />

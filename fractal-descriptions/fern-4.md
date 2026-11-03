@@ -17,7 +17,9 @@ The first `[+X]` makes a side branch with a turn in one direction. Closing the b
 
 The final `+X` has no brackets around it. Its turn changes the direction used by the continuing stem. That is why its effect differs from the turns on the two side branches.
 
-Each X adds three new X positions and two F steps. Each old F doubles. Try moving the final plus inside the previous bracket. The turn is now undone when the bracket closes. The main stem continues straight.
+Each X adds three new X positions and two F steps. Each old F doubles.
+
+Press **Plus inside** in the figure. It moves the final plus into the bracket before it, giving `F[+X]F[-X+]X`. The turn now comes just before the bracket closes, so it is undone before anything draws. The main stem continues straight. With **Plus outside**, each round turns the top of the stem another 20 degrees.
 
 ## Further exploring
 

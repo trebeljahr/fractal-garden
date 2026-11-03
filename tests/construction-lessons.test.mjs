@@ -55,16 +55,18 @@ test("Koch replacements preserve endpoints and increase length by four thirds", 
 });
 test("canopy children join existing tips and shrink consistently across angle choices", () => {
   for (const angle of [20, 50, 100]) {
-    const branches = canopyBranches(5, angle);
-    assert.equal(branches.length, 63);
-    for (const b of branches) {
-      close(Math.hypot(b.end.x - b.start.x, b.end.y - b.start.y), 0.62 ** b.depth);
-      if (b.depth)
-        assert.ok(
-          branches.some(
-            (p) => p.depth === b.depth - 1 && p.end.x === b.start.x && p.end.y === b.start.y,
-          ),
-        );
+    for (const ratio of [0.4, 0.6, 0.7]) {
+      const branches = canopyBranches(5, angle, ratio);
+      assert.equal(branches.length, 63);
+      for (const b of branches) {
+        close(Math.hypot(b.end.x - b.start.x, b.end.y - b.start.y), ratio ** b.depth);
+        if (b.depth)
+          assert.ok(
+            branches.some(
+              (p) => p.depth === b.depth - 1 && p.end.x === b.start.x && p.end.y === b.start.y,
+            ),
+          );
+      }
     }
   }
 });

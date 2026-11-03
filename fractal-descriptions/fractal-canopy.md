@@ -4,7 +4,7 @@ A branch ends in several shorter branches. Each of those branches ends in the sa
 
 The **Classic canopy** uses three branches at each tip. Each is 60% as long as its parent, with 43 degrees between neighboring directions.
 
-The diagram uses two branches per tip so the effect of the angle is easier to compare.
+The diagram uses two branches per tip so the effect of each setting is easier to compare.
 
 <figure data-construction="canopy"></figure>
 
@@ -12,7 +12,7 @@ Increase the angle to spread the branches apart. Increase the length ratio to ma
 
 With the Classic settings, a generation has three times as many branches, each 60% as long. Its combined branch length is $3\times0.6=1.8$ times the previous generation's length.
 
-Follow just one route from the trunk to a tip. Its branches keep getting shorter. Even if you could follow it forever, the distance would be at most two and a half trunk lengths.
+Follow just one route from the trunk to a tip. Its branches keep getting shorter. Even if you could follow it forever, the distance would be at most two and a half trunk lengths. The figure shows this limit for each length ratio: two trunks at 50%, about 3.3 at 70%.
 
 Researchers at Johns Hopkins build physical trees with five generations and three branches at each fork. They put them in water to study how a canopy changes the flow.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 

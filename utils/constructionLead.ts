@@ -20,6 +20,8 @@ export type LeadControl =
  * in the figure instead of in its collapsed panel.
  */
 export type ConstructionLead = {
+  /** Settings only the figure has. The explorer above it never sees them. */
+  initial?: Record<string, unknown>;
   control: LeadControl;
   readout: (view: Record<string, unknown>, level: number) => { label: string; value: string }[];
 };

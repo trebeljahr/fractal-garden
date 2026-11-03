@@ -12,7 +12,7 @@ Brackets let the route branch. In `F[+F]F`, the first F draws a stem. The openin
 
 A letter can also have a replacement without drawing anything. X is often used this way to mark where more instructions will appear. The F lines stay in the string while X gets replaced again.
 
-Try changing the angle to spread the branches apart. Then move a bracket to change where a branch starts.
+To try this, open **L-System Studio Controls** at the top of the page and choose the Fern 4 preset. Change the angle to spread the branches apart. Then move `[+X]` to the front of the X rule, so it reads `[+X]FF[-X]+X`. That branch now starts at the foot of the stem instead of partway up.
 
 ## Further exploring
 
