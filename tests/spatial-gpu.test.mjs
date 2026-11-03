@@ -9,8 +9,14 @@ import {
   style,
 } from "./helpers/spatial-gpu-fixtures.mjs";
 
-const { buildGpuShape, buildGpuFrame, applyPoint, inversePoint } =
-  require("../../utils/spatialGpu/model.ts");
+const {
+  buildGpuShape,
+  buildGpuFrame,
+  applyPoint,
+  inversePoint,
+  packChildFrames,
+  packChildHulls,
+} = require("../../utils/spatialGpu/model.ts");
 const { fixedFromNumber } = require("../../utils/deepZoom/math.ts");
 const meshes = require("../../utils/polyhedronFractals.ts");
 const { INITIAL_SPATIAL_CAMERA, moveSpatialCamera } = require("../../utils/spatial/camera.ts");
@@ -137,5 +143,31 @@ test("moving inside a cached frontier preserves the same rays as a fresh frontie
       b = traceGpuFrame(fresh, ray);
     assert.equal(Boolean(a), Boolean(b));
     if (a) assert.ok(Math.abs(a.distance - b.distance) < 1e-8);
+  }
+});
+
+test("Koch child hull planes match each child's hull in its own frame", () => {
+  const shape = buildGpuShape({ kind: "kochSurface", start: "triangle" });
+  const planes = packChildHulls(shape),
+    { centers, axes } = packChildFrames(shape);
+  const point = [0.13, -0.21, 0.37];
+  for (let child = 0; child < 6; child++) {
+    const center = centers.slice(child * 3, child * 3 + 3),
+      frame = axes.slice(child * 9, child * 9 + 9);
+    const size = Math.hypot(frame[0], frame[1], frame[2]);
+    assert.ok(Math.abs(size - 0.5) < 1e-6);
+    const delta = point.map((v, i) => v - center[i]);
+    const local = [0, 3, 6].map(
+      (at) =>
+        (frame[at] * delta[0] + frame[at + 1] * delta[1] + frame[at + 2] * delta[2]) /
+        (size * size),
+    );
+    shape.hull.forEach((plane, at) => {
+      const packed = planes.slice((child * 4 + at) * 4, (child * 4 + at + 1) * 4);
+      const inParent =
+        packed[3] - (packed[0] * point[0] + packed[1] * point[1] + packed[2] * point[2]);
+      const inChild = plane[3] - (plane[0] * local[0] + plane[1] * local[1] + plane[2] * local[2]);
+      assert.ok(Math.abs(inParent - inChild) < 1e-5);
+    });
   }
 });

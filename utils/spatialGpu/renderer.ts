@@ -32,6 +32,8 @@ import {
   MAX_GPU_ROOTS,
   normalize,
   packChildBounds,
+  packChildFrames,
+  packChildHulls,
   packOrderedChildren,
 } from "./model";
 import {
@@ -213,6 +215,9 @@ export function createSpatialGpuRenderer(
       "edgeCount",
       "hull",
       "edges",
+      "childHulls",
+      "childCenters",
+      "childAxes",
       "kind",
       "radius",
       "featureSize",
@@ -350,6 +355,12 @@ export function createSpatialGpuRenderer(
         });
         gl.uniform4fv(at.hull, planes);
         gl.uniform4fv(at.edges, edges);
+        if (at.childHulls) {
+          const frames = packChildFrames(data.shape);
+          gl.uniform4fv(at.childHulls, packChildHulls(data.shape));
+          gl.uniform3fv(at.childCenters, frames.centers);
+          gl.uniformMatrix3fv(at.childAxes, false, frames.axes);
+        }
         target.shape = data.shape;
       }
       gl.uniform1i(at.roots, 0);

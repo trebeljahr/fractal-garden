@@ -132,6 +132,16 @@ Transform readChildTransform(int index) {
   return readTransform(u_children, index);
 #endif
 }
+#ifdef KOCH_SURFACE
+// Six fixed children: reading them from uniforms saves four texture reads for
+// every step down a ray and every step of the normal replay.
+uniform vec3 u_childCenters[6];
+uniform mat3 u_childAxes[6];
+Transform readKochChild(int index) {
+  COUNT_TRANSFORM;
+  return Transform(u_childCenters[index], u_childAxes[index], 1.0, 0.5, 0);
+}
+#endif
 #ifdef QUADRATIC_KOCH
 // Keep the octant in the existing cursor: 13 children fit in four bits.
 // This avoids recalculating the same order at every child and normal unwind.
@@ -299,6 +309,43 @@ bool hullInterval(vec3 o, vec3 d, float limit, out float nearAt, out float farAt
     }
   }
   return farAt >= max(0.0, nearAt);
+}
+#endif
+#ifdef KOCH_SURFACE
+// These planes bound each child in its parent's coordinates, so a child that
+// the ray misses costs no texture reads, ray transform or stack entry.
+uniform vec4 u_childHulls[24];
+bool childHullInterval(int child, vec3 o, vec3 d, float error, float limit, out float nearAt) {
+  nearAt = -1e30; float farAt = limit;
+  for (int i = 0; i < 4; i++) {
+    vec4 plane = u_childHulls[child * 4 + i]; float side = plane.w + error - dot(plane.xyz, o), velocity = dot(plane.xyz, d);
+    if (abs(velocity) < 1e-20) { if (side < -1e-6) return false; }
+    else {
+      float t = side / velocity;
+      if (velocity < 0.0) nearAt = max(nearAt, t); else farAt = min(farAt, t);
+      if (farAt < max(0.0, nearAt)) return false;
+    }
+  }
+  return true;
+}
+float childHullError(vec3 o) { return 0.000001 * max(abs(o.x), max(abs(o.y), abs(o.z))); }
+// Children that the ray can reach, nearest first, as three bits each. An early
+// hit then rejects the later children, which is what keeps these rays short.
+int nearestChildren(vec3 o, vec3 d, float limit) {
+  float keys[6]; int ids[6]; int count = 0;
+  float error = childHullError(o);
+  for (int child = 0; child < 6; child++) {
+    float nearAt;
+    if (!childHullInterval(child, o, d, error, limit, nearAt)) continue;
+    float key = max(0.0, nearAt);
+    if (key >= limit) continue;
+    int at = count++;
+    while (at > 0 && keys[at - 1] > key) { keys[at] = keys[at - 1]; ids[at] = ids[at - 1]; at--; }
+    keys[at] = key; ids[at] = child;
+  }
+  int packed = 0;
+  for (int i = count - 1; i >= 0; i--) packed = (packed << 3) | (ids[i] + 1);
+  return packed;
 }
 #endif
 float hullDistance(vec3 o) {
@@ -617,6 +664,14 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
   seedWinningPath = uvec4(0u);
 #endif
   vec3 origins[SPATIAL_STACK_DEPTH]; vec3 directions[SPATIAL_STACK_DEPTH]; float sizes[SPATIAL_STACK_DEPTH]; float ranks[SPATIAL_STACK_DEPTH]; int cursors[SPATIAL_STACK_DEPTH];
+#ifdef KOCH_SURFACE
+  // The cursor holds the remaining children, so keep the chosen one beside it.
+  bool pendingBound = false;
+  float pendingNear, pendingFar; vec3 pendingNormal;
+  int chosen[SPATIAL_STACK_DEPTH];
+  int bestPath[SPATIAL_STACK_DEPTH];
+  int bestLevel = 0, bestRootIndex = -1; vec3 bestNormal = vec3(0.0);
+#endif
 #ifdef QUADRATIC_KOCH
   // Keep failed child bounds out of the ray stacks. Carry the one surviving
   // interval into the next iteration without testing it twice.
@@ -656,14 +711,14 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
       origins[0] = inverseVector(root, -root.center); directions[0] = inverseVector(root, ray); sizes[0] = root.size; ranks[0] = root.rank;
     cursors[0] = -1;
     int level = baseLevel;
-#ifdef QUADRATIC_KOCH
+#if defined(QUADRATIC_KOCH) || defined(KOCH_SURFACE)
     pendingBound = false;
 #endif
     for (int step = 0; step < 65536; step++) {
       if (level < baseLevel) break;
       if (++visits > (u_kind == 3 ? 65536 : 4096)) {
         complete = false;
-#if defined(QUADRATIC_KOCH) || defined(ROMANESCO_DELAYED_NORMALS)
+#if defined(QUADRATIC_KOCH) || defined(KOCH_SURFACE) || defined(ROMANESCO_DELAYED_NORMALS)
         break;
 #else
         return found;
@@ -673,7 +728,7 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
       if (cursors[level] == -1) {
         COUNT_VISIT;
         float nearAt, farAt; vec3 boundNormal;
-#ifdef QUADRATIC_KOCH
+#if defined(QUADRATIC_KOCH) || defined(KOCH_SURFACE)
         if (pendingBound) {
           nearAt = pendingNear; farAt = pendingFar; boundNormal = pendingNormal; pendingBound = false;
         } else
@@ -715,6 +770,9 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
 #ifdef QUADRATIC_KOCH
             bestRootIndex = rootIndex; bestLevel = level; bestNormal = n;
             for (int j = 0; j < level; j++) bestPath[j] = cursors[j] - 1;
+#elif defined(KOCH_SURFACE)
+            bestRootIndex = rootIndex; bestLevel = level; bestNormal = n;
+            for (int j = 0; j < level; j++) bestPath[j] = chosen[j];
 #elif defined(ROMANESCO_DELAYED_NORMALS)
             bestRootIndex = rootIndex; bestLevel = level; bestNormal = n;
             for (int j = 0; j < level; j++) bestPath[j] = cursors[j];
@@ -729,7 +787,9 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
               if ((u_kind == 1 || u_kind == 2) && !envelope) {
                 // A newly resolved bump starts with its enclosing patch's light.
                 // Reveal its own normal only as its feature gains pixel samples.
-                float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize / max(childFootprint, 1e-20));
+                // A slanted patch covers fewer pixels across its short side.
+                float facing = u_kind == 1 ? sqrt(abs(directions[j - 1].z) / length(directions[j - 1])) : 1.0;
+                float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize * facing / max(childFootprint, 1e-20));
                 vec3 parentNormal = vec3(0.0, 0.0, directions[j - 1].z < 0.0 ? 1.0 : -1.0);
                 smoothNormal = mix(parentNormal, smoothNormal, reveal);
               } else if (u_kind == 3 && !envelope) {
@@ -752,10 +812,29 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
         }
 #ifdef QUADRATIC_KOCH
         cursors[level] = childCursor(directions[level]);
+#elif defined(KOCH_SURFACE)
+        cursors[level] = nearestChildren(origins[level], directions[level], hit);
 #else
         cursors[level] = 0;
 #endif
       }
+#ifdef KOCH_SURFACE
+      if (cursors[level] == 0) { level--; continue; }
+      int next = (cursors[level] & 7) - 1;
+      cursors[level] >>= 3;
+      float nextNear;
+      if (!childHullInterval(next, origins[level], directions[level], childHullError(origins[level]), hit, nextNear)) continue;
+      // The list is sorted, so a child behind the nearest hit ends this level.
+      if (max(0.0, nextNear) >= hit) { level--; continue; }
+      Transform kochChild = readKochChild(next);
+      chosen[level] = next;
+      origins[level + 1] = inverseVector(kochChild, origins[level] - kochChild.center);
+      directions[level + 1] = inverseVector(kochChild, directions[level]);
+      sizes[level + 1] = sizes[level] * kochChild.size; ranks[level + 1] = ranks[level] + kochChild.rank; cursors[level + 1] = -1; level++;
+      // The budget fallback needs the entry normal in the child's own frame.
+      pendingBound = !envelope; pendingNear = nextNear; pendingFar = hit;
+      continue;
+#else
       int childIndex = nextRayChild(cursors[level], origins[level], directions[level], hit);
       if (childIndex < 0) { level--; continue; }
       Transform child = growChild(readChild(childIndex, directions[level]), ranks[level]);
@@ -787,17 +866,23 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
       directions[level + 1] = inverseVector(child, directions[level]);
 #endif
       sizes[level + 1] = sizes[level] * child.size; ranks[level + 1] = ranks[level] + child.rank; cursors[level + 1] = -1; level++;
+#endif
     }
     if (level >= baseLevel) {
       complete = false;
-#if defined(QUADRATIC_KOCH) || defined(ROMANESCO_DELAYED_NORMALS)
+#if defined(QUADRATIC_KOCH) || defined(KOCH_SURFACE) || defined(ROMANESCO_DELAYED_NORMALS)
       break;
 #else
       return found;
 #endif
     }
   }
-#ifdef QUADRATIC_KOCH
+#ifdef KOCH_SURFACE
+#define replayChild(index, direction) readKochChild(index)
+#else
+#define replayChild(index, direction) readChild(index, direction)
+#endif
+#if defined(QUADRATIC_KOCH) || defined(KOCH_SURFACE)
   if (found && bestRootIndex >= 0) {
     Transform root = readTransform(u_roots, bestRootIndex);
     origins[0] = inverseVector(root, -root.center); directions[0] = inverseVector(root, ray);
@@ -805,7 +890,7 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
     for (int j = 0; j < bestLevel; j++) {
       // Growth can change the child scale, so replay the same transform used
       // by traversal rather than the ungrown template.
-      Transform child = growChild(readChild(bestPath[j], directions[j]), ranks[j]);
+      Transform child = growChild(replayChild(bestPath[j], directions[j]), ranks[j]);
       origins[j + 1] = inverseVector(child, origins[j] - child.center);
       directions[j + 1] = inverseVector(child, directions[j]);
       sizes[j + 1] = sizes[j] * child.size; ranks[j + 1] = ranks[j] + child.rank;
@@ -814,11 +899,13 @@ bool traceNearest(vec3 ray, float detail, bool envelope, out float hit, out vec3
     float childFootprint = max(u_nearFootprint, hit * u_pixelAngle) * detail;
     for (int j = bestLevel; j > 0; j--) {
       COUNT_NORMAL;
-      Transform child = readChild(bestPath[j - 1], directions[j - 1]);
+      Transform child = replayChild(bestPath[j - 1], directions[j - 1]);
       n = child.axes * n / child.size;
       smoothNormal = child.axes * smoothNormal / child.size;
       if (!envelope) {
-        float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize / max(childFootprint, 1e-20));
+        // A slanted patch covers fewer pixels across its short side.
+        float facing = u_kind == 1 ? sqrt(abs(directions[j - 1].z) / length(directions[j - 1])) : 1.0;
+        float reveal = smoothstep(1.0, 3.0, sizes[j - 1] * u_featureSize * facing / max(childFootprint, 1e-20));
         vec3 parentNormal = vec3(0.0, 0.0, directions[j - 1].z < 0.0 ? 1.0 : -1.0);
         smoothNormal = mix(parentNormal, smoothNormal, reveal);
       }
@@ -1057,7 +1144,9 @@ void main() {
   vec3 color = u_background;
   if (found) {
     if (dot(normal, ray) > 0.0) normal = -normal;
-    vec3 aoNormal = u_kind == 3 ? shadingNormal : normal;
+    // Koch leaf facets change at each detail level, so shade contact from the
+    // resolved normal, which stays continuous across those levels.
+    vec3 aoNormal = u_kind == 1 || u_kind == 3 ? shadingNormal : normal;
     if (dot(aoNormal, ray) > 0.0) aoNormal = -aoNormal;
     vec3 viewNormal = vec3(dot(aoNormal, u_right), dot(aoNormal, u_up), -dot(aoNormal, u_forward));
     vec3 oct = viewNormal / (abs(viewNormal.x) + abs(viewNormal.y) + abs(viewNormal.z));
@@ -1079,7 +1168,9 @@ void main() {
     }
     float pixel = max(u_nearFootprint, hit * u_pixelAngle);
     float outline = 1.0 - smoothstep(pixel * u_lineWidth * 0.25, pixel * (u_lineWidth * 0.25 + 0.6), edge);
-    outline *= smoothstep(2.0, 8.0, cell / pixel);
+    // A leaf's size halves where the detail level changes. Measured against the
+    // detail cutoff, every leaf at that cutoff fades alike and leaves no band.
+    outline *= u_kind == 1 ? smoothstep(1.0, 3.0, cell * u_featureSize / (pixel * detail)) : smoothstep(2.0, 8.0, cell / pixel);
     color = u_fill * illumination;
     if (u_wire) color = mix(color, u_stroke * illumination, outline * (u_faces ? (u_lighting == 1 ? 0.18 : 0.25) : 1.0));
     if (!u_faces) color = mix(u_background, color, u_wire ? outline : 0.0);
@@ -1091,6 +1182,6 @@ void main() {
   // Subpixel contact shading otherwise recreates the same noisy facet contrast.
   // Alpha is an internal AO weight; the final screen pass remains fully opaque.
   float aoWeight = found ? smoothstep(2.0, 8.0, cell * (u_kind == 2 ? 2.0 : 1.0) * abs(dot(normal, ray)) / max(u_nearFootprint, hit * u_pixelAngle)) : 0.0;
-  outColor = vec4(color, u_kind == 3 && found ? 1.0 : aoWeight);
+  outColor = vec4(color, (u_kind == 1 || u_kind == 3) && found ? 1.0 : aoWeight);
 }
 #endif

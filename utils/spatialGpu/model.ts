@@ -610,6 +610,31 @@ export function packOrderedChildren(shape: GpuShape) {
   return packed;
 }
 
+/** Child centers and axes as shader uniforms, in the octant 0 child order. */
+export function packChildFrames(shape: GpuShape) {
+  const children = childrenInOctant(shape, 0);
+  return {
+    centers: new Float32Array(children.flatMap((child) => child.center)),
+    axes: new Float32Array(children.flatMap((child) => child.axes.flat())),
+  };
+}
+
+/** Each child's hull planes in its parent's coordinates, in the octant 0 child order. */
+export function packChildHulls(shape: GpuShape) {
+  const packed = new Float32Array(shape.children.length * shape.hull.length * 4);
+  childrenInOctant(shape, 0).forEach((child, index) => {
+    const scale = 1 / (transformSize(child) * transformSize(child));
+    shape.hull.forEach((plane, at) => {
+      const normal = applyVector(child, plane.slice(0, 3) as Vec3).map((v) => v * scale) as Vec3;
+      packed.set(
+        [...normal, plane[3] + dot(normal, child.center)],
+        (index * shape.hull.length + at) * 4,
+      );
+    });
+  });
+  return packed;
+}
+
 /**
  * Threaded child BVH. Two texels store low/leaf and high/escape for each node.
  * A leaf bounds the complete circular descendant envelope, not just its seed.

@@ -13,6 +13,8 @@ const {
   buildGpuShape,
   buildGpuFrame,
   packTransforms,
+  packChildFrames,
+  packChildHulls,
   packOrderedChildren,
   packChildBounds,
   selectGpuStackDepth,
@@ -49,6 +51,14 @@ const fragment = (
 ).replace(colorOutput, "outColor = encodeDistance(exhausted ? -2.0 : hit, exhausted || found);");
 const quadraticFragment = specializeSpatialShader(fragment, { kind: "quadraticKoch3d" });
 const flakeFragment = specializeSpatialShader(fragment, { kind: "flake" }, 40);
+const kochFragment = specializeSpatialShader(fragment, { kind: "kochSurface" });
+const kochShape = buildGpuShape({ kind: "kochSurface", start: "triangle" }),
+  kochFrames = packChildFrames(kochShape);
+const kochUniforms = {
+  hulls: [...packChildHulls(kochShape)],
+  centers: [...kochFrames.centers],
+  axes: [...kochFrames.axes],
+};
 const romanescoFragment = fragment
   .replace("uniform int u_kind;", specialized ? "const int u_kind = 3;" : "uniform int u_kind;")
   .replace("#version 300 es", `#version 300 es\n#define SPATIAL_STACK_DEPTH ${stackDepth}`);
@@ -524,6 +534,8 @@ async function check(page, payload) {
       fragment,
       quadraticFragment,
       flakeFragment,
+      kochFragment,
+      kochUniforms,
       romanescoFragment,
       fixtures,
       basis,
@@ -545,7 +557,7 @@ async function check(page, payload) {
         return shader;
       };
       const vert = compile(gl.VERTEX_SHADER, vertex);
-      const sources = [fragment, quadraticFragment, romanescoFragment];
+      const sources = [fragment, quadraticFragment, romanescoFragment, kochFragment];
       if (specialized) sources.push(flakeFragment);
       const programs = sources.map((text) => {
         const frag = compile(gl.FRAGMENT_SHADER, text),
@@ -601,15 +613,22 @@ async function check(page, payload) {
                 ? 1
                 : fixture.kind === 3
                   ? 2
-                  : specialized && fixture.specKind === "flake"
+                  : fixture.kind === 1
                     ? 3
-                    : 0
+                    : specialized && fixture.specKind === "flake"
+                      ? 4
+                      : 0
             ].program;
           // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook.
           gl.useProgram(program);
           const location = gl.getAttribLocation(program, "aPosition");
           gl.enableVertexAttribArray(location);
           gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 0, 0);
+          if (fixture.kind === 1) {
+            gl.uniform4fv(uniform("childHulls"), kochUniforms.hulls);
+            gl.uniform3fv(uniform("childCenters"), kochUniforms.centers);
+            gl.uniformMatrix3fv(uniform("childAxes"), false, kochUniforms.axes);
+          }
           gl.uniform1i(uniform("roots"), 0);
           gl.uniform1i(uniform("children"), 1);
           gl.uniform1i(uniform("childBounds"), 2);
@@ -714,10 +733,12 @@ async function check(page, payload) {
                 ? "quadratic"
                 : fixture.kind === 3 && specialized
                   ? "romanesco"
-                  : fixture.specKind === "flake" && specialized
-                    ? "flake"
-                    : "generic",
-            stackDepth: fixture.kind === 3 ? stackDepth : 40,
+                  : fixture.kind === 1
+                    ? "koch"
+                    : fixture.specKind === "flake" && specialized
+                      ? "flake"
+                      : "generic",
+            stackDepth: fixture.kind === 3 ? stackDepth : fixture.kind === 1 ? 24 : 40,
             samples: fixture.expected.length,
             failures,
             ms: elapsed,
@@ -752,5 +773,5 @@ async function check(page, payload) {
 }
 writeFileSync(
   process.argv[2] ?? "/private/tmp/check-spatial-flight-gpu.js",
-  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, flakeFragment, romanescoFragment, fixtures: selectedFixtures, basis, diagnostics, stackDepth, specialized, skippedStackFixtures })})`,
+  `async(page)=>await (${check.toString()})(page,${JSON.stringify({ vertex, fragment, quadraticFragment, flakeFragment, kochFragment, kochUniforms, romanescoFragment, fixtures: selectedFixtures, basis, diagnostics, stackDepth, specialized, skippedStackFixtures })})`,
 );
