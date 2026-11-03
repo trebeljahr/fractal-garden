@@ -302,6 +302,11 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
       }
       return;
     }
+    // A finished level plays from its start before moving on.
+    if (lsystem && processComplete && !playing) {
+      setCompletedLevel(null);
+      setProcessReset((value) => value + 1);
+    }
     setPlaying(!playing);
   };
   const change = (next: number) => {

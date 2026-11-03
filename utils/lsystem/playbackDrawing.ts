@@ -164,7 +164,8 @@ export function preparePlaybackDrawing(
       ctx.lineWidth = Math.max(0.5, view.lineWidth * geometry.widths[i]);
       ctx.stroke();
     }
-    if (!drawing) return;
+    // A finished level is just the picture.
+    if (!drawing || consumed >= model.instructionLength) return;
     const current = consumed * 6,
       prev = Math.max(0, consumed - 1) * 6;
     const head = screen(

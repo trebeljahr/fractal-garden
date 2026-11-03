@@ -217,6 +217,21 @@ export function buildPlayback(
 }
 export type Playback = ReturnType<typeof buildPlayback>;
 
+// Each stage of a level plays in about this long however long its string is, so a
+// reader reaches the shape in seconds. Next symbol still reads one symbol at a time.
+const STAGE_MS = 2000;
+const SLOWEST_TICK_MS = 300;
+const FASTEST_TICK_MS = 50;
+
+export function playbackPace(symbols: number, speed = 1) {
+  const budget = STAGE_MS / speed;
+  const delay = Math.max(
+    FASTEST_TICK_MS,
+    Math.min(SLOWEST_TICK_MS / speed, budget / Math.max(1, symbols)),
+  );
+  return { delay, advance: Math.max(1, Math.ceil((symbols * delay) / budget)) };
+}
+
 export function symbolWindow(word: string, index: number, width = 80) {
   const start = Math.max(0, Math.min(word.length - width, index - Math.floor(width / 2)));
   return {
@@ -228,7 +243,7 @@ export function symbolWindow(word: string, index: number, width = 80) {
 }
 
 export function turtleAction(symbol: string, spec: LSystemSpec, legacy = false) {
-  if (!symbol) return "Start at the outlined dot. The arrow is the turtle's head.";
+  if (!symbol) return "Start at the outlined dot. The arrow shows the direction.";
   if (spec.drawSymbols.includes(symbol)) return `${symbol}: draw a line and move forward.`;
   if (spec.moveSymbols.includes(symbol)) return `${symbol}: move forward without drawing.`;
   if (symbol === "[") return "[: remember this position and direction.";
@@ -237,9 +252,9 @@ export function turtleAction(symbol: string, spec: LSystemSpec, legacy = false) 
     return `${symbol}: turn ${Math.abs(spec.angle)}°. Stay in place.`;
   if (symbol === "|") return "|: turn around. Stay in place.";
   if (legacy && symbol === "&") return "&: reverse the direction of later turns.";
-  if ("&^".includes(symbol)) return `${symbol}: tilt the turtle's head ${Math.abs(spec.angle)}°.`;
-  if ("\\/".includes(symbol)) return `${symbol}: roll the turtle ${Math.abs(spec.angle)}°.`;
-  if (symbol === "$") return "$: roll the turtle back to level.";
+  if ("&^".includes(symbol)) return `${symbol}: tilt the arrow ${Math.abs(spec.angle)}°.`;
+  if ("\\/".includes(symbol)) return `${symbol}: roll the arrow ${Math.abs(spec.angle)}°.`;
+  if (symbol === "$") return "$: roll the arrow back to level.";
   if (symbol === ">" || symbol === "<") return `${symbol}: change the length of later steps.`;
   if (symbol === "!" || symbol === "#") return `${symbol}: change the width of later lines.`;
   return `${symbol}: skip this symbol while drawing. Its rule can change it in the next iteration.`;

@@ -65,6 +65,11 @@
 .rule code {
   color: var(--process-accent);
 }
+.rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5em;
+}
 .replacement {
   display: inline;
   animation: appear 300ms ease-out;
@@ -101,6 +106,7 @@
 }
 .process .footer p {
   margin: 0 0 8px;
+  min-height: 1.5em;
   font-size: 13px;
   line-height: 1.5;
 }

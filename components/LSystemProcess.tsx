@@ -6,6 +6,7 @@ import { useConstructionNavigation } from "../utils/hooks/useConstructionNavigat
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
   buildPlayback,
+  playbackPace,
   playbackSource,
   symbolWindow,
   turtleAction,
@@ -113,23 +114,28 @@ export default function LSystemProcess({
       ),
     [key],
   );
-  const [cursor, setCursor] = useState(0);
+  // A level picked by hand shows finished. Only playback walks through it.
+  const [cursor, setCursor] = useState(() =>
+    playing ? 0 : model.rewriteLength + model.instructionLength,
+  );
+  const startPlaying = useRef(playing);
+  startPlaying.current = playing;
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const [size, setSize] = useState({ width: 720, height: 320 });
   const container = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const max = model.rewriteLength + model.instructionLength;
   const step = Math.min(cursor, max);
+  const finished = step >= max;
   const drawing = step >= model.rewriteLength;
   const consumed = drawing ? step - model.rewriteLength : 0;
   const rewritten = drawing ? model.rewriteLength : step;
   const outputEnd = model.offsets[rewritten] ?? 0;
   const outputStart = model.offsets[Math.max(0, rewritten - 1)] ?? 0;
-  const advance = Math.max(
-    1,
-    Math.ceil((drawing ? model.instructionLength : model.rewriteLength) / 160),
+  const { delay, advance } = playbackPace(
+    drawing ? model.instructionLength : model.rewriteLength,
+    speed,
   );
-  const delay = 600 / speed;
   const change = (value: number) => {
     onInteract();
     setCursor(Math.max(0, Math.min(max, value)));
@@ -137,7 +143,7 @@ export default function LSystemProcess({
   useConstructionNavigation(canvas, source.spec.dimension === "3d", view, setView, onReset);
   // biome-ignore lint/correctness/useExhaustiveDependencies: A new model starts a new rewrite.
   useEffect(() => {
-    setCursor(0);
+    setCursor(startPlaying.current ? 0 : max);
   }, [model]);
   useEffect(() => {
     onReady(level);
@@ -188,6 +194,8 @@ export default function LSystemProcess({
   }, [canvas, size, consumed, drawing, reduced, playing, advance, delay, paint]);
   const symbolIndex = consumed > 0 ? (consumed - 1) % model.word.length : -1;
   const current = model.word[symbolIndex] ?? "";
+  // Text can't be read while it changes many times a second.
+  const readable = drawing && !finished && (!playing || delay >= 200);
   return (
     <div
       className={styles.process}
@@ -197,42 +205,41 @@ export default function LSystemProcess({
     >
       <div className={styles.strings}>
         {model.rewriteLength > 0 && (
-          <>
-            <div className={styles.row}>
-              <span>From iteration {level - 1}</span>
-              <Word
-                word={model.previous}
-                active={drawing ? -1 : rewritten - 1}
-                label="Previous iteration string"
-              />
-            </div>
-            <p className={styles.rule} aria-live={playing ? "off" : "polite"}>
-              {!drawing && rewritten > 0 ? (
-                <>
-                  <code>{model.previous[rewritten - 1]}</code> →{" "}
-                  <code key={rewritten} className={styles.replacement}>
-                    {model.word.slice(outputStart, outputEnd) || "∅"}
-                  </code>
-                  {model.word.slice(outputStart, outputEnd) === model.previous[rewritten - 1]
-                    ? " · copy unchanged"
-                    : " · write into the next string"}
-                </>
-              ) : drawing ? (
-                "String ready. Read it from left to right."
-              ) : (
-                "Read the old string. Write each replacement into a new string."
-              )}
-            </p>
-          </>
+          <div className={styles.row}>
+            <span>From iteration {level - 1}</span>
+            <Word
+              word={model.previous}
+              active={drawing ? -1 : rewritten - 1}
+              label="Previous iteration string"
+            />
+          </div>
         )}
+        <p className={styles.rule} aria-live={playing ? "off" : "polite"}>
+          {!drawing && rewritten > 0 ? (
+            <>
+              <code>{model.previous[rewritten - 1]}</code> →{" "}
+              <code key={rewritten} className={styles.replacement}>
+                {model.word.slice(outputStart, outputEnd) || "∅"}
+              </code>
+            </>
+          ) : (
+            <span className={styles.rules}>
+              {source.spec.rules.map(({ symbol, replacement }, index) => (
+                <code key={index}>
+                  {symbol} → {replacement || "∅"}
+                </code>
+              ))}
+            </span>
+          )}
+        </p>
         <div className={styles.row}>
           <span>
             Iteration {level} · {model.word.length.toLocaleString("en-US")} symbols
           </span>
           <Word
             word={model.word}
-            active={drawing ? symbolIndex : outputStart}
-            end={drawing ? symbolIndex + 1 : outputEnd}
+            active={finished ? -1 : drawing ? symbolIndex : outputStart}
+            end={finished ? 0 : drawing ? symbolIndex + 1 : outputEnd}
             built={drawing ? model.word.length : outputEnd}
             label="Current iteration string"
           />
@@ -242,27 +249,28 @@ export default function LSystemProcess({
         <canvas
           ref={setCanvas}
           tabIndex={0}
-          aria-label={`Turtle drawing, iteration ${level}. Drag to ${source.spec.dimension === "3d" ? "rotate" : "pan"}; scroll to zoom.`}
+          aria-label={`Drawing, iteration ${level}. Drag to ${source.spec.dimension === "3d" ? "rotate" : "pan"}; scroll to zoom.`}
         />
-        <span className={styles.phase}>
-          {drawing
-            ? model.repeat === 2
-              ? consumed > model.word.length
-                ? "Second dragon · the same string, turned around"
-                : "First dragon · both copies read the same string"
-              : "Draw the string"
-            : "Build the next string"}
-        </span>
+        {!finished && (
+          <span className={styles.phase}>
+            {drawing
+              ? model.repeat === 2
+                ? consumed > model.word.length
+                  ? "Second dragon · the same string, turned around"
+                  : "First dragon · both copies read the same string"
+                : "Draw the string"
+              : "Build the next string"}
+          </span>
+        )}
       </div>
       <div className={styles.footer}>
         <p aria-live={playing ? "off" : "polite"}>
-          {drawing
-            ? source.fibonacci !== undefined && current === "0"
+          {readable &&
+            (source.fibonacci !== undefined && current === "0"
               ? `0: draw forward, then turn ${consumed % 2 === 0 ? "left" : "right"} by ${Math.abs(source.fibonacci)}°.`
               : source.turns?.[current] !== undefined
                 ? `${current}: turn ${Math.abs(source.turns[current])}°. Stay in place.`
-                : turtleAction(current, source.spec, source.legacy)
-            : "The pale path previews the new string. The turtle walks it once rewriting finishes."}
+                : turtleAction(current, source.spec, source.legacy))}
         </p>
         <fieldset className={styles.controls} aria-label="L-system symbol controls">
           <button
@@ -310,11 +318,6 @@ export default function LSystemProcess({
             </select>
           </label>
         </fieldset>
-        {advance > 1 && (
-          <p className={styles.note}>
-            Playback advances {advance} symbols at a time. Use Next symbol to read each one.
-          </p>
-        )}
         {model.limited && (
           <p className={styles.note}>
             This rule reached the drawing limit at iteration{" "}
@@ -334,9 +337,6 @@ export default function LSystemProcess({
               </li>
             ))}
           </ol>
-          <p className={styles.note}>
-            Long strings show an excerpt. The active string above follows the highlighted symbol.
-          </p>
         </details>
       </div>
     </div>

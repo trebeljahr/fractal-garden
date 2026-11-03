@@ -12,7 +12,12 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
-const { buildPlayback, playbackSource, symbolWindow } = require("../utils/lsystem/playback.ts");
+const {
+  buildPlayback,
+  playbackPace,
+  playbackSource,
+  symbolWindow,
+} = require("../utils/lsystem/playback.ts");
 const { expand, interpret } = require("../utils/lsystem/engine.ts");
 const { DEFAULT_SPEC } = require("../utils/lsystem/spec.ts");
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-5, `${a} != ${b}`);
@@ -124,6 +129,20 @@ test("long string windows always contain the consumed symbol and mark excerpts",
     assert.equal(view.text, word.slice(view.start, view.start + 80));
   }
   assert.equal(symbolWindow("F+F", 1).after, false);
+});
+
+test("a stage plays in about two seconds at any length, and short strings stay readable", () => {
+  for (const symbols of [1, 7, 39, 41, 500, 49995, 655350]) {
+    const { delay, advance } = playbackPace(symbols);
+    const ticks = Math.ceil(symbols / advance);
+    assert.ok(ticks * delay <= 2300, `${symbols} symbols take ${ticks * delay} ms`);
+    assert.ok(delay >= 50);
+    assert.ok(advance >= 1);
+  }
+  assert.equal(playbackPace(7).advance, 1);
+  assert.ok(playbackPace(7).delay >= 200);
+  assert.ok(playbackPace(49995, 4).delay >= 50);
+  assert.ok(playbackPace(7, 0.5).delay > playbackPace(7).delay);
 });
 
 test("every bespoke turtle player matches its existing page renderer", () => {
