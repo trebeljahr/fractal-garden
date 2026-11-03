@@ -1,0 +1,68 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 70vh) minmax(16rem, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+figure button.stage {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #252424;
+  cursor: pointer;
+  /* Up-and-down swipes scroll the page; a tap fills a gap. */
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+figure button.stage:hover:not(:disabled) {
+  background: #252424;
+}
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Room for the rule's lines, so the buttons stay put when they appear. */
+.rule {
+  min-height: 7.7rem;
+  margin-bottom: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.layout .rule p,
+.layout .count {
+  margin: 0;
+}
+.layout .count {
+  margin-bottom: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.around {
+  color: #f5c56d;
+}
+.known {
+  color: #7fc4f5;
+}
+.result {
+  color: #fff;
+  font-weight: 700;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+}

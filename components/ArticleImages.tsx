@@ -55,13 +55,6 @@ const IMAGES = {
       caption: "The Little ship view shows a smaller hull with its own rows of masts.",
     },
   ],
-  apollonian: [
-    {
-      name: "apollonian-level-3",
-      alt: "Tangent circles in an Apollonian packing at three iterations",
-      caption: "Smaller circles fill the curved gaps left between larger circles.",
-    },
-  ],
 } as const;
 
 export type ArticleImageKind = keyof typeof IMAGES;

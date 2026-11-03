@@ -64,21 +64,5 @@
     "sourceCommit": "6689c30",
     "method": "Main explorer Save PNG control; no interface overlays",
     "kind": "actual runtime rendering"
-  },
-  {
-    "name": "apollonian-level-3",
-    "sourceWidth": 2560,
-    "sourceHeight": 1440,
-    "width": 1280,
-    "height": 720,
-    "bytes": 22522,
-    "sourceCommit": "6689c30",
-    "method": "Main explorer Save PNG control; no interface overlays",
-    "kind": "actual runtime rendering",
-    "settings": {
-      "iterations": 3,
-      "lineWidth": 2.5,
-      "animateGrowth": false
-    }
   }
 ]
