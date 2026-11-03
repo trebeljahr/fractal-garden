@@ -49,10 +49,6 @@ export default function MengerSliceLesson() {
       <figcaption id={`${id}-title`} className={styles.title}>
         A slice through square tunnels
       </figcaption>
-      <p>
-        Move the slice and watch the holes change. The amber faces show where the sponge meets it;
-        the front part of the sponge is hidden. Highlight a tunnel to see its opening in teal.
-      </p>
       <div className={styles.controls}>
         <label htmlFor={`${id}-depth`}>
           Round <output>{depth}</output>
@@ -199,15 +195,6 @@ export default function MengerSliceLesson() {
           ))}
         </fieldset>
       )}
-      <p aria-live="polite">
-        {shadow
-          ? "The shadow includes cubes at every depth. Moving the slice changes which cubes it meets, but leaves this shadow unchanged."
-          : depth === 0
-            ? "No tunnels yet. Move the slice to the center to see a solid six-sided shape."
-            : Math.abs(offset) < 0.001
-              ? "At the center, the three tunnel openings overlap to make the star-shaped hole."
-              : "The slice now meets a different part of each tunnel. Center the slice to find the star-shaped hole again."}
-      </p>
     </figure>
   );
 }

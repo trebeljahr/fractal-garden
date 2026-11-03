@@ -14,9 +14,13 @@ Look straight at one face. The holes line up through the depth of the sponge, gi
 
 Now look at a flat slice through the middle, facing one corner of the sponge. Its outline has six sides. Inside it, the square tunnels make a six-pointed star.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
 
+Move the slice below and watch the holes change. The amber faces show where the sponge meets it, and the front part of the sponge is hidden. Highlight a tunnel to see its opening in teal.
+
 <figure data-projection="menger"></figure>
 
-Each tunnel crosses the tilted slice at an angle. The three openings overlap to make the star. As you move the slice away from the center, it meets different parts of the tunnels, so the hole changes shape.
+Each tunnel crosses the tilted slice at an angle. The three openings overlap to make the star. As you move the slice away from the center, it meets different parts of the tunnels, so the hole changes shape. At round 0 there are no tunnels, and the centered slice is a solid six-sided shape.
+
+Choose **Shadow** to swap the flat view for the shadow from straight in front. It includes cubes at every depth, so moving the slice leaves it unchanged.
 
 ## Further exploring
 
