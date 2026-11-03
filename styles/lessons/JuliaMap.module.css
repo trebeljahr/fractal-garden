@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   /* The whole figure fits on one screen, so every arrow can be followed. */
-  max-width: calc((100vh - 4rem) * 0.85);
+  max-width: calc((100vh - 4rem) * 0.78);
   margin: 2rem auto 2.5rem;
   container-type: inline-size;
 }
@@ -31,7 +31,7 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.tile[data-side="top"] .caption {
+.tile[data-caption="above"] .caption {
   top: auto;
   bottom: 100%;
   padding: 0 0 0.25em;

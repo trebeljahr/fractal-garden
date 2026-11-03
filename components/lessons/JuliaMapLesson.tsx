@@ -87,7 +87,7 @@ export default function JuliaMapLesson() {
             className={styles.tile}
             style={place(tileBox(picture))}
             href={href}
-            data-side={picture.side}
+            data-caption={picture.row < 2 ? "above" : "below"}
             data-julia-map={`${picture.c.real},${picture.c.imaginary}`}
             onClick={(event) => openView(event, href)}
             onPointerEnter={() => setActive(picture.id)}

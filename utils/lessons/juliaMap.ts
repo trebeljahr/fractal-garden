@@ -1,79 +1,93 @@
 import type { ComplexPoint } from "../orbitLesson";
 
-type Side = "top" | "right" | "bottom" | "left";
-type Picture = { id: string; c: ComplexPoint; alt: string; side: Side; slot: number };
+type Picture = { id: string; c: ComplexPoint; alt: string; row: number; column: number };
 
+// A ring of cells in a 4 by 4 grid, clockwise from the top left. The map fills the middle.
 // Rebuild the images after changing a c: node scripts/generate-julia-map.mjs
 export const JULIA_MAP_PICTURES: Picture[] = [
   {
-    id: "eleven",
-    c: { real: -0.69784, imaginary: 0.2793 },
-    alt: "Dark lobes, eleven at every joint",
-    side: "top",
-    slot: 0,
+    id: "spiral",
+    c: { real: -0.8, imaginary: 0.156 },
+    alt: "Paired curls along a twisting thread",
+    row: 0,
+    column: 0,
   },
   {
     id: "jagged",
     c: { real: -0.4, imaginary: 0.45 },
     alt: "A solid dark shape with a jagged edge",
-    side: "top",
-    slot: 1,
+    row: 0,
+    column: 1,
   },
   {
     id: "rabbit",
     c: { real: -0.12256, imaginary: 0.74486 },
     alt: "Dark lobes, three at every joint",
-    side: "top",
-    slot: 2,
+    row: 0,
+    column: 2,
   },
   {
     id: "four",
     c: { real: 0.28227, imaginary: 0.53006 },
     alt: "Dark lobes, four at every joint",
-    side: "top",
-    slot: 3,
+    row: 0,
+    column: 3,
   },
   {
     id: "dust",
     c: { real: 0.4, imaginary: 0.45 },
     alt: "Clusters of separate specks with gaps between them",
-    side: "right",
-    slot: 0,
+    row: 1,
+    column: 3,
+  },
+  {
+    id: "rings",
+    c: { real: 0.45, imaginary: 0.1 },
+    alt: "Four rings of specks with gaps between them",
+    row: 2,
+    column: 3,
   },
   {
     id: "circle",
     c: { real: 0, imaginary: 0 },
     alt: "A solid dark circle",
-    side: "bottom",
-    slot: 3,
+    row: 3,
+    column: 3,
   },
   {
     id: "branches",
     c: { real: 0, imaginary: -1 },
     alt: "Thin branches with no dark area",
-    side: "bottom",
-    slot: 2,
+    row: 3,
+    column: 2,
   },
   {
-    id: "seven",
-    c: { real: -0.62244, imaginary: -0.42488 },
-    alt: "Dark lobes, seven at every joint",
-    side: "bottom",
-    slot: 1,
+    id: "stars",
+    c: { real: -0.70176, imaginary: -0.3842 },
+    alt: "Star-shaped clusters along a branching line",
+    row: 3,
+    column: 1,
   },
   {
     id: "basilica",
     c: { real: -1, imaginary: 0 },
     alt: "A chain of rounded dark lobes",
-    side: "bottom",
-    slot: 0,
+    row: 3,
+    column: 0,
   },
   {
     id: "airplane",
     c: { real: -1.75488, imaginary: 0 },
     alt: "A thin line of small dark lobes",
-    side: "left",
-    slot: 0,
+    row: 2,
+    column: 0,
+  },
+  {
+    id: "broken-line",
+    c: { real: -1.5, imaginary: 0.1 },
+    alt: "A thin line of specks with a gap in the middle",
+    row: 1,
+    column: 0,
   },
 ];
 
@@ -84,24 +98,24 @@ export const MANDELBROT_BOUNDS = [-2.05, 0.65, -1.35, 1.35] as const;
 // Layout units. The figure scales as one piece, so the arrows stay on their pictures.
 const TILE = 100;
 const COLUMN_GAP = 6;
-const ROW_GAP = 14;
+const ROW_GAP = 6;
 // Enough for a caption on two lines at phone width.
 const CAPTION = 28;
 const MAP_SIZE = 2 * TILE + COLUMN_GAP;
+// The upper two rows have captions above the pictures, the lower two below.
+const MIDDLE_TOP = CAPTION + TILE + ROW_GAP + CAPTION;
+const ROW_TOPS = [
+  CAPTION,
+  MIDDLE_TOP,
+  MIDDLE_TOP + TILE + COLUMN_GAP,
+  MIDDLE_TOP + MAP_SIZE + CAPTION + ROW_GAP,
+];
 export const FIGURE_WIDTH = 4 * TILE + 3 * COLUMN_GAP;
-export const FIGURE_HEIGHT = 2 * (CAPTION + TILE + ROW_GAP) + MAP_SIZE;
-export const MAP_BOX = {
-  x: TILE + COLUMN_GAP,
-  y: CAPTION + TILE + ROW_GAP,
-  size: MAP_SIZE,
-};
+export const FIGURE_HEIGHT = ROW_TOPS[3] + TILE + CAPTION;
+export const MAP_BOX = { x: TILE + COLUMN_GAP, y: MIDDLE_TOP, size: MAP_SIZE };
 
-export function tileBox({ side, slot }: Picture) {
-  const column = slot * (TILE + COLUMN_GAP);
-  const centered = MAP_BOX.y + (MAP_SIZE - TILE) / 2;
-  if (side === "top") return { x: column, y: CAPTION, size: TILE };
-  if (side === "bottom") return { x: column, y: MAP_BOX.y + MAP_SIZE + ROW_GAP, size: TILE };
-  return { x: side === "left" ? 0 : FIGURE_WIDTH - TILE, y: centered, size: TILE };
+export function tileBox({ row, column }: Picture) {
+  return { x: column * (TILE + COLUMN_GAP), y: ROW_TOPS[row], size: TILE };
 }
 
 export function mapPosition({ real, imaginary }: ComplexPoint) {

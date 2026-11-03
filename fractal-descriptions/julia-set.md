@@ -38,7 +38,7 @@ Each $c$ you try gets a mark on the left plane. To choose the color, the demo st
 
 The dark marks gave one piece and the blue marks gave dust. This is true for every $c$.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup> Press **Fill the rest**: the dark shape is the [Mandelbrot set](/mandelbrot). Every point on this plane stands for one Julia set, and the dark shape holds the ones in one piece.
 
-Each arrow below starts at a value of $c$ on the Mandelbrot picture and points to that value's Julia set. Only $(0.4, 0.45)$ lies outside the Mandelbrot set, so its Julia set is dust. The point $(0, -1)$ looks outside too, but it sits on a thread too thin for this picture. Click a picture to open it at the top of this page.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
+Each arrow below starts at a value of $c$ on the Mandelbrot picture and points to that value's Julia set. Five of these values lie outside the Mandelbrot set, so their Julia sets are dust. In some pictures you can see the gaps, as with $(0.45, 0.1)$. In others the gaps are too small for the picture, as with $(-0.8, 0.156)$: starting at $0$, the point takes 252 jumps to cross the dashed circle. The point $(0, -1)$ looks outside too, but it sits on a thread too thin for this picture. Click a picture to open it at the top of this page.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
 
 <figure data-lesson="julia-map"></figure>
 
