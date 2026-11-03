@@ -7,9 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
-import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import { LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
@@ -18,9 +18,8 @@ import { LessonFrame } from "./LessonFrame";
 const ZERO = { real: 0, imaginary: 0 };
 export const MAP_WIDTH = 360;
 export const MAP_HEIGHT = 300;
-const STEP_MS = 100;
-// Picks closer together than this are one drag, so the orbit keeps growing through them.
-const SAME_DRAG_MS = 250;
+// Safari reports a small move before it starts a scroll, so a finger must clearly go sideways.
+const SIDEWAYS_SLIDE_PX = 10;
 const BOUNDS = { parameter: [-2, 1, -1.25, 1.25], start: [-1.8, 1.8, -1.5, 1.5] } as const;
 const text = (p: ComplexPoint) =>
   `(${Number(p.real.toFixed(3))}, ${Number(p.imaginary.toFixed(3))})`;
@@ -37,6 +36,7 @@ export function LinkedMap({
   c,
   value,
   onChange,
+  onHover,
   onRelease,
   orbit,
   loop,
@@ -47,22 +47,34 @@ export function LinkedMap({
   c: ComplexPoint;
   value: ComplexPoint;
   onChange: (point: ComplexPoint) => void;
+  onHover?: (point: ComplexPoint | null) => void;
   onRelease?: () => void;
   orbit?: ComplexPoint[];
   loop?: ComplexPoint[];
   outcome?: string;
   overlay?: ReactNode;
 }) {
-  const pointer = useRef<number | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const pointer = useRef<{ id: number; x: number; y: number; picking: boolean } | null>(null);
+  // Once a finger slides sideways it can go anywhere on the picture without scrolling the page.
+  // React's own touch listeners are passive and can't stop a scroll.
+  useEffect(() => {
+    const element = button.current;
+    if (!element) return;
+    const holdPage = (event: TouchEvent) => {
+      if (pointer.current?.picking && event.cancelable) event.preventDefault();
+    };
+    element.addEventListener("touchmove", holdPage, { passive: false });
+    return () => element.removeEventListener("touchmove", holdPage);
+  }, []);
   const [left, right, bottom, top] = BOUNDS[mapKind];
-  const select = (real: number, imaginary: number) =>
-    onChange({
-      real: Number(Math.max(left, Math.min(right, real)).toFixed(3)),
-      imaginary: Number(Math.max(bottom, Math.min(top, imaginary)).toFixed(3)),
-    });
-  const move = (event: PointerEvent<HTMLButtonElement>) => {
+  const clamped = (real: number, imaginary: number) => ({
+    real: Number(Math.max(left, Math.min(right, real)).toFixed(3)),
+    imaginary: Number(Math.max(bottom, Math.min(top, imaginary)).toFixed(3)),
+  });
+  const under = (event: PointerEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    select(
+    return clamped(
       left + ((event.clientX - rect.left) / rect.width) * (right - left),
       top - ((event.clientY - rect.top) / rect.height) * (top - bottom),
     );
@@ -75,23 +87,40 @@ export function LinkedMap({
   const id = useId().replace(/:/g, "");
   return (
     <button
+      ref={button}
       type="button"
       className={styles.map}
-      aria-label={`${mapKind === "parameter" ? "Mandelbrot parameter" : "Julia starting point"} ${text(value)}. ${outcome}Drag or use arrow keys.`}
+      aria-label={`${mapKind === "parameter" ? "Mandelbrot parameter" : "Julia starting point"} ${text(value)}. ${outcome}${onHover ? "Move the pointer" : "Drag"} or use arrow keys.`}
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return;
-        event.preventDefault();
-        event.currentTarget.focus({ preventScroll: true });
-        pointer.current = event.pointerId;
+        const mouse = event.pointerType === "mouse";
+        pointer.current = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          picking: mouse,
+        };
         event.currentTarget.setPointerCapture(event.pointerId);
-        move(event);
+        // A finger may be starting to scroll, so it picks only when it slides sideways or lifts.
+        if (mouse) onChange(under(event));
       }}
       onPointerMove={(event) => {
-        if (pointer.current === event.pointerId) move(event);
+        const press = pointer.current;
+        if (press?.id === event.pointerId) {
+          const sideways = Math.abs(event.clientX - press.x);
+          if (sideways > SIDEWAYS_SLIDE_PX && sideways > Math.abs(event.clientY - press.y))
+            press.picking = true;
+          if (press.picking) onChange(under(event));
+        }
+        // React would otherwise commit after this frame paints, one frame behind the pointer.
+        else if (onHover && event.pointerType !== "touch") flushSync(() => onHover(under(event)));
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType !== "touch" && pointer.current === null) onHover?.(null);
       }}
       onPointerUp={(event) => {
-        if (pointer.current !== event.pointerId) return;
-        move(event);
+        if (pointer.current?.id !== event.pointerId) return;
+        onChange(under(event));
         pointer.current = null;
         event.currentTarget.releasePointerCapture(event.pointerId);
         onRelease?.();
@@ -106,11 +135,13 @@ export function LinkedMap({
         if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
         event.preventDefault();
         const delta = event.shiftKey ? 0.1 : 0.01;
-        select(
-          value.real +
-            (event.key === "ArrowLeft" ? -delta : event.key === "ArrowRight" ? delta : 0),
-          value.imaginary +
-            (event.key === "ArrowUp" ? delta : event.key === "ArrowDown" ? -delta : 0),
+        onChange(
+          clamped(
+            value.real +
+              (event.key === "ArrowLeft" ? -delta : event.key === "ArrowRight" ? delta : 0),
+            value.imaginary +
+              (event.key === "ArrowUp" ? delta : event.key === "ArrowDown" ? -delta : 0),
+          ),
         );
       }}
     >
@@ -159,16 +190,6 @@ export function LinkedMap({
               />
             ),
           )}
-          {orbit && orbit.length > 1 && (
-            <circle
-              cx={xy(orbit[orbit.length - 1])[0]}
-              cy={xy(orbit[orbit.length - 1])[1]}
-              r="4.5"
-              fill="#eee8ce"
-              stroke="#10151a"
-              strokeWidth="1.5"
-            />
-          )}
           <circle cx={point[0]} cy={point[1]} r="7" fill="none" stroke="#10151a" strokeWidth="5" />
           <circle
             cx={point[0]}
@@ -184,66 +205,62 @@ export function LinkedMap({
   );
 }
 
+// A pointer over a picture tries a spot out. Leaving brings back the spot that was kept.
+function useTriedPoint(first: ComplexPoint) {
+  const [kept, setKept] = useState(first);
+  const [tried, setTried] = useState<ComplexPoint | null>(null);
+  const keep = (point: ComplexPoint) => {
+    setKept(point);
+    setTried(null);
+  };
+  return { value: tried ?? kept, keep, tryOut: setTried };
+}
+
 export default function LinkedJuliaLesson() {
-  const [c, setC] = useState<ComplexPoint>({ real: -1, imaginary: 0 });
-  const [start, setStart] = useState<ComplexPoint>({ real: 0.5, imaginary: 0 });
-  // The whole route shows until a new starting point plays it from the start.
-  const [step, setStep] = useState(LINKED_LIMIT);
-  const lastPick = useRef(Number.NEGATIVE_INFINITY);
-  const reducedMotion = useReducedMotion();
+  const c = useTriedPoint({ real: -1, imaginary: 0 });
+  const start = useTriedPoint({ real: 0.5, imaginary: 0 });
   const { orbit, loop } = useMemo(
-    () => traceUntilLoop(c, start, false, LINKED_LIMIT, LINKED_RADIUS),
-    [c, start],
+    () => traceUntilLoop(c.value, start.value, false, LINKED_LIMIT, LINKED_RADIUS),
+    [c.value, start.value],
   );
-  const max = orbit.length - 1;
-  const shown = orbit.slice(0, Math.min(step, max) + 1);
-  const end = orbit[max];
+  const end = orbit[orbit.length - 1];
   const outcome = loop
     ? `Lands back on an earlier point after ${end.iteration} calculations. `
     : isOutside(end.point, LINKED_RADIUS)
       ? `Escapes after ${end.iteration} calculations. `
       : `No escape after ${end.iteration} calculations. `;
-  useEffect(() => {
-    if (step >= max) return;
-    const timer = window.setTimeout(() => setStep(step + 1), STEP_MS);
-    return () => window.clearTimeout(timer);
-  }, [step, max]);
-  const chooseC = (point: ComplexPoint) => {
-    setC(point);
-    setStep(LINKED_LIMIT);
-  };
-  const chooseStart = (point: ComplexPoint) => {
-    if (point.real === start.real && point.imaginary === start.imaginary) return;
-    const now = performance.now();
-    if (!reducedMotion && now - lastPick.current > SAME_DRAG_MS) setStep(0);
-    // A route that finished stays whole for the rest of the drag, so its loop doesn't flicker.
-    else if (step >= max) setStep(LINKED_LIMIT);
-    lastPick.current = now;
-    setStart(point);
-  };
   return (
     <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
-      <p>Drag either ring.</p>
+      <p>Move your pointer over either picture. Click or tap to keep a spot.</p>
       <div className={styles.pair}>
         <div>
           <h3>Mandelbrot · choose c</h3>
-          <LinkedMap mapKind="parameter" c={ZERO} value={c} onChange={chooseC} />
-          <p data-selected-parameter={`${c.real},${c.imaginary}`}>c = {text(c)}</p>
+          <LinkedMap
+            mapKind="parameter"
+            c={ZERO}
+            value={c.value}
+            onChange={c.keep}
+            onHover={c.tryOut}
+          />
+          <p data-selected-parameter={`${c.value.real},${c.value.imaginary}`}>
+            c = {text(c.value)}
+          </p>
         </div>
         <div>
           <h3>Julia · follow a starting point</h3>
           <LinkedMap
             mapKind="start"
-            c={c}
-            value={start}
-            onChange={chooseStart}
-            orbit={shown.map((item) => item.point)}
-            loop={
-              loop && step >= max ? orbit.slice(loop.from).map((item) => item.point) : undefined
-            }
+            c={c.value}
+            value={start.value}
+            onChange={start.keep}
+            onHover={start.tryOut}
+            orbit={orbit.map((item) => item.point)}
+            loop={loop ? orbit.slice(loop.from).map((item) => item.point) : undefined}
             outcome={outcome}
           />
-          <p data-selected-start={`${start.real},${start.imaginary}`}>{text(start)}</p>
+          <p data-selected-start={`${start.value.real},${start.value.imaginary}`}>
+            {text(start.value)}
+          </p>
         </div>
       </div>
     </LessonFrame>

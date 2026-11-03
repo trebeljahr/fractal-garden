@@ -44,6 +44,14 @@ Under the picture, the current jump is worked out by hand and rounded to five de
 
 Which choices of $c$ keep the edge in one piece? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup>
 
+In the demo below, each point of the left picture is one value of $c$. To choose its color, the demo starts at $0$ and follows the jumps: black if the point stays, blue if it crosses the dashed circle. The black shape is the Mandelbrot set.
+
+The right picture is the Julia picture for the $c$ under the amber ring. The line is the orbit of one starting point. It ends when the point escapes or repeats, or after 96 jumps. The repeating part is amber.
+
+The demo starts on $c = -1$: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Move to $(0, 0)$ on the left and you get the circle again. Move outside the black shape and the Julia set breaks into dust.
+
+<figure data-lesson="linked-julia"></figure>
+
 Each arrow below starts at a value of $c$ on the Mandelbrot picture and points to that value's Julia set. Six of these values lie outside the Mandelbrot set, so their Julia sets are dust. In some pictures you can see the gaps, as with $(0.45, 0.1)$. In others the gaps are too small for the picture, as with $(-0.8, 0.156)$: starting at $0$, the point takes 252 jumps to cross the dashed circle. The point $(0, -1)$ looks outside too, but it sits on a thread too thin for this picture. Click a picture to open it at the top of this page.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
 
 <figure data-lesson="julia-map"></figure>
@@ -63,10 +71,6 @@ Almost all of these points must pass close to $0.5$, and that takes about 300 st
 Some points land near $0.5$ again and repeat the slow trip. You can see more of them change color at about 650 and 1000 steps.
 
 The shape above is dust too: $c = 0.2501$ lies just outside the Mandelbrot set.
-
-The pictures below start on $c = -1$: a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Move the amber ring to $(0, 0)$ and you get the circle again. Move it outside the black shape and the Julia set breaks into dust.
-
-<figure data-lesson="linked-julia"></figure>
 
 ## Where the orbits go
 
