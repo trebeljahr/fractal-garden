@@ -1,0 +1,131 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 36rem);
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+.stage {
+  position: relative;
+  /* The whole picture fits on screen. */
+  width: min(100%, calc(84vh * 750 / 1120));
+  aspect-ratio: 750 / 1120;
+  background: #252424;
+  overflow: hidden;
+}
+.stage canvas,
+.stage svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+.box {
+  fill: none;
+  stroke: #eee8ce;
+  stroke-opacity: 0.45;
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+.copy {
+  fill: none;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+figure button.handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  /* Only a finger on a dot holds the page still. Anywhere else on the picture it scrolls. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+figure button.handle:hover:not(:disabled) {
+  background: transparent;
+}
+figure button.handle:active {
+  cursor: grabbing;
+}
+figure button.handle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #252424;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+figure button.handle:hover::before,
+figure button.handle:active::before {
+  width: 18px;
+  height: 18px;
+}
+@media (pointer: fine) {
+  figure button.handle {
+    width: 26px;
+    height: 26px;
+  }
+}
+.side .readout {
+  margin: 0 0 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.numbers {
+  width: 100%;
+  border-collapse: collapse;
+  font:
+    1.3rem / 1.5 "Montserrat",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.numbers th,
+.numbers td {
+  padding: 0.25rem 0.2rem;
+  text-align: right;
+  font-weight: 400;
+}
+.numbers thead th {
+  color: #eee8cea0;
+}
+.numbers tbody th {
+  text-align: left;
+  font-weight: 600;
+}
+.numbers .chance {
+  padding-left: 0.8rem;
+}
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .stage {
+    margin: 0 auto;
+  }
+  .numbers {
+    font-size: 1.2rem;
+  }
+  .numbers th,
+  .numbers td {
+    padding-inline: 0.1rem;
+  }
+  .numbers .chance {
+    padding-left: 0.4rem;
+  }
+}

@@ -15,12 +15,7 @@ require.extensions[".ts"] = (module, filename) => {
 };
 const { createViewport, createViewportAtLog } = require("../utils/deepZoom/math.ts");
 const { FERN_PRESETS } = require("../utils/fernPresets.ts");
-const {
-  createFernWalker,
-  fernBounds,
-  fernOpeningSpan,
-  fernGeneration,
-} = require("../utils/fernViewport.ts");
+const { createFernWalker, fernBounds, fernOpeningSpan } = require("../utils/fernViewport.ts");
 
 function render(matrix, view, method, limit = 2_000_000) {
   const walker = createFernWalker(matrix, view, 800, 600, method);
@@ -92,18 +87,6 @@ test("a viewport outside the attractor finishes empty", () => {
     assert.equal(count, 0);
     assert.equal(walker.pending, 0);
   }
-});
-
-test("deterministic levels replace the prior set, retaining all four map addresses", () => {
-  const matrix = FERN_PRESETS.barnsley.matrix;
-  assert.deepEqual(fernGeneration(matrix, 0), [{ x: 0, y: 0 }]);
-  assert.deepEqual(fernGeneration(matrix, 1), [
-    { x: 0, y: 0 },
-    { x: 0, y: 1.6 },
-    { x: 0, y: 1.6 },
-    { x: 0, y: 0.44 },
-  ]);
-  assert.equal(fernGeneration(matrix, 8).length, 65536);
 });
 
 test("deep off-axis leaflets retain new geometry with exact rational camera centers", () => {

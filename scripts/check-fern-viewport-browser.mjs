@@ -124,17 +124,11 @@ async function check(page, baseURL, output) {
     assert((await drawing()).count > 1000, "Style switch lost drawing");
     await page.getByRole("button", { name: "Fractal Studio Controls", exact: true }).click();
     stage = "lesson";
-    const lesson = page.locator('[data-detail-lesson="fern"]');
-    await lesson.getByRole("button", { name: "All four maps", exact: true }).click();
-    const slider = lesson.getByRole("slider");
-    await slider.fill("6");
-    assert(
-      (await lesson.innerText()).includes("4096 map addresses"),
-      "Deterministic lesson count wrong",
-    );
-    assert(
-      (await lesson.locator("svg path").nth(1).getAttribute("d")).split("M").length - 1 === 4096,
-      "Lesson generation geometry wrong",
+    const lesson = page.locator('[data-teaching-lesson="fern-collage"]');
+    await lesson.scrollIntoViewIfNeeded();
+    await lesson.getByRole("button", { name: "All four at once", exact: true }).click();
+    await page.waitForFunction(
+      () => document.querySelector("[data-fern-readout]")?.textContent === "No random choices",
     );
     await lesson.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${output}/fern-lesson-desktop.png` });
@@ -169,7 +163,7 @@ async function check(page, baseURL, output) {
         "reset",
         "method switch",
         "style switch",
-        "deterministic generation",
+        "lesson without random choices",
         "equations",
         "footnotes",
         "phone layout",

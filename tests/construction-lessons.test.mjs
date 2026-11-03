@@ -1,12 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  applyFernRule,
-  CLASSIC_FERN_MATRIX,
-  chooseFernRule,
-  traceFern,
-} from "../utils/barnsleyFern.ts";
-import {
   canopyBranches,
   carpetHoles,
   circleContacts,
@@ -326,30 +320,6 @@ test("Pythagoras forks stay right-angled with square areas summing to their pare
   }
   close(pythagorasFork(45).leftArea, 0.5);
   close(pythagorasFork(30).leftArea, 0.75);
-});
-
-test("fern weights partition the choices used by the explorer", () => {
-  close(
-    CLASSIC_FERN_MATRIX.reduce((sum, rule) => sum + rule[6], 0),
-    1,
-  );
-  assert.deepEqual([0, 0.85, 0.86, 0.93, 0.999].map(chooseFernRule), [1, 1, 2, 3, 0]);
-  assert.deepEqual(applyFernRule({ x: 2, y: 5 }, 0), { x: 0, y: 0.8 });
-  const main = applyFernRule({ x: 2, y: 5 }, 1);
-  close(main.x, 1.9);
-  close(main.y, 5.77);
-});
-
-test("the seeded fern walk applies every chosen rule to the preceding point", () => {
-  const walk = traceFern(32);
-  assert.deepEqual(walk, traceFern(32));
-  assert.notDeepEqual(walk, traceFern(32, 42));
-  assert.equal(walk[0].rule, null);
-  assert.equal(walk[3].rule, 0);
-  for (let i = 1; i < walk.length; i++) {
-    assert.deepEqual(walk[i].point, applyFernRule(walk[i - 1].point, walk[i].rule));
-    assert.ok(Number.isFinite(walk[i].point.x) && Number.isFinite(walk[i].point.y));
-  }
 });
 
 test("the fold splits a Burning Ship pixel from its mirror image, and only the fold does", () => {

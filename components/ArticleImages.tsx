@@ -62,13 +62,6 @@ const IMAGES = {
       caption: "Smaller circles fill the curved gaps left between larger circles.",
     },
   ],
-  fern: [
-    {
-      name: "barnsley-classic",
-      alt: "Barnsley fern formed by dots along its stem and leaflets",
-      caption: "Each dot moves to a new place using one of four rules.",
-    },
-  ],
 } as const;
 
 export type ArticleImageKind = keyof typeof IMAGES;

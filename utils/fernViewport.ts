@@ -57,17 +57,6 @@ export function fernOpeningView(bounds: FernBounds, frame: FractalFrame): DeepVi
   return createViewport([bounds.x, bounds.y + ((frame.top - frame.bottom) * span) / side], span);
 }
 
-/** Exact finite deterministic levels for the article's construction demo. */
-export function fernGeneration(matrix: number[][], level: number) {
-  let points = [{ x: 0, y: 0 }];
-  for (let k = 0; k < level; k++) {
-    points = matrix.flatMap(([a, b, c, d, e, f]) =>
-      points.map(({ x, y }) => ({ x: a * x + b * y + e, y: c * x + d * y + f })),
-    );
-  }
-  return points;
-}
-
 /**
  * Traverse composed maps outside-in. Only visible subtrees survive. Large
  * prefixes use fixed point; small ones switch to viewport-relative pixels.

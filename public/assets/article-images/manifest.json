@@ -80,16 +80,5 @@
       "lineWidth": 2.5,
       "animateGrowth": false
     }
-  },
-  {
-    "name": "barnsley-classic",
-    "sourceWidth": 2560,
-    "sourceHeight": 1440,
-    "width": 1280,
-    "height": 720,
-    "bytes": 66582,
-    "sourceCommit": "6689c30",
-    "method": "Main explorer Save PNG control; no interface overlays",
-    "kind": "actual runtime rendering"
   }
 ]
