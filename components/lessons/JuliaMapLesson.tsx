@@ -1,6 +1,7 @@
 import Image from "next/legacy/image";
 import { useState } from "react";
 import styles from "../../styles/lessons/JuliaMap.module.css";
+import { MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import {
   arrowTip,
   FIGURE_HEIGHT,
@@ -19,13 +20,14 @@ const HEAD_WIDTH = 2.6;
 const DOT_RADIUS = 2.4;
 
 const number = (value: number) => String(value).replace("-", "−");
-const label = ({ real, imaginary }: ComplexPoint) => `c = (${number(real)}, ${number(imaginary)})`;
+const coordinates = ({ real, imaginary }: ComplexPoint) =>
+  `(${number(real)}, ${number(imaginary)})`;
 
-function place({ x, y, size }: { x: number; y: number; size: number }) {
+function place({ x, y, width }: { x: number; y: number; width: number }) {
   return {
     left: `${(x / FIGURE_WIDTH) * 100}%`,
     top: `${(y / FIGURE_HEIGHT) * 100}%`,
-    width: `${(size / FIGURE_WIDTH) * 100}%`,
+    width: `${(width / FIGURE_WIDTH) * 100}%`,
   };
 }
 
@@ -73,21 +75,20 @@ export default function JuliaMapLesson() {
       <div className={styles.map} style={place(MAP_BOX)}>
         <Image
           src="/assets/julia-map/mandelbrot.webp"
-          width={800}
-          height={800}
+          width={MAP_BOX.width * 4}
+          height={MAP_BOX.height * 4}
           layout="responsive"
           alt="The Mandelbrot set, with an arrow from each marked value of c to its Julia set"
         />
       </div>
       {JULIA_MAP_PICTURES.map((picture) => {
-        const href = juliaExplorerLink(picture.c);
+        const href = juliaExplorerLink(picture.c, MANDELBROT_COLORING);
         return (
           <a
             key={picture.id}
             className={styles.tile}
             style={place(tileBox(picture))}
             href={href}
-            data-caption={picture.row < 2 ? "above" : "below"}
             data-julia-map={`${picture.c.real},${picture.c.imaginary}`}
             onClick={(event) => openView(event, href)}
             onPointerEnter={() => setActive(picture.id)}
@@ -102,7 +103,10 @@ export default function JuliaMapLesson() {
               layout="responsive"
               alt={picture.alt}
             />
-            <span className={styles.caption}>{label(picture.c)}</span>
+            <span className={styles.caption}>
+              <span className={styles.prefix}>c = </span>
+              {coordinates(picture.c)}
+            </span>
           </a>
         );
       })}

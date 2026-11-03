@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   /* The whole figure fits on one screen, so every arrow can be followed. */
-  max-width: calc((100vh - 4rem) * 0.78);
+  max-width: calc((100vh - 4rem) * 0.88);
   margin: 2rem auto 2.5rem;
   container-type: inline-size;
 }
@@ -24,17 +24,22 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 100%;
-  padding-top: 0.25em;
-  font-size: clamp(9px, 1.9cqw, 13.5px);
+  bottom: 100%;
+  padding-bottom: 0.2em;
+  font-size: min(14px, 2.1cqw);
   line-height: 1.2;
   text-align: center;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.tile[data-caption="above"] .caption {
-  top: auto;
-  bottom: 100%;
-  padding: 0 0 0.25em;
+/* On a phone the longest caption fits only without its "c =". */
+@container (max-width: 430px) {
+  .caption {
+    font-size: 2.55cqw;
+  }
+  .prefix {
+    display: none;
+  }
 }
 .figure svg {
   position: absolute;

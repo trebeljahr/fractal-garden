@@ -44,7 +44,7 @@ Under the picture, the current jump is worked out by hand and rounded to five de
 
 Which choices of $c$ keep the edge in one piece? The [Mandelbrot set](/mandelbrot) answers that question. Choose $c$ in the Mandelbrot set and the Julia set is connected. Choose it outside and the Julia set breaks into dust.<sup><a id="julia-set-ref-3" href="#julia-set-source-3">3</a></sup>
 
-Each arrow below starts at a value of $c$ on the Mandelbrot picture and points to that value's Julia set. Five of these values lie outside the Mandelbrot set, so their Julia sets are dust. In some pictures you can see the gaps, as with $(0.45, 0.1)$. In others the gaps are too small for the picture, as with $(-0.8, 0.156)$: starting at $0$, the point takes 252 jumps to cross the dashed circle. The point $(0, -1)$ looks outside too, but it sits on a thread too thin for this picture. Click a picture to open it at the top of this page.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
+Each arrow below starts at a value of $c$ on the Mandelbrot picture and points to that value's Julia set. Six of these values lie outside the Mandelbrot set, so their Julia sets are dust. In some pictures you can see the gaps, as with $(0.45, 0.1)$. In others the gaps are too small for the picture, as with $(-0.8, 0.156)$: starting at $0$, the point takes 252 jumps to cross the dashed circle. The point $(0, -1)$ looks outside too, but it sits on a thread too thin for this picture. Click a picture to open it at the top of this page.<sup><a id="julia-set-ref-4" href="#julia-set-source-4">4</a></sup>
 
 <figure data-lesson="julia-map"></figure>
 

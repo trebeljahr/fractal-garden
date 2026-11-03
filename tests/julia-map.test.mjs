@@ -12,7 +12,14 @@ require.extensions[".ts"] = (module, filename) =>
     }).outputText,
     filename,
   );
-const { arrowTip, JULIA_MAP_PICTURES, mapPosition } = require("../utils/lessons/juliaMap.ts");
+const {
+  arrowTip,
+  CAPTION,
+  JULIA_MAP_PICTURES,
+  mapPosition,
+  tileBox,
+} = require("../utils/lessons/juliaMap.ts");
+const { MANDELBROT_COLORING } = require("../utils/escapeTimeColoring.ts");
 const { juliaExplorerLink } = require("../utils/lessons/linkedJulia.ts");
 const { decodeView } = require("../utils/explorerShare.ts");
 
@@ -26,11 +33,11 @@ function jumpsToEscape({ real, imaginary }, steps) {
   return null;
 }
 
-test("the article's claims hold: five marked c lie outside the Mandelbrot set", () => {
+test("the article's claims hold: six marked c lie outside the Mandelbrot set", () => {
   const outside = JULIA_MAP_PICTURES.filter(({ c }) => jumpsToEscape(c, 1_000_000) !== null);
   assert.deepEqual(
     outside.map(({ id }) => id),
-    ["spiral", "dust", "rings", "stars", "broken-line"],
+    ["bolts", "spiral", "islands", "rings", "dendrite", "stars"],
   );
   assert.equal(jumpsToEscape({ real: -0.8, imaginary: 0.156 }, 1_000), 252);
 });
@@ -63,10 +70,38 @@ test("no two arrows cross", () => {
   }
 });
 
-test("each picture links to the explorer view of its own c", () => {
+test("no arrow runs over another dot or picture", () => {
+  const samples = 200;
+  for (const picture of JULIA_MAP_PICTURES) {
+    const from = mapPosition(picture.c);
+    const to = arrowTip(picture);
+    for (const other of JULIA_MAP_PICTURES.filter((each) => each !== picture)) {
+      const dot = mapPosition(other.c);
+      const box = tileBox(other);
+      for (let sample = 0; sample <= samples; sample++) {
+        const x = from.x + ((to.x - from.x) * sample) / samples;
+        const y = from.y + ((to.y - from.y) * sample) / samples;
+        assert.ok(Math.hypot(x - dot.x, y - dot.y) > 5, `${picture.id} crosses ${other.id}'s dot`);
+        const inPicture =
+          x > box.x && x < box.x + box.width && y > box.y - CAPTION && y < box.y + box.width;
+        assert.ok(!inPicture, `${picture.id} crosses ${other.id}'s picture`);
+      }
+    }
+  }
+});
+
+test("each picture links to the explorer view of its own c in its own colors", () => {
+  const { colorDensity, colorOffset, interior } = MANDELBROT_COLORING;
   for (const { c } of JULIA_MAP_PICTURES) {
-    const view = decodeView(new URL(juliaExplorerLink(c), "https://x.test").hash, "/julia-set");
-    assert.deepEqual(view.parts.config, { cReal: c.real, cImag: c.imaginary });
+    const link = juliaExplorerLink(c, MANDELBROT_COLORING);
+    const view = decodeView(new URL(link, "https://x.test").hash, "/julia-set");
+    assert.deepEqual(view.parts.config, {
+      cReal: c.real,
+      cImag: c.imaginary,
+      colorDensity,
+      colorOffset,
+      interior,
+    });
   }
 });
 
