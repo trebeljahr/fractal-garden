@@ -10,7 +10,7 @@ Their combined length is about 1.414 times the old length. Each round doubles th
 
 Every drawing you can make leaves gaps between its lines. In the infinite limit, the curve fills a region.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
 
-The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It changes which direction the smaller pieces face, producing a different outline.
+The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It changes which direction the smaller pieces face, producing a different outline. Its figure has a **Lévy** button that swaps between the two rules.
 
 This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus signs make the right angle between the new lines.
 

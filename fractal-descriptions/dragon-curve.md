@@ -10,6 +10,8 @@ Each fold doubles the number of sections in the strip. The drawing below shows h
 
 <figure data-construction-player="lsystem-dragon"></figure>
 
+Press **Lévy** to swap the rule. Both rules replace every line with two lines at a right angle. The dragon's new corners turn left on one line and right on the next, so its two halves turn opposite ways at their middles. The [Lévy curve](/l-system/levy-curve)'s new corners always turn left, so its two halves match.
+
 Keep the two ends in the same places as you add folds. The sections must get shorter. In the infinite limit, the path fills a region with area.<sup><a id="dragon-curve-ref-2" href="#dragon-curve-source-2">2</a></sup>
 
 To see that region, draw a small square around each section, with the section joining two opposite corners. These squares make the filled dragon below. Increasing the detail makes both the sections and their squares smaller.

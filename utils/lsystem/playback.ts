@@ -36,6 +36,7 @@ export function playbackSource(kind: string, params: unknown) {
       lineWidth: number;
       firstDragon?: string;
       secondDragon?: string;
+      rule?: string;
     };
     const recipes: Record<
       string,
@@ -54,7 +55,10 @@ export function playbackSource(kind: string, params: unknown) {
         angle: -90,
         startAngle: 90 + settings.iterations * 45,
       },
-      dragonCurve: { axiom: "F", rules: { F: "F+G", G: "F-G" }, angle: -90, startAngle: 45 },
+      dragonCurve:
+        settings.rule === "levy"
+          ? { axiom: "F", rules: { F: "-F++F-" }, angle: -45, startAngle: -90 }
+          : { axiom: "F", rules: { F: "F+G", G: "F-G" }, angle: -90, startAngle: 45 },
       terdragon: {
         axiom: "F",
         rules: { F: "F+F-F" },
