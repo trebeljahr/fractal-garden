@@ -86,7 +86,7 @@ test("shared camera state round-trips and rejects invalid or excessive values", 
   }
 });
 
-test("Buddhabrot opens as a populated still and samples only when playback is enabled", () => {
+test("paused Buddhabrot draws a populated still and samples only when playback is enabled", () => {
   const renderer = new BuddhabrotRenderer();
   let pixels;
   const ctx = {
