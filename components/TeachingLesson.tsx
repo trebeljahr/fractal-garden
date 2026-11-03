@@ -33,6 +33,8 @@ const CellularTriangleLesson = dynamic(() =>
   import("./lessons/SierpinskiConnections").then((m) => m.CellularTriangleLesson),
 );
 const PenroseLesson = dynamic(() => import("./lessons/PenroseLesson"));
+// Its numbers come from a large floating point patch, so it renders only in the browser.
+const PenroseSlideLesson = dynamic(() => import("./lessons/PenroseSlideLesson"), { ssr: false });
 const MandelbarLesson = dynamic(() => import("./lessons/MandelbarLesson"));
 const BarnsleyRadiusLesson = dynamic(() => import("./lessons/BarnsleyRadiusLesson"));
 const PeanoFillLesson = dynamic(() => import("./lessons/PeanoFillLesson"));
@@ -73,6 +75,7 @@ const LESSONS = [
   "rossler",
   "dla",
   "penrose",
+  "penrose-slide",
   "sierpinski-seeds",
   "sierpinski-chaos",
   "sierpinski-pascal",
@@ -159,6 +162,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <CellularTriangleLesson />;
     case "penrose":
       return <PenroseLesson />;
+    case "penrose-slide":
+      return <PenroseSlideLesson />;
     case "mandelbar-turns":
       return <MandelbarLesson />;
     case "barnsley-radius":

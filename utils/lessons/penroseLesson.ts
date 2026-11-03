@@ -21,10 +21,10 @@ export function getPenroseLessonParent(kind: PenroseLessonParent): RobinsonTrian
 export function getPenroseLessonStages(
   kind: PenroseLessonParent,
   split: PenroseLessonSplit,
-  max = 3,
+  max = 6,
 ) {
   const stages: RobinsonTriangle[][] = [[getPenroseLessonParent(kind)]];
-  for (let step = 0; step < Math.min(3, max); step++) {
+  for (let step = 0; step < max; step++) {
     stages.push(stages[step].flatMap(split));
   }
   return stages;

@@ -1,13 +1,11 @@
 .acute {
   fill: #f5c56d26;
   stroke: var(--lesson-accent);
-  stroke-width: 1.2;
   stroke-linejoin: round;
 }
 .obtuse {
   fill: #eee8ce24;
   stroke: #eee8ce99;
-  stroke-width: 1.2;
   stroke-linejoin: round;
 }
 .parent {
@@ -17,16 +15,43 @@
   stroke-dasharray: 7 4;
   stroke-linejoin: round;
 }
-.label {
-  fill: var(--lesson-ink);
-  font:
-    18px "Montserrat",
-    sans-serif;
-}
-.legend {
+.layout {
   display: grid;
-  gap: 0.3rem;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin: 1rem 0;
 }
-.acuteKey {
+.counts {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font:
+    1.3rem / 1.7 "Montserrat",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.counts th,
+.counts td {
+  padding: 0 0.6rem 0 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-weight: 400;
+}
+.counts th {
+  color: #eee8ce99;
+}
+.counts th.narrow,
+.counts td.narrow {
   color: var(--lesson-accent);
+}
+.counts tr[data-current] td {
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+  }
 }

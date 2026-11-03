@@ -2,11 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getPenroseLessonCut,
-  getPenroseLessonSecondCut,
   getPenroseLessonParent,
+  getPenroseLessonSecondCut,
   getPenroseLessonStages,
 } from "../utils/lessons/penroseLesson.ts";
-import { deflateP2, PHI } from "../utils/penroseTiling.ts";
+import {
+  nearestToCenter,
+  slideCandidates,
+  slideMatches,
+  squareTiles,
+  tileKeys,
+  tilesFromHalves,
+  tilesWithin,
+} from "../utils/lessons/penroseSlide.ts";
+import { deflateP2, getVisibleTriangles, PHI } from "../utils/penroseTiling.ts";
 
 const close = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} != ${b}`);
 const vertices = ({ a, b, c }) => [a, b, c];
@@ -115,4 +124,61 @@ test("the acute lesson marks the second production cut on CA", () => {
   const children = deflateP2(parent);
   assert.deepEqual(q, children[2].a);
   assert.equal(getPenroseLessonSecondCut(getPenroseLessonParent("obtuse")), null);
+});
+
+const COMPARED = 3;
+const penrosePatch = () => {
+  const all = tilesFromHalves(
+    getVisibleTriangles("p2", "sun", 5, {
+      minX: -COMPARED,
+      minY: -COMPARED,
+      maxX: COMPARED,
+      maxY: COMPARED,
+    }),
+  );
+  return { shown: tilesWithin(all, 1), present: tileKeys(all) };
+};
+
+test("half-tiles join into whole kites and darts in about the golden ratio", () => {
+  const { shown } = penrosePatch();
+  const kites = shown.filter(({ kind }) => kind === 0).length;
+  const darts = shown.filter(({ kind }) => kind === 1).length;
+  assert.ok(shown.length > 600);
+  close(kites / darts, PHI, 0.1);
+  for (const tile of shown) assert.equal(tile.corners.length, 4);
+});
+
+test("the count ratio reaches the golden ratio from either starting triangle", () => {
+  for (const kind of ["acute", "obtuse"]) {
+    const last = getPenroseLessonStages(kind, deflateP2).at(-1);
+    const narrow = last.filter(({ type }) => type === 0).length;
+    close(narrow / (last.length - narrow), PHI, 0.001);
+  }
+  const stages = getPenroseLessonStages("acute", deflateP2);
+  assert.equal(stages.length, 7);
+  const third = stages[3];
+  assert.equal(third.filter(({ type }) => type === 0).length, 13);
+  assert.equal(third.filter(({ type }) => type === 1).length, 8);
+});
+
+test("every slide of square tiles lines up, and no slide of kites and darts does", () => {
+  const all = squareTiles(COMPARED, 42);
+  const squares = tilesWithin(all, 1);
+  assert.equal(squares.length, 196);
+  const present = tileKeys(all);
+  const squareSlides = slideCandidates(squares, present, nearestToCenter(squares));
+  assert.ok(squareSlides.length > 100);
+  for (const { hits } of squareSlides) assert.equal(hits, squares.length);
+
+  const { shown, present: kitesAndDarts } = penrosePatch();
+  const marked = nearestToCenter(shown);
+  const candidates = slideCandidates(shown, kitesAndDarts, marked);
+  assert.ok(candidates.length > 10);
+  for (const { tile, hits } of candidates) {
+    assert.ok(hits < shown.length);
+    const dx = tile.tip[0] - marked.tip[0];
+    const dy = tile.tip[1] - marked.tip[1];
+    // The marked tile itself always lands on its target.
+    assert.ok(slideMatches(shown, kitesAndDarts, dx, dy).has(marked));
+  }
 });
