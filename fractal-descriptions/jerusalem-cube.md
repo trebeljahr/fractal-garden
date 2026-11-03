@@ -6,11 +6,15 @@ Eric Baird devised this construction in 2010.<sup><a id="jerusalem-cube-ref-1" h
 
 <figure data-construction-player="jerusalem-cube"></figure>
 
-The two sizes have to fit together. Along each edge there is a corner cube, an edge cube, then another corner cube. Their widths must add up to the original edge's length.
+The corner cubes are about 41.4% as wide as the original. That number comes from one edge. Along each edge there is a corner cube, an edge cube, then another corner cube, and their widths must add up to the edge's length.
 
-The corner cubes are about 41.4% as wide as the original. The edge cubes are about 17.2%. Two corner cubes and one edge cube add up to the full width.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
+That alone allows many sizes: a wider corner cube just leaves less room for a thinner edge cube. The second rule settles it. If a corner cube is $k$ times as wide as the original, the edge cube is $k$ times as wide as the corner cube. It then has the same width as the small cube the next level puts in that corner cube's corner, and the two meet face to face. The faint squares below are those small cubes.
 
-Repeat the arrangement inside the smaller cubes. The little edge cubes are already as small as a corner cube will be after two steps. The level control counts them as two steps for that reason.
+<figure data-lesson="jerusalem-fit"></figure>
+
+Drag the width. Below 0.414, the three widths fall short of the edge, and amber marks the gaps. Above it, they run past the edge, and amber marks the overlaps. At 0.414 the edge cube is 0.172 wide, and 0.414 + 0.172 + 0.414 = 1.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
+
+The edge cubes are already the size of a corner cube's corner cube, so the level control counts them as two steps. Level 2 splits only the corner cubes. Level 3 splits the edge cubes too.
 
 ## Further exploring
 
@@ -21,4 +25,4 @@ Repeat the arrangement inside the smaller cubes. The little edge cubes are alrea
 ## Sources and notes
 
 1. <span id="jerusalem-cube-source-1"></span> Eric Baird, [Jerusalem Cube](https://www.coroflot.com/erkdemon/Jerusalem-Cube), creator’s portfolio. Baird states that he devised it in 2010, before his 2011 blog description. [Back](#jerusalem-cube-ref-1)
-2. <span id="jerusalem-cube-source-2"></span> Calculation. This explorer uses r = √2 − 1 for a corner cube and r² for an edge cube. Their widths fit because 2r + r² = 1. [Back](#jerusalem-cube-ref-2)
+2. <span id="jerusalem-cube-source-2"></span> Calculation. This explorer uses $k = \sqrt2 - 1$ for a corner cube and $k^2$ for an edge cube. Those widths fit because $2k + k^2 = 1$, and $\sqrt2 - 1$ is the only positive solution. [Back](#jerusalem-cube-ref-2)
