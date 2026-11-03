@@ -1,0 +1,35 @@
+.readout {
+  font-variant-numeric: tabular-nums;
+}
+.panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+.route {
+  fill: none;
+  stroke: #9bf6ff;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+.peak {
+  fill: #f5c56d;
+}
+.same {
+  fill: none;
+  stroke: #eee8ce66;
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.axisName,
+.tick {
+  fill: #eee8cecc;
+  font:
+    15px "Montserrat",
+    sans-serif;
+}
+@media (max-width: 600px) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

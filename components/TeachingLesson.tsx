@@ -23,6 +23,8 @@ const LogisticColumnsLesson = dynamic(() => import("./lessons/LogisticColumnsLes
 const AttractorLesson = dynamic(() => import("./lessons/AttractorLesson"));
 // Runs a dozen chaotic calculations that the server has no need to repeat.
 const LorenzRestartLesson = dynamic(() => import("./lessons/LorenzRestartLesson"), { ssr: false });
+// Each reading runs millions of steps, which only the reader's own choice of c should cost.
+const RosslerTurnsLesson = dynamic(() => import("./lessons/RosslerTurnsLesson"), { ssr: false });
 const DlaLesson = dynamic(() => import("./lessons/DlaLesson"));
 const SierpinskiSeedsLesson = dynamic(() => import("./lessons/SierpinskiSeedsLesson"));
 const ChaosGameLesson = dynamic(() =>
@@ -83,6 +85,7 @@ const LESSONS = [
   "lorenz",
   "lorenz-restart",
   "rossler",
+  "rossler-turns",
   "dla",
   "penrose",
   "penrose-slide",
@@ -169,6 +172,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <LorenzRestartLesson />;
     case "rossler":
       return <AttractorLesson system="rossler" />;
+    case "rossler-turns":
+      return <RosslerTurnsLesson />;
     case "dla":
       return <DlaLesson />;
     case "sierpinski-seeds":

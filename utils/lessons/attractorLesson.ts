@@ -129,3 +129,94 @@ export function restartRuns() {
   });
   return { original, restarts };
 }
+
+// Turn counting on the Rössler system. With a = b = 0.1, c alone sets the count.
+export const ROSSLER_TURNS = { a: 0.1, b: 0.1, dt: 0.02, settleTime: 20000, peakTime: 2400 };
+export const SAME_PEAK = 0.001;
+export const LONGEST_REPEAT = 64;
+const NO_REPEAT_ROUTE_TURNS = 30;
+const MAX_ROUTE_STEPS = 1_000_000;
+
+/** One fourth-order Runge–Kutta step in place. Millions run per reading, so nothing allocates. */
+export function advanceRossler(state: AttractorPoint, c: number) {
+  const { a, b, dt } = ROSSLER_TURNS;
+  const half = dt / 2;
+  const [x, y, z] = state;
+  const k1x = -y - z;
+  const k1y = x + a * y;
+  const k1z = b + z * (x - c);
+  const x2 = x + k1x * half;
+  const y2 = y + k1y * half;
+  const z2 = z + k1z * half;
+  const k2x = -y2 - z2;
+  const k2y = x2 + a * y2;
+  const k2z = b + z2 * (x2 - c);
+  const x3 = x + k2x * half;
+  const y3 = y + k2y * half;
+  const z3 = z + k2z * half;
+  const k3x = -y3 - z3;
+  const k3y = x3 + a * y3;
+  const k3z = b + z3 * (x3 - c);
+  const x4 = x + k3x * dt;
+  const y4 = y + k3y * dt;
+  const z4 = z + k3z * dt;
+  const k4x = -y4 - z4;
+  const k4y = x4 + a * y4;
+  const k4z = b + z4 * (x4 - c);
+  state[0] = x + (dt * (k1x + 2 * k2x + 2 * k3x + k4x)) / 6;
+  state[1] = y + (dt * (k1y + 2 * k2y + 2 * k3y + k4y)) / 6;
+  state[2] = z + (dt * (k1z + 2 * k2z + 2 * k3z + k4z)) / 6;
+}
+
+/** The smallest number of turns after which every peak matches, or null if none does. */
+export function repeatingTurns(peaks: number[]) {
+  for (let length = 1; length <= LONGEST_REPEAT && length * 3 <= peaks.length; length++) {
+    let matches = true;
+    for (let i = 0; matches && i + length < peaks.length; i++)
+      matches = Math.abs(peaks[i] - peaks[i + length]) <= SAME_PEAK;
+    if (matches) return length;
+  }
+  return null;
+}
+
+/**
+ * Lets the route settle, measures how many turns it takes to repeat, then records the route for
+ * that many turns. A peak is where x stops rising. Its height comes from a parabola through the
+ * last three steps, because the steps rarely land exactly on it.
+ */
+export function measureRosslerTurns(c: number) {
+  const { dt, settleTime, peakTime } = ROSSLER_TURNS;
+  const state: AttractorPoint = [1, 1, 0];
+  for (let step = Math.round(settleTime / dt); step > 0; step--) advanceRossler(state, c);
+
+  const peaks: number[] = [];
+  let before = state[0];
+  advanceRossler(state, c);
+  let middle = state[0];
+  for (let step = Math.round(peakTime / dt); step > 0; step--) {
+    advanceRossler(state, c);
+    const after = state[0];
+    if (middle > before && middle >= after) {
+      const curve = before - 2 * middle + after;
+      peaks.push(curve ? middle - (before - after) ** 2 / (8 * curve) : middle);
+    }
+    before = middle;
+    middle = after;
+  }
+  const repeat = repeatingTurns(peaks);
+
+  // The route starts on a peak and ends on the peak that closes it.
+  const turns = repeat ?? NO_REPEAT_ROUTE_TURNS;
+  const route: AttractorPoint[] = [];
+  const routePeaks: AttractorPoint[] = [];
+  let earlier = before;
+  for (let order = 0; routePeaks.length <= turns && order < MAX_ROUTE_STEPS; order++) {
+    const previous: AttractorPoint = [state[0], state[1], state[2]];
+    advanceRossler(state, c);
+    const isPeak = previous[0] > earlier && previous[0] >= state[0];
+    if (isPeak) routePeaks.push(previous);
+    if (isPeak || (routePeaks.length > 0 && order % 2 === 0)) route.push(previous);
+    earlier = previous[0];
+  }
+  return { peaks, repeat, route, routePeaks: routePeaks.slice(0, turns) };
+}

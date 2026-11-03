@@ -3,13 +3,17 @@ import test from "node:test";
 import {
   APART_DISTANCE,
   ATTRACTOR_LESSONS,
+  advanceRossler,
   attractorFlow,
   LORENZ_ROUNDING_NOTCH,
   MAX_ATTRACTOR_STEPS,
+  measureRosslerTurns,
   NEARBY_START_OFFSET,
   pointSeparation,
   RESTART_NOTCHES,
   RESTART_STEPS,
+  ROSSLER_TURNS,
+  repeatingTurns,
   restartDifference,
   restartDifferenceLabel,
   restartRuns,
@@ -131,4 +135,86 @@ test("across many restart points, a tenfold smaller difference buys about 2.5 ti
   const means = totals.map((total) => total / restarts);
   const perTenfold = (means.at(-1) - means[0]) / (notches.at(-1) - notches[0]);
   assert.ok(perTenfold > 2.4 && perTenfold < 2.7, `${perTenfold}`);
+});
+
+test("the allocation-free Rossler step matches the shared Runge-Kutta step", () => {
+  const { a, b, dt } = ROSSLER_TURNS;
+  const c = 8.7;
+  const flow = ([x, y, z]) => [-y - z, x + a * y, b + z * (x - c)];
+  let slow = [1, 1, 0];
+  const fast = [1, 1, 0];
+  for (let i = 0; i < 5000; i++) {
+    slow = rk4Step(flow, slow, dt);
+    advanceRossler(fast, c);
+  }
+  for (const axis of [0, 1, 2]) close(fast[axis], slow[axis], 1e-9);
+});
+
+test("a repeat counts only when every peak matches", () => {
+  assert.equal(repeatingTurns([5, 5, 5, 5, 5]), 1);
+  assert.equal(repeatingTurns([5, 7, 5, 7, 5, 7, 5]), 2);
+  assert.equal(repeatingTurns([5, 7, 5, 8, 5, 7, 5, 8, 5, 7, 5, 8]), 4);
+  // A long enough stretch must exist to call it a repeat at all.
+  assert.equal(repeatingTurns([5, 7, 9, 5, 7]), null);
+  assert.equal(repeatingTurns([1, 2, 4, 8, 16, 32, 64, 128, 256]), null);
+});
+
+test("the measured turn counts double as c grows, then stop repeating", () => {
+  const expected = new Map([
+    [4, 1],
+    [6, 2],
+    [8.5, 4],
+    [8.7, 8],
+    [9, null],
+    [11, null],
+    [12, 3],
+    [12.6, 6],
+  ]);
+  for (const [c, turns] of expected) {
+    const { repeat, route, routePeaks, peaks } = measureRosslerTurns(c);
+    assert.equal(repeat, turns, `c = ${c}`);
+    assert.ok(peaks.length > 300);
+    assert.equal(routePeaks.length, turns ?? 30);
+    assert.ok(route.length > routePeaks.length);
+    if (turns !== null) {
+      // The recorded route closes where it began, within one step along the route.
+      close(route.at(-1)[0], route[0][0], 0.05);
+      close(route.at(-1)[1], route[0][1], 0.5);
+    }
+  }
+  // The doublings the article tells the reader to find with the slider.
+  for (const [c, turns] of [
+    [5.37, 1],
+    [5.38, 2],
+    [7.76, 2],
+    [7.77, 4],
+    [8.52, 4],
+    [8.53, 8],
+    [8.7, 8],
+    [8.71, 16],
+    [8.76, null],
+  ])
+    assert.equal(measureRosslerTurns(c).repeat, turns, `c = ${c}`);
+});
+
+test("past the doublings, each peak nearly decides the next along one hump", () => {
+  for (const c of [11, 18]) {
+    const { peaks } = measureRosslerTurns(c);
+    const pairs = peaks.slice(0, -1).map((peak, i) => [peak, peaks[i + 1]]);
+    pairs.sort(([a], [b]) => a - b);
+    const range = pairs.at(-1)[0] - pairs[0][0];
+    // Neighbors along the curve agree closely, so the curve is thin.
+    for (let i = 1; i < pairs.length; i++)
+      assert.ok(Math.abs(pairs[i][1] - pairs[i - 1][1]) < 0.08 * range);
+    // Smoothed over a few neighbors, the curve rises to one top and then falls.
+    const smooth = pairs
+      .map((_, i) => pairs.slice(Math.max(0, i - 4), i + 5))
+      .map((near) => near.reduce((sum, [, next]) => sum + next, 0) / near.length);
+    const top = smooth.indexOf(Math.max(...smooth));
+    assert.ok(top > 5 && top < smooth.length - 5);
+    let turnsOfDirection = 0;
+    for (let i = 8; i < smooth.length - 8; i += 8)
+      if ((smooth[i] - smooth[i - 8]) * (smooth[i + 8] - smooth[i]) < 0) turnsOfDirection++;
+    assert.equal(turnsOfDirection, 1, `c = ${c}`);
+  }
 });
