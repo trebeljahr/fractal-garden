@@ -4,22 +4,19 @@ Start with a square. Place a half-size square with its center on each corner. Ke
 
 The next step adds sixteen squares. The step after that adds sixty-four. Smaller squares extend the outline and overlap parts of earlier squares.
 
-<figure data-construction-player="t-square-fractal"></figure>
+<figure data-lesson="t-square-cover"></figure>
 
-Four half-size squares have the same combined area as their parent. Each generation therefore adds the starting square's area again, if we add the areas of the squares separately.
+The whole drawing stays inside a box twice as wide as the first square. That box is the frame in the picture.
 
-But some squares overlap. Adding their individual areas counts those overlaps more than once.
+Four half-size squares have the same combined area as their parent, so each round adds the first square's area again. Adding up the areas of all the squares gives the whole box by round 3 and more than twice the box by round 8. But the squares overlap, and that sum counts each overlap again. Press **Outlines** to see every square, including the ones hidden inside earlier squares.
 
-At the half-size setting, the entire drawing fits inside a square twice as wide as the starting square. Its covered area cannot exceed that box, however many squares are added.
+To find what the squares really cover, go back to **Filled** and look at the dark part. The thin lines divide it into small squares, each half as wide as the newest squares in the drawing. Each small dark square has exactly one corner where the next round centers a new square. That new square is as wide as the small dark square, so it covers exactly one quarter of it. The amber shows those quarters.
 
-An edge covered by another square is inside the shape, so it doesn't count toward the outside border. The first step doubles that border's length.<sup><a id="t-square-fractal-ref-1" href="#t-square-fractal-source-1">1</a></sup>
+So each round covers a quarter of what is still uncovered. The first square leaves 3/4 of the box uncovered, and after round $n$ the uncovered share is $(3/4)^{n+1}$. By round 8 the squares cover 92.5% of the box, and the uncovered share heads to zero.
 
-Use outlines to see the individual squares, including the parts hidden in a filled drawing.
+Some points are never covered, such as the corners of the box. Together those points have no area.
 
 ## Further exploring
 
 - [T-square fractal — Wikipedia](https://en.wikipedia.org/wiki/T-square_(fractal))
-
-## Sources and notes
-
-1. <span id="t-square-fractal-source-1"></span> Kival Ngaokrajang and OEIS contributors, [A227621 — T-square perimeters](https://oeis.org/A227621), 2013 onward. Rounded perimeter sequence and explicit first-stage exposed-edge calculation. [Back](#t-square-fractal-ref-1)
+- [A227621: T-square perimeters — OEIS](https://oeis.org/A227621)

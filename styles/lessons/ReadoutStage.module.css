@@ -34,6 +34,12 @@ figure button.stage:active {
   width: 100%;
   height: 100%;
 }
+.flat {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #252424;
+}
 .side {
   min-width: 0;
 }
