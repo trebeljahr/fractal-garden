@@ -5,6 +5,7 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
+import { QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX } from "../../utils/constructionLimits";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../../utils/readFiles";
@@ -37,6 +38,7 @@ const QuadraticKochIsland = ({ description }: Props) => {
     config,
     setConfig,
     params: config,
+    constructionMax: () => QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
     width,
     height,
     min: 1,

@@ -17,6 +17,7 @@ type Params<C extends GrowthConfig, P> = {
   /** What the renderer draws from; null until it can be described. */
   params: P | null;
   constructionParams?: (config: C) => P;
+  /** The figure's top level, when its settings or its cost set a lower one than `max`. */
   constructionMax?: (config: C) => number;
   width: number | null;
   height: number | null;
@@ -32,6 +33,9 @@ type Params<C extends GrowthConfig, P> = {
  * Opens a complete fractal at a depth this machine handles. Construction
  * playback uses a separate renderer in the explanation. Attach
  * `containerRef` to the element that should hold the canvas.
+ *
+ * The speed budget only chooses where the explorer opens. Articles name levels
+ * of the construction figure, so its limit stays `max` or `constructionMax`.
  */
 export function useFractalRenderer<C extends GrowthConfig, P>({
   kind,
@@ -112,7 +116,7 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
             width,
             height,
             min,
-            max: growth.cap,
+            max,
             stepDelay,
             identity: storageKey,
             lead: constructionLead,
@@ -133,7 +137,7 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
       height,
       calibrating,
       min,
-      growth.cap,
+      max,
       stepDelay,
       storageKey,
       constructionLead,

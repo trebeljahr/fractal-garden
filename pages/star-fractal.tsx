@@ -5,6 +5,7 @@ import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { starConstructionMax } from "../utils/constructionLimits";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { getDescription } from "../utils/readFiles";
@@ -58,7 +59,7 @@ const StarFractal = ({ description }: Props) => {
     config,
     setConfig,
     params: config,
-    constructionMax: (settings) => largestStarDepth(settings.points),
+    constructionMax: (settings) => starConstructionMax(settings.points),
     width,
     height,
     min: 0,

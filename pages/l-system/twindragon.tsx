@@ -5,6 +5,7 @@ import { ExplorerPanel } from "../../components/ExplorerPanel";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { TWINDRAGON_TILING_CONSTRUCTION_MAX } from "../../utils/constructionLimits";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { fittedFrame } from "../../utils/lsystem/pageZoom";
@@ -52,6 +53,8 @@ const Twindragon = ({ description }: Props) => {
     config,
     setConfig,
     params,
+    constructionMax: (settings) =>
+      settings.showTiling ? TWINDRAGON_TILING_CONSTRUCTION_MAX : MAX_ITERATIONS,
     width,
     height,
     min: 1,

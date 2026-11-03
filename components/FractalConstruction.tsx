@@ -204,7 +204,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const autoplayed = useRef(false);
   const frame = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  const limit = Math.min(spec.max, spec.maxForConfig?.(view) ?? spec.max);
+  const limit = spec.maxForConfig?.(view) ?? spec.max;
   const max = Math.max(0, limit - spec.min);
   const selected = Math.min(step, max),
     level = spec.min + selected;

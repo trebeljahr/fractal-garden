@@ -5,6 +5,7 @@ import { NavElement } from "../components/Navbar";
 import { RecursivePatternZoom } from "../components/RecursivePatternZoom";
 import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
+import { gosperIslandConstructionMax } from "../utils/constructionLimits";
 import { GOSPER_MAX_ROUND } from "../utils/gosperIsland";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
@@ -44,6 +45,8 @@ const GosperIsland = ({ description }: Props) => {
     config,
     setConfig,
     params: config,
+    constructionMax: (settings) =>
+      Math.min(GOSPER_MAX_ROUND, gosperIslandConstructionMax(settings.view)),
     width,
     height,
     min: 1,
