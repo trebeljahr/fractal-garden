@@ -8,6 +8,7 @@ import type { CanvasViewport } from "../utils/canvasViewport";
 import { useCanvasViewport } from "../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { PYTHAGORAS_LEAD } from "../utils/lessons/pythagorasTilt";
 import { getDescription } from "../utils/readFiles";
 import { PYTHAGORAS_MAX_ITERATIONS as MAX_ITERATIONS } from "../utils/render/drawings/pythagorasTree";
 
@@ -46,6 +47,7 @@ const PythagorasTreeComponent = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 600,
     holdDelay: 2000,
+    constructionLead: PYTHAGORAS_LEAD,
   });
 
   const viewport = useCanvasViewport(canvas);

@@ -16,6 +16,7 @@ import panelStyles from "../styles/ExplorerPanel.module.css";
 import viewStyles from "../styles/ExplorerViewControls.module.css";
 import styles from "../styles/FractalConstruction.module.css";
 import { constructionFrame } from "../utils/constructionFrame";
+import type { ConstructionLead } from "../utils/constructionLead";
 import {
   CONSTRUCTION_BOOLEANS,
   CONSTRUCTION_NUMBERS,
@@ -33,6 +34,7 @@ import type { RendererKind } from "../utils/render/registry";
 import { CAMERA_DISTANCE } from "../utils/spatial/camera";
 import type { GpuSpatialSpec } from "../utils/spatialGpu/model";
 import { ConstructionIcon } from "./ConstructionIcon";
+import { ConstructionLeadStrip } from "./ConstructionLeadStrip";
 import { PanelBoolean, PanelColor, PanelNumber } from "./ExplorerControls";
 import { FractalStudioControls } from "./ExplorerPanel";
 import { GpuConstructionSurface } from "./GpuConstructionSurface";
@@ -51,6 +53,7 @@ export type ConstructionSpec = {
   min: number;
   max: number;
   stepDelay?: number;
+  lead?: ConstructionLead;
 };
 
 const ConstructionContext = createContext<ConstructionSpec | null>(null);
@@ -321,7 +324,11 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const parameters =
     spec.params && typeof spec.params === "object" ? (spec.params as Record<string, unknown>) : {};
   const fields = explorerControlNodes(typeof controls === "function" ? controls(view) : controls)
-    .filter((child) => !isValidElement(child) || child.props.path !== "iterations")
+    .filter(
+      (child) =>
+        !isValidElement(child) ||
+        (child.props.path !== "iterations" && child.props.path !== spec.lead?.control.path),
+    )
     .map((child) =>
       isValidElement(child) && child.type === PanelBoolean
         ? cloneElement(child, { respectExplorerZoom: false })
@@ -462,6 +469,17 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
             </FractalStudioControls>
           </div>
         </div>
+        {spec.lead && (
+          <ConstructionLeadStrip
+            lead={spec.lead}
+            view={view}
+            level={level}
+            onChange={(path, value) => {
+              pause();
+              setView((old) => ({ ...old, [path]: value }));
+            }}
+          />
+        )}
         <div className={styles.viewport} style={{ background: view.background }}>
           {(lsystem ? seen : visible) &&
             (lsystem ? (

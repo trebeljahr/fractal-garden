@@ -101,10 +101,11 @@ export function drawPythagorasTree(
 
   ctx.fillStyle = config.background;
   ctx.fillRect(0, 0, width, height);
-  ctx.translate(width / 2, height);
 
   const size = Math.min(width / 9, height / 5);
   const half = size / 2;
+  // A tilted tree curls below its first square: by a third of a square at 30 or 60 degrees.
+  ctx.translate(width / 2, height - (size * Math.abs(config.angle - 45)) / 45);
   drawBranch([-half, 0], [half, 0]);
 
   return polygons;

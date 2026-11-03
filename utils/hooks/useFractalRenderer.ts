@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
 import { useConstructionRegistration } from "../../components/FractalConstruction";
+import type { ConstructionLead } from "../constructionLead";
 import type { RendererKind } from "../render/registry";
 import type { HostEvent } from "../render/types";
 import { useAdaptiveGrowth } from "./useAdaptiveGrowth";
@@ -23,6 +24,8 @@ type Params<C extends GrowthConfig, P> = {
   max: number;
   stepDelay?: number;
   holdDelay?: number;
+  /** The control the article leans on, shown in the construction figure. */
+  constructionLead?: ConstructionLead;
 };
 
 /**
@@ -44,6 +47,7 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
   max,
   stepDelay,
   holdDelay,
+  constructionLead,
 }: Params<C, P>) {
   const setIterations = useCallback(
     (iterations: number) => setConfig((old) => ({ ...old, iterations })),
@@ -111,6 +115,7 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
             max: growth.cap,
             stepDelay,
             identity: storageKey,
+            lead: constructionLead,
             maxForConfig: constructionMax
               ? (settings: Record<string, unknown>) => constructionMax(settings as C)
               : undefined,
@@ -131,6 +136,7 @@ export function useFractalRenderer<C extends GrowthConfig, P>({
       growth.cap,
       stepDelay,
       storageKey,
+      constructionLead,
     ],
   );
   useConstructionRegistration(construction);
