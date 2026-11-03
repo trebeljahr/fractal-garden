@@ -70,6 +70,8 @@ type Props<V extends string> = {
   places?: ScenePlace<V>[];
   /** The control the article leans on, shown in the construction figure. */
   constructionLead?: ConstructionLead;
+  /** Settings the construction figure opens with instead of the explorer's. */
+  constructionView?: Record<string, unknown>;
 };
 
 const INITIAL_CAMERA_DISTANCE = 6;
@@ -96,6 +98,7 @@ export function SceneFractalExplorer<V extends string>({
   rotationSpeed = 0.4,
   places = [],
   constructionLead,
+  constructionView,
 }: Props<V>) {
   const { width, height } = useFractalViewportSize();
   const [config, setConfig] = useState<Config<V>>({
@@ -153,6 +156,7 @@ export function SceneFractalExplorer<V extends string>({
       occlusion: config.occlusion,
       autoRotate: false,
       rotationSpeed,
+      ...constructionView,
     };
     return width && height
       ? {
@@ -204,6 +208,7 @@ export function SceneFractalExplorer<V extends string>({
     config.lighting,
     config.occlusion,
     constructionLead,
+    constructionView,
   ]);
   useConstructionRegistration(construction);
 

@@ -1,4 +1,6 @@
+import { RomanescoRows } from "../components/RomanescoRows";
 import { SceneFractalExplorer, type SceneVariant } from "../components/SceneFractalExplorer";
+import { ROMANESCO_LEAD } from "../utils/lessons/romanescoRows";
 import { getDescription } from "../utils/readFiles";
 
 const VARIANTS: Record<string, SceneVariant> = {
@@ -8,6 +10,9 @@ const VARIANTS: Record<string, SceneVariant> = {
     spec: { kind: "romanesco" },
   },
 };
+
+const FROM_ABOVE = { rotationX: 90, rotationY: 0 };
+const LEAD = { ...ROMANESCO_LEAD, overlay: RomanescoRows };
 
 export default function Romanesco({ description }: { description: string }) {
   return (
@@ -24,6 +29,8 @@ export default function Romanesco({ description }: { description: string }) {
       rotationY={28}
       showWireframe={false}
       lighting="classic"
+      constructionLead={LEAD}
+      constructionView={FROM_ABOVE}
     />
   );
 }

@@ -1,6 +1,14 @@
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  type ComponentType,
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styles from "../styles/FractalConstruction.module.css";
 import flightStyles from "../styles/VoxelFlight.module.css";
+import type { ConstructionOverlayProps } from "../utils/constructionLead";
 import { CONSTRUCTION_MOTION_MS } from "../utils/constructionMotion";
 import type { ConstructionView } from "../utils/constructionView";
 import { useConstructionNavigation } from "../utils/hooks/useConstructionNavigation";
@@ -26,6 +34,7 @@ export function GpuConstructionSurface({
   setView,
   onReady,
   onReset,
+  overlay: Overlay,
 }: {
   spec: GpuSpatialSpec;
   level: number;
@@ -33,6 +42,7 @@ export function GpuConstructionSurface({
   setView: Dispatch<SetStateAction<ConstructionView>>;
   onReady: (level: number) => void;
   onReset: () => void;
+  overlay?: ComponentType<ConstructionOverlayProps>;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -219,6 +229,7 @@ export function GpuConstructionSurface({
         data-gpu-construction
         aria-label="Construction view. Drag to rotate; scroll or pinch to zoom; double-click to reset."
       />
+      {Overlay && <Overlay view={view} level={level} width={size.width} height={size.height} />}
     </div>
   );
 }

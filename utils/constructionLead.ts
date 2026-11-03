@@ -1,3 +1,5 @@
+import type { ComponentType } from "react";
+
 export type LeadControl =
   | {
       kind: "range";
@@ -24,6 +26,15 @@ export type ConstructionLead = {
   initial?: Record<string, unknown>;
   control: LeadControl;
   readout: (view: Record<string, unknown>, level: number) => { label: string; value: string }[];
+  /** A drawing laid over a GPU figure, which follows its camera. */
+  overlay?: ComponentType<ConstructionOverlayProps>;
+};
+
+export type ConstructionOverlayProps = {
+  view: Record<string, unknown>;
+  level: number;
+  width: number;
+  height: number;
 };
 
 /** A share as a percentage, keeping the digits that matter once it gets small. */

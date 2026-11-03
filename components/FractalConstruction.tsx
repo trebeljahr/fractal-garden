@@ -509,6 +509,7 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
                 setView={setView}
                 onReady={onReady}
                 onReset={reset}
+                overlay={spec.lead?.overlay}
               />
             ) : (
               <ConstructionSurface
