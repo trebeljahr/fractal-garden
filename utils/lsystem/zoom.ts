@@ -163,7 +163,14 @@ export function prepareZoom(
   const headingOf = (steps: number, halves: number) => steps * angle + (halves & 1) * Math.PI;
 
   const memo = new Map<string, Effect[]>();
+  // Deep views need effects hundreds of generations down. Filling the table
+  // from the bottom keeps that from using a stack frame per generation.
+  let filled = 0;
   const effectOf = (symbol: string, depth: number): Effect => {
+    while (filled < depth - 1) {
+      filled++;
+      for (const known of Array.from(rules.keys())) effectOf(known, filled);
+    }
     let list = memo.get(symbol);
     if (!list) {
       list = [];
@@ -382,7 +389,12 @@ export function prepareZoom(
     };
 
     const table = new Map<string, { x: bigint; y: bigint; len: bigint }[]>();
+    let exactFilled = 0;
     const effect = (symbol: string, depth: number) => {
+      while (exactFilled < depth - 1) {
+        exactFilled++;
+        for (const known of Array.from(rules.keys())) effect(known, exactFilled);
+      }
       let list = table.get(symbol);
       if (!list) {
         list = [];
@@ -533,7 +545,13 @@ export function prepareZoom(
       positions[o + 4] = y2;
       widths[count] = wid;
       colors[count] =
-        mode === "gradient" ? index / totalLines : mode === "depth" ? nesting / deepest : 0;
+        mode === "gradient"
+          ? index / totalLines
+          : mode === "depth"
+            ? nesting / deepest
+            : mode === "tiles"
+              ? nesting
+              : 0;
       count++;
     };
 
@@ -555,9 +573,10 @@ export function prepareZoom(
     const cameraY = mul(zm[0], worldY) + mul(zm[1], worldX);
     const zx = fixedToNumber(zm[0], P);
     const zy = fixedToNumber(zm[1], P);
-    const zn = zx * zx + zy * zy;
-    const toPxRe = (scale * zx) / zn;
-    const toPxIm = (-scale * zy) / zn;
+    // Divide by the size twice: its square overflows a float past 10^154.
+    const zSize = Math.hypot(zx, zy);
+    const toPxRe = ((scale / zSize) * zx) / zSize;
+    const toPxIm = ((-scale / zSize) * zy) / zSize;
     const toPx = (rx: number, ry: number): [number, number] => [
       rx * toPxRe - ry * toPxIm,
       rx * toPxIm + ry * toPxRe,
@@ -665,10 +684,20 @@ export function prepareZoom(
       wid: number;
       nesting: number;
     };
+    // Its depth follows the generation, thousands of levels at the deepest zoom,
+    // so parts wait on a list of their own instead of on the call stack.
+    type Part = { text: string; at: number; depth: number; state: State; stack: State[] };
     const exactWalk = (text: string, depth: number, state: State) => {
-      const stack: State[] = [];
-      for (const char of text) {
-        if (limited) return;
+      const parts: Part[] = [{ text, at: 0, depth, state, stack: [] }];
+      while (parts.length > 0 && !limited) {
+        const part = parts[parts.length - 1];
+        if (part.at >= part.text.length) {
+          parts.pop();
+          continue;
+        }
+        const { depth, state, stack } = part;
+        const char = String.fromCodePoint(part.text.codePointAt(part.at) as number);
+        part.at += char.length;
         if (depth > 0 && rules.has(char)) {
           const e = effectOf(char, depth);
           const h = hp.effect(char, depth);
@@ -698,7 +727,14 @@ export function prepareZoom(
                 nesting = state.nesting;
                 walk(rules.get(char) ?? "", depth - 1);
               } else {
-                exactWalk(rules.get(char) ?? "", depth - 1, { ...state });
+                // It starts from a copy, so this part can move on to its end now.
+                parts.push({
+                  text: rules.get(char) ?? "",
+                  at: 0,
+                  depth: depth - 1,
+                  state: { ...state },
+                  stack: [],
+                });
               }
             } else if (visible && e.lines > 0) {
               const [ex, ey] = pointPx(endX, endY);
