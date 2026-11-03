@@ -304,10 +304,6 @@ export function CellularTriangleLesson() {
   );
   return (
     <LessonFrame title="Draw it with a rule for cells" kind="sierpinski-cells">
-      <p>
-        Read each small rule from top to bottom: three cells in one row decide the cell below.
-        Change a bottom cell to try a different rule.
-      </p>
       <div className={styles.rules} role="group" aria-label="Cell rule results">
         {Array.from({ length: 8 }, (_, index) => 7 - index).map((pattern) => {
           const filled = Boolean((rule >> pattern) & 1);
@@ -365,11 +361,6 @@ export function CellularTriangleLesson() {
         label="Cell rows"
         stepDescription={`${step + 1} rows`}
       />
-      <p role="status">
-        {rule === 90
-          ? "With Rule 90, compare the cells diagonally above each new cell. If one is filled and the other blank, fill it. Otherwise leave it blank."
-          : `Rule ${rule} uses your eight choices above. Choose Rule 90 to restore the triangle’s rule.`}
-      </p>
     </LessonFrame>
   );
 }

@@ -105,10 +105,6 @@ export default function SierpinskiSeedsLesson() {
       kind="sierpinski-seeds"
       className={styles.wide}
     >
-      <p>
-        Advance all four pictures together. Compare the gaps between the copies as the starting
-        drawings get smaller.
-      </p>
       <LessonSteps step={step} max={MAX_SEED_STEP} onChange={setStep} label="Starting shape" />
       <div className={styles.comparison}>
         {SEED_SHAPES.map((shape) => (
@@ -124,13 +120,8 @@ export default function SierpinskiSeedsLesson() {
       </div>
       <p role="status">
         {step === 0
-          ? "These are the starting drawings. The next step replaces each picture with three half-size copies."
-          : `Step ${step}: ${copies.length.toLocaleString("en-US")} copies in each view. Each copy is 1/${2 ** step} of its starting width.`}
-      </p>
-      <p className={styles.note}>
-        {step < 5
-          ? "The same three moves place each set of copies. Follow the fish: their outlines stay the same while their arrangement changes."
-          : "Tiny fish are still there, though their outlines are hard to see. Continue without limit and all four pictures approach the same triangle."}
+          ? "Starting drawings"
+          : `${copies.length.toLocaleString("en-US")} copies, each 1/${2 ** step} of its starting width`}
       </p>
     </LessonFrame>
   );

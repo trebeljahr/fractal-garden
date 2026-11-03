@@ -12,7 +12,7 @@ Each round removes a quarter of the area that is left. Repeat forever and no fil
 
 Look at the three triangles left after the first round. Each is a half-size copy of the original, moved toward one of its corners.
 
-Try those same moves with a different starting shape. Make three half-size copies of a square, a circle or a fish. Move them toward the same three corners, then repeat on the whole picture.
+Try those same moves with a different starting shape. Make three half-size copies of a square, a circle or a fish. Move them toward the same three corners, then repeat on the whole picture. Step all four pictures together and compare the gaps between the copies as the starting drawings get smaller.
 
 <figure data-lesson="sierpinski-seeds"></figure>
 
@@ -46,9 +46,11 @@ Let a filled cell stand for odd and a blank cell for even. The addition rule bec
 
 In the square grid below, those two cells sit diagonally above the new one. The cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-2">2</a></sup>
 
+Read each small rule below from top to bottom: three cells in one row decide the cell below.
+
 <figure data-lesson="sierpinski-cells"></figure>
 
-The filled cells make the same pattern as the odd numbers, with an empty cell between neighboring entries. Change one result in the rule to see how the rows change.
+The filled cells make the same pattern as the odd numbers, with an empty cell between neighboring entries. Change a bottom cell in a small rule to see how the rows change. Small rules with two filled cells side by side never apply to Rule 90's rows, so changing just one of those does nothing.
 
 The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle another way, by repeatedly bending one connected line. The [Sierpinski tetrahedron](/sierpinski-tetrahedron) extends the corner-copy rule into three dimensions, with four half-size pyramids.
 

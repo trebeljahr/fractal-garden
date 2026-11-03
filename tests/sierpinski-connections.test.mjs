@@ -51,6 +51,23 @@ test("modular addition stays exact beyond the range of JavaScript binomial integ
   }
 });
 
+test("changing a Rule 90 result with two filled cells side by side leaves the rows alone", () => {
+  const rows = elementaryRows(90, 64);
+  for (const [pattern, changes] of [
+    [0b111, false],
+    [0b110, false],
+    [0b101, true],
+    [0b100, true],
+    [0b011, false],
+    [0b010, true],
+    [0b001, true],
+    [0b000, true],
+  ]) {
+    const changed = elementaryRows(90 ^ (1 << pattern), 64);
+    assert.equal(JSON.stringify(changed) !== JSON.stringify(rows), changes, pattern.toString(2));
+  }
+});
+
 test("Rule 90 is Pascal parity on alternating positions of a square grid", () => {
   const count = MAX_PATTERN_ROWS;
   const pascal = pascalResidues(count);
