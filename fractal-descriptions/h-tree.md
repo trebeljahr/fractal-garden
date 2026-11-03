@@ -12,6 +12,12 @@ This arrangement has a practical use in circuits. Every endpoint at the same dep
 
 ## Further exploring
 
+### Videos
+
+- [Clock Distribution — Adi Teman, Bar-Ilan University](https://www.youtube.com/watch?v=3MhUh4XOUb0)
+
+### Reading
+
 - [H tree — Wikipedia](https://en.wikipedia.org/wiki/H_tree)
 - [H-fractal — MathWorld](https://mathworld.wolfram.com/H-Fractal.html)
 

@@ -16,9 +16,17 @@ Its drawing rule is `F → F+F-F`, where F draws forward. The [Dragon curve](/l-
 
 ## Further exploring
 
+### Videos
+
+- [Developing terdragon curve — Henry Segerman](https://www.youtube.com/watch?v=TrnnpVMbydI)
+- [Strip Folding Fractal Curves — Robert Fathauer](https://www.youtube.com/watch?v=qTyj2ta9ryk)
+
+### Reading
+
 - [Terdragon — Wikipedia](https://en.wikipedia.org/wiki/Dragon_curve#Terdragon)
 - [Terdragon — MathWorld](https://mathworld.wolfram.com/Terdragon.html)
 - [Terdragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/terdragon.htm)
+- [Terdragon Boundary — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/terdragonBoundary.htm)
 
 ## Sources and notes
 

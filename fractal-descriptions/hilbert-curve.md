@@ -18,6 +18,7 @@ The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube. It joi
 
 ### Videos
 
+- [Space-Filling Curves — Numberphile](https://www.youtube.com/watch?v=x-DgL49CFlM)
 - [Hilbert’s Curve — 3Blue1Brown](https://www.youtube.com/watch?v=3s7h2MHQtxc)
 - [Coding the Hilbert Curve — The Coding Train](https://www.youtube.com/watch?v=dSK-MW-zuAc)
 

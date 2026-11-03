@@ -24,6 +24,7 @@ Look between the smaller ships for thin, branching shapes that resemble [Julia s
 
 - [Burning Ship fractal — Wikipedia](https://en.wikipedia.org/wiki/Burning_Ship_fractal)
 - [Burning Ship fractal — MathWorld](https://mathworld.wolfram.com/BurningShipFractal.html)
+- [Burning Ship Fractal — Paul Bourke](https://paulbourke.net/fractals/burnship/)
 
 ## Sources and notes
 

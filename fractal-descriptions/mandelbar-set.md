@@ -22,6 +22,7 @@ The smooth body in the middle is where a route settles on one point. Its edge is
 
 - [Tricorn — Wikipedia](https://en.wikipedia.org/wiki/Tricorn_(mathematics))
 - [Multicorns are not Path Connected](https://arxiv.org/abs/1209.1753)
+- [Tricorn Fractal — Paul Bourke](https://paulbourke.net/fractals/tricorn/)
 
 ## Sources and notes
 

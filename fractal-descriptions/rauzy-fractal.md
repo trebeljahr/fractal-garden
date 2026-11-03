@@ -22,8 +22,15 @@ Copies of the finished tile fit together without gaps. You can slide them into p
 
 ## Further exploring
 
+### Videos
+
+- [Tribonacci Numbers (and the Rauzy Fractal) — Numberphile](https://www.youtube.com/watch?v=fMJflV_GUpU)
+
+### Reading
+
 - [Rauzy fractal — Wikipedia](https://en.wikipedia.org/wiki/Rauzy_fractal)
 - [Rauzy fractal — MathWorld](https://mathworld.wolfram.com/RauzyFractal.html)
+- [What Is a Rauzy Fractal? — Notices of the AMS](https://www.ams.org/journals/notices/201407/rnoti-p768.pdf)
 
 ## Sources and notes
 

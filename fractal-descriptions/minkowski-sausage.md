@@ -16,8 +16,15 @@ The rule is `F → F+F-F-FF+F+F-F`, with 90-degree turns. Every F draws one forw
 
 ## Further exploring
 
+### Videos
+
+- [Fractals and Scaling: Quadratic Koch Curve — Complexity Explorer](https://www.youtube.com/watch?v=i1_MXWbCKZY)
+
+### Reading
+
 - [Minkowski sausage — Wikipedia](https://en.wikipedia.org/wiki/Minkowski_sausage)
 - [Minkowski sausage (different motif) — MathWorld](https://mathworld.wolfram.com/MinkowskiSausage.html)
+- [Square Koch Fractal Curves — Wolfram Demonstrations](https://demonstrations.wolfram.com/SquareKochFractalCurves/)
 
 ## Sources and notes
 

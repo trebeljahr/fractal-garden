@@ -20,8 +20,15 @@ The [Hilbert curve](/l-system/hilbert-curve) fills a square too. Hilbert publish
 
 ## Further exploring
 
+### Videos
+
+- [Space-Filling Curves: Peano Curve — Eddie Woo](https://www.youtube.com/watch?v=XLSm-0Moy5o)
+
+### Reading
+
 - [Peano curve — Wikipedia](https://en.wikipedia.org/wiki/Peano_curve)
 - [Peano Curve — MathWorld](https://mathworld.wolfram.com/PeanoCurve.html)
+- [What can you do with this space? — Chalkdust](https://chalkdustmagazine.com/features/what-can-you-do-with-this-space/)
 
 ## Sources and notes
 

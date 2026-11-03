@@ -18,6 +18,7 @@ Neel Shrestha developed a way to fold this construction in paper. His origami mo
 
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Koch Surface Fractals — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
+- [Square Koch Fractal Surface — Wolfram Demonstrations](https://demonstrations.wolfram.com/SquareKochFractalSurface/)
 
 ## Sources and notes
 

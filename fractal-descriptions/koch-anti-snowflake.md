@@ -16,9 +16,17 @@ The ordinary snowflake adds those triangles and ends with 60% more area than it 
 
 ## Further exploring
 
+### Videos
+
+- [Area of Koch Curve, Koch Snowflake, and Koch Anti-Snowflake — Larry Riddle](https://www.youtube.com/watch?v=_-RvakjEFXA)
+- [Tiling with Koch Snowflakes — Larry Riddle](https://www.youtube.com/watch?v=QvUblCf-YmQ)
+
+### Reading
+
 - [Koch snowflake and antisnowflake — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake)
 - [Koch antisnowflake — MathWorld](https://mathworld.wolfram.com/KochAntisnowflake.html)
 - [Koch Anti-Snowflake — Larry Riddle](https://larryriddle.agnesscott.org/ifs/ksnow/kantisnow.htm)
+- [Fun with Koch Snowflakes — Wolfram Demonstrations](https://demonstrations.wolfram.com/FunWithKochSnowflakes/)
 
 ## Sources and notes
 

@@ -19,6 +19,14 @@ The path points in a different direction on alternate steps. The diagram rotates
 
 ## Further exploring
 
+### Videos
+
+- [The Plotting of Beautiful Curves — Numberphile](https://www.youtube.com/watch?v=kMBj2fp52tA)
+- [Developing Sierpinski arrowhead curve — Henry Segerman](https://www.youtube.com/watch?v=bnLc6rHVzb0)
+- [Strip Folding Fractal Curves — Robert Fathauer](https://www.youtube.com/watch?v=qTyj2ta9ryk)
+
+### Reading
+
 - [Sierpiński arrowhead curve — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Arrowhead_curve)
 - [Sierpiński arrowhead curve — MathWorld](https://mathworld.wolfram.com/SierpinskiArrowheadCurve.html)
 

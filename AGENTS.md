@@ -109,7 +109,10 @@ paragraph or remove a useful construction step just to meet a word count.
   general L-system or IFS page does not count because this rule appears somewhere
   on it; link the matching page on this site instead.
 - Further exploring has no fixed length, but it must not feel like too much. Drop a
-  link that repeats another. A short list is fine, and so is no section.
+  link that repeats another. Sparse lists disappoint readers too (Rico, 2026-11-03),
+  so search for videos and interactive pages as well as text before leaving one
+  short. Do not pad it: when nothing passes these rules, a short list is fine, and
+  so is no section.
 - Prefer links that will stay up: Wikipedia, MathWorld, arXiv, established
   publishers, universities and long-running sites of known authors. Skip small
   personal pages, press releases and anything else likely to disappear. Run

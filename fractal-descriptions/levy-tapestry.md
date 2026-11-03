@@ -17,6 +17,7 @@ The middle stays empty for a simple reason. Each curve bulges a long way out fro
 ## Further exploring
 
 - [Lévy Dragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/levy/levy.htm)
+- [Lévy Tapestry (Outside) — Larry Riddle](https://larryriddle.agnesscott.org/ifs/levy/tapestryOutside.htm)
 
 ## Sources and notes
 

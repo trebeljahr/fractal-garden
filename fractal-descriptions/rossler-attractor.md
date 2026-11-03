@@ -12,9 +12,16 @@ Turn on **Compare a nearby start** to follow a second point. As with the [Lorenz
 
 ## Further exploring
 
+### Videos
+
+- [Strange Attractors Explained: Stretching and Folding in Phase Space — Shane Ross](https://www.youtube.com/watch?v=Y-xqI3P-OxE)
+
+### Reading
+
 - [Rössler attractor — Wikipedia](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor)
 - [Rössler attractor — MathWorld](https://mathworld.wolfram.com/RoesslerAttractor.html)
 - [Rössler Attractor — Robert Dickau](https://www.robertdickau.com/rossler.html)
+- [Rössler Attractor — Paul Bourke](https://paulbourke.net/fractals/rossler/)
 
 ## Sources and notes
 

@@ -18,9 +18,16 @@ The [Menger sponge](/menger-sponge) applies a related removal rule to cubes. Eac
 
 ## Further exploring
 
+### Videos
+
+- [A 1.58-Dimensional Object — Numberphile](https://www.youtube.com/watch?v=FnRhnZbDprE)
+
+### Reading
+
 - [Sierpiński carpet — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_carpet)
 - [Sierpiński carpet — MathWorld](https://mathworld.wolfram.com/SierpinskiCarpet.html)
 - [Sierpinski Carpet — Larry Riddle](https://larryriddle.agnesscott.org/ifs/carpet/carpet.htm)
+- [Sierpinski Carpet — AMS Visual Insight](https://blogs.ams.org/visualinsight/2014/07/01/sierpinski-carpet/)
 
 ## Sources and notes
 

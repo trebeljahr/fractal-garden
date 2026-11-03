@@ -12,9 +12,16 @@ The holes don't always appear in a shadow. From one direction, the shadow is a f
 
 ## Further exploring
 
+### Videos
+
+- [A 1.58-Dimensional Object — Numberphile](https://www.youtube.com/watch?v=FnRhnZbDprE)
+
+### Reading
+
 - [Sierpiński tetrahedron — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle#Analogues_in_higher_dimensions)
 - [Tetrix — MathWorld](https://mathworld.wolfram.com/Tetrix.html)
 - [Sierpinski Gasket — Paul Bourke](https://paulbourke.net/fractals/polyhedral/)
+- [Imaginary Cube: Sierpinski Tetrahedron — Hideki Tsuiki](https://www.i.h.kyoto-u.ac.jp/users/tsuiki/icube/fractal/S-fractal-e.html)
 
 ## Sources and notes
 

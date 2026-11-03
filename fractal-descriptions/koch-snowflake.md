@@ -22,6 +22,7 @@ Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake
 
 ### Videos
 
+- [Fractals are typically not self-similar — 3Blue1Brown](https://www.youtube.com/watch?v=gB9n2gHsHN4)
 - [Koch Fractal Snowflake — The Coding Train](https://www.youtube.com/watch?v=X8bXDKqMsXE)
 
 ### Reading
@@ -30,6 +31,7 @@ Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake
 - [Koch snowflake — MathWorld](https://mathworld.wolfram.com/KochSnowflake.html)
 - [Koch Snowflake — Larry Riddle](https://larryriddle.agnesscott.org/ifs/ksnow/ksnow.htm)
 - [The Koch curve — The Nature of Code](https://natureofcode.com/fractals/#the-koch-curve)
+- [The Koch Snowflake — Mathigon](https://mathigon.org/course/fractals/introduction)
 
 ## Sources and notes
 

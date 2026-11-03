@@ -18,8 +18,15 @@ The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the
 
 ## Further exploring
 
+### Videos
+
+- [Space-Filling Curves: Sierpinski Curve — Eddie Woo](https://www.youtube.com/watch?v=Ps9itT9KcdM)
+
+### Reading
+
 - [Sierpiński curves — Wikipedia](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve)
 - [Sierpiński curve — MathWorld](https://mathworld.wolfram.com/SierpinskiCurve.html)
+- [Some combinatorial applications of spacefilling curves — John Bartholdi](https://www2.isye.gatech.edu/~jjb/research/mow/mow.html)
 
 ## Sources and notes
 

@@ -56,6 +56,8 @@ The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle a
 
 ### Videos
 
+- [A 1.58-Dimensional Object — Numberphile](https://www.youtube.com/watch?v=FnRhnZbDprE)
+- [Fractals are typically not self-similar — 3Blue1Brown](https://www.youtube.com/watch?v=gB9n2gHsHN4)
 - [Chaos Game — Numberphile](https://www.youtube.com/watch?v=kbKtFN71Lfs)
 - [Chaos Game Part 1 — The Coding Train](https://www.youtube.com/watch?v=7gNzMtYo9n4)
 

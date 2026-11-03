@@ -21,6 +21,7 @@ Change $c$ to see other shapes. At $c = 1 + i$ the stretch is about 1.41, large 
 ## Further exploring
 
 - [Julia set](/julia-set), the same kind of picture with a squaring rule
+- [Barnsley Tree — Paul Bourke](https://paulbourke.net/fractals/barnsley)
 
 ## Sources and notes
 

@@ -14,6 +14,8 @@ The bumps shrink at each step, so the construction stays within a bounded space 
 
 - [Koch curve variants — Wikipedia](https://en.wikipedia.org/wiki/Koch_snowflake#Variants_of_the_Koch_curve)
 - [Koch Surfaces — Robert Dickau](https://www.robertdickau.com/kochsurface.html)
+- [Triangular Koch Fractal Surface — Wolfram Demonstrations](https://demonstrations.wolfram.com/TriangularKochFractalSurface/)
+- [3D Koch-type crystals — arXiv](https://arxiv.org/abs/2302.10628)
 
 ## Sources and notes
 
