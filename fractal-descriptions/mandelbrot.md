@@ -56,6 +56,22 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 
 <figure data-lesson="linked-julia"></figure>
 
+The two pictures above look nothing alike. Zoom in at the right value of $c$ and they match.
+
+Take $c=(0,1)$. Starting at zero, the point goes to $(0,1)$, $(-1,1)$, $(0,-1)$, $(-1,1)$, $(0,-1)$, and repeats those two forever. A point close to that repeat moves farther from it every two jumps.
+
+Below, both pictures are centered on $c$ and use the same colors.<sup><a id="mandelbrot-ref-8" href="#mandelbrot-source-8">8</a></sup> The Julia picture is also turned and scaled by the amounts shown under it. Move the slider. By about ×200, the two **Fork** pictures look the same.
+
+<figure data-lesson="mandelbrot-julia-zoom"></figure>
+
+A Mandelbrot pixel near $c$ adds a number close to $c$, so its first jump from zero lands close to $c$. A Julia pixel near $c$ starts close to $c$. Both points follow zero's route for a while, then move away from the repeat and escape. The color shows how many jumps that takes.
+
+The Julia point differs from $c$ once, at the start. The Mandelbrot point gets the same difference added again at every jump. All those additions have the same effect as starting somewhere else: the difference gets multiplied by one fixed complex number. Multiplying by a complex number turns and scales. That is the turn and scale under the pictures, and each $c$ has its own.<sup><a id="mandelbrot-ref-9" href="#mandelbrot-source-9">9</a></sup>
+
+Tan Lei proved in 1990 that zooming in brings the two pictures ever closer at every $c$ where zero lands exactly on a repeat it did not start on.<sup><a id="mandelbrot-ref-10" href="#mandelbrot-source-10">10</a></sup> **Star** and **Spiral** are two more. At **Spiral**, near the neck, zero takes 24 jumps to land, and the pictures need more zoom to match.
+
+They never match exactly. The Mandelbrot picture has black specks, small copies of the whole set, and this Julia set has no inside to show black. Copies closer to $c$ shrink faster than their distance to $c$, so the specks get too small to see as you zoom.<sup><a id="mandelbrot-ref-11" href="#mandelbrot-source-10">10</a></sup>
+
 ## Further exploring
 
 ### Videos
@@ -85,3 +101,6 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 5. <span id="mandelbrot-source-5"></span> [Pi in the Mandelbrot set everywhere](https://arxiv.org/abs/2505.07138). Its proof follows curved paths into the neck. Along this straight line, the pattern has only been observed. [Back](#mandelbrot-ref-5)
 6. <span id="mandelbrot-source-6"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-6)
 7. <span id="mandelbrot-source-7"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#mandelbrot-ref-7)
+8. <span id="mandelbrot-source-8"></span> Diagram construction: the Mandelbrot count includes the first jump, from zero to the pixel's number. A Julia pixel starts there, so the right picture adds one to its count. [Back](#mandelbrot-ref-8)
+9. <span id="mandelbrot-source-9"></span> Calculation: a Mandelbrot pixel $d$ away from $c$ matches a Julia pixel $wd$ away from $c$, where $w=\lim_{n\to\infty}\frac{\partial z_n/\partial c}{\partial z_n/\partial z_1}$ along zero's route. At $c=(0,1)$, $w=0.8-0.4i$. [Back](#mandelbrot-ref-9)
+10. <span id="mandelbrot-source-10"></span> [Similarity Between the Mandelbrot Set and Julia Sets](https://web.archive.org/web/20221206041349/https://math.univ-angers.fr/~tanlei/papers/similarityMJ.pdf). Theorem 5.1 states the match, and section 6 gives the sizes of the small copies. [Back](#mandelbrot-ref-10) [Back](#mandelbrot-ref-11)

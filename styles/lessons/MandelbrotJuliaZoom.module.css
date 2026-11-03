@@ -1,0 +1,26 @@
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.pair h3 {
+  font:
+    600 1.4rem / 1.4 "Montserrat",
+    sans-serif;
+  margin: 0 0 0.4rem;
+}
+.picture {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.picture canvas {
+  position: absolute;
+  top: calc((100% - var(--cover) * 100%) / 2);
+  left: calc((100% - var(--cover) * 100%) / 2);
+  display: block;
+  width: calc(var(--cover) * 100%);
+  height: auto;
+  transform: rotate(var(--turn));
+}
