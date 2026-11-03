@@ -1,0 +1,63 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 62vh) minmax(20rem, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+figure button.stage {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #252424;
+  cursor: grab;
+  /* Up-and-down swipes scroll the page; a sideways slide acts on the picture. */
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+figure button.stage:hover:not(:disabled) {
+  background: #252424;
+}
+figure button.stage:active {
+  cursor: grabbing;
+}
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.side {
+  min-width: 0;
+}
+.readout {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.readout div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #eee8ce26;
+}
+.readout dt {
+  color: #eee8cebb;
+}
+.readout dd {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+}

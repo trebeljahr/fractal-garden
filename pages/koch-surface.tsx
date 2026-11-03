@@ -10,16 +10,16 @@ type Variant = "triangle" | "tetrahedron";
 
 // The open triangle is drawn from both sides, so budget twice its faces.
 const VARIANTS: Record<Variant, SceneVariant> = {
+  tetrahedron: {
+    label: "Tetrahedron",
+    maxIterations: getMaxIterations(4, 6),
+    spec: { kind: "kochSurface", start: "tetrahedron" },
+  },
   triangle: {
     label: "Single triangle",
     maxIterations: getMaxIterations(2, 6),
     spec: { kind: "kochSurface", start: "triangle" },
     doubleSided: true,
-  },
-  tetrahedron: {
-    label: "Tetrahedron",
-    maxIterations: getMaxIterations(4, 6),
-    spec: { kind: "kochSurface", start: "tetrahedron" },
   },
 };
 
@@ -31,7 +31,7 @@ const KochSurface = ({ description }: Props) => (
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Start shape"
     variants={VARIANTS}
-    initialVariant="triangle"
+    initialVariant="tetrahedron"
     fillColor="#6fc3ff"
     strokeColor="#d8f0ff"
     rotationX={32}

@@ -47,6 +47,7 @@ const MirrorPairLesson = dynamic(() => import("./lessons/MirrorPairLesson"));
 const BulbSliceLesson = dynamic(() => import("./lessons/BulbSliceLesson"));
 const FernCollageLesson = dynamic(() => import("./lessons/FernCollageLesson"));
 const ApollonianCurvaturesLesson = dynamic(() => import("./lessons/ApollonianCurvaturesLesson"));
+const KochCubeLesson = dynamic(() => import("./lessons/KochCubeLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -94,6 +95,7 @@ const LESSONS = [
   "bulb-slice",
   "fern-collage",
   "apollonian-curvatures",
+  "koch-cube",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -192,5 +194,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <FernCollageLesson />;
     case "apollonian-curvatures":
       return <ApollonianCurvaturesLesson />;
+    case "koch-cube":
+      return <KochCubeLesson />;
   }
 }

@@ -315,16 +315,25 @@ export function buildFlakeScene(mesh: Mesh, ratio: number, iterations: number, l
   return scene;
 }
 
-/**
- * Von Koch surface: each triangle splits into four, and the middle one is
- * replaced by the three side walls of a regular tetrahedron.
- */
-export function buildKochSurfaceScene(
+type Triangle = [Vec3, Vec3, Vec3];
+
+// The tip of the tetrahedron raised on the middle of a triangle. It sits above the triangle's
+// center, at the height of a regular tetrahedron with half the triangle's edge.
+function kochApex([a, b, c]: Triangle, progress = 1): Vec3 {
+  const ab = scale(add(a, b), 0.5);
+  const bc = scale(add(b, c), 0.5);
+  const ca = scale(add(c, a), 0.5);
+  const edge = Math.hypot(...sub(ab, bc));
+  const normal = normalize(cross(sub(bc, ab), sub(ca, ab)));
+  return add(centroid([ab, bc, ca]), scale(normal, edge * Math.sqrt(2 / 3) * progress));
+}
+
+function kochSurfaceTriangles(
   start: "triangle" | "tetrahedron",
   iterations: number,
   lastProgress = 1,
 ) {
-  let triangles: [Vec3, Vec3, Vec3][];
+  let triangles: Triangle[];
 
   if (start === "tetrahedron") {
     const { vertices, faces } = tetrahedronMesh(CIRCUMRADIUS);
@@ -337,17 +346,13 @@ export function buildKochSurfaceScene(
   }
 
   for (let step = 0; step < iterations; step++) {
-    const next: typeof triangles = [];
-    for (const [a, b, c] of triangles) {
+    const next: Triangle[] = [];
+    for (const triangle of triangles) {
+      const [a, b, c] = triangle;
       const ab = scale(add(a, b), 0.5);
       const bc = scale(add(b, c), 0.5);
       const ca = scale(add(c, a), 0.5);
-      const edge = Math.hypot(...sub(ab, bc));
-      const normal = normalize(cross(sub(bc, ab), sub(ca, ab)));
-      const apex = add(
-        centroid([ab, bc, ca]),
-        scale(normal, edge * Math.sqrt(2 / 3) * (step === iterations - 1 ? lastProgress : 1)),
-      );
+      const apex = kochApex(triangle, step === iterations - 1 ? lastProgress : 1);
       next.push(
         [a, ab, ca],
         [ab, b, bc],
@@ -359,7 +364,10 @@ export function buildKochSurfaceScene(
     }
     triangles = next;
   }
+  return triangles;
+}
 
+function trianglesToScene(triangles: Triangle[]) {
   const scene = createScene(triangles.length * 3, triangles.length, triangles.length * 3);
   triangles.forEach((triangle, face) => {
     scene.faceOffsets[face] = face * 3;
@@ -373,6 +381,39 @@ export function buildKochSurfaceScene(
 
   computeNormals(scene);
   return scene;
+}
+
+/**
+ * Von Koch surface: each triangle splits into four, and the middle one is
+ * replaced by the three side walls of a regular tetrahedron.
+ */
+export function buildKochSurfaceScene(
+  start: "triangle" | "tetrahedron",
+  iterations: number,
+  lastProgress = 1,
+) {
+  return trianglesToScene(kochSurfaceTriangles(start, iterations, lastProgress));
+}
+
+function kochFaceTriangles(face: number, iterations: number) {
+  const count = 6 ** iterations;
+  return kochSurfaceTriangles("tetrahedron", iterations).slice(face * count, (face + 1) * count);
+}
+
+/** Only what has grown from one face of the tetrahedron. It is open, so draw it from both sides. */
+export function buildKochFaceScene(face: number, iterations: number) {
+  return trianglesToScene(kochFaceTriangles(face, iterations));
+}
+
+/**
+ * The empty part of the cube above one face of the tetrahedron: a pyramid on each triangle, with
+ * its tip where the next bump on that triangle will reach.
+ */
+export function kochFacePyramids(face: number, iterations: number) {
+  return kochFaceTriangles(face, iterations).map((triangle) => ({
+    base: triangle,
+    tip: kochApex(triangle),
+  }));
 }
 
 type QuadFace = {
@@ -399,6 +440,23 @@ export function quadsToScene(quads: QuadFace[]) {
   }
   scene.faceOffsets[quads.length] = quads.length * 4;
   return scene;
+}
+
+/** Where a model point lands on the canvas under the same camera as drawPolyhedronScene. */
+export function projectScenePoint(
+  [x, y, z]: Vec3,
+  options: Pick<PolyhedronDrawOptions, "rotationX" | "rotationY" | "grab" | "cameraDistance">,
+  width: number,
+  height: number,
+) {
+  const m = viewRotation(options.rotationX, options.rotationY, options.grab);
+  const rx = m[0] * x + m[1] * y + m[2] * z;
+  const ry = m[3] * x + m[4] * y + m[5] * z;
+  const rz = m[6] * x + m[7] * y + m[8] * z;
+  const perspective =
+    (PROJECTION_FOCAL_LENGTH / Math.max(options.cameraDistance - rz, 0.2)) *
+    (Math.min(width, height) * 0.3);
+  return { x: width / 2 + rx * perspective, y: height / 2 - ry * perspective };
 }
 
 export function drawPolyhedronScene(
