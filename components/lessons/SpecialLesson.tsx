@@ -6,8 +6,8 @@ import BuddhabrotAccumulation from "./BuddhabrotAccumulation";
 import { LessonFrame, LessonSteps } from "./LessonFrame";
 
 function RauzyLesson() {
-  const [step, setStep] = useState(0);
-  const [walk, setWalk] = useState(false);
+  const [step, setStep] = useState(8);
+  const [walk, setWalk] = useState(true);
   const data = useMemo(() => {
     const word = tribonacciWord(12000),
       projection = contractingProjection();
@@ -40,10 +40,6 @@ function RauzyLesson() {
   const colors = ["#f2a65a", "#5ec2b7", "#c06c9e"];
   return (
     <LessonFrame title="Look along the staircase" kind="rauzy">
-      <p>
-        Choose First 80 steps and press Play to connect the corners in order. You are looking along
-        the staircase, so a step forward in space may go sideways in this view.
-      </p>
       <p className={extra.readout}>
         {Array.from(data.word.slice(0, 36), (n) => n + 1).join(" ")} …
       </p>
@@ -81,16 +77,6 @@ function RauzyLesson() {
       <div className={styles.options}>
         <button
           type="button"
-          aria-pressed={!walk}
-          onClick={() => {
-            setWalk(false);
-            setStep(0);
-          }}
-        >
-          Fill the tile
-        </button>
-        <button
-          type="button"
           aria-pressed={walk}
           onClick={() => {
             setWalk(true);
@@ -99,14 +85,19 @@ function RauzyLesson() {
         >
           First 80 steps
         </button>
+        <button
+          type="button"
+          aria-pressed={!walk}
+          onClick={() => {
+            setWalk(false);
+            setStep(0);
+          }}
+        >
+          Fill the tile
+        </button>
       </div>
       <p aria-live="polite">
-        {count.toLocaleString()} corners shown. The next digit gives each dot its color: orange for
-        1, teal for 2, rose for 3.
-      </p>
-      <p>
-        Now choose Fill the tile. Thousands more corners reveal three colored regions. The next
-        step's direction decides which region a corner belongs to.
+        {count.toLocaleString("en-US")} corners · next digit: orange 1, teal 2, rose 3
       </p>
     </LessonFrame>
   );

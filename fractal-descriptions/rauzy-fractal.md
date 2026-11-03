@@ -14,9 +14,11 @@ Use each digit as a direction: `1` means step right, `2` means step forward, and
 
 Look along the staircase, toward its far end. The steps now appear beside one another rather than stretching away into the distance. The diagram plots each corner as a dot in this end-on view. Those dots stay within a fixed area even as the staircase gets longer.<sup><a id="rauzy-fractal-ref-1" href="#rauzy-fractal-source-1">1</a></sup>
 
-Connect the first few dots below, then add thousands more. The route keeps changing direction, but its dots collect within the same outline.
+Press Play below to connect the corners in order. A step forward in space may go sideways in this view. Then choose **Fill the tile** and press Play to add thousands more. The route keeps changing direction, but its dots collect within the same outline.
 
 <figure data-investigation="rauzy"></figure>
+
+The corners form three colored regions. Each dot's color comes from the next digit, so the direction of the next step decides which region a corner belongs to.
 
 Copies of the finished tile fit together without gaps. You can slide them into place without turning them.<sup><a id="rauzy-fractal-ref-2" href="#rauzy-fractal-source-2">2</a></sup>
 
