@@ -17,13 +17,8 @@ require.extensions[".ts"] = (module, filename) => {
 };
 const { lessonSegments, PATH_LESSONS } = require("../utils/lessons/pathLessons.ts");
 const { GEOMETRY_LESSONS } = require("../utils/lessons/geometryLessons.ts");
-const {
-  histogramOrbit,
-  buddhaSamples,
-  bulbPower,
-  bulbRoute,
-  turnAroundAxis,
-} = require("../utils/lessons/specialLessons.ts");
+const { traceRoute } = require("../utils/lessons/buddhabrotAccumulation.ts");
+const { bulbPower, bulbRoute, turnAroundAxis } = require("../utils/lessons/specialLessons.ts");
 const { tribonacciWord, contractingProjection } = require("../utils/rauzy.ts");
 const { generateJerusalemCube } = require("../utils/voxelFractals.ts");
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} != ${b}`);
@@ -34,6 +29,7 @@ test("every article has a resolved interactive teaching figure", () => {
     ...Object.keys(GEOMETRY_LESSONS),
     "buddhabrot",
     "buddhabrot-connection",
+    "buddhabrot-outline",
     "rauzy",
   ]);
   for (const file of readdirSync(new URL("../fractal-descriptions", import.meta.url))) {
@@ -110,10 +106,10 @@ test("twindragon halves exchange endpoints, and 3D Hilbert steps join face neigh
   }
 });
 
-test("Buddhabrot includes only escaped traces and uses repeatable sampling", () => {
-  assert.equal(histogramOrbit({ x: 0, y: 0 }).escaped, false);
-  assert.equal(histogramOrbit({ x: -1, y: 0 }).escaped, false);
-  const orbit = histogramOrbit({ x: 0.3, y: 0.6 });
+test("Buddhabrot routes square and add from zero, and only some escape", () => {
+  assert.equal(traceRoute({ x: 0, y: 0 }).escaped, false);
+  assert.equal(traceRoute({ x: -1, y: 0 }).escaped, false);
+  const orbit = traceRoute({ x: 0.3, y: 0.6 });
   assert.equal(orbit.escaped, true);
   let previous = { x: 0, y: 0 };
   for (const point of orbit.points) {
@@ -121,8 +117,6 @@ test("Buddhabrot includes only escaped traces and uses repeatable sampling", () 
     close(point.y, 2 * previous.x * previous.y + 0.6);
     previous = point;
   }
-  assert.deepEqual(buddhaSamples(100), buddhaSamples(100));
-  assert.ok(buddhaSamples(100).some((orbit) => orbit.escaped));
 });
 
 test("spherical powers preserve the raised radius and collapse all directions at zero", () => {

@@ -1,0 +1,35 @@
+.picture {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 520 / 600;
+  background: #000;
+}
+.visits {
+  position: relative;
+}
+figure .route {
+  fill: none;
+  stroke: #f5c56d;
+  stroke-opacity: 0.55;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+figure .dots {
+  fill: none;
+  stroke: #f5c56d;
+  stroke-linecap: round;
+  stroke-width: 4px;
+  vector-effect: non-scaling-stroke;
+}
+.readout {
+  font-variant-numeric: tabular-nums;
+}
+.readout:empty {
+  display: none;
+}
+.stage {
+  /* The whole picture fits on screen beside its controls. */
+  width: min(100%, calc(72vh * 520 / 600));
+  margin: 1rem auto 0;
+}
