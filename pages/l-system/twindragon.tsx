@@ -8,7 +8,12 @@ import styles from "../../styles/Fullscreen.module.css";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
 import { fittedFrame } from "../../utils/lsystem/pageZoom";
-import { TILING_PADDING, TWIN_PADDING, twindragonSpec } from "../../utils/lsystem/twindragon";
+import {
+  TILING_PADDING,
+  TWIN_PADDING,
+  twindragonLevel,
+  twindragonSpec,
+} from "../../utils/lsystem/twindragon";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -37,12 +42,16 @@ const Twindragon = ({ description }: Props) => {
     lineWidth: 1.5,
   });
 
+  // The zoom draws the tiling on top. Under it this canvas only sets the opening
+  // level, which should not drop because of copies the zoom can skip cheaply.
+  const params = useMemo(() => ({ ...config, showTiling: false }), [config]);
+
   const { containerRef, ready } = useFractalRenderer({
     kind: "twindragon",
-    storageKey: `twindragon:${config.showTiling ? "tiling" : "single"}`,
+    storageKey: "twindragon",
     config,
     setConfig,
-    params: config,
+    params,
     width,
     height,
     min: 1,
@@ -51,8 +60,9 @@ const Twindragon = ({ description }: Props) => {
     holdDelay: 1800,
   });
 
-  const spec = useMemo(() => twindragonSpec(config), [config]);
-  const { iterations, firstDragon, secondDragon, background, lineWidth, showTiling } = config;
+  const { firstDragon, secondDragon, background, lineWidth, showTiling } = config;
+  const iterations = twindragonLevel(config);
+  const spec = useMemo(() => twindragonSpec({ ...config, iterations }), [config, iterations]);
   // The tiling is fitted around its middle tile, so the frame comes from one tile.
   const frame = useCallback(
     (fitWidth: number, fitHeight: number) =>
@@ -81,7 +91,12 @@ const Twindragon = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <ExplorerPanel data={config} mode="pattern" onUpdate={handleUpdate}>
+        <ExplorerPanel
+          data={config}
+          mode="pattern"
+          onUpdate={handleUpdate}
+          explorationControls={<PanelBoolean path="showTiling" />}
+        >
           <PanelColor path="background" />
           <PanelColor path="firstDragon" />
           <PanelColor path="secondDragon" />

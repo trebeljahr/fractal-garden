@@ -14,7 +14,13 @@ require.extensions[".ts"] = (module, filename) =>
     filename,
   );
 const { expand, interpret } = require("../utils/lsystem/engine.ts");
-const { MAX_TILE_RANGE, twindragonSpec } = require("../utils/lsystem/twindragon.ts");
+const { fittedFrame } = require("../utils/lsystem/pageZoom.ts");
+const {
+  MAX_TILE_RANGE,
+  TILING_PADDING,
+  twindragonLevel,
+  twindragonSpec,
+} = require("../utils/lsystem/twindragon.ts");
 const { prepareZoom } = require("../utils/lsystem/zoom.ts");
 const { rewriteSentence, traceTurtle } = require("../utils/turtleCurves.ts");
 
@@ -180,4 +186,38 @@ test("the deepest zoom fits a small stack and draws away from the curve's start"
     encoding: "utf8",
   });
   assert.equal(status, 0, stderr);
+});
+
+test("the tiling's opening view draws every row at the highest level", () => {
+  const iterations = twindragonLevel({ iterations: 16, showTiling: true });
+  assert.ok(iterations < 16);
+  const [width, height] = [2560, 1440];
+  const single = twindragonSpec({ ...settings, iterations });
+  const { scale, originX, originY } = fittedFrame(
+    single,
+    iterations,
+    width,
+    height,
+    TILING_PADDING,
+    1,
+  );
+  const system = prepareZoom(
+    { ...single, ...twindragonSpec({ ...settings, iterations, showTiling: true }) },
+    iterations,
+  );
+  const detail = system.render({
+    ...viewAt((width / 2 - originX) / scale, (originY - height / 2) / scale, 1, scale),
+    halfWidth: width * 0.65,
+    halfHeight: height * 0.65,
+  });
+  assert.equal(detail.limited, false);
+  // Rows run from the bottom up, so a cut-off drawing leaves the top empty.
+  let top = -Infinity;
+  let bottom = Infinity;
+  for (let i = 0; i < detail.count; i++) {
+    top = Math.max(top, detail.positions[i * 6 + 1]);
+    bottom = Math.min(bottom, detail.positions[i * 6 + 1]);
+  }
+  assert.ok(top > height / 2, `drawn only up to ${top}`);
+  assert.ok(bottom < -height / 2, `drawn only down to ${bottom}`);
 });

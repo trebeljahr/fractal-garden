@@ -4,6 +4,14 @@ import type { LSystemSpec } from "./spec";
 export const TWIN_PADDING = 0.08;
 export const TILING_PADDING = 0.25;
 export const MAX_TILE_RANGE = 8;
+// Past this level the tiling's opening view runs out of lines before its last
+// rows, and dense lines add up until the copies no longer look faded. Zooming
+// in still adds later levels.
+const MAX_TILING_LEVEL = 11;
+
+export function twindragonLevel(p: { iterations: number; showTiling: boolean }) {
+  return p.showTiling ? Math.min(p.iterations, MAX_TILING_LEVEL) : p.iterations;
+}
 
 // The first dragon, then the second in brackets. A dragon of at least one
 // round ends a quarter turn from where it started, so "+" makes the second
