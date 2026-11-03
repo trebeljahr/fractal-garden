@@ -21,8 +21,17 @@ Change the angle to spread the branches apart or bring them closer together. The
 
 ## Further exploring
 
-- [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
+
+### Videos
+
+- [L Systems: Creating Plants from Simple Rules — Computerphile](https://www.youtube.com/watch?v=puwhf-404Xc)
+- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+
+### Reading
+
+- [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
+- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
 
 ## Sources and notes
 

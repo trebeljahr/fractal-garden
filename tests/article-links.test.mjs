@@ -30,6 +30,7 @@ test("further exploring keeps videos apart from reading", () => {
       assert.equal(new Set(links(intro).map((line) => video.test(line))).size, 1, `${file} mixes kinds`);
       continue;
     }
+    assert.ok(links(intro).every((line) => line.includes("](/")), `${file} has outside links above the split`);
     assert.deepEqual(groups.map((group) => group.split("\n")[0]), ["Videos", "Reading"], file);
     assert.ok(links(groups[0]).length > 0 && links(groups[0]).every((line) => video.test(line)), `${file} videos`);
     assert.ok(links(groups[1]).length > 0 && !links(groups[1]).some((line) => video.test(line)), `${file} reading`);

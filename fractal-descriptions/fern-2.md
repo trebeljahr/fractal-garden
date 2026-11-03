@@ -25,6 +25,15 @@ The first replacement draws one forward step. The second draws eleven because ev
 
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
+### Videos
+
+- [L Systems: Creating Plants from Simple Rules — Computerphile](https://www.youtube.com/watch?v=puwhf-404Xc)
+- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+
+### Reading
+
+- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+
 ## Sources and notes
 
 1. <span id="fern-2-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains the bracketed turtle method. [Back](#fern-2-ref-1)

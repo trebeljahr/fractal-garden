@@ -101,13 +101,16 @@ paragraph or remove a useful construction step just to meet a word count.
   number and give each citation its own return link.
 - When **Further exploring** has both videos and text, split it under `### Videos`
   and then `### Reading` (Rico, 2026-11-03). With only one kind, use no subheading.
+  Links to this site's own pages go above the subheadings.
 - Every **Further exploring** link must clearly be more about this fractal (Rico,
   2026-11-03). Biographies, histories of fractals and general fractal or method
   pages do not belong. A page named for a neighboring shape counts only if it spends
   real time on this one, as Numberphile's Mandelbrot video and Mathigon's Mandelbrot
   lesson do for Julia sets. A parent page counts only if it covers this variant. A
   general L-system or IFS page does not count because this rule appears somewhere
-  on it; link the matching page on this site instead.
+  on it; link the matching page on this site instead. The exception is Fern 1–4,
+  Board and Crystal (Rico, 2026-11-03): no page covers them alone, so they may link
+  general L-system material that teaches their kind of rule.
 - Further exploring has no fixed length, but it must not feel like too much. Drop a
   link that repeats another. Sparse lists disappoint readers too (Rico, 2026-11-03),
   so search for videos and interactive pages as well as text before leaving one

@@ -16,6 +16,14 @@ The replacement rule is `F → FF+F+F+F+FF`, where F draws forward and each plus
 
 - [L-system explorer](/l-system/explorer), for trying other replacement rules
 
+### Videos
+
+- [L-System Fractal Trees — The Coding Train](https://www.youtube.com/watch?v=E1B4UoSQMFw)
+
+### Reading
+
+- [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
+
 ## Sources and notes
 
 1. <span id="board-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on replacing letters and reading them as drawing instructions, sections 1.2–1.3. [Back](#board-ref-1)
