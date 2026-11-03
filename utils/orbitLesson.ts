@@ -42,6 +42,26 @@ export function traceTeachingOrbit(
   return orbit;
 }
 
+// As many jumps as the orbit lesson follows. Declared here because it runs before that limit.
+const MIRROR_JUMPS = 32;
+
+export function mirrorPixel(pixel: ComplexPoint): ComplexPoint {
+  return { real: pixel.real, imaginary: -pixel.imaginary };
+}
+
+/** The routes of a pixel and of its mirror image across the horizontal axis. */
+export function mirrorRoutes(
+  pixel: ComplexPoint,
+  fold: boolean,
+  limit = MIRROR_JUMPS,
+): [OrbitStep[], OrbitStep[]] {
+  const start = { real: 0, imaginary: 0 };
+  return [
+    traceTeachingOrbit(pixel, start, fold, limit),
+    traceTeachingOrbit(mirrorPixel(pixel), start, fold, limit),
+  ];
+}
+
 export type OrbitLoop = { from: number; period: number };
 // The most jumps the orbit lesson follows when a point neither leaves nor repeats.
 export const ORBIT_LESSON_LIMIT = 32;

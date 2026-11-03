@@ -3,12 +3,19 @@ import { flushSync } from "react-dom";
 import styles from "../../styles/lessons/HandJump.module.css";
 import { type ComplexPoint, type OrbitStep, squarePoint } from "../../utils/orbitLesson";
 
-type Phase = "rest" | "wipe" | "square" | "add" | "result";
+type Phase = "rest" | "wipe" | "fold" | "square" | "add" | "result";
 // When each phase starts and how long its strokes take, as shares of one jump's time.
 // The point lands in the picture at about 0.68, as the new point is written.
 const PHASES: [share: number, phase: Phase][] = [
   [0.3, "square"],
   [0.5, "add"],
+  [0.65, "result"],
+  [0.8, "rest"],
+];
+const FOLD_PHASES: [share: number, phase: Phase][] = [
+  [0.3, "fold"],
+  [0.42, "square"],
+  [0.55, "add"],
   [0.65, "result"],
   [0.8, "rest"],
 ];
@@ -29,10 +36,15 @@ function factor(value: number) {
 function plus(value: number) {
   return value < 0 ? `− ${write(-value)}` : `+ ${write(value)}`;
 }
+// The fold only changes a negative number.
+function folding(value: number) {
+  return fixed(value) < 0 ? `${write(value)} → ${write(-value)}` : write(value);
+}
 
 export function HandJump({
   orbit,
   c,
+  fold = false,
   jump,
   animate,
   duration,
@@ -41,6 +53,7 @@ export function HandJump({
 }: {
   orbit: OrbitStep[];
   c: ComplexPoint;
+  fold?: boolean;
   jump: number;
   animate: boolean;
   duration: number;
@@ -79,22 +92,23 @@ export function HandJump({
         },
       );
     });
-    const timers = PHASES.map(([share, phase]) =>
+    const timers = (fold ? FOLD_PHASES : PHASES).map(([share, phase], index) =>
       window.setTimeout(() => {
         // The numbers must change before their glide ends, or they flash back to the lower row.
         flushSync(() => setView({ jump, phase }));
-        if (phase === "square") for (const glide of glides) glide.cancel();
+        if (index === 0) for (const glide of glides) glide.cancel();
       }, duration * share),
     );
     return () => {
       for (const timer of timers) window.clearTimeout(timer);
       for (const glide of glides) glide.cancel();
     };
-  }, [jump, orbit, animate, duration]);
+  }, [jump, orbit, animate, duration, fold]);
 
   const index = Math.min(view.jump, orbit.length - 1);
   const point = orbit[Math.max(0, index - 1)].point;
-  const squared = squarePoint(point);
+  const input = orbit[index].folded ?? point;
+  const squared = squarePoint(input);
   const result = orbit[index].point;
   const worked = index > 0;
   const atEnd = orbit.length > 1 && jump === orbit.length - 1;
@@ -143,13 +157,22 @@ export function HandJump({
                 </span>
               </td>
             </tr>
+            {fold && (
+              <tr className={styles.fold}>
+                <th scope="row">Fold</th>
+                <td>{worked && <span className={styles.numbers}>{folding(point.real)}</span>}</td>
+                <td>
+                  {worked && <span className={styles.numbers}>{folding(point.imaginary)}</span>}
+                </td>
+              </tr>
+            )}
             <tr className={styles.square}>
               <th scope="row">Square</th>
               <td>
                 {worked && (
                   <span className={styles.numbers}>
                     <span>
-                      {factor(point.real)}² − {factor(point.imaginary)}²
+                      {factor(input.real)}² − {factor(input.imaginary)}²
                     </span>{" "}
                     <span>= {write(squared.real)}</span>
                   </span>
@@ -159,7 +182,7 @@ export function HandJump({
                 {worked && (
                   <span className={styles.numbers}>
                     <span>
-                      2 × {factor(point.real)} × {factor(point.imaginary)}
+                      2 × {factor(input.real)} × {factor(input.imaginary)}
                     </span>{" "}
                     <span>= {write(squared.imaginary)}</span>
                   </span>

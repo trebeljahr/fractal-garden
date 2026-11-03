@@ -1,0 +1,28 @@
+.options {
+  margin-bottom: 1rem;
+}
+.options button[aria-pressed="true"] {
+  background: #f5c56d22;
+  border-color: #f5c56d;
+}
+.layout {
+  grid-template-columns: minmax(0, calc(68vh * 5.6 / 4.4)) 26rem;
+}
+.hop,
+.fold {
+  fill: none;
+  stroke-width: 1.75;
+}
+.fold {
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.layout p {
+  min-height: 2rem;
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

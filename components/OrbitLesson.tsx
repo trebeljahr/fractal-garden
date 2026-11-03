@@ -93,6 +93,7 @@ function traceOrbit(kind: OrbitKind, value: ComplexPoint) {
   return traceUntilLoop(value, ZERO, kind === "burning-ship");
 }
 const STARTS_AT_PIXEL: OrbitKind[] = ["julia", "barnsley-tree"];
+const WORKED_BY_HAND: OrbitKind[] = ["julia", "burning-ship"];
 const RULES: Partial<Record<OrbitKind, string>> = {
   julia: `Pick a pixel to start there. Each jump squares the point, then adds c = (${number(JULIA_C.real, 5)}, ${number(JULIA_C.imaginary, 5)}).`,
   "burning-ship":
@@ -112,7 +113,7 @@ const FOLD_SHARE = 0.35;
 // A jump the reader asks for runs slower than playback, so the sums can be read.
 const HAND_SPEED = 2;
 
-function coordinates(point: ComplexPoint, digits = 3) {
+export function coordinates(point: ComplexPoint, digits = 3) {
   return `(${number(point.real, digits)}, ${number(point.imaginary, digits)})`;
 }
 function distance(a: Pixel, b: Pixel) {
@@ -124,14 +125,14 @@ function ease(t: number) {
 function lerp(a: Pixel, b: Pixel, t: number) {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
 }
-function clampToView(point: ComplexPoint, view: typeof VIEW) {
+export function clampToView(point: ComplexPoint, view: typeof VIEW) {
   return {
     real: Math.max(view.left, Math.min(view.right, point.real)),
     imaginary: Math.max(view.bottom, Math.min(view.top, point.imaginary)),
   };
 }
 // A chosen point rests on two decimals. While dragging it follows the pointer exactly.
-function snap(point: ComplexPoint) {
+export function snap(point: ComplexPoint) {
   return { real: Number(point.real.toFixed(2)), imaginary: Number(point.imaginary.toFixed(2)) };
 }
 // Later jumps run faster, so a long orbit doesn't take much longer to watch.
@@ -146,7 +147,7 @@ const halves = (reach: number) => {
   return values;
 };
 
-const CoordinateGrid = memo(function CoordinateGrid({
+export const CoordinateGrid = memo(function CoordinateGrid({
   width,
   height,
   flip,
@@ -223,8 +224,9 @@ const CoordinateGrid = memo(function CoordinateGrid({
 export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [value, setValue] = useState(DEFAULTS[kind]);
   const [hover, setHover] = useState<ComplexPoint | null>(null);
+  const handWorked = WORKED_BY_HAND.includes(kind);
   const [motion, setMotion] = useState({
-    step: kind === "julia" ? 1 : 0,
+    step: handWorked ? 1 : 0,
     animate: false,
     speed: 1,
   });
@@ -414,7 +416,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         {title}
       </figcaption>
       <p className={styles.rule}>{rule}</p>
-      <div className={styles.layout} data-sums={kind === "julia" || undefined}>
+      <div className={styles.layout} data-sums={handWorked || undefined}>
         <div className={styles.main}>
           <button
             type="button"
@@ -596,10 +598,11 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
           </p>
         </div>
       </div>
-      {kind === "julia" && (
+      {handWorked && (
         <HandJump
           orbit={orbit}
-          c={JULIA_C}
+          c={kind === "julia" ? JULIA_C : value}
+          fold={kind === "burning-ship"}
           jump={dragging ? Math.min(1, max) : shown}
           animate={motion.animate}
           duration={(HOP_MS + REST_MS) * motion.speed}

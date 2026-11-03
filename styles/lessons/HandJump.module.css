@@ -41,6 +41,7 @@
   font-size: 1.6rem;
   font-weight: 600;
 }
+.fold,
 .square,
 .add {
   height: 3rem;
@@ -103,15 +104,20 @@
   }
 }
 [data-phase="wipe"] .input .numbers,
+[data-phase="wipe"] .fold .numbers,
 [data-phase="wipe"] .square .numbers,
 [data-phase="wipe"] .add .numbers {
   animation: wipe var(--wipe) linear forwards;
 }
+[data-phase="fold"] .fold .numbers,
 [data-phase="square"] .square .numbers,
 [data-phase="add"] .add .numbers,
 [data-phase="result"] .output .numbers {
   animation: write var(--write) linear;
 }
+[data-phase="fold"] .square .numbers,
+[data-phase="fold"] .add .numbers,
+[data-phase="fold"] .output .numbers,
 [data-phase="square"] .add .numbers,
 [data-phase="square"] .output .numbers,
 [data-phase="add"] .output .numbers {
@@ -153,6 +159,7 @@
     width: auto;
     padding-bottom: 0;
   }
+  .fold,
   .square,
   .add,
   .input,

@@ -18,6 +18,7 @@ import {
   jumpControl,
   jumpExit,
   jumpPoint,
+  mirrorRoutes,
   ORBIT_LESSON_LIMIT,
   squarePoint,
   traceTeachingOrbit,
@@ -348,5 +349,32 @@ test("the seeded fern walk applies every chosen rule to the preceding point", ()
   for (let i = 1; i < walk.length; i++) {
     assert.deepEqual(walk[i].point, applyFernRule(walk[i - 1].point, walk[i].rule));
     assert.ok(Number.isFinite(walk[i].point.x) && Number.isFinite(walk[i].point.y));
+  }
+});
+
+test("the fold splits a Burning Ship pixel from its mirror image, and only the fold does", () => {
+  const pixel = { real: -0.5, imaginary: -0.5 };
+  const [ship, mirror] = mirrorRoutes(pixel, true);
+  assert.deepEqual(ship[1].point, pixel);
+  assert.deepEqual(mirror[1].point, { real: -0.5, imaginary: 0.5 });
+  assert.deepEqual(ship[2].folded, { real: 0.5, imaginary: 0.5 });
+  assert.deepEqual(mirror[2].folded, { real: 0.5, imaginary: 0.5 });
+  assert.deepEqual(ship[2].point, { real: -0.5, imaginary: 0 });
+  assert.deepEqual(mirror[2].point, { real: -0.5, imaginary: 1 });
+  assert.equal(mirror.at(-1).iteration, 4);
+  assert.ok(Math.hypot(mirror[4].point.real, mirror[4].point.imaginary) > ESCAPE_RADIUS);
+  assert.equal(ship.at(-1).iteration, ORBIT_LESSON_LIMIT);
+
+  const [settled] = mirrorRoutes(pixel, true, 2000);
+  close(Number(settled.at(-1).point.real.toFixed(2)), -0.41);
+  close(Number(settled.at(-1).point.imaginary.toFixed(2)), -0.28);
+
+  for (const c of [pixel, { real: -1.2, imaginary: 0.2 }, { real: 0.3, imaginary: 0.6 }]) {
+    const [first, second] = mirrorRoutes(c, false);
+    assert.equal(first.length, second.length);
+    first.forEach((step, jump) => {
+      close(step.point.real, second[jump].point.real);
+      close(step.point.imaginary, -second[jump].point.imaginary);
+    });
   }
 });
