@@ -39,10 +39,6 @@ export default function KochMeasurementLesson() {
   const unfolded = straightenKoch(data.edge, straight / 100);
   return (
     <LessonFrame title="Measure the edge, then the area" kind="koch-measurement">
-      <p>
-        Move the slider to straighten the pieces without stretching them. Then choose the next
-        round.
-      </p>
       <div className={styles.options}>
         <fieldset className={extra.rounds} aria-label="Koch construction round">
           {[0, 1, 2, 3].map((n) => (
@@ -104,11 +100,7 @@ export default function KochMeasurementLesson() {
         />
       </label>
       <p aria-live="polite">
-        {round === 0
-          ? "This is the original edge. Round 1 replaces it with four shorter pieces."
-          : round === 1
-            ? "Laid end to end, the four pieces reach a third farther than the original edge. Each piece is one third of its length."
-            : `The straightened pieces measure ${data.length.toFixed(3)} times the original edge. The extra bends add length each round.`}
+        Edge length: <strong>{data.length.toFixed(3)}</strong>
       </p>
       <div className={extra.areaViews}>
         <svg
@@ -186,10 +178,7 @@ export default function KochMeasurementLesson() {
           Bumps inward
         </button>
       </div>
-      <p>
-        Amber marks the triangles {inward ? "removed" : "added"} in this round. Compare the bars as
-        you change rounds: each new batch changes the area less than the one before.
-      </p>
+      <p>Amber: {inward ? "removed" : "added"} this round</p>
     </LessonFrame>
   );
 }

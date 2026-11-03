@@ -8,7 +8,7 @@ Do the same to every line in the new outline, including the sides of the bumps.
 
 Going around a bump takes longer than going straight across. Four short lines now cover a distance that used to need three. The outline gets a third longer every round.
 
-The figure below lets you straighten one edge to measure it. Compare that growing length with the area added by the new bumps.
+Move the slider below to straighten one edge without stretching its pieces. Then choose the next round. Compare that growing length with the area added by the new bumps.
 
 <figure data-lesson="koch-measurement"></figure>
 
