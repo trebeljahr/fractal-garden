@@ -7,6 +7,7 @@ import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { GOSPER_LEAD } from "../../utils/lessons/gosperCopies";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -43,6 +44,7 @@ const GosperCurve = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 1100,
     holdDelay: 1800,
+    constructionLead: GOSPER_LEAD,
   });
 
   const handleUpdate = (newData: Config) => {
@@ -66,7 +68,7 @@ const GosperCurve = ({ description }: Props) => {
         />
         <TurtleCurveZoom
           ready={ready}
-          axiom={"XF"}
+          axiom={"FX"}
           rules={{ X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" }}
           turn={60}
           start={0}

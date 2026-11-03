@@ -181,7 +181,7 @@ export function drawTerdragon(ctx: Context2D, width: number, height: number, p: 
 
 const traceGosper = cacheLast((iterations: number) =>
   traceTurtleVec(
-    rewriteSentence("XF", { X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" }, iterations),
+    rewriteSentence("FX", { X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" }, iterations),
     { turnAngle: Math.PI / 3 },
   ),
 );

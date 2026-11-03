@@ -62,7 +62,8 @@ export function playbackSource(kind: string, params: unknown) {
         startAngle: 90 + settings.iterations * 30,
       },
       gosperCurve: {
-        axiom: "XF",
+        // F comes first: with XF, later rounds are not exact copies of the one before.
+        axiom: "FX",
         rules: { X: "X+YF++YF-FX--FXFX-YF+", Y: "-FX+YFYF++YF+FX--FX-Y" },
         angle: -60,
       },
