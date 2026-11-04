@@ -7,6 +7,7 @@ import {
   serializeViewport,
   zoomViewport,
 } from "../deepZoom/math";
+import { createZoomGlide } from "../deepZoom/zoomGlide";
 import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
 import { useExplorerPart } from "./useExplorerPart";
 
@@ -18,6 +19,7 @@ export function useDeepZoomControls({
   maxZoomSize,
   minLogZoom = -MAX_DEPTH_BITS,
   flipY,
+  glide = false,
   onChange,
 }: {
   canvas: HTMLCanvasElement | null;
@@ -26,6 +28,8 @@ export function useDeepZoomControls({
   /** Stops zooming where a renderer without deep arithmetic runs out of precision. */
   minLogZoom?: number;
   flipY: boolean;
+  /** Cover wheel zooming in even per-frame steps instead of jumping on each event. */
+  glide?: boolean;
   onChange: (interaction?: boolean) => void;
 }) {
   const change = useRef(onChange);
@@ -52,6 +56,16 @@ export function useDeepZoomControls({
       };
     };
     const clamp = (log: number) => Math.max(minLogZoom, Math.min(Math.log2(maxZoomSize), log));
+    let glideRender: ReturnType<typeof setTimeout> | undefined;
+    const zoomGlide = createZoomGlide((bits, anchor) => {
+      const before = viewportRef.current.logZoom;
+      const next = clamp(before + bits);
+      viewportRef.current = zoomViewport(viewportRef.current, next, anchor.x, anchor.y);
+      // Rendering from inside an animation frame measured half the frame rate (33 ms, not 16).
+      clearTimeout(glideRender);
+      glideRender = setTimeout(() => change.current(true), 4);
+      return next - before;
+    });
     const gesture = () => {
       const pair = Array.from(pointers.values());
       const first = pair[0];
@@ -67,6 +81,7 @@ export function useDeepZoomControls({
     const down = (event: PointerEvent) => {
       if (event.pointerType === "mouse" && event.button !== 0) return;
       event.preventDefault();
+      zoomGlide.stop();
       pointers.set(event.pointerId, point(event));
       canvas.setPointerCapture(event.pointerId);
       canvas.style.cursor = "grabbing";
@@ -100,10 +115,12 @@ export function useDeepZoomControls({
         return;
       event.preventDefault();
       const anchor = point(event);
-      const next = clamp(
-        viewportRef.current.logZoom +
-          Math.max(-2, Math.min(2, zoomWheelDelta(event, canvas) / Math.LN2)),
-      );
+      const bits = Math.max(-2, Math.min(2, zoomWheelDelta(event, canvas) / Math.LN2));
+      if (glide) {
+        zoomGlide.add(bits, anchor, event.ctrlKey);
+        return;
+      }
+      const next = clamp(viewportRef.current.logZoom + bits);
       viewportRef.current = zoomViewport(viewportRef.current, next, anchor.x, anchor.y);
       change.current(true);
     };
@@ -122,8 +139,10 @@ export function useDeepZoomControls({
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("lostpointercapture", up);
       removeZoomWheel();
+      zoomGlide.stop();
+      clearTimeout(glideRender);
       wheelGuard.dispose();
       canvas.style.touchAction = "";
     };
-  }, [canvas, flipY, maxZoomSize, minLogZoom, viewportRef]);
+  }, [canvas, flipY, glide, maxZoomSize, minLogZoom, viewportRef]);
 }

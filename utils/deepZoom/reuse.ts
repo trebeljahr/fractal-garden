@@ -12,15 +12,24 @@ import {
 /** The screen splits into 64 phases. Each holds 1/64 of the pixels, evenly scattered. */
 export const PHASES = 64;
 /** Moving pixels are recalculated within this GPU time per frame, resting ones within this. */
-const MOVING_TARGET_MS = 8;
+const MAX_MOVING_TARGET_MS = 12;
+const MIN_MOVING_TARGET_MS = 3;
 const RESTING_TARGET_MS = 30;
 /** A reused sample further than this from its pixel is refreshed sooner. */
 const FAR_SAMPLE_PIXELS = 3;
+/** Timer results take frames to arrive. Painting keeps going while this many are out. */
+const MAX_PENDING_QUERIES = 4;
 /** Such pixels may use this many times the frame's budget, so fast motion can't overload it. */
 const LATE_SHARE = "3.0";
-const BACKDROP_SPAN = 4;
-const BACKDROP_SAMPLING = 1 / 12;
-const BACKDROP_BATCH_PIXELS = 65536;
+/** How far to look for a hole around a pixel before showing the soft image there. */
+const HOLE_REACH = 4;
+// The soft image spans 2 views at 1/8 sampling: 1/16 of the screen's pixels.
+const BACKDROP_SPAN = 2;
+const BACKDROP_SAMPLING = 1 / 8;
+/** Replace the soft image once zooming out has used this share of its span... */
+const MAX_BACKDROP_RATIO = 0.7;
+/** ...or once zooming in has spread its pixels this far apart. */
+const MIN_BACKDROP_RATIO = 1 / 4;
 
 type Timer = {
   TIME_ELAPSED_EXT: number;
@@ -90,7 +99,11 @@ void main() {
     }
   }
   vec2 moved = (bestSample - q) / u_transform.z;
-  bool found = bestTexel.x >= 0.0 && all(lessThan(abs(moved), vec2(31.0)));
+  // Zooming in spreads samples apart, so a filled pixel accepts a distant one. A
+  // hole does not, or one color would creep across it, a pixel per frame.
+  vec2 unusedOffset;
+  bool filled = decodeOffset(texture2D(u_offset, base / u_resolution), unusedOffset);
+  bool found = bestTexel.x >= 0.0 && (filled || best < 1.0) && all(lessThan(abs(moved), vec2(31.0)));
   if (u_writeOffset > 0.5) gl_FragColor = found ? encodeOffset(moved) : vec4(0.0);
   else gl_FragColor = found ? vec4(texture2D(u_color, bestTexel / u_resolution).rgb, 1.0) : vec4(0.0);
 }`;
@@ -134,7 +147,14 @@ uniform vec3 u_backdropTransform;
 uniform float u_backdropValid;
 void main() {
   vec4 color = texture2D(u_color, gl_FragCoord.xy / u_resolution);
-  if (color.a > 0.5) {
+  // Scattered samples with holes around them read as dots, so only a filled
+  // neighborhood shows its pixels. Anywhere else shows the whole soft image.
+  float filled = color.a;
+  filled = min(filled, texture2D(u_color, (gl_FragCoord.xy + vec2(${HOLE_REACH}.0, 0.0)) / u_resolution).a);
+  filled = min(filled, texture2D(u_color, (gl_FragCoord.xy - vec2(${HOLE_REACH}.0, 0.0)) / u_resolution).a);
+  filled = min(filled, texture2D(u_color, (gl_FragCoord.xy + vec2(0.0, ${HOLE_REACH}.0)) / u_resolution).a);
+  filled = min(filled, texture2D(u_color, (gl_FragCoord.xy - vec2(0.0, ${HOLE_REACH}.0)) / u_resolution).a);
+  if (filled > 0.5) {
     gl_FragColor = vec4(color.rgb, 1.0);
     return;
   }
@@ -194,11 +214,16 @@ export function createMandelbrotReuse(
   let moving = false;
   let paintAllowed = true;
   let completedVersion = -1;
-  let query: { handle: object } | null = null;
+  let queries: { handle: object; phases: number }[] = [];
+  // Whole phases are spent; the fraction carries over, so slow views can skip frames.
+  let phaseCredit = 0;
+  // Moving pixels costs GPU time too, so the fractal's share comes from actual frame rate.
+  let movingTarget = 6;
+  let shortestFrame = Number.POSITIVE_INFINITY;
   // The camera and settings the stored pixels are currently arranged for.
   let arranged: Source | null = null;
   let cursor = 0;
-  let phasesPerFrame = 2;
+  let phasesPerFrame = 1;
   let freshPhases = 0;
   let presentations = 0;
   let reprojections = 0;
@@ -422,22 +447,13 @@ export function createMandelbrotReuse(
       gl.colorMask(true, true, true, true);
       gl.depthMask(false);
       gl.depthFunc(gl.LESS);
-      const handle = timer?.createQueryEXT() ?? null;
-      if (handle && timer) {
-        query = { handle };
-        timer.beginQueryEXT(timer.TIME_ELAPSED_EXT, handle);
-      }
-      try {
-        options.paint(snapshot, {
-          width,
-          height,
-          tile: { x: 0, y: 0, width, height },
-          pixelRatio: 1,
-        });
-        paintCalls++;
-      } finally {
-        if (handle && timer) timer.endQueryEXT(timer.TIME_ELAPSED_EXT);
-      }
+      options.paint(snapshot, {
+        width,
+        height,
+        tile: { x: 0, y: 0, width, height },
+        pixelRatio: 1,
+      });
+      paintCalls++;
       gl.bindFramebuffer(gl.FRAMEBUFFER, current.offsetTarget);
       use(solidProgram);
       gl.uniform1f(solidProgram.u.depth, 0);
@@ -472,28 +488,34 @@ export function createMandelbrotReuse(
       presentations++;
       gl.activeTexture(gl.TEXTURE0);
     };
-    const pollTimer = () => {
-      if (!query || !timer) return true;
+    const pollTimers = () => {
+      if (!timer || !queries.length) return;
       if (gl.getParameter(timer.GPU_DISJOINT_EXT)) {
-        timer.deleteQueryEXT(query.handle);
-        query = null;
-        return true;
+        for (const { handle } of queries) timer.deleteQueryEXT(handle);
+        queries = [];
+        return;
       }
-      if (!timer.getQueryObjectEXT(query.handle, timer.QUERY_RESULT_AVAILABLE_EXT)) return false;
-      const ms = Number(timer.getQueryObjectEXT(query.handle, timer.QUERY_RESULT_EXT)) / 1e6;
-      timer.deleteQueryEXT(query.handle);
-      query = null;
-      if (ms > 0 && Number.isFinite(ms)) {
-        const target = moving ? MOVING_TARGET_MS : RESTING_TARGET_MS;
-        phasesPerFrame *= Math.max(0.5, Math.min(2, target / ms));
+      while (queries.length) {
+        const [{ handle, phases }] = queries;
+        if (!timer.getQueryObjectEXT(handle, timer.QUERY_RESULT_AVAILABLE_EXT)) return;
+        const ms = Number(timer.getQueryObjectEXT(handle, timer.QUERY_RESULT_EXT)) / 1e6;
+        timer.deleteQueryEXT(handle);
+        queries.shift();
+        if (ms > 0 && Number.isFinite(ms) && phases > 0) {
+          // Results are frames old, so aim from cost per phase instead of scaling.
+          const target = moving ? movingTarget : RESTING_TARGET_MS;
+          phasesPerFrame = 0.7 * phasesPerFrame + 0.3 * (target / (ms / phases));
+        }
       }
-      return true;
     };
     const paceFromFrames = (timestamp: number) => {
-      if (timer || lastFrame === null || timestamp <= lastFrame) return;
+      if (lastFrame === null || timestamp <= lastFrame) return;
       const interval = timestamp - lastFrame;
-      if (interval > 24) phasesPerFrame /= 2;
-      else if (interval <= 20) phasesPerFrame *= 1.1;
+      shortestFrame = Math.min(shortestFrame, interval);
+      if (!moving) return;
+      if (interval > shortestFrame * 1.4) {
+        movingTarget = Math.max(MIN_MOVING_TARGET_MS, movingTarget * 0.9);
+      } else movingTarget = Math.min(MAX_MOVING_TARGET_MS, movingTarget * 1.02);
     };
     const beginBackdrop = () => {
       if (!latest) return;
@@ -546,18 +568,21 @@ export function createMandelbrotReuse(
       const [x, y, ratio] = transform(latest.state.view, backdrop.source.state.view);
       const size = Math.min(latest.width, latest.height);
       const backdropSize = Math.min(backdrop.width, backdrop.height);
+      // After zooming in, one backdrop texel covers many screen pixels and shows flat color.
+      if (ratio < MIN_BACKDROP_RATIO || ratio > MAX_BACKDROP_RATIO) return true;
       return (
         !Number.isFinite(x + y + ratio) ||
         Math.abs(x) + (ratio * latest.width) / size > (0.5 * backdrop.width) / backdropSize ||
         Math.abs(y) + (ratio * latest.height) / size > (0.5 * backdrop.height) / backdropSize
       );
     };
-    const paintBackdrop = () => {
+    /** Spends up to this many pixels, returning how many it used. */
+    const paintBackdrop = (budget: number) => {
       const image = backdropWork;
-      if (!image.snapshot) return;
+      if (!image.snapshot) return 0;
       gl.bindFramebuffer(gl.FRAMEBUFFER, image.target);
       let pixels = 0;
-      while (image.cursor < image.tiles.length && pixels < BACKDROP_BATCH_PIXELS) {
+      while (image.cursor < image.tiles.length && pixels < budget) {
         const tile = image.tiles[image.cursor++];
         options.paint(image.snapshot, {
           width: image.width,
@@ -574,6 +599,7 @@ export function createMandelbrotReuse(
         backdropWork.snapshot = null;
         backdropWork.source = null;
       }
+      return pixels;
     };
     const renderFrame = (timestamp: number) => {
       frame = 0;
@@ -591,23 +617,39 @@ export function createMandelbrotReuse(
         freshPhases = 0;
       }
       arranged = capture(latest);
-      const timerFree = pollTimer();
-      if (paintAllowed) {
-        if (backdropDue()) beginBackdrop();
-        paintBackdrop();
-        if (timerFree && freshPhases < PHASES) {
-          phasesPerFrame = Math.max(1, Math.min(PHASES, phasesPerFrame));
-          const count = Math.min(PHASES - freshPhases, Math.round(phasesPerFrame));
-          refresh(
-            {
-              ...latest,
-              state: {
-                ...latest.state,
-                config: { ...latest.state.config, iterations: latest.iterations },
+      pollTimers();
+      if (paintAllowed && queries.length < MAX_PENDING_QUERIES) {
+        phasesPerFrame = Math.max(1 / 8, Math.min(PHASES, phasesPerFrame));
+        phaseCredit = Math.min(PHASES, phaseCredit + phasesPerFrame);
+        const phasePixels = (width * height) / PHASES;
+        const handle = timer?.createQueryEXT() ?? null;
+        if (handle && timer) timer.beginQueryEXT(timer.TIME_ELAPSED_EXT, handle);
+        let spent = 0;
+        try {
+          // The soft image comes first, since it is what keeps holes from showing.
+          if (backdropDue()) beginBackdrop();
+          spent = paintBackdrop(phaseCredit * phasePixels) / phasePixels;
+          phaseCredit -= spent;
+          const count = Math.min(PHASES - freshPhases, Math.floor(Math.max(0, phaseCredit)));
+          if (count > 0) {
+            phaseCredit -= count;
+            spent += count;
+            refresh(
+              {
+                ...latest,
+                state: {
+                  ...latest.state,
+                  config: { ...latest.state.config, iterations: latest.iterations },
+                },
               },
-            },
-            count,
-          );
+              count,
+            );
+          }
+        } finally {
+          if (handle && timer) {
+            timer.endQueryEXT(timer.TIME_ELAPSED_EXT);
+            queries.push({ handle, phases: spent });
+          }
         }
       }
       present();
@@ -616,15 +658,15 @@ export function createMandelbrotReuse(
         completedVersion = latest.version;
         options.complete(latest.version);
       }
-      if (query || backdropWork.snapshot || (paintAllowed && !done)) schedule();
+      if (queries.length || backdropWork.snapshot || (paintAllowed && !done)) schedule();
       else lastFrame = null;
     };
     const destroy = () => {
       if (destroyed) return;
       destroyed = true;
       cancelAnimationFrame(frame);
-      if (query && timer) timer.deleteQueryEXT(query.handle);
-      query = null;
+      if (timer) for (const { handle } of queries) timer.deleteQueryEXT(handle);
+      queries = [];
       for (const dispose of release.reverse()) dispose();
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.activeTexture(gl.TEXTURE0);
@@ -641,7 +683,10 @@ export function createMandelbrotReuse(
     return {
       update(snapshot: MotionSnapshot, isMoving: boolean, canPaint = true) {
         if (destroyed) return;
-        if (isMoving && !moving) phasesPerFrame = Math.min(phasesPerFrame, 4);
+        if (isMoving && !moving) {
+          phasesPerFrame = Math.min(phasesPerFrame, 4);
+          phaseCredit = 0;
+        }
         latest = {
           ...capture(snapshot),
           orbitView: snapshot.orbitView ? { ...snapshot.orbitView } : null,
@@ -658,9 +703,15 @@ export function createMandelbrotReuse(
           paintedPhases,
           freshPhases,
           phasesPerFrame,
+          movingTarget,
           latestVersion: latest?.version ?? null,
           nativeCompleted: latest !== null && completedVersion === latest.version,
-          queryPending: query !== null,
+          queryPending: queries.length > 0,
+          backdropRatio:
+            latest && backdrop.source
+              ? transform(latest.state.view, backdrop.source.state.view)[2]
+              : null,
+          backdropPainting: backdropWork.snapshot !== null,
         };
       },
       destroy,

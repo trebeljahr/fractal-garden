@@ -14,7 +14,7 @@ require.extensions[".ts"] = (module, filename) => {
 const { createMandelbrotReuse, PHASES } = require("../utils/deepZoom/reuse.ts");
 const { createViewportAtLog, zoomViewport } = require("../utils/deepZoom/math.ts");
 
-function harness(run) {
+function harness(run, backdrop = false) {
   const saved = [globalThis.requestAnimationFrame, globalThis.cancelAnimationFrame];
   const frames = new Map();
   let serial = 0;
@@ -74,6 +74,7 @@ function harness(run) {
     height,
   };
   const motion = createMandelbrotReuse(gl, {
+    backdrop,
     paint(source, target) {
       paints.push({ source, target, depthTest });
     },
@@ -134,11 +135,12 @@ test("moving the camera moves stored pixels and starts a new cycle", () =>
     h.update(false);
     h.flush();
     const clears = h.clears;
+    const moved = h.motion.getStats().reprojections;
     const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -20.2, 0, 0) };
     h.update(true, { state, version: 2 });
     h.tick();
     const stats = h.motion.getStats();
-    assert.equal(stats.reprojections, 1);
+    assert.equal(stats.reprojections, moved + 1);
     assert.equal(h.clears, clears, "stored pixels are kept");
     assert.ok(stats.freshPhases < PHASES);
     assert.deepEqual(h.completions, [1], "moving never reports completion");
@@ -153,10 +155,11 @@ test("a camera without a usable reference still moves pixels but calculates none
     h.update(false);
     h.flush();
     const painted = h.paints.length;
+    const moved = h.motion.getStats().reprojections;
     const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -21, 0, 0) };
     h.update(true, { state, version: 2 }, false);
     h.tick();
-    assert.equal(h.motion.getStats().reprojections, 1);
+    assert.equal(h.motion.getStats().reprojections, moved + 1);
     assert.equal(h.paints.length, painted);
   }));
 
@@ -165,6 +168,7 @@ test("a color change forgets stored pixels", () =>
     h.update(false);
     h.flush();
     const clears = h.clears;
+    const moved = h.motion.getStats().reprojections;
     const state = {
       ...h.snapshot.state,
       config: { ...h.snapshot.state.config, palette: "fire" },
@@ -172,5 +176,31 @@ test("a color change forgets stored pixels", () =>
     h.update(false, { state, version: 2 });
     h.tick();
     assert.ok(h.clears > clears);
-    assert.equal(h.motion.getStats().reprojections, 0);
+    assert.equal(h.motion.getStats().reprojections, moved);
   }));
+
+const isSoft = ({ target }) => target.pixelRatio < 1;
+
+test("the soft image is replaced after zooming in and after zooming out", () => {
+  for (const log of [-23, -18])
+    harness((h) => {
+      h.update(false);
+      h.flush();
+      assert.ok(h.paints.some(isSoft));
+      const before = h.paints.length;
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, log, 0, 0) };
+      h.update(true, { state, version: 2 });
+      h.tick();
+      assert.ok(h.paints.slice(before).some(isSoft), `stale soft image at ${log}`);
+    }, true);
+});
+
+test("the soft image stays within the frame's budget", () =>
+  harness((h) => {
+    h.update(true);
+    h.tick();
+    const soft = h.paints.filter(isSoft);
+    const area = soft.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0);
+    assert.ok(area > 0 && area < (640 * 360) / PHASES + 64 * 64);
+    assert.ok(h.motion.getStats().backdropPainting);
+  }, true));
