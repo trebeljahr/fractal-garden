@@ -90,3 +90,12 @@ export function paintStroke(grid: PaintGrid, from: ComplexPoint, to: ComplexPoin
   }
   return changed;
 }
+
+export function paintRow(grid: PaintGrid, row: number) {
+  const changed: number[] = [];
+  for (let column = 0; column < grid.columns; column++) {
+    const index = testCell(grid, column, row);
+    if (index >= 0) changed.push(index);
+  }
+  return changed;
+}

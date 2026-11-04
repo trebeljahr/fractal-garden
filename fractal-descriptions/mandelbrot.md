@@ -22,7 +22,7 @@ Move your pointer across the plane, or slide sideways on a phone. Some numbers p
 
 Now color in the plane. This one is zoomed in, so the dashed circle is out of view. Move your pointer over it, or slide sideways on a phone. Near your pointer, each number gets tested: it turns dark if the point stays within two units of zero for 300 jumps, and stays blank if the point goes farther.
 
-Keep going until the dark area stops growing. That shape is the Mandelbrot set.
+Press **Draw the rest** to test every number. The dark shape is the Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 

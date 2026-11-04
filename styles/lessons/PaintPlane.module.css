@@ -3,10 +3,14 @@
   gap: 1rem;
   margin-top: 1rem;
 }
+.lesson .wrap {
+  display: contents;
+}
 .lesson p {
   margin: 0;
 }
-.lesson > * {
+.lesson > *,
+.wrap > * {
   min-width: 0;
 }
 @media (min-width: 800px) {
@@ -20,7 +24,8 @@
     grid-row: 1 / span 4;
     align-self: start;
   }
-  .lesson > * {
+  .lesson > :not(.wrap),
+  .lesson .actions {
     grid-column: 2;
   }
 }
@@ -46,6 +51,12 @@ button.plane.plane {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
 }
 .readout {
   font-variant-numeric: tabular-nums;

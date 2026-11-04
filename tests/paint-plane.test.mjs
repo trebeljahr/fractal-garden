@@ -4,6 +4,7 @@ import {
   createGrid,
   crossingJump,
   paintDab,
+  paintRow,
   paintStroke,
   STAYED,
   UNTESTED,
@@ -48,9 +49,9 @@ test("a fast stroke leaves no gap between its ends", () => {
   }
 });
 
-test("testing every cell gives the Mandelbrot set's area", () => {
+test("testing every row gives the Mandelbrot set's area", () => {
   const grid = createGrid(BOUNDS, 280);
-  paintDab(grid, { real: 0, imaginary: 0 }, 10);
+  for (let row = 0; row < grid.rows; row++) paintRow(grid, row);
   assert.ok(grid.steps.every((step) => step !== UNTESTED));
   let dark = 0;
   for (const step of grid.steps) if (step === STAYED) dark++;
@@ -58,11 +59,11 @@ test("testing every cell gives the Mandelbrot set's area", () => {
   assert.ok(Math.abs(dark / (1.5066 * 2500) - 1) < 0.06, String(dark));
 });
 
-test("the zoomed plane holds the whole set", () => {
-  const [left, right, bottom, top] = [-2.25, 0.85, -1.2, 1.2];
-  const grid = createGrid([left, right, bottom, top], 868);
-  assert.equal(grid.rows, 672);
-  paintDab(grid, { real: 0, imaginary: 0 }, 10);
+test("the zoomed plane holds the whole set at the same proportions", () => {
+  const half = (3.1 * 2.2) / 5.6;
+  const grid = createGrid([-2.25, 0.85, -half, half], 560);
+  assert.equal(grid.rows, 440);
+  for (let row = 0; row < grid.rows; row++) paintRow(grid, row);
   for (let column = 0; column < grid.columns; column++) {
     assert.notEqual(grid.steps[column], STAYED);
     assert.notEqual(grid.steps[(grid.rows - 1) * grid.columns + column], STAYED);
