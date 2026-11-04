@@ -25,7 +25,10 @@ export type ConstructionLead = {
   /** Settings only the figure has. The explorer above it never sees them. */
   initial?: Record<string, unknown>;
   control: LeadControl;
-  readout: (view: Record<string, unknown>, level: number) => { label: string; value: string }[];
+  readout: (
+    view: Record<string, unknown>,
+    level: number,
+  ) => { label: string; value: string; tint?: string }[];
   /** A drawing laid over a GPU figure, which follows its camera. */
   overlay?: ComponentType<ConstructionOverlayProps>;
 };

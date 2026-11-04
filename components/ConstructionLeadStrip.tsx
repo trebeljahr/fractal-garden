@@ -59,7 +59,7 @@ export function ConstructionLeadStrip({
         {lead.readout(view, level).map((row) => (
           <div key={row.label}>
             <dt>{row.label}</dt>
-            <dd>{row.value}</dd>
+            <dd style={{ color: row.tint }}>{row.value}</dd>
           </div>
         ))}
       </dl>

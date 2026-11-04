@@ -1,5 +1,6 @@
 import type { ConstructionView } from "../constructionView";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
+import { strokePasses, TIMES_DRAWN_TINTS, timesDrawnTint } from "../lessons/timesDrawn";
 import { viewRotation } from "../orientation";
 import type { Playback } from "./playback";
 
@@ -72,15 +73,20 @@ export function preparePlaybackDrawing(
   // Cache finished chunks. Each animation frame builds at most one small tail.
   const chunkSize = 256;
   const chunks = new Map<number, Map<number, Path2D>>();
-  const tints = view.copies === "seven" ? GOSPER_COPY_TINTS : null;
-  const tintOf = (line: number) =>
-    tints ? tints[Math.floor((line * tints.length) / geometry.count)] : view.color;
+  const passes =
+    view.timesDrawn === "tint" ? strokePasses(geometry.positions, geometry.count) : null;
+  const tints = passes ? TIMES_DRAWN_TINTS : view.copies === "seven" ? GOSPER_COPY_TINTS : null;
+  const tintSlot = (line: number) =>
+    passes
+      ? timesDrawnTint(passes[line])
+      : Math.floor((line * (tints as string[]).length) / geometry.count);
+  const tintOf = (line: number) => (tints ? tints[tintSlot(line)] : view.color);
   const lines = (start: number, end: number) => {
     const paths = new Map<number, Path2D>();
     for (let i = start; i < end; i++) {
       // Lines that share a weight and a tint are stroked together.
       const weight = tints
-        ? 1 + Math.floor((i * tints.length) / geometry.count)
+        ? 1 + tintSlot(i)
         : geometry.widths[i] * (model.repeat === 2 && i >= geometry.count / 2 ? -1 : 1);
       let path = paths.get(weight);
       if (!path) {
@@ -129,31 +135,40 @@ export function preparePlaybackDrawing(
     ctx.setLineDash([]);
     ctx.strokeStyle = view.color;
     ctx.lineCap = "round";
-    const stroke = (paths: Map<number, Path2D>) =>
-      paths.forEach((path, weight) => {
-        ctx.strokeStyle = tints
-          ? tints[weight - 1]
-          : model.repeat === 2
-            ? String(
-                weight < 0 ? (view.secondDragon ?? view.color) : (view.firstDragon ?? view.color),
-              )
-            : view.color;
-        ctx.lineWidth = Math.max(0.5, view.lineWidth * (tints ? 1 : Math.abs(weight)));
-        ctx.stroke(path);
-      });
+    const stroke = (path: Path2D, weight: number) => {
+      ctx.strokeStyle = tints
+        ? tints[weight - 1]
+        : model.repeat === 2
+          ? String(
+              weight < 0 ? (view.secondDragon ?? view.color) : (view.firstDragon ?? view.color),
+            )
+          : view.color;
+      ctx.lineWidth = Math.max(0.5, view.lineWidth * (tints ? 1 : Math.abs(weight)));
+      ctx.stroke(path);
+    };
     const settled = Math.min(before, count);
     const whole = Math.floor(settled / chunkSize) * chunkSize;
+    const batches: Map<number, Path2D>[] = [];
     for (let start = 0; start < whole; start += chunkSize) {
       let chunk = chunks.get(start);
       if (!chunk) {
         chunk = lines(start, start + chunkSize);
         chunks.set(start, chunk);
       }
-      stroke(chunk);
+      batches.push(chunk);
     }
-    stroke(lines(whole, settled));
+    batches.push(lines(whole, settled));
+    if (count > before) batches.push(lines(before, count - 1));
+    if (passes) {
+      // Most-drawn lines go on top, so a neighbor the pen drew later can't hide them.
+      TIMES_DRAWN_TINTS.forEach((_, slot) => {
+        for (const paths of batches) {
+          const path = paths.get(slot + 1);
+          if (path) stroke(path, slot + 1);
+        }
+      });
+    } else for (const paths of batches) paths.forEach(stroke);
     if (count > before) {
-      stroke(lines(before, count - 1));
       const i = count - 1;
       ctx.beginPath();
       ctx.moveTo(projected[i * 4], projected[i * 4 + 1]);

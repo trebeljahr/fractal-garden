@@ -2,6 +2,7 @@ import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { timesDrawnLead } from "../../utils/lessons/timesDrawn";
 import { getDescription } from "../../utils/readFiles";
 
 export async function getStaticProps() {
@@ -12,6 +13,8 @@ export async function getStaticProps() {
     },
   };
 }
+
+const CRYSTAL_LEAD = timesDrawnLead("F+F+F+F", "FF+F++F+F", { gaps: true });
 
 type Props = {
   description: string;
@@ -37,7 +40,7 @@ const Crystal = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={crystal} />
+        <LSystem ruleset={crystal} constructionLead={CRYSTAL_LEAD} />
         <SideDrawer description={description} />
 
         <NavElement />
