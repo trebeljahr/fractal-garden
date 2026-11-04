@@ -77,6 +77,10 @@ figure button.wide {
 figure button.wide:active {
   cursor: crosshair;
 }
+figure button.pick,
+figure button.pick:active {
+  cursor: crosshair;
+}
 .layout .sum {
   margin: 0 0 1rem;
   font-size: 1.4rem;

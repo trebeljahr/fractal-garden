@@ -7,6 +7,7 @@ import { SideDrawer } from "../components/SideDrawer";
 import styles from "../styles/Fullscreen.module.css";
 import { useFractalRenderer } from "../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
+import { VICSEK_LEAD } from "../utils/lessons/vicsekJoins";
 import { getDescription } from "../utils/readFiles";
 import { VICSEK_OFFSETS, type VicsekVariant } from "../utils/render/drawings/vicsekFractal2D";
 
@@ -53,6 +54,7 @@ const VicsekFractal2D = ({ description }: Props) => {
     width,
     height,
     max: MAX_ITERATIONS,
+    constructionLead: VICSEK_LEAD,
   });
 
   const handleUpdate = (newData: Config) => {
