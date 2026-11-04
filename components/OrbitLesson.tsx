@@ -61,11 +61,18 @@ const DEFAULTS: Record<OrbitKind, ComplexPoint> = {
   cactus: { real: 0.3, imaginary: 0 },
   "barnsley-tree": { real: 0.9, imaginary: 0.6 },
 };
-// Each view shows its whole escape circle.
+// Each view shows its whole escape circle, except the Mandelbrot view, which shows the set.
 const VIEW = { left: -2.8, right: 2.8, bottom: -2.2, top: 2.2 };
+const MANDELBROT_HALF_HEIGHT = (3.1 * 2.2) / 5.6;
+const MANDELBROT_VIEW = {
+  left: -2.25,
+  right: 0.85,
+  bottom: -MANDELBROT_HALF_HEIGHT,
+  top: MANDELBROT_HALF_HEIGHT,
+};
 const WIDE_VIEW = { left: -3.4, right: 3.4, bottom: -2.7, top: 2.7 };
 const VIEWS: Record<OrbitKind, typeof VIEW> = {
-  mandelbrot: VIEW,
+  mandelbrot: MANDELBROT_VIEW,
   julia: VIEW,
   "burning-ship": VIEW,
   mandelbar: VIEW,
@@ -188,13 +195,16 @@ export const CoordinateGrid = memo(function CoordinateGrid({
   height: number;
   flip: boolean;
   view: typeof VIEW;
-  radius: number;
+  /** The escape circle to draw, or nothing for none. */
+  radius?: number;
 }) {
   const scale = width / (view.right - view.left);
-  const originX = width / 2;
+  const originX = -view.left * scale;
   const originY = height / 2;
   // Stop short of the edge so a tick label is never cut in half.
-  const across = halves(view.right - 0.1);
+  const across = halves(Math.max(-view.left, view.right) - 0.1).filter(
+    (value) => value > view.left + 0.1 && value < view.right - 0.1,
+  );
   const down = halves(view.top - 0.1);
   const px = (value: number) => originX + value * scale;
   const py = (value: number) => originY + (flip ? value : -value) * scale;
@@ -217,7 +227,9 @@ export const CoordinateGrid = memo(function CoordinateGrid({
         />
       ))}
       <path d={`M0 ${originY}H${width}M${originX} 0V${height}`} className={styles.axis} />
-      <circle cx={originX} cy={originY} r={radius * scale} className={styles.escapeCircle} />
+      {radius !== undefined && (
+        <circle cx={originX} cy={originY} r={radius * scale} className={styles.escapeCircle} />
+      )}
       {across
         .filter((value) => unit(value) || showHalves)
         .map((value) => (
@@ -378,10 +390,10 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     : loop
       ? repeatOutcome(max, loop, landsExactly(orbit, loop), gap ?? 1)
       : !crossed
-        ? `Still inside the dashed circle after ${max} jumps. It could still leave.`
+        ? `Still ${kind === "mandelbrot" ? "within two units of zero" : "inside the dashed circle"} after ${max} jumps. It could still leave.`
         : max === 0
-          ? "Already outside the dashed circle."
-          : `Crossed the dashed circle on jump ${max}.`;
+          ? `Already ${kind === "mandelbrot" ? "more than two units from zero" : "outside the dashed circle"}.`
+          : `${kind === "mandelbrot" ? "Went past two units from zero" : "Crossed the dashed circle"} on jump ${max}.`;
   const title = STARTS_AT_PIXEL.includes(kind) ? "Follow one starting point" : "Follow one pixel";
   const rule =
     RULES[kind] ??
@@ -535,7 +547,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
                 height={height}
                 flip={flip}
                 view={view}
-                radius={radius}
+                radius={kind === "mandelbrot" ? undefined : radius}
               />
               {trail}
               {landings.map(({ iteration, at, fresh }) => (

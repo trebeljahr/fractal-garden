@@ -10,7 +10,6 @@ const LinkedJuliaLesson = dynamic(() => import("./lessons/LinkedJuliaLesson"));
 const JuliaAttractorLesson = dynamic(() => import("./lessons/JuliaAttractorLesson"));
 const SquareLineLesson = dynamic(() => import("./lessons/SquareLineLesson"));
 const OrbitPlaneLesson = dynamic(() => import("./lessons/OrbitPlaneLesson"));
-const PaintLesson = dynamic(() => import("./lessons/PaintLesson"));
 const OrbitShapesLesson = dynamic(() =>
   import("./lessons/PaintLesson").then((lesson) => lesson.OrbitShapesLesson),
 );
@@ -73,7 +72,6 @@ const LESSONS = [
   "orbits-squaring",
   "orbits-adding",
   "orbit-shapes",
-  "paint-mandelbrot",
   "julia-map",
   "mandelbrot-zoom-map",
   "mandelbrot-julia-zoom",
@@ -157,8 +155,6 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <OrbitPlaneLesson adding />;
     case "orbit-shapes":
       return <OrbitShapesLesson />;
-    case "paint-mandelbrot":
-      return <PaintLesson />;
     case "julia-map":
       return <JuliaMapLesson />;
     case "mandelbrot-zoom-map":

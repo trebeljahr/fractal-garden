@@ -22,17 +22,11 @@ and you're trapped between those two numbers forever. The Mandelbrot set is all 
 
 To draw it, each pixel needs its own $c$, and because a pixel has two coordinates, $c$ needs two parts, which makes it a **complex number**. Adding $c$ moves a point sideways and up or down, and squaring multiplies the point's distance from zero by itself and doubles its angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-In the demo below, the ring is $c$, the point starts at zero, and each dot is one more use of the rule, so the dots trace the point's route. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> which means it has flown off. If you drag the ring around, some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle.
+In the demo below, the ring is $c$, the point starts at zero, and each dot is one more use of the rule, so the dots trace the point's route. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> which means it has flown off. If you move your pointer around the plane, the ring follows it, and some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle.
 
 <figure data-lesson="orbit-shapes"></figure>
 
-That gives us a way to draw the set: test each $c$, and color it dark if its point stays inside the circle. The plane below sits closer in, so the circle is out of view. Moving your pointer over it, or sliding sideways on a phone, tests the values nearby, and each one turns dark if its point stays within two units of zero for 300 jumps.
-
-**Draw the rest** tests every value, and the dark shape you end up with is the Mandelbrot set.
-
-<figure data-lesson="paint-mandelbrot"></figure>
-
-This is the finished picture, and every pixel in it still has a route you can follow. The ring starts on $c=-1$, so click it to see the repeat from earlier, then pick a pixel near $c=1$ on the horizontal axis to see the amber point fly off.
+That gives us a way to draw the set: test the $c$ of every pixel, and color the pixel black if its point stays inside the circle. Doing that gives the shape below, and every pixel in it still has a route you can follow. The ring starts on $c=-1$, so click it to see the repeat from earlier, then pick a pixel near $c=0.5$ on the horizontal axis to see the amber point fly off.
 
 <figure data-orbit="mandelbrot"></figure>
 
