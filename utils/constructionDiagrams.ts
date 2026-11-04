@@ -62,9 +62,6 @@ export function kochEdge(step: number): Point[] {
   return points;
 }
 
-/** One route's length if followed forever, in trunks: 1 + r + r² + ... */
-export const canopyRouteLimit = (ratio: number) => 1 / (1 - ratio);
-
 export function canopyBranches(step: number, angle: number, ratio: number): Branch[] {
   const branches: Branch[] = [];
   function grow(start: Point, heading: number, length: number, depth: number) {

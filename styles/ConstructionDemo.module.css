@@ -2,6 +2,7 @@
   --diagram-bg: #10151a;
   --diagram-ink: #eee8ce;
   --diagram-accent: #f5c56d;
+  --diagram-route: #78c0f5;
   margin: 2.5rem 0;
   padding: 1.5rem 0;
   border-top: 1px solid #eee8ce40;
@@ -45,6 +46,15 @@
 .line {
   stroke: var(--diagram-ink);
   stroke-width: 2;
+}
+.route {
+  stroke: var(--diagram-route);
+  stroke-width: 0.018;
+}
+.centerLine {
+  stroke: #eee8ce88;
+  stroke-width: 0.008;
+  stroke-dasharray: 0.04 0.04;
 }
 .newLine {
   stroke: var(--diagram-accent);
@@ -120,7 +130,31 @@
 }
 .angle span {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+}
+.angle .touchRatio {
+  gap: 1rem;
+}
+.touchRatio button {
+  color: inherit;
+  background: transparent;
+  border: 1px solid #eee8ce70;
+  padding: 0.4rem 0.8rem;
+  min-height: 36px;
+  cursor: pointer;
+  font: inherit;
+}
+.touchRatio button:hover:not(:disabled) {
+  background: #f5c56d22;
+}
+.touchRatio button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.touchRatio button:focus-visible {
+  outline: 2px solid var(--diagram-accent);
+  outline-offset: 4px;
 }
 @media (max-width: 600px) {
   .explanation {
