@@ -87,3 +87,68 @@ figure button.pick:active {
   color: #eee8cebb;
   font-variant-numeric: tabular-nums;
 }
+figure fieldset.digitRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin: 1rem 0;
+}
+.digitPlace {
+  display: inline-flex;
+  align-items: flex-end;
+}
+.digitPoint {
+  width: 1rem;
+  text-align: center;
+  font-size: 2rem;
+  line-height: 3rem;
+}
+figure .digitRow button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 2.6rem;
+  min-width: 0;
+  min-height: 44px;
+  padding: 3px 0;
+  border: 1px solid #eee8ce40;
+  background: transparent;
+  color: #f2efde;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+figure .digitRow button svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  background: none;
+}
+figure .digitRow button:hover {
+  border-color: #f5c56d;
+  background: transparent;
+}
+figure .digitRow button[aria-pressed="true"] {
+  border-color: #f2efde;
+  background: #f2efde24;
+}
+figure .digitRow button.wholeDigit {
+  color: #7fd8e8;
+}
+figure .digitRow button.wholeDigit[aria-pressed="true"] {
+  border-color: #7fd8e8;
+  background: #7fd8e824;
+}
+.digitStage {
+  max-width: 62vh;
+  margin: 0 auto;
+}
+.digitCount {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 62vh;
+  margin: 1rem auto 0;
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}

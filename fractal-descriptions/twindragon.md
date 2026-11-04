@@ -6,11 +6,25 @@ The second curve starts at the first curve's end and finishes at its start. The 
 
 <figure data-construction-player="twindragon"></figure>
 
-Each path follows the same dragon rules. Every step doubles its segment count. The two colors distinguish the original copy from the rotated copy.
+The two colors show the original copy and the rotated copy.
 
-The infinite paths cover a region, including its interior. Copies of that region fit together to cover the plane.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup> The tiling view repeats the paired curves in two perpendicular directions.
+Finite paths leave gaps. Raising the level makes the segments smaller and the gaps harder to see. The infinite paths fill a whole region, including its interior.<sup><a id="twindragon-ref-1" href="#twindragon-source-1">1</a></sup>
 
-Finite paths leave gaps inside each repeated region. Increasing the level makes the segments smaller and the gaps harder to see. The completely filled tile describes the infinite limit.
+Choose **Tiling** and raise the level. The copies use every line of a square mesh exactly once.<sup><a id="twindragon-ref-2" href="#twindragon-source-2">2</a></sup> In the infinite limit, copies of the filled region, shifted along a square grid, cover the plane without gaps or overlaps.<sup><a id="twindragon-ref-3" href="#twindragon-source-1">1</a></sup> The reason these jagged edges fit comes from a way of writing numbers.
+
+In ordinary binary, the digits are 0 and 1, and each place is worth half the place to its left. Every number is a whole part plus a fraction. The fractions fill the stretch from 0 to 1. So a copy of that stretch at every whole number covers the whole line.
+
+Now write positions on a plane instead of numbers on a line. Each place is a step: digit 1 takes it, digit 0 skips it. Each place to the right is a step 0.71 times as long, turned 135 degrees counterclockwise. The small arrow on each digit shows which way its step points.
+
+<figure data-lesson="twindragon-digits"></figure>
+
+Press a digit to flip it, or point at a spot to read its digits. With enough digits after the point, the spots you can reach fill a tile in the twindragon's shape.<sup><a id="twindragon-ref-4" href="#twindragon-source-1">1</a></sup> It is the same shape the two dragons fill here.<sup><a id="twindragon-ref-5" href="#twindragon-source-3">3</a></sup>
+
+Now raise **Whole digits**. The digit just before the point is one grid step straight up. Each place to its left is 1.41 times as long, turned 135 degrees clockwise. Each new digit doubles the number of tiles, and the new tiles land on empty grid points. Together they make the same shape again, larger. The dots mark the grid points, where all the fraction digits are 0.
+
+Every grid point on the plane has exactly one row of whole digits, so this system needs no minus sign.<sup><a id="twindragon-ref-6" href="#twindragon-source-1">1</a></sup> Moving the point to the left puts the same rows on a finer, turned copy of the grid, so rows of digits get as close as you like to any spot. Every spot is therefore a grid point plus a fraction, and a copy of the fraction shape at each grid point covers the plane. The twindragon does the job of the stretch from 0 to 1.
+
+A spot on the edge between tiles has more than one row of digits, the same way 0.1111… and 1.0000… name one number in binary.<sup><a id="twindragon-ref-7" href="#twindragon-source-1">1</a></sup>
 
 ## Further exploring
 
@@ -18,7 +32,10 @@ Finite paths leave gaps inside each repeated region. Increasing the level makes 
 - [Twindragon — MathWorld](https://mathworld.wolfram.com/Twindragon.html)
 - [Twindragon — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/twindragon.htm)
 - [Twindragon Boundary — Larry Riddle](https://larryriddle.agnesscott.org/ifs/heighway/twindragonBoundary.htm)
+- [Base −1 ± i — Wikipedia](https://en.wikipedia.org/wiki/Complex-base_system#Base_%E2%88%921_%C2%B1_i)
 
 ## Sources and notes
 
-1. <span id="twindragon-source-1"></span> Tobey Mathis and Kiko Kawamura, [Revolving sequences and Terdragon](https://arxiv.org/html/2106.10549), arXiv:2106.10549, 2021. Section 1 gives the Twindragon’s two-map complex representation. Donald Knuth’s [Recreational Computer Science](https://cs.stanford.edu/~knuth/recreational-cs.pdf), Joint Mathematics Meetings lecture slides, 2024, describes the binary complex-base digit tile. [Back](#twindragon-ref-1)
+1. <span id="twindragon-source-1"></span> [The Fractal Dimension of Sets Derived from Complex Bases](https://doi.org/10.4153/CMB-1986-078-1). [Back](#twindragon-ref-1) [Back](#twindragon-ref-3) [Back](#twindragon-ref-4) [Back](#twindragon-ref-6) [Back](#twindragon-ref-7)
+2. <span id="twindragon-source-2"></span> Calculation. Checked for levels 1 to 12 by listing the lines each copy draws. [Back](#twindragon-ref-2)
+3. <span id="twindragon-source-3"></span> Calculation. The steps above are base −1 − i, whose tile is the mirror image of the published base −1 + i tile. Put the first dragon's ends at (0, 0) and (1, 0), and start the steps at (0.6, 0.2) with the place before the point one unit up. At level 14, every corner of the drawing lies within 0.004 of a 16-digit fraction, and every 16-digit fraction lies within 0.004 of a corner. [Back](#twindragon-ref-5)

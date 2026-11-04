@@ -57,6 +57,7 @@ const HTreeRouteLesson = dynamic(() => import("./lessons/HTreeRouteLesson"));
 const NFlakeOutlineLesson = dynamic(() => import("./lessons/NFlakeOutlineLesson"));
 const JerusalemFitLesson = dynamic(() => import("./lessons/JerusalemFitLesson"));
 const VicsekJoinsLesson = dynamic(() => import("./lessons/VicsekJoinsLesson"));
+const TwindragonDigitsLesson = dynamic(() => import("./lessons/TwindragonDigitsLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -112,6 +113,7 @@ const LESSONS = [
   "n-flake-outline",
   "jerusalem-fit",
   "vicsek-joins",
+  "twindragon-digits",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -226,5 +228,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <JerusalemFitLesson />;
     case "vicsek-joins":
       return <VicsekJoinsLesson />;
+    case "twindragon-digits":
+      return <TwindragonDigitsLesson />;
   }
 }

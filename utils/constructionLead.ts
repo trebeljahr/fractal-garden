@@ -14,7 +14,7 @@ export type LeadControl =
       kind: "options";
       path: string;
       label: string;
-      options: { value: string; label: string }[];
+      options: { value: string | boolean; label: string }[];
     };
 
 /**

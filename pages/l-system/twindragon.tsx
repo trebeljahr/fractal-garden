@@ -8,6 +8,7 @@ import styles from "../../styles/Fullscreen.module.css";
 import { TWINDRAGON_TILING_CONSTRUCTION_MAX } from "../../utils/constructionLimits";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { TWINDRAGON_LEAD } from "../../utils/lessons/twindragonDigits";
 import { fittedFrame } from "../../utils/lsystem/pageZoom";
 import {
   TILING_PADDING,
@@ -61,6 +62,7 @@ const Twindragon = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 900,
     holdDelay: 1800,
+    constructionLead: TWINDRAGON_LEAD,
   });
 
   const { firstDragon, secondDragon, background, lineWidth, showTiling } = config;

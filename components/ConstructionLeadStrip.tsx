@@ -12,7 +12,7 @@ export function ConstructionLeadStrip({
   lead: ConstructionLead;
   view: ConstructionView;
   level: number;
-  onChange: (path: string, value: number | string) => void;
+  onChange: (path: string, value: number | string | boolean) => void;
 }) {
   const { control } = lead;
   const value = view[control.path];
@@ -45,7 +45,7 @@ export function ConstructionLeadStrip({
         <fieldset className={styles.leadOptions} aria-label={control.label}>
           {control.options.map((option) => (
             <button
-              key={option.value}
+              key={option.label}
               type="button"
               aria-pressed={value === option.value}
               onClick={() => onChange(control.path, option.value)}

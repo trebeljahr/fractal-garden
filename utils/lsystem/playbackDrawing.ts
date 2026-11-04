@@ -67,12 +67,19 @@ export function preparePlaybackDrawing(
     );
   const projected = new Float32Array(geometry.count * 4);
   const ghost = new Path2D();
+  // The twin dragons' two paths, for the copies in the tiling.
+  const halves = [new Path2D(), new Path2D()];
   for (let i = 0; i < geometry.count; i++) {
     const a = point(i * 6),
       b = point(i * 6 + 3);
     projected.set([a[0], a[1], b[0], b[1]], i * 4);
     ghost.moveTo(a[0], a[1]);
     ghost.lineTo(b[0], b[1]);
+    if (model.repeat === 2) {
+      const half = halves[i < geometry.count / 2 ? 0 : 1];
+      half.moveTo(a[0], a[1]);
+      half.lineTo(b[0], b[1]);
+    }
   }
   let notchRoom: Path2D | null = null;
   // Past this the triangles are smaller than the line's width, and filling them stalls the page.
@@ -168,13 +175,17 @@ export function preparePlaybackDrawing(
         Math.ceil(Math.max(width, height) / Math.max(1, Math.hypot(dx, dy))) + 1,
       );
       ctx.save();
-      ctx.globalAlpha = 0.4;
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 0.35;
       for (let a = -range; a <= range; a++)
         for (let b = -range; b <= range; b++) {
           if (!a && !b) continue;
           ctx.save();
           ctx.translate(a * dx - b * dy, a * dy + b * dx);
-          ctx.stroke(ghost);
+          ctx.strokeStyle = String(view.firstDragon ?? view.color);
+          ctx.stroke(halves[0]);
+          ctx.strokeStyle = String(view.secondDragon ?? view.color);
+          ctx.stroke(halves[1]);
           ctx.restore();
         }
       ctx.restore();
