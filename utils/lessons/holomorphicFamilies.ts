@@ -59,19 +59,6 @@ export const FAMILY_RULES: FamilyRule[] = [
   },
   {
     shader: 2,
-    name: "z³ + c",
-    free: "value of c",
-    start: "starting point",
-    whole: { center: point(0, 0), half: 1.7 },
-    startsHalf: 1.6,
-    startsCloseHalf: 1.6,
-    places: [
-      { name: "A", at: point(0.26456, 1.26011), half: 0.05 },
-      { name: "B", at: point(0.60053, 0.68409), half: 0.025 },
-    ],
-  },
-  {
-    shader: 3,
     name: "z² + c/z²",
     free: "value of c",
     start: "starting point",
@@ -81,20 +68,6 @@ export const FAMILY_RULES: FamilyRule[] = [
     places: [
       { name: "A", at: point(-0.15841, 0.13179), half: 0.06 },
       { name: "B", at: point(-0.06191, 0.20763), half: 0.016 },
-      { name: "C", at: point(0.06384, 0), half: 0.12 },
-    ],
-  },
-  {
-    shader: 4,
-    name: "c · sin z",
-    free: "value of c",
-    start: "starting point",
-    whole: { center: point(0, 0), half: 3.4 },
-    startsHalf: 4,
-    startsCloseHalf: 4,
-    places: [
-      { name: "A", at: point(0, 1.73538), half: 0.06 },
-      { name: "B", at: point(2.16579, 1.2909), half: 0.07 },
     ],
   },
 ];
@@ -103,13 +76,13 @@ export const FAMILY_RULES: FamilyRule[] = [
 export const COPY_GALLERY: [number, number][] = [
   [0, 0],
   [0, 1],
+  [0, 2],
   [0, 3],
+  [0, 4],
   [1, 0],
+  [1, 1],
   [2, 0],
-  [3, 0],
-  [3, 1],
-  [4, 0],
-  [4, 1],
+  [2, 1],
 ];
 
 export const MOST_ZOOMED_HALF = 3e-4;
@@ -125,12 +98,11 @@ function over(x: number, y: number, u: number, v: number): [number, number] {
 /** The place of zero slope that the family test starts from. */
 export function familyStart(rule: number, c: ComplexPoint): ComplexPoint {
   if (rule === 0) return point(c.real / 3, c.imaginary / 3);
-  if (rule === 3) {
+  if (rule === 2) {
     const size = Math.hypot(c.real, c.imaginary) ** 0.25;
     const angle = Math.atan2(c.imaginary, c.real) / 4;
     return point(size * Math.cos(angle), size * Math.sin(angle));
   }
-  if (rule === 4) return point(Math.PI / 2, 0);
   return point(0, 0);
 }
 
@@ -152,19 +124,10 @@ export function familyJump(rule: number, c: ComplexPoint, x: number, y: number) 
     const [sx, sy] = times(x, y, x, y);
     return [sx + a, sy + b] as const;
   }
-  if (rule === 2) {
-    const [sx, sy] = times(x, y, x, y);
-    const [cx, cy] = times(sx, sy, x, y);
-    return [cx + a, cy + b] as const;
-  }
-  if (rule === 3) {
-    const [sx, sy] = times(x, y, x, y);
-    if (sx * sx + sy * sy < 1e-30) return null;
-    const [dx, dy] = over(a, b, sx, sy);
-    return [sx + dx, sy + dy] as const;
-  }
-  const [ux, uy] = times(a, b, Math.sin(x) * Math.cosh(y), Math.cos(x) * Math.sinh(y));
-  return [ux, uy] as const;
+  const [sx, sy] = times(x, y, x, y);
+  if (sx * sx + sy * sy < 1e-30) return null;
+  const [dx, dy] = over(a, b, sx, sy);
+  return [sx + dx, sy + dy] as const;
 }
 
 export type StartOutcome =
@@ -184,11 +147,11 @@ export function startOutcome(rule: number, c: ComplexPoint): StartOutcome {
       if (Math.hypot(x + 1, y) < 1e-3) return { kind: "root", root: 0 };
       if (Math.hypot(x - 1, y) < 1e-3) return { kind: "root", root: 1 };
       if (Math.hypot(x - c.real, y - c.imaginary) < 1e-3) return { kind: "root", root: 2 };
-    } else if (rule === 4 ? Math.abs(y) > 40 : Math.hypot(x, y) > 1000) {
+    } else if (Math.hypot(x, y) > 1000) {
       return { kind: "escape" };
     }
     const next = familyJump(rule, c, x, y);
-    if (!next) return rule === 3 ? { kind: "escape" } : { kind: "unknown" };
+    if (!next) return rule === 2 ? { kind: "escape" } : { kind: "unknown" };
     [x, y] = next;
   }
   const fromX = x;

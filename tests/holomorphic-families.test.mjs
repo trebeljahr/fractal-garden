@@ -74,6 +74,7 @@ test("outside the copies the route ends some other way", () => {
   assert.equal(startOutcome(0, { real: 2, imaginary: 0.5 }).kind, "root");
   assert.equal(startOutcome(1, { real: 1, imaginary: 1 }).kind, "escape");
   assert.equal(startOutcome(2, { real: 1.5, imaginary: 1.5 }).kind, "escape");
+  assert.equal(FAMILY_RULES.length, 3);
 });
 
 test("the gallery names real places, and the article holds each demo once", () => {
