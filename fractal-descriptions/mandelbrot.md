@@ -34,6 +34,12 @@ Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed hi
 
 <figure data-article-images="mandelbrot-printout"></figure>
 
+A printout of asterisks can only show a rough outline. How far down does the edge go? Each arrow below starts at a place on the edge and points to that place enlarged, and the caption says how many times closer it is than the whole set. One place has a spiral, another a star, another a thread that forks again and again, and one holds a whole tiny copy of the set. All of them come from square and add.
+
+<figure data-lesson="mandelbrot-zoom-map"></figure>
+
+The deepest is $10^{100}$ times closer. If that view were as wide as an atom, the whole set would be far wider than the observable universe. And every picture still has an edge, so you can zoom into it again. Click one to open it in the explorer at the top of this page and keep going.
+
 A number belongs to the Mandelbrot set if its point never crosses the dashed circle. A point that crosses has **escaped**. That “never” is a problem, because a computer can't wait forever. So black really means “hasn't escaped yet.”
 
 Color helps. In the next demo, each pixel shows how many jumps its point took to escape, so every colored pixel is definitely outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
@@ -51,10 +57,6 @@ How long can a point hold out? Start at $-0.75$, where the bulb meets the body, 
 Those digits look familiar. Multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. They seem to be heading for π.<sup><a id="mandelbrot-ref-5" href="#mandelbrot-source-5">5</a></sup> Nothing in square and add mentions π.
 
 The black parts of the picture are sorted by what the point does. In the heart-shaped body, it settles toward one value.<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup> In the round bulb on the left, it falls into a two-number repeat, like the $0,-1$ at that bulb's center. In the big bulbs above and below the heart, the repeat has three numbers, and smaller bulbs have other lengths.<sup><a id="mandelbrot-ref-7" href="#mandelbrot-source-7">7</a></sup> Along the horizontal axis, these lengths make the branching picture of the [logistic map](/logistic-map).
-
-How far down does the edge go? Each arrow below starts at a place on the edge and points to that place enlarged, and the caption says how many times closer it is than the whole set. The deepest is $10^{100}$ times closer. If that view were as wide as an atom, the whole set would be far wider than the observable universe. It still comes from square and add. Click a picture to open it in the explorer at the top of this page and keep going.
-
-<figure data-lesson="mandelbrot-zoom-map"></figure>
 
 Every calculation so far has started at zero. What if it didn't? Keep one number to add, and give every pixel a different start. That draws a [Julia picture](/julia-set). So each point in the Mandelbrot picture has a whole shape of its own.
 

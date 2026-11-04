@@ -65,15 +65,17 @@ export default function PictureRingMap({
   lesson,
   mapAlt,
   pictures,
+  fillWidth = false,
 }: {
   lesson: string;
   mapAlt: string;
   pictures: RingPicture[];
+  fillWidth?: boolean;
 }) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <figure
-      className={styles.figure}
+      className={`${styles.figure} ${fillWidth ? styles.fillWidth : ""}`.trim()}
       style={{ aspectRatio: `${FIGURE_WIDTH} / ${FIGURE_HEIGHT}` }}
       data-teaching-lesson={lesson}
     >
