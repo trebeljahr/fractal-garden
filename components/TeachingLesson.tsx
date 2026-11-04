@@ -52,6 +52,7 @@ const BulbSliceLesson = dynamic(() => import("./lessons/BulbSliceLesson"));
 const FernCollageLesson = dynamic(() => import("./lessons/FernCollageLesson"));
 const ApollonianCurvaturesLesson = dynamic(() => import("./lessons/ApollonianCurvaturesLesson"));
 const KochCubeLesson = dynamic(() => import("./lessons/KochCubeLesson"));
+const OctahedronCutLesson = dynamic(() => import("./lessons/OctahedronCutLesson"));
 const TSquareCoverLesson = dynamic(() => import("./lessons/TSquareCoverLesson"));
 const HTreeRouteLesson = dynamic(() => import("./lessons/HTreeRouteLesson"));
 const NFlakeOutlineLesson = dynamic(() => import("./lessons/NFlakeOutlineLesson"));
@@ -109,6 +110,7 @@ const LESSONS = [
   "fern-collage",
   "apollonian-curvatures",
   "koch-cube",
+  "octahedron-cut",
   "t-square-cover",
   "h-tree-route",
   "n-flake-outline",
@@ -220,6 +222,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <ApollonianCurvaturesLesson />;
     case "koch-cube":
       return <KochCubeLesson />;
+    case "octahedron-cut":
+      return <OctahedronCutLesson />;
     case "t-square-cover":
       return <TSquareCoverLesson />;
     case "h-tree-route":

@@ -45,9 +45,11 @@ const PolyhedronFlake = ({ description }: Props) => (
     hint="Drag to rotate. Scroll to zoom."
     variantLabel="Solid"
     variants={VARIANTS}
-    initialVariant="icosahedron"
+    initialVariant="octahedron"
     fillColor="#b49cff"
     strokeColor="#efe8ff"
+    rotationX={16}
+    rotationY={38}
   />
 );
 

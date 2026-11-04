@@ -367,17 +367,20 @@ function kochSurfaceTriangles(
   return triangles;
 }
 
-function trianglesToScene(triangles: Triangle[]) {
-  const scene = createScene(triangles.length * 3, triangles.length, triangles.length * 3);
-  triangles.forEach((triangle, face) => {
-    scene.faceOffsets[face] = face * 3;
-    triangle.forEach((point, corner) => {
-      const index = face * 3 + corner;
+/** Packs loose polygons, counter-clockwise from outside, into the arrays the renderer draws. */
+export function polygonsToScene(polygons: Vec3[][]) {
+  const corners = polygons.reduce((sum, polygon) => sum + polygon.length, 0);
+  const scene = createScene(corners, polygons.length, corners);
+  let index = 0;
+  polygons.forEach((polygon, face) => {
+    scene.faceOffsets[face] = index;
+    for (const point of polygon) {
       scene.faceIndices[index] = index;
       scene.positions.set(point, index * 3);
-    });
+      index++;
+    }
   });
-  scene.faceOffsets[triangles.length] = triangles.length * 3;
+  scene.faceOffsets[polygons.length] = index;
 
   computeNormals(scene);
   return scene;
@@ -392,7 +395,7 @@ export function buildKochSurfaceScene(
   iterations: number,
   lastProgress = 1,
 ) {
-  return trianglesToScene(kochSurfaceTriangles(start, iterations, lastProgress));
+  return polygonsToScene(kochSurfaceTriangles(start, iterations, lastProgress));
 }
 
 function kochFaceTriangles(face: number, iterations: number) {
@@ -402,7 +405,7 @@ function kochFaceTriangles(face: number, iterations: number) {
 
 /** Only what has grown from one face of the tetrahedron. It is open, so draw it from both sides. */
 export function buildKochFaceScene(face: number, iterations: number) {
-  return trianglesToScene(kochFaceTriangles(face, iterations));
+  return polygonsToScene(kochFaceTriangles(face, iterations));
 }
 
 /**
