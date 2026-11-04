@@ -64,7 +64,7 @@
   overflow: hidden;
   background: #10151a;
   cursor: crosshair;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
   user-select: none;
 }
 .lesson .stage[data-dragging] {

@@ -42,7 +42,7 @@ button.plane.plane {
   padding: 0;
   border: 0;
   cursor: crosshair;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
 }
 .paper {
   display: block;

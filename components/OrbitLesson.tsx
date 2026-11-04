@@ -11,6 +11,7 @@ import {
 } from "../utils/escapeTimeColoring";
 import { JULIA_PRESETS } from "../utils/escapeTimePlaces";
 import { useLessonPlayback } from "../utils/hooks/useLessonPlayback";
+import { usePointPicker } from "../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../utils/hooks/useReducedMotion";
 import {
   CACTUS_RADIUS,
@@ -233,9 +234,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const [hop, setHop] = useState(1);
   const [dragging, setDragging] = useState(false);
   const [width, setWidth] = useState(640);
-  const stage = useRef<HTMLButtonElement>(null);
   const route = useRef<HTMLDivElement>(null);
-  const pointer = useRef<number | null>(null);
   const id = useId().replace(/:/g, "");
   const reduced = useReducedMotion();
   const flip = kind === "burning-ship";
@@ -299,15 +298,6 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
     return () => cancelAnimationFrame(frame);
   }, [motion]);
   useEffect(() => {
-    const element = stage.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
     const element = route.current;
     if (element && landed >= 0) element.scrollTop = element.scrollHeight;
   }, [landed]);
@@ -324,6 +314,34 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
       view,
     );
   };
+  const picker = usePointPicker({
+    under: pointAt,
+    onChange: (at) => {
+      if (!dragging) playback.change(0);
+      // React would otherwise commit after this frame paints, one frame behind the pointer.
+      flushSync(() => {
+        setHover(null);
+        setDragging(true);
+        setValue(at);
+      });
+    },
+    onHover: (at) => setHover(at),
+    onRelease: () => {
+      setValue((current) => snap(current));
+      setDragging(false);
+      playback.play();
+    },
+  });
+  const stage = picker.ref;
+  useEffect(() => {
+    const element = stage.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [stage]);
 
   const crossed = isOutside(orbit[max].point, radius);
   const outcome = !finished
@@ -420,42 +438,13 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
         <div className={styles.main}>
           <button
             type="button"
-            ref={stage}
             className={styles.stage}
             aria-label={`Chosen pixel ${coordinates(value, 2)}. Click or drag to choose another, or use the arrow keys. Press Enter to play.`}
             data-orbit-stage
             data-dragging={dragging || undefined}
-            onPointerDown={(event) => {
-              if (!event.isPrimary || event.button !== 0) return;
-              pointer.current = event.pointerId;
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setHover(null);
-              setValue(snap(pointAt(event)));
-              playback.change(0);
-            }}
-            onPointerMove={(event) => {
-              const at = pointAt(event);
-              // React would otherwise commit after this frame paints, one frame behind the pointer.
-              if (pointer.current !== event.pointerId) {
-                if (event.pointerType === "mouse") flushSync(() => setHover(at));
-                return;
-              }
-              flushSync(() => {
-                setDragging(true);
-                setValue(at);
-              });
-            }}
-            onPointerLeave={() => setHover(null)}
-            onPointerUp={(event) => {
-              if (pointer.current !== event.pointerId) return;
-              pointer.current = null;
-              event.currentTarget.releasePointerCapture(event.pointerId);
-              setValue(snap(pointAt(event)));
-              setDragging(false);
-              playback.play();
-            }}
+            {...picker}
             onPointerCancel={() => {
-              pointer.current = null;
+              picker.onPointerCancel();
               setValue(snap(value));
               setDragging(false);
             }}

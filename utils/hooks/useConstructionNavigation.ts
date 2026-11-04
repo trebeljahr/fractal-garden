@@ -3,6 +3,7 @@ import { moveCanvasViewport } from "../canvasViewport";
 import type { ConstructionView } from "../constructionView";
 import { dragRotation, IDENTITY } from "../orientation";
 import { createZoomWheelGuard, listenForZoomWheel, zoomWheelDelta } from "../shouldZoomWheel";
+import { isSidewaysSlide } from "../touchSlide";
 
 export function zoomConstruction(view: ConstructionView, scene: boolean, factor: number) {
   return scene
@@ -27,6 +28,9 @@ export function useConstructionNavigation(
   useEffect(() => {
     if (!canvas) return;
     const pointers = new Map<number, { x: number; y: number }>();
+    // These figures sit in an article, so one finger going up or down scrolls the page. It moves
+    // the view only after sliding sideways, and from then on it can go anywhere.
+    let moving = false;
     const change = (factor: number, x: number, y: number, dx = 0, dy = 0) => {
       const rect = canvas.getBoundingClientRect();
       setView((old) =>
@@ -63,11 +67,14 @@ export function useConstructionNavigation(
       canvas.focus({ preventScroll: true });
       canvas.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      moving = e.pointerType === "mouse" || pointers.size > 1;
       canvas.style.cursor = "grabbing";
     };
     const move = (e: PointerEvent) => {
       const before = pointers.get(e.pointerId);
       if (!before) return;
+      if (!moving && !isSidewaysSlide(e.clientX - before.x, e.clientY - before.y)) return;
+      moving = true;
       const other = Array.from(pointers).find(([id]) => id !== e.pointerId)?.[1];
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       const dx = e.clientX - before.x,
@@ -85,7 +92,11 @@ export function useConstructionNavigation(
     };
     const up = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
+      if (!pointers.size) moving = false;
       canvas.style.cursor = "grab";
+    };
+    const holdPage = (e: TouchEvent) => {
+      if (moving && e.cancelable) e.preventDefault();
     };
     const guard = createZoomWheelGuard(canvas);
     const wheel = (e: WheelEvent) => {
@@ -115,10 +126,11 @@ export function useConstructionNavigation(
         reset();
       }
     };
-    canvas.style.touchAction = "none";
+    canvas.style.touchAction = "pan-y";
     canvas.style.cursor = "grab";
     canvas.tabIndex = 0;
     const stopWheel = listenForZoomWheel(canvas, wheel);
+    canvas.addEventListener("touchmove", holdPage, { passive: false });
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("pointerup", up);
@@ -129,6 +141,7 @@ export function useConstructionNavigation(
     return () => {
       guard.dispose();
       stopWheel();
+      canvas.removeEventListener("touchmove", holdPage);
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);

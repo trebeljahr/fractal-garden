@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import common from "../../styles/lessons/Lesson.module.css";
 import styles from "../../styles/lessons/OrbitPlane.module.css";
 import { JULIA_PRESETS } from "../../utils/escapeTimePlaces";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   clampToDisk,
@@ -155,7 +156,7 @@ export default function OrbitPlaneLesson({ adding }: { adding: boolean }) {
   const [showEdge, setShowEdge] = useState(false);
   const plane = useRef<HTMLCanvasElement>(null);
   const edge = useRef<HTMLCanvasElement>(null);
-  const grabbed = useRef<{ pointer: number; handle: "start" | "c" } | null>(null);
+  const grabbed = useRef<"start" | "c">("start");
   const glide = useRef(0);
   const cNow = useRef(c);
   cNow.current = c;
@@ -226,14 +227,14 @@ export default function OrbitPlaneLesson({ adding }: { adding: boolean }) {
       ),
     };
   };
-  const moveHandle = (event: PointerEvent<HTMLButtonElement>) => {
-    const point = pointAt(event);
+  const moveHandle = (point: ComplexPoint) => {
     // React would otherwise commit after this frame paints, one frame behind the pointer.
     flushSync(() => {
-      if (grabbed.current?.handle === "c") setC(clampToDisk(point, LARGEST_C));
+      if (grabbed.current === "c") setC(clampToDisk(point, LARGEST_C));
       else setStart(point);
     });
   };
+  const picker = usePointPicker({ under: pointAt, onChange: moveHandle });
 
   return (
     <LessonFrame
@@ -246,27 +247,16 @@ export default function OrbitPlaneLesson({ adding }: { adding: boolean }) {
           className={styles.plane}
           aria-label={`Starting point ${coordinates(start)}. ${escapes ? `Escapes on jump ${crossing}` : "Stays"}. Drag${adding ? " the point or c" : ""}, or use the arrow keys.`}
           data-orbit-plane
-          onPointerDown={(event) => {
+          {...picker}
+          onPointerDownCapture={(event) => {
             if (!event.isPrimary || event.button !== 0) return;
-            event.preventDefault();
             event.currentTarget.focus({ preventScroll: true });
             cancelAnimationFrame(glide.current);
             const rect = event.currentTarget.getBoundingClientRect();
             const point = pointAt(event);
             const reach = Math.hypot(point.real - c.real, point.imaginary - c.imaginary);
             const onC = adding && (reach / (RIGHT - LEFT)) * rect.width < GRAB_PIXELS;
-            grabbed.current = { pointer: event.pointerId, handle: onC ? "c" : "start" };
-            event.currentTarget.setPointerCapture(event.pointerId);
-            moveHandle(event);
-          }}
-          onPointerMove={(event) => {
-            if (grabbed.current?.pointer === event.pointerId) moveHandle(event);
-          }}
-          onPointerUp={() => {
-            grabbed.current = null;
-          }}
-          onPointerCancel={() => {
-            grabbed.current = null;
+            grabbed.current = onC ? "c" : "start";
           }}
           onKeyDown={(event) => {
             if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;

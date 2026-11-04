@@ -1,5 +1,6 @@
-import { type PointerEvent, useId, useRef, useState } from "react";
+import { type PointerEvent, useId, useState } from "react";
 import styles from "../../styles/lessons/OrbitPlane.module.css";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { squaringChain, squaringFate } from "../../utils/lessons/orbitPlane";
 import { LessonFrame } from "./LessonFrame";
 
@@ -32,15 +33,17 @@ function hopPath(from: number, to: number) {
 
 export default function SquareLineLesson() {
   const [value, setValue] = useState(0.5);
-  const pointer = useRef<number | null>(null);
   const id = useId().replace(/:/g, "");
   const chain = squaringChain(value);
   const fate = squaringFate(value);
   const color = Math.abs(value) > 1 ? GROWS : STAYS;
-  const moveTo = (event: PointerEvent<HTMLButtonElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    setValue(snap(LEFT + ((event.clientX - rect.left) / rect.width) * (RIGHT - LEFT)));
-  };
+  const picker = usePointPicker({
+    under: (event: PointerEvent<HTMLButtonElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      return snap(LEFT + ((event.clientX - rect.left) / rect.width) * (RIGHT - LEFT));
+    },
+    onChange: setValue,
+  });
   const hops = chain.slice(1).flatMap((to, index) => {
     const from = chain[index];
     if (from > RIGHT || Math.abs(px(Math.min(to, RIGHT)) - px(from)) < SHORTEST_HOP) return [];
@@ -53,23 +56,8 @@ export default function SquareLineLesson() {
         className={styles.line}
         aria-label={`Starting number ${answer(value)}. ${fate}. Drag or use the arrow keys.`}
         data-square-line
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0) return;
-          event.preventDefault();
-          event.currentTarget.focus({ preventScroll: true });
-          pointer.current = event.pointerId;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          moveTo(event);
-        }}
-        onPointerMove={(event) => {
-          if (pointer.current === event.pointerId) moveTo(event);
-        }}
-        onPointerUp={() => {
-          pointer.current = null;
-        }}
-        onPointerCancel={() => {
-          pointer.current = null;
-        }}
+        {...picker}
+        onPointerDownCapture={(event) => event.currentTarget.focus({ preventScroll: true })}
         onKeyDown={(event) => {
           if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
           event.preventDefault();

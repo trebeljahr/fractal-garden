@@ -5,7 +5,7 @@ button.line.line {
   padding: 0;
   border: 0;
   cursor: ew-resize;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
 }
 .tick {
   fill: #eee8cebb;
@@ -44,7 +44,7 @@ button.plane.plane {
   padding: 0;
   border: 0;
   cursor: crosshair;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
 }
 .edge {
   display: block;

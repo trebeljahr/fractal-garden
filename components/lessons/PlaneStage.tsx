@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef } from "react";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 
 type Bounds = readonly [left: number, right: number, bottom: number, top: number];
 
@@ -36,13 +37,16 @@ export function PlaneStage({
     latestPaint.current(image);
     context.putImageData(image, 0, 0);
   }, [paintKey, width, height]);
-  const pick = (event: React.PointerEvent<SVGSVGElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    onPick?.(
-      left + ((event.clientX - rect.left) / rect.width) * (right - left),
-      top - ((event.clientY - rect.top) / rect.height) * (top - bottom),
-    );
-  };
+  const picker = usePointPicker<{ x: number; y: number }, SVGSVGElement>({
+    under: (event) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      return {
+        x: left + ((event.clientX - rect.left) / rect.width) * (right - left),
+        y: top - ((event.clientY - rect.top) / rect.height) * (top - bottom),
+      };
+    },
+    onChange: ({ x, y }) => onPick?.(x, y),
+  });
   return (
     <div
       style={{
@@ -70,17 +74,10 @@ export function PlaneStage({
           width: "100%",
           height: "100%",
           background: "transparent",
-          touchAction: onPick ? "none" : undefined,
+          touchAction: onPick ? "pan-y pinch-zoom" : undefined,
           cursor: onPick ? "crosshair" : undefined,
         }}
-        onPointerDown={(event) => {
-          if (!onPick) return;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          pick(event);
-        }}
-        onPointerMove={(event) => {
-          if (onPick && event.currentTarget.hasPointerCapture(event.pointerId)) pick(event);
-        }}
+        {...(onPick ? picker : {})}
       >
         {children}
       </svg>

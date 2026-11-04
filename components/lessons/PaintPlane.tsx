@@ -2,6 +2,7 @@ import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from "
 import { flushSync } from "react-dom";
 import styles from "../../styles/lessons/PaintPlane.module.css";
 import { MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   createGrid,
@@ -268,7 +269,6 @@ export function PaintPlane({
   const grid = useRef<PaintGrid | null>(null);
   const image = useRef<ImageData | null>(null);
   const last = useRef<ComplexPoint | null>(null);
-  const pressed = useRef<number | null>(null);
   const sweep = useRef(0);
   const colors = useRef(stepColors);
   colors.current = stepColors;
@@ -391,6 +391,14 @@ export function PaintPlane({
     // React would otherwise commit after this frame paints, one frame behind the pointer.
     flushSync(() => onChange(point));
   };
+  const picker = usePointPicker({
+    under: pointAt,
+    onChange: moveTo,
+    onHover: (point) => {
+      if (point) moveTo(point);
+      else last.current = null;
+    },
+  });
 
   return (
     <div className={styles.wrap}>
@@ -399,30 +407,11 @@ export function PaintPlane({
         className={styles.plane}
         aria-label={`${label} ${coordinates(value)}. Move the pointer or use the arrow keys.`}
         data-paint-plane
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0) return;
-          event.preventDefault();
+        {...picker}
+        onPointerDownCapture={(event) => {
           event.currentTarget.focus({ preventScroll: true });
-          pressed.current = event.pointerId;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          moveTo(pointAt(event));
-        }}
-        onPointerMove={(event) => {
-          if (event.pointerType !== "mouse" && pressed.current !== event.pointerId) return;
-          moveTo(pointAt(event));
-        }}
-        onPointerUp={(event) => {
-          if (pressed.current !== event.pointerId) return;
-          pressed.current = null;
-          event.currentTarget.releasePointerCapture(event.pointerId);
+          // A finger lands somewhere new, so its stroke must not join the last one.
           if (event.pointerType !== "mouse") last.current = null;
-        }}
-        onPointerCancel={() => {
-          pressed.current = null;
-          last.current = null;
-        }}
-        onPointerLeave={() => {
-          if (pressed.current === null) last.current = null;
         }}
         onKeyDown={(event) => {
           if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
