@@ -20,13 +20,13 @@ Move your pointer across the plane, or slide sideways on a phone. Some numbers p
 
 <figure data-lesson="orbit-shapes"></figure>
 
-Some numbers keep the point inside the dashed circle for 300 jumps, and some send it across. Move your pointer over the plane below and watch for the moment the route changes from one kind to the other. A line appears at that spot: numbers on one side stay, and numbers on the other side cross.
+Now color in the plane. This one is zoomed in, so the dashed circle is out of view. Move your pointer over it, or slide sideways on a phone. Near your pointer, each number gets tested: it turns dark if the point stays within two units of zero for 300 jumps, and stays blank if the point goes farther.
 
-Press **Draw the rest** to test every number. The line closes up into the edge of the Mandelbrot set.
+Keep going until the dark area stops growing. That shape is the Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 
-Here is the same edge with the inside filled in. The ring marks the number you chose. It starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the amber point leave.
+Here is the finished picture. The ring marks the number you chose. It starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the amber point leave.
 
 <figure data-orbit="mandelbrot"></figure>
 
