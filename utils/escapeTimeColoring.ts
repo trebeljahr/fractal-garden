@@ -3,6 +3,8 @@ export type EscapeTimeColoring = {
   colorMode: string;
   palette: string;
   iterations: number;
+  /** Only the Mandelbrot explorer measures its own step limit. */
+  autoSteps?: boolean;
   colorDensity: number;
   colorOffset: number;
   interior: string;
@@ -174,7 +176,22 @@ export function updateColoring<T extends EscapeTimeColoring>(old: T, newData: T)
   }
 
   const tweaked = COLORING_KEYS.some((key) => newData[key] !== old[key]);
-  return { ...old, ...newData, look: tweaked ? CUSTOM_LOOK : newData.look };
+  // Typing a step count replaces the measured one.
+  const typedSteps = old.autoSteps && newData.autoSteps && newData.iterations !== old.iterations;
+  return {
+    ...old,
+    ...newData,
+    ...(typedSteps ? { autoSteps: false } : {}),
+    look: tweaked ? CUSTOM_LOOK : newData.look,
+  };
+}
+
+/** Other modes do not color by escape count, so the noise measurement does not apply to them. */
+export function usesAutoSteps(coloring: EscapeTimeColoring) {
+  return (
+    coloring.autoSteps === true &&
+    (coloring.colorMode === "smooth" || coloring.colorMode === "banded")
+  );
 }
 
 export function parseHexColor(hex: string) {

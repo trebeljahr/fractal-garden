@@ -13,7 +13,10 @@ type Props = {
 };
 
 const Mandelbrot = ({ description }: Props) => {
-  const [config, setConfig] = useState<EscapeTimeColoring>(MANDELBROT_COLORING);
+  const [config, setConfig] = useState<EscapeTimeColoring>({
+    ...MANDELBROT_COLORING,
+    autoSteps: true,
+  });
 
   return (
     <EscapeTimeFractal

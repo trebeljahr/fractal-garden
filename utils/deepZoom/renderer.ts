@@ -2,12 +2,14 @@ import {
   type EscapeTimeColoring,
   getColoringLocations,
   setColoringUniforms,
+  usesAutoSteps,
 } from "../escapeTimeColoring";
 import { createShaderProgram } from "../shaders/compileShader";
 import deepShader from "../shaders/deep-zoom.frag";
 import escapeShader from "../shaders/escape-time.frag";
 import vertexShader from "../shaders/mandelbrot.vert";
 import pixelSummaryShader from "../shaders/pixel-summary.frag";
+import { AUTO_STEPS_MAX_DEPTH_BITS } from "./autoSteps";
 import {
   type DeepViewport,
   moveViewport,
@@ -43,8 +45,11 @@ type Job = {
   frameHeight?: number;
 };
 
-export function iterationBudget(view: DeepViewport, requested: number) {
+export function iterationBudget(view: DeepViewport, requested: number, autoSteps = false) {
   const depth = Math.max(0, -view.logZoom);
+  if (autoSteps && depth <= AUTO_STEPS_MAX_DEPTH_BITS) {
+    return Math.min(MAX_RENDER_ITERATIONS, Math.round(requested));
+  }
   // The studio value is honored down to about 2^-12. Deeper than 2^-16, low limits turn
   // most of the picture black, so the floor ramps up to the depth rule between the two.
   const floor = Math.min(200 + depth * 12, Math.max(0, depth - 10) * 65);
@@ -211,7 +216,11 @@ export function createDeepZoomRenderer(
       const state = getState();
       onStatus({
         logZoom: state.view.logZoom,
-        iterations: iterationBudget(state.view, state.config.iterations),
+        iterations: iterationBudget(
+          state.view,
+          state.config.iterations,
+          usesAutoSteps(state.config),
+        ),
         message,
         error,
       });
@@ -390,7 +399,7 @@ export function createDeepZoomRenderer(
         setColoringUniforms(gl, coloring, {
           ...state.config,
           iterations: isDeep
-            ? iterationBudget(state.view, state.config.iterations)
+            ? iterationBudget(state.view, state.config.iterations, usesAutoSteps(state.config))
             : Math.min(MAX_RENDER_ITERATIONS, state.config.iterations),
         });
         if (isDeep && orbit && orbitView) {
@@ -483,7 +492,11 @@ export function createDeepZoomRenderer(
       gl.uniform2f(u.tileSize, tile.width, tile.height);
       setColoringUniforms(gl, coloring, {
         ...state.config,
-        iterations: iterationBudget(state.view, state.config.iterations),
+        iterations: iterationBudget(
+          state.view,
+          state.config.iterations,
+          usesAutoSteps(state.config),
+        ),
       });
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disable(gl.SCISSOR_TEST);
@@ -529,9 +542,13 @@ export function createDeepZoomRenderer(
           sharpMotion && !tiles
             ? Math.min(
                 MAX_RENDER_ITERATIONS,
-                (Math.ceil(iterationBudget(view, state.config.iterations) / 256) + 1) * 256,
+                (Math.ceil(
+                  iterationBudget(view, state.config.iterations, usesAutoSteps(state.config)) / 256,
+                ) +
+                  1) *
+                  256,
               )
-            : iterationBudget(view, state.config.iterations),
+            : iterationBudget(view, state.config.iterations, usesAutoSteps(state.config)),
         logDeltaC:
           sharpMotion && !tiles
             ? view.logZoom +
@@ -609,7 +626,7 @@ export function createDeepZoomRenderer(
         // repairs share a packet; expensive deep references still run one at a time.
         const work =
           precisionForZoom(state.view.logZoom) *
-          iterationBudget(state.view, state.config.iterations);
+          iterationBudget(state.view, state.config.iterations, usesAutoSteps(state.config));
         const count = Math.max(1, Math.min(8, Math.floor(1_000_000 / work)));
         report("Refining detail…");
         request(repairQueue.splice(0, count), Boolean(canSummarizePixels()));
@@ -637,7 +654,12 @@ export function createDeepZoomRenderer(
       reference &&
       referenceView &&
       sameParameters(reference.c) &&
-      reference.iterations >= iterationBudget(getState().view, getState().config.iterations) &&
+      reference.iterations >=
+        iterationBudget(
+          getState().view,
+          getState().config.iterations,
+          usesAutoSteps(getState().config),
+        ) &&
       reference.bits >= Math.ceil(-getState().view.logZoom) + 64 &&
       (!sharpMotion || referenceCoordinateMargin() >= 4);
     const needsReference = () => {
@@ -647,7 +669,9 @@ export function createDeepZoomRenderer(
         referenceCoordinateMargin() < 8 ||
         reference.bits < Math.ceil(-state.view.logZoom) + 96 ||
         (reference.iterations < MAX_RENDER_ITERATIONS &&
-          reference.iterations - iterationBudget(state.view, state.config.iterations) < 128)
+          reference.iterations -
+            iterationBudget(state.view, state.config.iterations, usesAutoSteps(state.config)) <
+            128)
       )
         return true;
       const delta = viewportDelta(state.view, referenceView);
@@ -724,7 +748,7 @@ export function createDeepZoomRenderer(
               height: h,
               iterations: shallow
                 ? Math.min(MAX_RENDER_ITERATIONS, state.config.iterations)
-                : iterationBudget(state.view, state.config.iterations),
+                : iterationBudget(state.view, state.config.iterations, usesAutoSteps(state.config)),
             },
             moving,
             canPaint,
@@ -817,7 +841,11 @@ export function createDeepZoomRenderer(
         if (
           sharpMotion &&
           event.data.references[0].iterations <
-            iterationBudget(getState().view, getState().config.iterations)
+            iterationBudget(
+              getState().view,
+              getState().config.iterations,
+              usesAutoSteps(getState().config),
+            )
         ) {
           schedule();
           return;

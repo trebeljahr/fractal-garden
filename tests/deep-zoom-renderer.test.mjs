@@ -1085,3 +1085,12 @@ test("the studio step limit holds at ordinary depth and grows only when deep", (
   assert.equal(atDepth(2000), 8192);
   assert.equal(iterationBudget({ logZoom: -7 }, 800), 800);
 });
+
+test("a measured step limit replaces the depth floor until doubles run out", () => {
+  assert.equal(iterationBudget({ logZoom: -20 }, 150, true), 150);
+  assert.equal(iterationBudget({ logZoom: -32 }, 150, true), 150);
+  assert.equal(
+    iterationBudget({ logZoom: -33 }, 150, true),
+    iterationBudget({ logZoom: -33 }, 150),
+  );
+});

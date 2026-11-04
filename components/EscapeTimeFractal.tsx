@@ -1,6 +1,7 @@
 import { Children, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import zoomStyles from "../styles/DeepZoom.module.css";
 import styles from "../styles/Fullscreen.module.css";
+import { nextStepLimit } from "../utils/deepZoom/autoSteps";
 import { exportDeepZoomPng } from "../utils/deepZoom/export";
 import { createViewport, matchesDeepViewport } from "../utils/deepZoom/math";
 import type { EscapeFormula } from "../utils/deepZoom/orbit";
@@ -14,15 +15,17 @@ import {
   LOOK_OPTIONS,
   PALETTE_LABELS,
   PALETTES,
+  usesAutoSteps,
 } from "../utils/escapeTimeColoring";
 import type { ControlRule } from "../utils/explorerShare";
 import { type EscapeTimePlace, matchesJuliaConstant } from "../utils/fractalPlaces";
+import { useAutoSteps } from "../utils/hooks/useAutoSteps";
 import { useDeepZoomControls } from "../utils/hooks/useDeepZoomControls";
 import { useFractalFrame } from "../utils/hooks/useFractalFrame";
 import { useFractalViewportSize } from "../utils/hooks/useFractalViewportSize";
 import { registerPngExporter } from "../utils/pngExport";
 import { DeepZoomCanvas } from "./DeepZoomCanvas";
-import { PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
+import { PanelBoolean, PanelColor, PanelNumber, PanelSelect } from "./ExplorerControls";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { FractalPlaces } from "./FractalPlaces";
 import { NavElement } from "./Navbar";
@@ -130,6 +133,19 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   const stateRef = useRef({ config, c, width, height });
   stateRef.current = { config, c, width, height };
   const [cReal, cImag] = c;
+
+  useAutoSteps({
+    enabled: formula === "mandelbrot" && usesAutoSteps(config),
+    viewport,
+    width,
+    height,
+    colorDensity: config.colorDensity,
+    onLimit: (limit) => {
+      const current = stateRef.current.config;
+      const next = nextStepLimit(current.iterations, limit);
+      if (next !== current.iterations) onRestore({ ...current, iterations: next });
+    },
+  });
 
   useDeepZoomControls({
     canvas: cnv,
@@ -257,9 +273,12 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           optionLabels={PALETTES.map((palette) => PALETTE_LABELS[palette])}
           options={[...PALETTES]}
         />
+        {config.autoSteps !== undefined && (
+          <PanelBoolean path="autoSteps" label="Automatic steps" />
+        )}
         <PanelNumber
           path="iterations"
-          label="Minimum steps"
+          label={usesAutoSteps(config) ? "Steps" : "Minimum steps"}
           logarithmic
           min={10}
           max={MAX_RENDER_ITERATIONS}
