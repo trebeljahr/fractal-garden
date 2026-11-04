@@ -2,6 +2,7 @@ import type { ConstructionView } from "../constructionView";
 import { untouchedCorner } from "../lessons/arrowheadChain";
 import { fibonacciParts } from "../lessons/fibonacciPieces";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
+import { ADDED_TINT, detourRuns, HALF_TURN_RULES, REMOVED_TINT } from "../lessons/halfTurnArea";
 import { notchTriangleTip } from "../lessons/quadraticStart";
 import {
   LOOP_INSIDE_TINT,
@@ -121,11 +122,26 @@ export function preparePlaybackDrawing(
       notchRoom.closePath();
     }
   }
+  // The area each replacement takes from one side of its old line and adds to the other.
+  const detours: { path: Path2D; until: number; tint: string }[] = [];
+  const detourRule = HALF_TURN_RULES[view.detours as string];
+  // Past this the detours are smaller than the line's width, and filling them stalls the page.
+  if (detourRule && geometry.count <= 5000)
+    for (const { from, to, effect } of detourRuns(geometry.count, detourRule)) {
+      const path = new Path2D();
+      path.moveTo(projected[from * 4], projected[from * 4 + 1]);
+      for (let i = from; i < to; i++) path.lineTo(projected[i * 4 + 2], projected[i * 4 + 3]);
+      path.closePath();
+      detours.push({ path, until: to, tint: effect === "added" ? ADDED_TINT : REMOVED_TINT });
+    }
   // A closed line: what it encloses, and the rest of the staircase diamond around it.
   let loopInside: Path2D | null = null;
   let loopOutside: Path2D | null = null;
   let loopDiamond: Path2D | null = null;
   let widestLine = Infinity;
+  // At level 3 a normal line would cover the tints.
+  if (detours.length)
+    widestLine = Math.hypot(projected[2] - projected[0], projected[3] - projected[1]) / 4;
   if (view.loopRegions && geometry.count) {
     loopInside = new Path2D();
     loopInside.moveTo(projected[0], projected[1]);
@@ -250,6 +266,16 @@ export function preparePlaybackDrawing(
     }
     const count = drawing ? drawn[consumed] : 0;
     const before = consumed > 0 ? drawn[consumed - 1] : 0;
+    if (detours.length) {
+      // A detour tints once the pen has drawn it.
+      ctx.globalAlpha = 0.6;
+      for (const { path, until, tint } of detours)
+        if (count >= until) {
+          ctx.fillStyle = tint;
+          ctx.fill(path);
+        }
+      ctx.globalAlpha = 1;
+    }
     if (smallTriangles) {
       // Triangles the pen has reached fill in, and the one it is in stands out.
       const reached = new Path2D();

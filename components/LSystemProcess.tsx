@@ -19,14 +19,16 @@ function Word({
   end = active + 1,
   built = word.length,
   label,
+  width,
 }: {
   word: string;
   active?: number;
   end?: number;
   built?: number;
   label: string;
+  width?: number;
 }) {
-  const window = symbolWindow(word, Math.max(0, active));
+  const window = symbolWindow(word, Math.max(0, active), width);
   return (
     <fieldset className={styles.word} aria-label={label}>
       {window.before && <span title="Earlier symbols">…</span>}
@@ -194,6 +196,7 @@ export default function LSystemProcess({
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [canvas, size, consumed, drawing, reduced, playing, advance, delay, paint]);
+  const symbolWidth = view.symbolWidth as number | undefined;
   const symbolIndex = consumed > 0 ? (consumed - 1) % model.word.length : -1;
   const current = model.word[symbolIndex] ?? "";
   // Text can't be read while it changes many times a second.
@@ -213,6 +216,7 @@ export default function LSystemProcess({
               word={model.previous}
               active={drawing ? -1 : rewritten - 1}
               label="Previous iteration string"
+              width={symbolWidth}
             />
           </div>
         )}
@@ -244,6 +248,7 @@ export default function LSystemProcess({
             end={finished ? 0 : drawing ? symbolIndex + 1 : outputEnd}
             built={drawing ? model.word.length : outputEnd}
             label="Current iteration string"
+            width={symbolWidth}
           />
         </div>
       </div>

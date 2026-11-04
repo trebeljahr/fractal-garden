@@ -7,6 +7,7 @@ import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { MINKOWSKI_LEAD } from "../../utils/lessons/halfTurnArea";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -45,6 +46,7 @@ const MinkowskiSausage = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 900,
     holdDelay: 1800,
+    constructionLead: MINKOWSKI_LEAD,
   });
 
   const handleUpdate = (newData: Config) => {

@@ -60,6 +60,7 @@ const JerusalemFitLesson = dynamic(() => import("./lessons/JerusalemFitLesson"))
 const VicsekJoinsLesson = dynamic(() => import("./lessons/VicsekJoinsLesson"));
 const TwindragonDigitsLesson = dynamic(() => import("./lessons/TwindragonDigitsLesson"));
 const CarpetLineLesson = dynamic(() => import("./lessons/CarpetLineLesson"));
+const HalfTurnLesson = dynamic(() => import("./lessons/HalfTurnLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -118,6 +119,7 @@ const LESSONS = [
   "vicsek-joins",
   "twindragon-digits",
   "carpet-line",
+  "half-turn-minkowski",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -238,5 +240,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <TwindragonDigitsLesson />;
     case "carpet-line":
       return <CarpetLineLesson />;
+    case "half-turn-minkowski":
+      return <HalfTurnLesson rule="minkowski" />;
   }
 }
