@@ -72,9 +72,7 @@ export function openView(event: React.MouseEvent<HTMLAnchorElement>, href: strin
 
 export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
   return (
-    <div
-      className={`${styles.images} ${kind === "mandelbrot-printout" ? styles.small : ""}`.trim()}
-    >
+    <div className={styles.images}>
       {IMAGES[kind].map((image) => {
         const href = "href" in image ? image.href : undefined;
         const link = (content: ReactNode, label?: string) =>
