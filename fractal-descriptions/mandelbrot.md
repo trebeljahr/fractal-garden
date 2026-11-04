@@ -62,7 +62,7 @@ So far, every calculation has started at zero. Keep the number you add, but try 
 
 <figure data-lesson="linked-julia"></figure>
 
-The two pictures above look nothing alike. Zoom in at the right value of $c$ and they match.
+These two pictures ask different questions. The Mandelbrot picture always starts at zero and changes the number you add. The Julia picture keeps one number and changes the start. Zoomed out, they look nothing alike, which is what you'd expect. Now zoom in at the right value of $c$.
 
 Take $c=(0,1)$. Starting at zero, the point goes to $(0,1)$, $(-1,1)$, $(0,-1)$, $(-1,1)$, $(0,-1)$, and repeats those two forever. A point close to that repeat moves farther from it every two jumps.
 
@@ -70,13 +70,21 @@ Below, both pictures are centered on $c$ and use the same colors.<sup><a id="man
 
 <figure data-lesson="mandelbrot-julia-zoom"></figure>
 
-A Mandelbrot pixel near $c$ adds a number close to $c$, so its first jump from zero lands close to $c$. A Julia pixel near $c$ starts close to $c$. Both points follow zero's route for a while, then move away from the repeat and escape. The color shows how many jumps that takes.
+Why on earth should they match? Every pixel on the left adds a different number. Every pixel on the right adds the same one. These are two different experiments.
 
-The Julia point differs from $c$ once, at the start. The Mandelbrot point gets the same difference added again at every jump. All those additions have the same effect as starting somewhere else: the difference gets multiplied by one fixed complex number. Multiplying by a complex number turns and scales. That is the turn and scale under the pictures, and each $c$ has its own.<sup><a id="mandelbrot-ref-9" href="#mandelbrot-source-9">9</a></sup>
+Follow one pixel from each picture. The Mandelbrot pixel adds a number close to $c$, so its first jump from zero lands close to $c$. The Julia pixel simply starts close to $c$. So both points begin a tiny distance from $c$, and both follow zero's route for a while. Then that tiny distance grows, they leave the route and they escape. The color counts the jumps.
 
-Tan Lei proved in 1990 that zooming in brings the two pictures ever closer at every $c$ where zero lands exactly on a repeat it did not start on.<sup><a id="mandelbrot-ref-10" href="#mandelbrot-source-10">10</a></sup> **Star** and **Spiral** are two more. At **Spiral**, near the neck, zero takes 24 jumps to land, and the pictures need more zoom to match.
+That nearly explains it, but there's a catch. The Julia point is off by a little once, at the start. The Mandelbrot point adds the wrong number at every jump, so it gets the same little nudge again and again. Shouldn't all those extra nudges ruin the match?
 
-They never match exactly. The Mandelbrot picture has black specks, small copies of the whole set, and this Julia set has no inside to show black. Copies closer to $c$ shrink faster than their distance to $c$, so the specks get too small to see as you zoom.<sup><a id="mandelbrot-ref-11" href="#mandelbrot-source-10">10</a></sup>
+They don't, because a nudge keeps growing after it happens. At **Fork**, it grows about 5.7 times every two jumps. So the first nudge has the most time to grow, and every later nudge is playing catch-up. The second ends up half the size of the first. The third ends up about a sixth, the fourth about an eleventh. The late ones hardly count.
+
+So the whole pile of nudges adds up to one fixed number: $(0.8,-0.4)$. It acts like a single nudge at the start, 0.89 times the size and turned 27° clockwise. Undo that and the two pictures line up. That's the 27° and ×1.12 under **Fork**, and each $c$ has its own pair.<sup><a id="mandelbrot-ref-9" href="#mandelbrot-source-9">9</a></sup>
+
+None of this is special to **Fork**. Tan Lei proved in 1990 that zooming in brings the two pictures ever closer at every $c$ where zero lands exactly on a repeat it did not start on.<sup><a id="mandelbrot-ref-10" href="#mandelbrot-source-10">10</a></sup> **Star** and **Spiral** are two more. At **Spiral**, near the neck, zero takes 24 jumps to land, and the pictures need more zoom to match.
+
+And these spots are everywhere: any stretch of the Mandelbrot set's edge, however short, contains some.<sup><a id="mandelbrot-ref-11" href="#mandelbrot-source-11">11</a></sup> Pick one, zoom in, and there is the Julia set for that number, sitting inside the Mandelbrot set.
+
+One difference never goes away. The Mandelbrot picture has black specks, small copies of the whole set, and this Julia set has no inside to show black. But copies closer to $c$ shrink faster than their distance to $c$, so the specks get too small to see as you zoom.<sup><a id="mandelbrot-ref-12" href="#mandelbrot-source-10">10</a></sup>
 
 ## Further exploring
 
@@ -108,5 +116,6 @@ They never match exactly. The Mandelbrot picture has black specks, small copies 
 6. <span id="mandelbrot-source-6"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-6)
 7. <span id="mandelbrot-source-7"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#mandelbrot-ref-7)
 8. <span id="mandelbrot-source-8"></span> Diagram construction: the Mandelbrot count includes the first jump, from zero to the pixel's number. A Julia pixel starts there, so the right picture adds one to its count. [Back](#mandelbrot-ref-8)
-9. <span id="mandelbrot-source-9"></span> Calculation: a Mandelbrot pixel $d$ away from $c$ matches a Julia pixel $wd$ away from $c$, where $w=\lim_{n\to\infty}\frac{\partial z_n/\partial c}{\partial z_n/\partial z_1}$ along zero's route. At $c=(0,1)$, $w=0.8-0.4i$. [Back](#mandelbrot-ref-9)
-10. <span id="mandelbrot-source-10"></span> [Similarity Between the Mandelbrot Set and Julia Sets](https://web.archive.org/web/20221206041349/https://math.univ-angers.fr/~tanlei/papers/similarityMJ.pdf). Theorem 5.1 states the match, and section 6 gives the sizes of the small copies. [Back](#mandelbrot-ref-10) [Back](#mandelbrot-ref-11)
+9. <span id="mandelbrot-source-9"></span> Calculation: a Mandelbrot pixel $d$ away from $c$ matches a Julia pixel $wd$ away from $c$, where $w=\lim_{n\to\infty}\frac{\partial z_n/\partial c}{\partial z_n/\partial z_1}$ along zero's route. This equals the sum of $1/(\partial z_k/\partial z_1)$ over $k\ge1$, whose terms are the nudges. At $c=(0,1)$ their sizes are $1$, $0.5$, $0.18$, $0.088$, and so on, each turned differently, and $w=0.8-0.4i$. [Back](#mandelbrot-ref-9)
+10. <span id="mandelbrot-source-10"></span> [Similarity Between the Mandelbrot Set and Julia Sets](https://web.archive.org/web/20221206041349/https://math.univ-angers.fr/~tanlei/papers/similarityMJ.pdf). Theorem 5.1 states the match, and section 6 gives the sizes of the small copies. [Back](#mandelbrot-ref-10) [Back](#mandelbrot-ref-12)
+11. <span id="mandelbrot-source-11"></span> [Misiurewicz point](https://en.wikipedia.org/wiki/Misiurewicz_point). [Back](#mandelbrot-ref-11)
