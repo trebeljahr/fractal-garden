@@ -61,6 +61,15 @@ button.plane.plane {
 .readout {
   font-variant-numeric: tabular-nums;
 }
+.reading span {
+  display: block;
+}
+@media (min-width: 800px) {
+  /* The narrow column can wrap the second line. Holding its room keeps the chart still. */
+  .reading {
+    min-height: 3lh;
+  }
+}
 .chart {
   margin: 0;
 }

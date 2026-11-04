@@ -208,12 +208,13 @@ export function DistanceChart({
   );
 }
 
-/** A button over a plane that follows the pointer, a sideways slide or the arrow keys. */
+/** A button over a plane that follows the pointer or a drag, a sideways slide or the arrow keys. */
 function PlanePicker({
   bounds,
   value,
   onMove,
   onBreak,
+  drag = false,
   label,
   children,
 }: {
@@ -222,6 +223,8 @@ function PlanePicker({
   onMove: (point: ComplexPoint) => void;
   /** The next move does not continue from the last one. */
   onBreak?: () => void;
+  /** Move only while pressed, instead of following a hovering mouse. */
+  drag?: boolean;
   label: string;
   children: ReactNode;
 }) {
@@ -244,16 +247,18 @@ function PlanePicker({
   const picker = usePointPicker({
     under: pointAt,
     onChange: move,
-    onHover: (point) => {
-      if (point) move(point);
-      else onBreak?.();
-    },
+    onHover: drag
+      ? undefined
+      : (point) => {
+          if (point) move(point);
+          else onBreak?.();
+        },
   });
   return (
     <button
       type="button"
       className={styles.plane}
-      aria-label={`${label} ${coordinates(value)}. Move the pointer or use the arrow keys.`}
+      aria-label={`${label} ${coordinates(value)}. ${drag ? "Drag" : "Move the pointer"} or use the arrow keys.`}
       data-paint-plane
       {...picker}
       onPointerDownCapture={(event) => {
@@ -290,7 +295,7 @@ function PlanePicker({
   );
 }
 
-/** A plain plane with the route of the number under the pointer. */
+/** A plain plane with the route of the number the ring is dragged to. */
 export function OrbitPlane({
   bounds,
   value,
@@ -315,7 +320,7 @@ export function OrbitPlane({
     return () => resized.disconnect();
   }, [bounds, route, value]);
   return (
-    <PlanePicker bounds={bounds} value={value} onMove={onChange} label={label}>
+    <PlanePicker bounds={bounds} value={value} onMove={onChange} drag label={label}>
       <div className={styles.paper} style={{ aspectRatio: aspect(bounds) }} />
       <canvas ref={overlay} className={styles.overlay} />
     </PlanePicker>
