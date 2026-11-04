@@ -3,14 +3,26 @@
 The Mandelbrot set comes from one short rule:
 
 $$
-z\to z^2+c
+z_{n+1}=z_n^2+c
 $$
 
-You pick a number $c$, start with $z=0$, and keep feeding each answer back into the rule. With $c=1$ you get $0\to1\to2\to5\to26\to\cdots$, and the numbers fly off toward infinity. With $c=-1$ you get $0,-1,0,-1,\ldots$, and you're trapped between those two numbers forever. The Mandelbrot set is all the values of $c$ that don't fly off.
+You pick a number $c$, start with $z_0=0$, and keep feeding each answer back into the rule. With $c=1$ you get
+
+$$
+0\to1\to2\to5\to26\to\cdots
+$$
+
+and the numbers fly off toward infinity. With $c=-1$ you get
+
+$$
+0\to-1\to0\to-1\to\cdots
+$$
+
+and you're trapped between those two numbers forever. The Mandelbrot set is all the values of $c$ that don't fly off.
 
 To draw it, each pixel needs its own $c$. A pixel has two coordinates, so $c$ gets two parts, one for how far to move left or right and one for how far to move up or down, which makes it a **complex number**. Adding $c$ moves a point by those two amounts, and squaring multiplies the point's distance from zero by itself and doubles its angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-In the demo below, the ring is $c$ and the point starts at zero. Each time you apply the rule, the point jumps to the next $z$, shown as a dot, and a thin line joins the dots in order. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> so crossing means it has flown off. As you drag the ring across the plane, you'll see some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle. The route ends at its first repeat.
+In the demo below, the ring is $c$ and the point starts at zero. Each time you apply the rule, the point jumps from $z_n$ to $z_{n+1}$, shown as a dot, and a thin line joins the dots in order. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> so crossing means it has flown off. As you drag the ring across the plane, you'll see some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle. The route ends at its first repeat.
 
 <figure data-lesson="orbit-shapes"></figure>
 

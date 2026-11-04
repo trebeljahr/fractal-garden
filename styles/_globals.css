@@ -156,7 +156,7 @@ h5 {
 }
 
 .math.math-display {
-  width: fit-content;
+  width: 100%;
 }
 
 pre code.hljs {
@@ -322,4 +322,11 @@ body[data-fractal-fullscreen] [data-fractal-description-section] {
   :root:not(:has([data-fractal-header-controls], [data-fractal-places])) {
     --explorer-header-height: 60px;
   }
+}
+
+.katex-display {
+  margin: 1.25em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 1.2em;
 }
