@@ -18,6 +18,7 @@ import {
 import { createMandelbrotMotion } from "./motion";
 import type { EscapeFormula, ReferenceOrbit } from "./orbit";
 import type { PixelRepair } from "./pixelSummary";
+import { createMandelbrotReuse } from "./reuse";
 
 export const MAX_RENDER_ITERATIONS = 8192;
 export type RenderState = {
@@ -56,7 +57,7 @@ export function createDeepZoomRenderer(
   formula: EscapeFormula,
   getState: () => RenderState,
   onStatus: (status: ZoomStatus) => void,
-  options: { pixelRatio?: number; interactive?: boolean } = {},
+  options: { pixelRatio?: number; interactive?: boolean; pixelReuse?: boolean } = {},
 ) {
   const release: (() => void)[] = [];
   const sharpMotion = formula === "mandelbrot";
@@ -198,7 +199,10 @@ export function createDeepZoomRenderer(
     let inspectedVersion = -1;
     let moving = false;
     let settle: ReturnType<typeof setTimeout> | undefined;
-    let motion: ReturnType<typeof createMandelbrotMotion> | null = null;
+    let motion:
+      | ReturnType<typeof createMandelbrotMotion>
+      | ReturnType<typeof createMandelbrotReuse>
+      | null = null;
     let preparedState: RenderState | null = null;
     let lastDirectFrame: { state: RenderState; width: number; height: number } | undefined;
 
@@ -679,7 +683,7 @@ export function createDeepZoomRenderer(
         const canPaint = shallow || Boolean(validReference() && reference && referenceView);
         if (canPaint && !motion) {
           try {
-            motion = createMandelbrotMotion(gl, {
+            motion = (options.pixelReuse ? createMandelbrotReuse : createMandelbrotMotion)(gl, {
               error: (error) =>
                 report(error instanceof Error ? error.message : String(error), true),
               initialFrame: lastDirectFrame,

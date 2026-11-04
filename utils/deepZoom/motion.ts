@@ -13,9 +13,9 @@ export type MotionSnapshot = {
   width: number;
   height: number;
 };
-type Tile = { x: number; y: number; width: number; height: number };
+export type Tile = { x: number; y: number; width: number; height: number };
 type Rect = { x0: number; x1: number; y0: number; y1: number };
-type Source = Pick<MotionSnapshot, "state" | "width" | "height">;
+export type Source = Pick<MotionSnapshot, "state" | "width" | "height">;
 type Surface = {
   texture: WebGLTexture;
   framebuffer: WebGLFramebuffer;
@@ -85,7 +85,7 @@ void main() {
   gl_FragColor = vec4(color,1.0);
 }`;
 
-function capture<T extends Source>(source: T): T {
+export function capture<T extends Source>(source: T): T {
   return {
     ...source,
     state: {
@@ -96,7 +96,7 @@ function capture<T extends Source>(source: T): T {
     },
   };
 }
-function compatible(a: Source, b: Source) {
+export function compatible(a: Source, b: Source) {
   return (
     a.width === b.width &&
     a.height === b.height &&
@@ -105,12 +105,12 @@ function compatible(a: Source, b: Source) {
     JSON.stringify(a.state.config) === JSON.stringify(b.state.config)
   );
 }
-function transform(view: DeepViewport, source: DeepViewport): [number, number, number] {
+export function transform(view: DeepViewport, source: DeepViewport): [number, number, number] {
   const delta = viewportDelta(view, source);
   const component = ([m, e]: [number, number]) => (m === 0 ? 0 : m * 2 ** (e - source.logZoom));
   return [component(delta.x), component(delta.y), 2 ** (view.logZoom - source.logZoom)];
 }
-function sameCamera(a: Source, b: Source) {
+export function sameCamera(a: Source, b: Source) {
   const [x, y, ratio] = transform(a.state.view, b.state.view);
   return x === 0 && y === 0 && ratio === 1;
 }

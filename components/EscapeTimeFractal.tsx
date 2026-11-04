@@ -154,7 +154,11 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
           height: stateRef.current.height || 1,
         }),
         (status) => setRenderError(status.error ? status.message : ""),
-        { interactive: true },
+        {
+          interactive: true,
+          // Prototype: compare per-pixel reuse with the default zoom by adding ?zoom=reuse.
+          pixelReuse: new URLSearchParams(window.location.search).get("zoom") === "reuse",
+        },
       );
     } catch (error) {
       setRenderError(error instanceof Error ? error.message : String(error));
