@@ -3,6 +3,7 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
 import { radians } from "../../utils/ctxHelpers";
+import { ARROWHEAD_LEAD } from "../../utils/lessons/arrowheadChain";
 import { getDescription } from "../../utils/readFiles";
 
 export async function getStaticProps() {
@@ -44,7 +45,7 @@ const SierpinskiArrowhead = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={sierpinskiArrowhead} />
+        <LSystem ruleset={sierpinskiArrowhead} constructionLead={ARROWHEAD_LEAD} />
         <SideDrawer description={description} />
 
         <NavElement />

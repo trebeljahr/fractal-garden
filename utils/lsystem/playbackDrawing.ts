@@ -1,4 +1,5 @@
 import type { ConstructionView } from "../constructionView";
+import { untouchedCorner } from "../lessons/arrowheadChain";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import { notchTriangleTip } from "../lessons/quadraticStart";
 import {
@@ -41,6 +42,21 @@ export function preparePlaybackDrawing(
       geometry.positions[i + 1],
       geometry.positions[i + 2],
     );
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  // The path's two ends, which every level of the arrowhead keeps.
+  const ends = [
+    geometry.positions[0],
+    geometry.positions[1],
+    geometry.positions[geometry.count * 6 - 3],
+    geometry.positions[geometry.count * 6 - 2],
+  ] as const;
+  if (view.smallTriangles !== undefined) {
+    // Fit the arrowhead's whole triangle at every level, not just the path's part of it.
+    const [x, y] = project(...untouchedCorner(...ends, 0, 0), 0);
     minX = Math.min(minX, x);
     maxX = Math.max(maxX, x);
     minY = Math.min(minY, y);
@@ -136,6 +152,29 @@ export function preparePlaybackDrawing(
     loopOutside = new Path2D(loopDiamond);
     loopOutside.addPath(loopInside);
   }
+  // Each line of the arrowhead is one side of a small triangle.
+  const smallTriangles = view.smallTriangles && geometry.count <= 5000;
+  const tips = new Float32Array(smallTriangles ? geometry.count * 2 : 0);
+  const addTriangle = (path: Path2D, line: number) => {
+    path.moveTo(projected[line * 4], projected[line * 4 + 1]);
+    path.lineTo(projected[line * 4 + 2], projected[line * 4 + 3]);
+    path.lineTo(tips[line * 2], tips[line * 2 + 1]);
+    path.closePath();
+  };
+  const triangles = new Path2D();
+  if (smallTriangles)
+    for (let i = 0; i < geometry.count; i++) {
+      const [x, y] = untouchedCorner(
+        geometry.positions[i * 6],
+        geometry.positions[i * 6 + 1],
+        geometry.positions[i * 6 + 3],
+        geometry.positions[i * 6 + 4],
+        i,
+        model.generation,
+      );
+      tips.set(screen(x, y, 0), i * 2);
+      addTriangle(triangles, i);
+    }
   // Cache finished chunks. Each animation frame builds at most one small tail.
   const chunkSize = 256;
   const chunks = new Map<number, Map<number, Path2D>>();
@@ -205,6 +244,23 @@ export function preparePlaybackDrawing(
     }
     const count = drawing ? drawn[consumed] : 0;
     const before = consumed > 0 ? drawn[consumed - 1] : 0;
+    if (smallTriangles) {
+      // Triangles the pen has reached fill in, and the one it is in stands out.
+      const reached = new Path2D();
+      for (let i = 0; i < count; i++) addTriangle(reached, i);
+      ctx.fillStyle = view.color;
+      ctx.globalAlpha = 0.1;
+      ctx.fill(triangles);
+      ctx.globalAlpha = 0.22;
+      ctx.fill(reached);
+      if (count > 0 && consumed < model.instructionLength) {
+        const inside = new Path2D();
+        addTriangle(inside, count - 1);
+        ctx.globalAlpha = 0.5;
+        ctx.fill(inside);
+      }
+      ctx.globalAlpha = 1;
+    }
     ctx.strokeStyle = "#eee8ce30";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 5]);
@@ -299,6 +355,17 @@ export function preparePlaybackDrawing(
             )
           : tintOf(i);
       ctx.lineWidth = Math.max(0.5, view.lineWidth * geometry.widths[i]);
+      ctx.stroke();
+    }
+    if (view.smallTriangles && geometry.count > 1) {
+      // Halfway along the first line, where the pen's first triangle meets its last.
+      const [x, y] = screen((ends[0] + ends[2]) / 2, (ends[1] + ends[3]) / 2, 0);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = view.background;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
     }
     // A finished level is just the picture.
