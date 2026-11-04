@@ -20,9 +20,9 @@ $$
 
 and you're trapped between those two numbers forever. The Mandelbrot set is all the values of $c$ that don't fly off.
 
-To draw it, each pixel needs its own $c$. A pixel has two coordinates, so $c$ gets two parts, one for how far to move left or right and one for how far to move up or down, which makes it a **complex number**. Adding $c$ moves a point by those two amounts, and squaring multiplies the point's distance from zero by itself and doubles its angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
+To draw it, each pixel needs its own $c$, and because a pixel has two coordinates, $c$ needs two parts, which makes it a **complex number**. Adding $c$ moves a point sideways and up or down, and squaring multiplies the point's distance from zero by itself and doubles its angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-In the demo below, the ring is $c$ and the point starts at zero. Each time you apply the rule, the point jumps from $z_n$ to $z_{n+1}$, shown as a dot, and a thin line joins the dots in order. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> so crossing means it has flown off. As you drag the ring across the plane, you'll see some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle. The route ends at its first repeat.
+In the demo below, the ring is $c$, the point starts at zero, and each dot is one more use of the rule, so the dots trace the point's route. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> which means it has flown off. If you drag the ring around, some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle.
 
 <figure data-lesson="orbit-shapes"></figure>
 
