@@ -32,6 +32,10 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+.power {
+  font-size: 0.75em;
+  line-height: 0;
+}
 /* On a phone the longest caption fits only without its "c =". */
 @container (max-width: 430px) {
   .caption {

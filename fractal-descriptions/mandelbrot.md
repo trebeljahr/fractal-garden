@@ -54,6 +54,10 @@ Now multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. These
 
 Look at the round bulb on the left. Numbers inside it approach a two-number repeat, like the $0,-1$ example at its center. Numbers inside the heart-shaped body settle toward one value.<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup> Numbers inside the big bulbs above and below the heart approach a three-number repeat, and smaller bulbs have other lengths.<sup><a id="mandelbrot-ref-7" href="#mandelbrot-source-7">7</a></sup> Along the horizontal axis, these lengths make the branching picture of the [logistic map](/logistic-map).
 
+Now zoom in on the edge. Each arrow below starts at a place on the edge and points to that place enlarged. The caption says how much closer the picture is than the whole set. The deepest is $10^{100}$ times closer, and it still comes from square and add. Click a picture to open it in the explorer at the top of this page, then keep zooming.
+
+<figure data-lesson="mandelbrot-zoom-map"></figure>
+
 So far, every calculation has started at zero. Keep the number you add, but try a different starting point at every pixel. This makes a [Julia picture](/julia-set). A single choice in the Mandelbrot picture now gives us a whole new shape to explore.
 
 <figure data-lesson="linked-julia"></figure>

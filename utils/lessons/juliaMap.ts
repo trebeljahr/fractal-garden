@@ -1,6 +1,6 @@
 import type { ComplexPoint } from "../orbitLesson";
 
-type Picture = { id: string; c: ComplexPoint; alt: string; row: number; column: number };
+export type Picture = { id: string; c: ComplexPoint; alt: string; row: number; column: number };
 
 // A ring of cells in a 4 by 4 grid, clockwise from the top left. The map fills the middle.
 // Rebuild the images after changing a c: node scripts/generate-julia-map.mjs
