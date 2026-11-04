@@ -44,9 +44,6 @@ button.plane.plane {
   height: auto;
   background: #eee8ce;
 }
-.squares {
-  image-rendering: pixelated;
-}
 .overlay {
   position: absolute;
   inset: 0;

@@ -5,13 +5,10 @@ import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
   createGrid,
-  ESCAPED_COLOR,
+  outlineRow,
+  outlineStroke,
   type PaintGrid,
   type PlaneBounds,
-  paintRow,
-  paintStroke,
-  STAYED,
-  STAYED_COLOR,
 } from "../../utils/lessons/paintPlane";
 import type { ComplexPoint, OrbitStep } from "../../utils/orbitLesson";
 import { isOutside } from "../../utils/orbitLesson";
@@ -21,10 +18,11 @@ const MARK = "#6d7276";
 const ROUTE = "#c8421c";
 const RING = "#f5c56d";
 const LINE = "#eee8ce";
-// Squares big enough to see, 15 to a unit. 66 rows put the horizontal axis between two rows.
-const COLUMNS = 84;
-const BRUSH = 0.08;
-const FILL_MS = 3000;
+// 100 cells to a unit, so the edge is about one screen pixel wide in the article's column.
+const COLUMNS = 560;
+const BRUSH = 0.07;
+const DRAW_MS = 3000;
+const OUTLINE = [16, 21, 26];
 const ESCAPE_CIRCLE = 2;
 // A route that stays shows this many jumps, so a repeat is still readable.
 const CHART_JUMPS = 60;
@@ -324,32 +322,44 @@ export function OrbitPlane({
 }
 
 /**
- * A blank plane cut into squares, each standing for the number at its center. Squares under the
- * pointer get tested, so the edge of the Mandelbrot set shows up as the pointer crosses it.
+ * A plain plane with the route of the number under the pointer. Numbers near the pointer get
+ * tested, and the line between those that stay and those that cross is drawn as it is found.
  */
-export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: string }) {
-  const [value, setValue] = useState<ComplexPoint>({ real: 0, imaginary: 0 });
+export function PaintPlane({
+  bounds,
+  value,
+  onChange,
+  route,
+  label,
+  children,
+}: {
+  bounds: PlaneBounds;
+  value: ComplexPoint;
+  onChange: (point: ComplexPoint) => void;
+  route: OrbitStep[];
+  label: string;
+  children?: ReactNode;
+}) {
   const paper = useRef<HTMLCanvasElement>(null);
   const overlay = useRef<HTMLCanvasElement>(null);
   const grid = useRef<PaintGrid | null>(null);
   const image = useRef<ImageData | null>(null);
   const last = useRef<ComplexPoint | null>(null);
   const sweep = useRef(0);
-  const [filling, setFilling] = useState<"blank" | "sweeping" | "full">("blank");
+  const [drawing, setDrawing] = useState<"partly" | "sweeping" | "full">("partly");
   const reduced = useReducedMotion();
 
   const show = (cells: number[]) => {
     const context = paper.current?.getContext("2d");
     if (!grid.current || !image.current || !context || !cells.length) return;
-    const { columns, steps } = grid.current;
+    const { columns } = grid.current;
     const { data } = image.current;
     let firstRow = Number.POSITIVE_INFINITY;
     let lastRow = 0;
     for (const cell of cells) {
-      const color = steps[cell] === STAYED ? STAYED_COLOR : ESCAPED_COLOR;
-      data[cell * 4] = color[0];
-      data[cell * 4 + 1] = color[1];
-      data[cell * 4 + 2] = color[2];
+      data[cell * 4] = OUTLINE[0];
+      data[cell * 4 + 1] = OUTLINE[1];
+      data[cell * 4 + 2] = OUTLINE[2];
       data[cell * 4 + 3] = 255;
       const row = Math.floor(cell / columns);
       if (row < firstRow) firstRow = row;
@@ -373,34 +383,34 @@ export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: stri
   useEffect(() => {
     const canvas = overlay.current;
     if (!canvas) return;
-    const draw = () => drawPlane(canvas, bounds, { circle: true });
+    const draw = () => drawPlane(canvas, bounds, { route, ring: value, circle: true });
     draw();
     const resized = new ResizeObserver(draw);
     resized.observe(canvas);
     return () => resized.disconnect();
-  }, [bounds]);
+  }, [bounds, route, value]);
 
-  const fill = () => {
+  const drawRest = () => {
     if (!grid.current) return;
     const { rows } = grid.current;
-    const finished = () => setFilling("full");
+    const finished = () => setDrawing("full");
     if (reduced) {
       const cells: number[] = [];
       for (let row = 0; row < rows; row++) {
-        for (const cell of paintRow(grid.current, row)) cells.push(cell);
+        for (const cell of outlineRow(grid.current, row)) cells.push(cell);
       }
       show(cells);
       finished();
       return;
     }
-    setFilling("sweeping");
+    setDrawing("sweeping");
     const begun = performance.now();
     let row = 0;
     sweep.current = requestAnimationFrame(function tick(now) {
-      const target = Math.min(rows, Math.ceil(((now - begun) / FILL_MS) * rows));
+      const target = Math.min(rows, Math.ceil(((now - begun) / DRAW_MS) * rows));
       const cells: number[] = [];
       while (grid.current && row < target) {
-        for (const cell of paintRow(grid.current, row)) cells.push(cell);
+        for (const cell of outlineRow(grid.current, row)) cells.push(cell);
         row++;
       }
       show(cells);
@@ -411,7 +421,7 @@ export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: stri
   const clear = () => {
     cancelAnimationFrame(sweep.current);
     start();
-    setFilling("blank");
+    setDrawing("partly");
     last.current = null;
   };
 
@@ -421,9 +431,9 @@ export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: stri
         bounds={bounds}
         value={value}
         onMove={(point) => {
-          if (grid.current) show(paintStroke(grid.current, last.current ?? point, point, BRUSH));
+          if (grid.current) show(outlineStroke(grid.current, last.current ?? point, point, BRUSH));
           last.current = point;
-          setValue(point);
+          onChange(point);
         }}
         onBreak={() => {
           last.current = null;
@@ -432,15 +442,16 @@ export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: stri
       >
         <canvas
           ref={paper}
-          className={`${styles.paper} ${styles.squares}`}
+          className={styles.paper}
           width={COLUMNS}
           height={planeHeight(bounds, COLUMNS)}
         />
         <canvas ref={overlay} className={styles.overlay} />
       </PlanePicker>
+      {children}
       <div className={styles.actions}>
-        <button type="button" disabled={filling !== "blank"} onClick={fill}>
-          Fill the rest
+        <button type="button" disabled={drawing !== "partly"} onClick={drawRest}>
+          Draw the rest
         </button>
         <button type="button" onClick={clear}>
           Clear

@@ -25,13 +25,19 @@ function outcome(jumps: number, crossed: boolean, period: number | undefined) {
   return `Still inside the dashed circle after ${jumps} jumps.`;
 }
 
+function useRoute(value: ComplexPoint) {
+  const { orbit, loop } = useMemo(() => traceUntilLoop(value, ZERO, false, ORBIT_JUMPS), [value]);
+  const end = orbit[orbit.length - 1];
+  const reading = `c = ${coordinates(value)}. ${outcome(orbit.length - 1, isOutside(end.point), loop?.period)}`;
+  return { orbit, reading };
+}
+
 /** One number's whole route on a plain plane, for hovering from shape to shape. */
 export function OrbitShapesLesson() {
   const [value, setValue] = useState<ComplexPoint>(OPENING);
-  const { orbit, loop } = useMemo(() => traceUntilLoop(value, ZERO, false, ORBIT_JUMPS), [value]);
+  const { orbit, reading } = useRoute(value);
   // The route ends at its first repeat. The chart keeps going, so the repeat can be read.
   const chart = useMemo(() => traceTeachingOrbit(value, ZERO, false, ORBIT_JUMPS), [value]);
-  const end = orbit[orbit.length - 1];
   return (
     <LessonFrame title="One number's route" kind="orbit-shapes">
       <div className={styles.lesson}>
@@ -43,7 +49,7 @@ export function OrbitShapesLesson() {
           label="Number c"
         />
         <p className={styles.readout} data-orbit-outcome>
-          c = {coordinates(value)}. {outcome(orbit.length - 1, isOutside(end.point), loop?.period)}
+          {reading}
         </p>
         <DistanceChart route={chart} />
       </div>
@@ -52,10 +58,22 @@ export function OrbitShapesLesson() {
 }
 
 export default function PaintLesson() {
+  const [value, setValue] = useState<ComplexPoint>(OPENING);
+  const { orbit, reading } = useRoute(value);
   return (
-    <LessonFrame title="Color in the plane" kind="paint-mandelbrot">
+    <LessonFrame title="Draw the edge" kind="paint-mandelbrot">
       <div className={styles.lesson}>
-        <PaintPlane bounds={BOUNDS} label="Number c" />
+        <PaintPlane
+          bounds={BOUNDS}
+          value={value}
+          onChange={setValue}
+          route={orbit}
+          label="Number c"
+        >
+          <p className={styles.readout} data-paint-outcome>
+            {reading}
+          </p>
+        </PaintPlane>
       </div>
     </LessonFrame>
   );

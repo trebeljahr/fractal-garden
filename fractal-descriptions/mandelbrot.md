@@ -22,13 +22,13 @@ Move your pointer across the plane, or slide sideways on a phone. Some numbers p
 
 <figure data-lesson="orbit-shapes"></figure>
 
-Now test many numbers at once. Each square below stands for the number at its center. Move your pointer over the plane to test squares: a square turns dark if the point stays inside the dashed circle for 300 jumps, and blue if it crosses.
+Some numbers keep the point inside the dashed circle for 300 jumps, and some send it across. Move your pointer over the plane below and watch for the moment the route changes from one kind to the other. A line appears at that spot: numbers on one side stay, and numbers on the other side cross.
 
-Press **Fill the rest** to test every square. The dark shape is a rough Mandelbrot set.
+Press **Draw the rest** to test every number. The line closes up into the edge of the Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 
-Give every pixel its own test and the edge sharpens. In this picture, the ring marks the number you chose. It starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the amber point leave.
+Here is the same edge with the inside filled in. The ring marks the number you chose. It starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the amber point leave.
 
 <figure data-orbit="mandelbrot"></figure>
 
