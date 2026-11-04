@@ -17,7 +17,6 @@ import {
   rescaleFixed,
   viewportDelta,
 } from "./math";
-import { createMandelbrotMotion } from "./motion";
 import type { EscapeFormula, ReferenceOrbit } from "./orbit";
 import type { PixelRepair } from "./pixelSummary";
 import { createMandelbrotReuse } from "./reuse";
@@ -62,7 +61,7 @@ export function createDeepZoomRenderer(
   formula: EscapeFormula,
   getState: () => RenderState,
   onStatus: (status: ZoomStatus) => void,
-  options: { pixelRatio?: number; interactive?: boolean; pixelReuse?: boolean } = {},
+  options: { pixelRatio?: number; interactive?: boolean } = {},
 ) {
   const release: (() => void)[] = [];
   const sharpMotion = formula === "mandelbrot";
@@ -204,12 +203,8 @@ export function createDeepZoomRenderer(
     let inspectedVersion = -1;
     let moving = false;
     let settle: ReturnType<typeof setTimeout> | undefined;
-    let motion:
-      | ReturnType<typeof createMandelbrotMotion>
-      | ReturnType<typeof createMandelbrotReuse>
-      | null = null;
+    let motion: ReturnType<typeof createMandelbrotReuse> | null = null;
     let preparedState: RenderState | null = null;
-    let lastDirectFrame: { state: RenderState; width: number; height: number } | undefined;
 
     const report = (message: string, error = false) => {
       if (destroyed) return;
@@ -445,16 +440,6 @@ export function createDeepZoomRenderer(
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disable(gl.SCISSOR_TEST);
       if (!tile && !target) {
-        lastDirectFrame = {
-          state: {
-            ...state,
-            view: { ...state.view },
-            config: { ...state.config },
-            c: [...state.c],
-          },
-          width: w,
-          height: h,
-        };
         rememberFrame();
         renderedVersion = version;
         inspectedVersion = -1;
@@ -707,10 +692,9 @@ export function createDeepZoomRenderer(
         const canPaint = shallow || Boolean(validReference() && reference && referenceView);
         if (canPaint && !motion) {
           try {
-            motion = (options.pixelReuse ? createMandelbrotReuse : createMandelbrotMotion)(gl, {
+            motion = createMandelbrotReuse(gl, {
               error: (error) =>
                 report(error instanceof Error ? error.message : String(error), true),
-              initialFrame: lastDirectFrame,
               backdrop: true,
               paint: (snapshot, target) => {
                 draw(snapshot.orbit, snapshot.orbitView, target.tile, {
@@ -726,7 +710,6 @@ export function createDeepZoomRenderer(
                 }
               },
             });
-            lastDirectFrame = undefined;
           } catch (error) {
             report(error instanceof Error ? error.message : String(error), true);
             return;

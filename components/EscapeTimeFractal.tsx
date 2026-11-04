@@ -74,10 +74,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
   shareRules,
   placeMatches,
 }: Props<T>) {
-  // Prototype: compare per-pixel reuse and gliding with the default zoom by adding ?zoom=reuse.
-  const reuseZoom =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("zoom") === "reuse";
   const { width, height } = useFractalViewportSize();
   const frame = useFractalFrame(width, height);
   const opening = useMemo(() => {
@@ -157,7 +153,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
     maxZoomSize: Math.max(maxZoomSize, 2 ** opening.logZoom),
     minLogZoom,
     flipY,
-    glide: reuseZoom,
+    glide: true,
     onChange: updateViewport,
   });
 
@@ -177,7 +173,6 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         (status) => setRenderError(status.error ? status.message : ""),
         {
           interactive: true,
-          pixelReuse: reuseZoom,
         },
       );
     } catch (error) {
@@ -209,7 +204,7 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
       renderer.destroy();
       rendererRef.current = null;
     };
-  }, [gl, cnv, formula, reuseZoom]);
+  }, [gl, cnv, formula]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: every render input invalidates the frame
   useEffect(() => {

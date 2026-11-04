@@ -12,9 +12,15 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(outputText, filename);
 };
 const { createMandelbrotReuse, PHASES } = require("../utils/deepZoom/reuse.ts");
-const { createViewportAtLog, zoomViewport } = require("../utils/deepZoom/math.ts");
+const { createViewportAtLog, moveViewport, zoomViewport } = require("../utils/deepZoom/math.ts");
 
-function harness(run, backdrop = false) {
+function harness(
+  run,
+  backdrop = false,
+  onError = (error) => {
+    throw error;
+  },
+) {
   const saved = [globalThis.requestAnimationFrame, globalThis.cancelAnimationFrame];
   const frames = new Map();
   let serial = 0;
@@ -57,6 +63,7 @@ function harness(run, backdrop = false) {
       },
     },
   );
+  const control = {};
   const [width, height] = [640, 360];
   let snapshot = {
     state: {
@@ -76,14 +83,18 @@ function harness(run, backdrop = false) {
   const motion = createMandelbrotReuse(gl, {
     backdrop,
     paint(source, target) {
+      if (control.failPaint) throw control.failPaint;
       paints.push({ source, target, depthTest });
     },
     complete: (version) => completions.push(version),
+    error: onError,
   });
-  const tick = () => {
+  let clock = 0;
+  const tick = (interval = 16) => {
+    clock += interval;
     const callbacks = [...frames.values()];
     frames.clear();
-    for (const callback of callbacks) callback(0);
+    for (const callback of callbacks) callback(clock);
   };
   try {
     run({
@@ -98,6 +109,12 @@ function harness(run, backdrop = false) {
       update(moving = false, change = {}, canPaint = true) {
         snapshot = { ...snapshot, ...change };
         motion.update(snapshot, moving, canPaint);
+      },
+      set failPaint(error) {
+        control.failPaint = error;
+      },
+      get failPaint() {
+        return control.failPaint;
       },
       get snapshot() {
         return snapshot;
@@ -203,4 +220,76 @@ test("the soft image stays within the frame's budget", () =>
     const area = soft.reduce((sum, { target: { tile } }) => sum + tile.width * tile.height, 0);
     assert.ok(area > 0 && area < (640 * 360) / PHASES + 64 * 64);
     assert.ok(h.motion.getStats().backdropPainting);
+  }, true));
+
+test("a new step limit keeps the picture and recalculates it", () =>
+  harness((h) => {
+    h.update(false);
+    h.flush();
+    const clears = h.clears;
+    const state = {
+      ...h.snapshot.state,
+      config: { ...h.snapshot.state.config, iterations: 400 },
+    };
+    h.update(false, { state, iterations: 880, version: 2 });
+    h.flush();
+    assert.equal(h.clears, clears, "stored pixels are kept");
+    assert.equal(h.motion.getStats().paintedPhases, 2 * PHASES);
+    assert.deepEqual(h.completions, [1, 2]);
+  }));
+
+test("without GPU timers the share follows the frame rate", () =>
+  harness((h) => {
+    let log = -20;
+    const step = (interval) => {
+      log -= 0.01;
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, log, 0, 0) };
+      h.update(true, { state });
+      h.tick(interval);
+    };
+    for (let i = 0; i < 20; i++) step(16);
+    const fast = h.motion.getStats().phasesPerFrame;
+    assert.ok(fast > 2, "fast frames calculate more");
+    for (let i = 0; i < 20; i++) step(33);
+    assert.ok(h.motion.getStats().phasesPerFrame < fast / 4, "late frames calculate less");
+  }));
+
+test("a failed frame reports once and stops", () => {
+  const errors = [];
+  harness(
+    (h) => {
+      h.update(false);
+      h.failPaint = new Error("paint failed");
+      h.tick();
+      assert.deepEqual(errors, [h.failPaint]);
+      const painted = h.paints.length;
+      h.update(false, { version: 2 });
+      h.flush();
+      h.motion.destroy();
+      assert.equal(errors.length, 1);
+      assert.equal(h.paints.length, painted);
+    },
+    false,
+    (error) => errors.push(error),
+  );
+});
+
+test("a window size that rounds unevenly still finishes the soft image and the picture", () =>
+  harness((h) => {
+    const [width, height] = [1207, 2622];
+    h.update(false, { width, height, state: { ...h.snapshot.state, width, height } });
+    h.flush();
+    assert.equal(h.motion.getStats().backdropPainting, false);
+    assert.equal(h.motion.getStats().freshPhases, PHASES);
+  }, true));
+
+test("a small pan keeps the soft image", () =>
+  harness((h) => {
+    h.update(false);
+    h.flush();
+    const before = h.paints.length;
+    const view = moveViewport(h.snapshot.state.view, 0.05, 0);
+    h.update(true, { state: { ...h.snapshot.state, view }, version: 2 });
+    h.tick();
+    assert.equal(h.paints.slice(before).filter(isSoft).length, 0);
   }, true));

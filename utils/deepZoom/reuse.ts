@@ -1,13 +1,52 @@
 import { createShaderProgram } from "../shaders/compileShader";
-import {
-  capture,
-  compatible,
-  type MotionSnapshot,
-  type Source,
-  sameCamera,
-  type Tile,
-  transform,
-} from "./motion";
+import { type DeepViewport, viewportDelta } from "./math";
+import type { ReferenceOrbit } from "./orbit";
+import type { RenderState } from "./renderer";
+
+export type MotionSnapshot = {
+  state: RenderState;
+  orbit: ReferenceOrbit | null;
+  orbitView: DeepViewport | null;
+  version: number;
+  iterations: number;
+  /** Native display dimensions, independent of the offscreen sampling density. */
+  width: number;
+  height: number;
+};
+type Tile = { x: number; y: number; width: number; height: number };
+type Source = Pick<MotionSnapshot, "state" | "width" | "height">;
+
+function capture<T extends Source>(source: T): T {
+  return {
+    ...source,
+    state: {
+      ...source.state,
+      view: { ...source.state.view },
+      c: [...source.state.c],
+      config: { ...source.state.config },
+    },
+  };
+}
+/** The step limit is left out: it changes while zooming and only affects the slowest pixels. */
+function compatible(a: Source, b: Source) {
+  const settings = ({ state: { config } }: Source) => ({ ...config, iterations: 0 });
+  return (
+    a.width === b.width &&
+    a.height === b.height &&
+    a.state.c[0] === b.state.c[0] &&
+    a.state.c[1] === b.state.c[1] &&
+    JSON.stringify(settings(a)) === JSON.stringify(settings(b))
+  );
+}
+function transform(view: DeepViewport, source: DeepViewport): [number, number, number] {
+  const delta = viewportDelta(view, source);
+  const component = ([m, e]: [number, number]) => (m === 0 ? 0 : m * 2 ** (e - source.logZoom));
+  return [component(delta.x), component(delta.y), 2 ** (view.logZoom - source.logZoom)];
+}
+function sameCamera(a: Source, b: Source) {
+  const [x, y, ratio] = transform(a.state.view, b.state.view);
+  return x === 0 && y === 0 && ratio === 1;
+}
 
 /** The screen splits into 64 phases. Each holds 1/64 of the pixels, evenly scattered. */
 export const PHASES = 64;
@@ -26,8 +65,8 @@ const HOLE_REACH = 4;
 // The soft image spans 2 views at 1/8 sampling: 1/16 of the screen's pixels.
 const BACKDROP_SPAN = 2;
 const BACKDROP_SAMPLING = 1 / 8;
-/** Replace the soft image once zooming out has used this share of its span... */
-const MAX_BACKDROP_RATIO = 0.7;
+/** Replace the soft image once the camera has reached this share of its span... */
+const MAX_BACKDROP_REACH = 0.7;
 /** ...or once zooming in has spread its pixels this far apart. */
 const MIN_BACKDROP_RATIO = 1 / 4;
 
@@ -191,7 +230,7 @@ type Backdrop = {
 };
 
 /**
- * Prototype: keep one image and move its pixels every frame, recalculating only a
+ * Keep one image and move its pixels every frame, recalculating only a
  * scattered share. No pass is ever visible as a shape, since every frame is whole.
  */
 export function createMandelbrotReuse(
@@ -203,7 +242,6 @@ export function createMandelbrotReuse(
     ) => void;
     complete: (version: number) => void;
     error?: (error: unknown) => void;
-    initialFrame?: Source;
     backdrop?: boolean;
   },
 ) {
@@ -222,6 +260,7 @@ export function createMandelbrotReuse(
   let shortestFrame = Number.POSITIVE_INFINITY;
   // The camera and settings the stored pixels are currently arranged for.
   let arranged: Source | null = null;
+  let arrangedIterations = 0;
   let cursor = 0;
   let phasesPerFrame = 1;
   let freshPhases = 0;
@@ -512,8 +551,11 @@ export function createMandelbrotReuse(
       if (lastFrame === null || timestamp <= lastFrame) return;
       const interval = timestamp - lastFrame;
       shortestFrame = Math.min(shortestFrame, interval);
+      const late = interval > shortestFrame * 1.4;
+      // Without GPU timers, as in Safari, the frame rate is the only measure of cost.
+      if (!timer) phasesPerFrame *= late ? 0.7 : 1.1;
       if (!moving) return;
-      if (interval > shortestFrame * 1.4) {
+      if (late) {
         movingTarget = Math.max(MIN_MOVING_TARGET_MS, movingTarget * 0.9);
       } else movingTarget = Math.min(MAX_MOVING_TARGET_MS, movingTarget * 1.02);
     };
@@ -564,16 +606,17 @@ export function createMandelbrotReuse(
     const backdropDue = () => {
       if (!options.backdrop || !latest || backdropWork.snapshot) return false;
       if (!backdrop.source || !compatible(latest, backdrop.source)) return true;
-      // Replace it once the camera has used up half of its wider view.
       const [x, y, ratio] = transform(latest.state.view, backdrop.source.state.view);
       const size = Math.min(latest.width, latest.height);
       const backdropSize = Math.min(backdrop.width, backdrop.height);
       // After zooming in, one backdrop texel covers many screen pixels and shows flat color.
-      if (ratio < MIN_BACKDROP_RATIO || ratio > MAX_BACKDROP_RATIO) return true;
+      if (ratio < MIN_BACKDROP_RATIO) return true;
+      // After zooming out or panning, the camera nears the edge of the wider view.
+      const reach = MAX_BACKDROP_REACH / backdropSize;
       return (
         !Number.isFinite(x + y + ratio) ||
-        Math.abs(x) + (ratio * latest.width) / size > (0.5 * backdrop.width) / backdropSize ||
-        Math.abs(y) + (ratio * latest.height) / size > (0.5 * backdrop.height) / backdropSize
+        Math.abs(x) + (ratio * latest.width) / size > reach * backdrop.width ||
+        Math.abs(y) + (ratio * latest.height) / size > reach * backdrop.height
       );
     };
     /** Spends up to this many pixels, returning how many it used. */
@@ -616,6 +659,9 @@ export function createMandelbrotReuse(
         else forget();
         freshPhases = 0;
       }
+      // A new step limit keeps the picture, then recalculates it in case black pixels now escape.
+      if (arrangedIterations !== latest.iterations) freshPhases = 0;
+      arrangedIterations = latest.iterations;
       arranged = capture(latest);
       pollTimers();
       if (paintAllowed && queries.length < MAX_PENDING_QUERIES) {
