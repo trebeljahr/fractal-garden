@@ -218,8 +218,11 @@ const { buildStars, largestStarDepth, touchingRatio } = require("../utils/starFr
 const { GOSPER_MAX_ROUND, gosperIsland } = require("../utils/gosperIsland.ts");
 
 class CountingPath {
+  lines = 0;
   moveTo() {}
-  lineTo() {}
+  lineTo() {
+    this.lines++;
+  }
   rect() {}
   closePath() {}
 }
@@ -341,7 +344,7 @@ test("a twindragon tiling counts every copy the player draws", () => {
     });
     const ctx = countingContext();
     paint(ctx, 0, 1, false);
-    return model.geometry.count * ctx.strokes.length;
+    return ctx.strokes.reduce((lines, path) => lines + path.lines, 0);
   };
   // The player's canvas on a phone, a tablet, a laptop and a wide window.
   for (const [width, height] of [
