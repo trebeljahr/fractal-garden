@@ -2,6 +2,7 @@ import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { QUADRATIC_LEAD, QUADRATIC_STARTS } from "../../utils/lessons/quadraticStart";
 import { getDescription } from "../../utils/readFiles";
 
 export async function getStaticProps() {
@@ -15,6 +16,9 @@ export async function getStaticProps() {
 type Props = {
   description: string;
 };
+
+const quadraticAxiom = (settings: Record<string, unknown>) =>
+  QUADRATIC_STARTS[settings.start as string];
 
 const QuadraticSnowflake = ({ description }: Props) => {
   const quadraticSnowflake: Ruleset = {
@@ -36,7 +40,11 @@ const QuadraticSnowflake = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={quadraticSnowflake} />
+        <LSystem
+          ruleset={quadraticSnowflake}
+          constructionLead={QUADRATIC_LEAD}
+          constructionAxiom={quadraticAxiom}
+        />
         <SideDrawer description={description} />
 
         <NavElement />

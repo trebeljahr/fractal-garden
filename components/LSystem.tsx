@@ -46,6 +46,8 @@ type Props = {
   constructionLead?: ConstructionLead;
   /** The rules the construction figure draws for its current settings. */
   constructionRules?: (settings: Record<string, unknown>) => Record<string, string>;
+  /** The start the construction figure draws for its current settings. */
+  constructionAxiom?: (settings: Record<string, unknown>) => string;
 };
 
 function expandSentence(sentence: string, replace: Record<string, string>) {
@@ -97,6 +99,7 @@ const LSystem = ({
   zoomDetailOffset = 0,
   constructionLead,
   constructionRules,
+  constructionAxiom,
 }: Props) => {
   const minVisibleIteration = Math.max(ruleset.minIterations, getFirstVisibleIteration(ruleset));
   const [config, setConfig] = useState<Config>(() => ({
@@ -166,6 +169,7 @@ const LSystem = ({
     constructionParams: (settings) => ({
       ...params!,
       ...readInitialPose(settings.ruleset, settings),
+      axiom: constructionAxiom?.(settings) ?? params!.axiom,
       replace: constructionRules?.(settings) ?? params!.replace,
       iterations: settings.iterations,
       background: settings.background,

@@ -1,5 +1,6 @@
 import type { ConstructionView } from "../constructionView";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
+import { notchTriangleTip } from "../lessons/quadraticStart";
 import { strokePasses, TIMES_DRAWN_TINTS, timesDrawnTint } from "../lessons/timesDrawn";
 import { viewRotation } from "../orientation";
 import type { Playback } from "./playback";
@@ -70,6 +71,24 @@ export function preparePlaybackDrawing(
     ghost.moveTo(a[0], a[1]);
     ghost.lineTo(b[0], b[1]);
   }
+  let notchRoom: Path2D | null = null;
+  // Past this the triangles are smaller than the line's width, and filling them stalls the page.
+  if (view.notchRoom && geometry.count <= 5000) {
+    notchRoom = new Path2D();
+    for (let i = 0; i < geometry.count; i++) {
+      const [ax, ay, bx, by] = [
+        projected[i * 4],
+        projected[i * 4 + 1],
+        projected[i * 4 + 2],
+        projected[i * 4 + 3],
+      ];
+      const [tipX, tipY] = notchTriangleTip(ax, ay, bx, by);
+      notchRoom.moveTo(ax, ay);
+      notchRoom.lineTo(bx, by);
+      notchRoom.lineTo(tipX, tipY);
+      notchRoom.closePath();
+    }
+  }
   // Cache finished chunks. Each animation frame builds at most one small tail.
   const chunkSize = 256;
   const chunks = new Map<number, Map<number, Path2D>>();
@@ -101,6 +120,16 @@ export function preparePlaybackDrawing(
   return (ctx: CanvasRenderingContext2D, consumed: number, progress: number, drawing: boolean) => {
     ctx.fillStyle = view.background;
     ctx.fillRect(0, 0, width, height);
+    if (notchRoom) {
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = view.color;
+      ctx.fill(notchRoom);
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = view.background;
+      ctx.lineWidth = 1;
+      ctx.stroke(notchRoom);
+      ctx.globalAlpha = 1;
+    }
     const count = drawing ? drawn[consumed] : 0;
     const before = consumed > 0 ? drawn[consumed - 1] : 0;
     ctx.strokeStyle = "#eee8ce30";
