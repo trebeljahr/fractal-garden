@@ -2,6 +2,7 @@ import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { SIERPINSKI_CURVE_LEAD } from "../../utils/lessons/sierpinskiCurveLoop";
 import { getDescription } from "../../utils/readFiles";
 
 export async function getStaticProps() {
@@ -35,7 +36,7 @@ const SierpinskiCurve = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={sierpinskiCurve} />
+        <LSystem ruleset={sierpinskiCurve} constructionLead={SIERPINSKI_CURVE_LEAD} />
         <SideDrawer description={description} />
 
         <NavElement />

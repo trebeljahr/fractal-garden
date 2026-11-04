@@ -1,6 +1,11 @@
 import type { ConstructionView } from "../constructionView";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import { notchTriangleTip } from "../lessons/quadraticStart";
+import {
+  LOOP_INSIDE_TINT,
+  LOOP_OUTSIDE_TINT,
+  staircaseDiamond,
+} from "../lessons/sierpinskiCurveLoop";
 import { TERDRAGON_COPY_TINTS, terdragonCensus } from "../lessons/terdragonCopies";
 import { strokePasses, TIMES_DRAWN_TINTS, timesDrawnTint } from "../lessons/timesDrawn";
 import { viewRotation } from "../orientation";
@@ -99,6 +104,38 @@ export function preparePlaybackDrawing(
       notchRoom.closePath();
     }
   }
+  // A closed line: what it encloses, and the rest of the staircase diamond around it.
+  let loopInside: Path2D | null = null;
+  let loopOutside: Path2D | null = null;
+  let loopDiamond: Path2D | null = null;
+  let widestLine = Infinity;
+  if (view.loopRegions && geometry.count) {
+    loopInside = new Path2D();
+    loopInside.moveTo(projected[0], projected[1]);
+    let [left, right, top, bottom] = [Infinity, -Infinity, Infinity, -Infinity];
+    for (let i = 0; i < geometry.count; i++) {
+      const [x, y] = [projected[i * 4 + 2], projected[i * 4 + 3]];
+      loopInside.lineTo(x, y);
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y);
+    }
+    loopInside.closePath();
+    // The line's steps are all one length, so the box around it is a whole number of them wide.
+    const stepsWide = Math.round(
+      (right - left) / Math.hypot(projected[2] - projected[0], projected[3] - projected[1]),
+    );
+    const pixels = (right - left) / stepsWide;
+    // At the top levels a normal line would cover both tints.
+    widestLine = pixels / 4;
+    loopDiamond = new Path2D();
+    for (const [x, y] of staircaseDiamond(stepsWide))
+      loopDiamond.lineTo((left + right) / 2 + x * pixels, (top + bottom) / 2 + y * pixels);
+    loopDiamond.closePath();
+    loopOutside = new Path2D(loopDiamond);
+    loopOutside.addPath(loopInside);
+  }
   // Cache finished chunks. Each animation frame builds at most one small tail.
   const chunkSize = 256;
   const chunks = new Map<number, Map<number, Path2D>>();
@@ -155,6 +192,17 @@ export function preparePlaybackDrawing(
       ctx.stroke(notchRoom);
       ctx.globalAlpha = 1;
     }
+    if (loopInside && loopOutside && loopDiamond) {
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = LOOP_INSIDE_TINT;
+      ctx.fill(loopInside);
+      ctx.fillStyle = LOOP_OUTSIDE_TINT;
+      ctx.fill(loopOutside, "evenodd");
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#eee8ce";
+      ctx.lineWidth = 1;
+      ctx.stroke(loopDiamond);
+    }
     const count = drawing ? drawn[consumed] : 0;
     const before = consumed > 0 ? drawn[consumed - 1] : 0;
     ctx.strokeStyle = "#eee8ce30";
@@ -206,7 +254,10 @@ export function preparePlaybackDrawing(
               weight < 0 ? (view.secondDragon ?? view.color) : (view.firstDragon ?? view.color),
             )
           : view.color;
-      ctx.lineWidth = Math.max(0.5, view.lineWidth * (tints ? 1 : Math.abs(weight)));
+      ctx.lineWidth = Math.min(
+        widestLine,
+        Math.max(0.5, view.lineWidth * (tints ? 1 : Math.abs(weight))),
+      );
       ctx.stroke(path);
     };
     const settled = Math.min(before, count);

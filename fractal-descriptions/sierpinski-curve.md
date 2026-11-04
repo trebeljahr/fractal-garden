@@ -1,20 +1,22 @@
 # Sierpinski Curve
 
-This version of the Sierpinski curve is drawn on a square grid. Each turn is 90 degrees. New detours are inserted between the existing connecting lines at every step.
+Draw a small square. Its side is one step. That is level 1.
 
-The starting instructions are `F+XF+F+XF`. F draws a forward step. X does not draw; it is replaced by a longer string of instructions:<sup><a id="sierpinski-curve-ref-1" href="#sierpinski-curve-source-1">1</a></sup>
+For the next level, draw a square 3 steps wide. Set a copy of level 1 against the middle of each side. Each copy now shares one step with the big square. Remove those shared steps, and the five squares become one closed line.
 
-```text
-X → XF-F+F-XF+F+XF-F+F-X
-```
+Repeat, with the whole new shape as the copy around the same 3-step square. The line stays closed and never touches itself, so every level has an inside and an outside. The levels spread over a square standing on its corner. Call it the diamond.
 
 <figure data-construction-player="sierpinski-curve"></figure>
 
-There are eight F steps and four X symbols in that replacement. The starting string has four F steps and two X symbols. Replacing those two X symbols adds sixteen F steps, so the next drawing has twenty.
+Choose **Line alone** and raise the level. The line gets closer to every spot in the diamond. **Farthest from the line** shows how close: the worst spot is the middle of a 3-by-3 square, 1.6 steps away at every level after the first.<sup><a id="sierpinski-curve-ref-1" href="#sierpinski-curve-source-1">1</a></sup> **Width** more than doubles each time. Keep the diamond one size and each step gets about half as long, so those 1.6 steps shrink too. Repeat forever and the line passes through every spot.
 
-Those four X symbols in each replacement are expanded on the following round. Existing F instructions remain and join the new groups. This is why the total segment count does more than multiply by four.
+Choose **Inside and outside**. **Inside** starts at 100% of the diamond and falls toward exactly 50%, never below it. So while the line gets closer to every spot, the area on each side heads to exactly half. That half describes the levels on the way. The line you reach by repeating forever passes through every spot, so it has no inside left to measure.
 
-The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the name but follows different replacement rules. Its turns are 60 degrees and its gaps are triangular.
+The copies explain the half. Two copies with the 3-step square between them set the width: double it and add 3. That gives 1, 5, 13, 29, 61. Four copies and the 9 small squares in the middle set the inside: multiply by 4 and add 9. That gives 1, 13, 61, 253, 1021.
+
+Add 3 to all of those. The widths become 4, 8, 16, 32, 64. The insides become 4, 16, 64, 256, 1024. Each inside is now exactly a quarter of its width times itself: 64 × 64 = 4096, and a quarter of that is 1024. As the numbers grow, the 3s stop mattering, so the inside heads to a quarter of the box around the diamond. The diamond fills half that box, so a quarter of the box is half the diamond.
+
+The symbols above the drawing build this same line. F draws a step, + and - turn 90 degrees, and X draws nothing. Start from `F+XF+F+XF`, and at each level replace every X with `XF-F+F-XF+F+XF-F+F-X`.<sup><a id="sierpinski-curve-ref-2" href="#sierpinski-curve-source-2">2</a></sup>
 
 ## Further exploring
 
@@ -30,4 +32,5 @@ The triangular [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) shares the
 
 ## Sources and notes
 
-1. <span id="sierpinski-curve-source-1"></span> Carlos A. Grande, [Compact reactor architectures designed with fractals — supporting information (archived copy)](https://web.archive.org/web/20240710183553/https://www.rsc.org/suppdata/d1/re/d1re00107h/d1re00107h1.pdf), Reaction Chemistry & Engineering, 2021, table S1. Table S1 lists this replacement under “Square curve”, starting from `X+F+X`. [Back](#sierpinski-curve-ref-1)
+1. <span id="sierpinski-curve-source-1"></span> Calculation. The middle of a 3-by-3 square is half a step along and 1.5 steps across from the nearest points of the line, which is $\sqrt{2.5} \approx 1.58$ steps. Measured on this page's line at every level of the figure, no spot in the outlined diamond is farther. [Back](#sierpinski-curve-ref-1)
+2. <span id="sierpinski-curve-source-2"></span> Carlos A. Grande, [Compact reactor architectures designed with fractals — supporting information (archived copy)](https://web.archive.org/web/20240710183553/https://www.rsc.org/suppdata/d1/re/d1re00107h/d1re00107h1.pdf), Reaction Chemistry & Engineering, 2021, table S1. Table S1 lists this replacement under “Square curve”, starting from `X+F+X`. [Back](#sierpinski-curve-ref-2)
