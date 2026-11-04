@@ -16,17 +16,11 @@ const OrbitShapesLesson = dynamic(() =>
 const JuliaMapLesson = dynamic(() => import("./lessons/JuliaMapLesson"));
 const MandelbrotZoomMapLesson = dynamic(() => import("./lessons/MandelbrotZoomMapLesson"));
 const MandelbrotJuliaZoomLesson = dynamic(() => import("./lessons/MandelbrotJuliaZoomLesson"));
-const RepeatStretchLesson = dynamic(() =>
-  import("./lessons/RepeatStretchLessons").then((m) => m.RepeatStretchLesson),
+const FamilyExplorerLesson = dynamic(() =>
+  import("./lessons/HolomorphicFamilies").then((m) => m.FamilyExplorerLesson),
 );
-const AllRepeatsLesson = dynamic(() =>
-  import("./lessons/RepeatStretchLessons").then((m) => m.AllRepeatsLesson),
-);
-const TinyPatchLesson = dynamic(() =>
-  import("./lessons/RepeatStretchLessons").then((m) => m.TinyPatchLesson),
-);
-const NewtonCopyLesson = dynamic(() =>
-  import("./lessons/RepeatStretchLessons").then((m) => m.NewtonCopyLesson),
+const FamilyCopiesLesson = dynamic(() =>
+  import("./lessons/HolomorphicFamilies").then((m) => m.FamilyCopiesLesson),
 );
 const StepLimitLesson = dynamic(() => import("./lessons/StepLimitLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
@@ -87,10 +81,8 @@ const LESSONS = [
   "julia-map",
   "mandelbrot-zoom-map",
   "mandelbrot-julia-zoom",
-  "repeat-stretch",
-  "all-repeats",
-  "tiny-patch",
-  "newton-copy",
+  "family-explorer",
+  "family-copies",
   "step-limit-mandelbrot",
   "step-limit-julia",
   "koch-measurement",
@@ -177,14 +169,10 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <MandelbrotZoomMapLesson />;
     case "mandelbrot-julia-zoom":
       return <MandelbrotJuliaZoomLesson />;
-    case "repeat-stretch":
-      return <RepeatStretchLesson />;
-    case "all-repeats":
-      return <AllRepeatsLesson />;
-    case "tiny-patch":
-      return <TinyPatchLesson />;
-    case "newton-copy":
-      return <NewtonCopyLesson />;
+    case "family-explorer":
+      return <FamilyExplorerLesson />;
+    case "family-copies":
+      return <FamilyCopiesLesson />;
     case "step-limit-mandelbrot":
       return <StepLimitLesson formula="mandelbrot" />;
     case "step-limit-julia":
