@@ -1,7 +1,6 @@
 import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import styles from "../../styles/lessons/PaintPlane.module.css";
-import { MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
@@ -9,43 +8,30 @@ import {
   ESCAPED_COLOR,
   type PaintGrid,
   type PlaneBounds,
-  paintDab,
   paintRow,
   paintStroke,
   STAYED,
   STAYED_COLOR,
-  UNTESTED,
 } from "../../utils/lessons/paintPlane";
-import { escapeStepColor } from "../../utils/lessons/stepLimit";
 import type { ComplexPoint, OrbitStep } from "../../utils/orbitLesson";
 import { isOutside } from "../../utils/orbitLesson";
 
 const INK = "#10151a";
 const MARK = "#6d7276";
-const PAPER_HALO = "#eee8ce55";
 const ROUTE = "#c8421c";
 const RING = "#f5c56d";
 const LINE = "#eee8ce";
-const COLUMNS = 900;
-const BRUSH_SHARE = 0.018;
-const FILL_MS = 1800;
+// Squares big enough to see, 15 to a unit. 66 rows put the horizontal axis between two rows.
+const COLUMNS = 84;
+const BRUSH = 0.08;
+const FILL_MS = 3000;
 const ESCAPE_CIRCLE = 2;
-// Past these the route's dots and halo would only darken a solid line.
-const MOST_DOTS = 150;
-const MOST_HALO_JUMPS = 2000;
 // A route that stays shows this many jumps, so a repeat is still readable.
 const CHART_JUMPS = 60;
 // A route that leaves fills the chart, without stretching two jumps across all of it.
 const CHART_FEWEST_JUMPS = 12;
 const CHART_TOP = 3;
 
-export function markColor(step: number, stepColors: boolean) {
-  if (step === STAYED) return STAYED_COLOR;
-  return stepColors ? escapeStepColor(step, MANDELBROT_COLORING) : ESCAPED_COLOR;
-}
-export function cssColor([red, green, blue]: number[]) {
-  return `rgb(${red}, ${green}, ${blue})`;
-}
 function number(value: number, digits = 2) {
   return String(Number(value.toFixed(digits)) + 0).replace("-", "−");
 }
@@ -55,6 +41,10 @@ export function coordinates(point: ComplexPoint, digits = 2) {
 export function planeHeight(bounds: PlaneBounds, width: number) {
   const [left, right, bottom, top] = bounds;
   return Math.round((width * (top - bottom)) / (right - left));
+}
+
+function aspect([left, right, bottom, top]: PlaneBounds) {
+  return `${right - left} / ${top - bottom}`;
 }
 
 function fitToDisplay(canvas: HTMLCanvasElement) {
@@ -116,43 +106,23 @@ function drawPlane(
   }
   const route = options.route;
   if (route) {
-    const shown = route.length;
-    const trace = () => {
-      context.beginPath();
-      let lastX = Number.NaN;
-      let lastY = Number.NaN;
-      for (let index = 0; index < shown; index++) {
-        const { real, imaginary } = route[index].point;
-        const x = px(real);
-        const y = py(imaginary);
-        // A long route lands on the same pixel thousands of times.
-        if (Math.abs(x - lastX) < 1 && Math.abs(y - lastY) < 1) continue;
-        if (index === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-        lastX = x;
-        lastY = y;
-      }
-      context.stroke();
-    };
+    // The dots are the route. The line only says which dot comes next.
     context.lineJoin = "round";
-    if (shown <= MOST_HALO_JUMPS) {
-      context.strokeStyle = PAPER_HALO;
-      context.lineWidth = 3 * scale;
-      trace();
+    context.strokeStyle = `${ROUTE}66`;
+    context.lineWidth = scale;
+    context.beginPath();
+    route.forEach(({ point }, index) => {
+      if (index === 0) context.moveTo(px(point.real), py(point.imaginary));
+      else context.lineTo(px(point.real), py(point.imaginary));
+    });
+    context.stroke();
+    context.fillStyle = ROUTE;
+    context.beginPath();
+    for (const { point } of route) {
+      context.moveTo(px(point.real) + 2.5 * scale, py(point.imaginary));
+      context.arc(px(point.real), py(point.imaginary), 2.5 * scale, 0, Math.PI * 2);
     }
-    context.strokeStyle = ROUTE;
-    context.lineWidth = 1.5 * scale;
-    trace();
-    if (shown <= MOST_DOTS) {
-      context.fillStyle = ROUTE;
-      context.beginPath();
-      for (let index = 0; index < shown; index++) {
-        const { real, imaginary } = route[index].point;
-        context.moveTo(px(real) + 2.5 * scale, py(imaginary));
-        context.arc(px(real), py(imaginary), 2.5 * scale, 0, Math.PI * 2);
-      }
-      context.fill();
-    }
+    context.fill();
   }
   if (options.ring) {
     const x = px(options.ring.real);
@@ -239,52 +209,144 @@ export function DistanceChart({
   );
 }
 
-/**
- * A blank plane where each pixel is a number c. Every spot under the pointer gets its own
- * test, so the edge of the Mandelbrot set shows up inside the mark as the pointer crosses it.
- */
-export function PaintPlane({
+/** A button over a plane that follows the pointer, a sideways slide or the arrow keys. */
+function PlanePicker({
   bounds,
   value,
-  onChange,
-  route,
-  circle = false,
-  stepColors = false,
+  onMove,
+  onBreak,
   label,
   children,
 }: {
   bounds: PlaneBounds;
   value: ComplexPoint;
-  onChange: (point: ComplexPoint) => void;
-  route?: OrbitStep[];
-  circle?: boolean;
-  stepColors?: boolean;
+  onMove: (point: ComplexPoint) => void;
+  /** The next move does not continue from the last one. */
+  onBreak?: () => void;
   label: string;
-  children?: ReactNode;
+  children: ReactNode;
 }) {
   const [left, right, bottom, top] = bounds;
+  const pointAt = (event: PointerEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {
+      real: Math.max(
+        left,
+        Math.min(right, left + ((event.clientX - rect.left) / rect.width) * (right - left)),
+      ),
+      imaginary: Math.max(
+        bottom,
+        Math.min(top, top - ((event.clientY - rect.top) / rect.height) * (top - bottom)),
+      ),
+    };
+  };
+  // React would otherwise commit after this frame paints, one frame behind the pointer.
+  const move = (point: ComplexPoint) => flushSync(() => onMove(point));
+  const picker = usePointPicker({
+    under: pointAt,
+    onChange: move,
+    onHover: (point) => {
+      if (point) move(point);
+      else onBreak?.();
+    },
+  });
+  return (
+    <button
+      type="button"
+      className={styles.plane}
+      aria-label={`${label} ${coordinates(value)}. Move the pointer or use the arrow keys.`}
+      data-paint-plane
+      {...picker}
+      onPointerDownCapture={(event) => {
+        event.currentTarget.focus({ preventScroll: true });
+        // A finger lands somewhere new, so its stroke must not join the last one.
+        if (event.pointerType !== "mouse") onBreak?.();
+      }}
+      onKeyDown={(event) => {
+        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+        event.preventDefault();
+        const delta = event.shiftKey ? 0.1 : 0.01;
+        move({
+          real: Math.max(
+            left,
+            Math.min(
+              right,
+              value.real +
+                (event.key === "ArrowLeft" ? -delta : event.key === "ArrowRight" ? delta : 0),
+            ),
+          ),
+          imaginary: Math.max(
+            bottom,
+            Math.min(
+              top,
+              value.imaginary +
+                (event.key === "ArrowUp" ? delta : event.key === "ArrowDown" ? -delta : 0),
+            ),
+          ),
+        });
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** A plain plane with the route of the number under the pointer. */
+export function OrbitPlane({
+  bounds,
+  value,
+  onChange,
+  route,
+  label,
+}: {
+  bounds: PlaneBounds;
+  value: ComplexPoint;
+  onChange: (point: ComplexPoint) => void;
+  route: OrbitStep[];
+  label: string;
+}) {
+  const overlay = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = overlay.current;
+    if (!canvas) return;
+    const draw = () => drawPlane(canvas, bounds, { route, ring: value, circle: true });
+    draw();
+    const resized = new ResizeObserver(draw);
+    resized.observe(canvas);
+    return () => resized.disconnect();
+  }, [bounds, route, value]);
+  return (
+    <PlanePicker bounds={bounds} value={value} onMove={onChange} label={label}>
+      <div className={styles.paper} style={{ aspectRatio: aspect(bounds) }} />
+      <canvas ref={overlay} className={styles.overlay} />
+    </PlanePicker>
+  );
+}
+
+/**
+ * A blank plane cut into squares, each standing for the number at its center. Squares under the
+ * pointer get tested, so the edge of the Mandelbrot set shows up as the pointer crosses it.
+ */
+export function PaintPlane({ bounds, label }: { bounds: PlaneBounds; label: string }) {
+  const [value, setValue] = useState<ComplexPoint>({ real: 0, imaginary: 0 });
   const paper = useRef<HTMLCanvasElement>(null);
   const overlay = useRef<HTMLCanvasElement>(null);
   const grid = useRef<PaintGrid | null>(null);
   const image = useRef<ImageData | null>(null);
   const last = useRef<ComplexPoint | null>(null);
   const sweep = useRef(0);
-  const colors = useRef(stepColors);
-  colors.current = stepColors;
   const [filling, setFilling] = useState<"blank" | "sweeping" | "full">("blank");
   const reduced = useReducedMotion();
-  const brush = BRUSH_SHARE * (right - left);
 
   const show = (cells: number[]) => {
-    const canvas = paper.current;
-    const context = canvas?.getContext("2d");
+    const context = paper.current?.getContext("2d");
     if (!grid.current || !image.current || !context || !cells.length) return;
     const { columns, steps } = grid.current;
     const { data } = image.current;
     let firstRow = Number.POSITIVE_INFINITY;
     let lastRow = 0;
     for (const cell of cells) {
-      const color = markColor(steps[cell], colors.current);
+      const color = steps[cell] === STAYED ? STAYED_COLOR : ESCAPED_COLOR;
       data[cell * 4] = color[0];
       data[cell * 4 + 1] = color[1];
       data[cell * 4 + 2] = color[2];
@@ -294,13 +356,6 @@ export function PaintPlane({
       if (row > lastRow) lastRow = row;
     }
     context.putImageData(image.current, 0, 0, 0, firstRow, columns, lastRow - firstRow + 1);
-  };
-  const testedCells = () => {
-    const cells: number[] = [];
-    grid.current?.steps.forEach((step, cell) => {
-      if (step !== UNTESTED) cells.push(cell);
-    });
-    return cells;
   };
   const start = () => {
     const context = paper.current?.getContext("2d");
@@ -315,25 +370,15 @@ export function PaintPlane({
     start();
     return () => cancelAnimationFrame(sweep.current);
   }, []);
-  // A value from outside the pointer, such as a preset, marks only its own spot.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: painting follows the value only
-  useEffect(() => {
-    if (last.current === value || !grid.current) return;
-    show(paintDab(grid.current, value, brush));
-  }, [value]);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: colors are read from a ref
-  useEffect(() => {
-    show(testedCells());
-  }, [stepColors]);
   useEffect(() => {
     const canvas = overlay.current;
     if (!canvas) return;
-    const draw = () => drawPlane(canvas, bounds, { route, ring: value, circle });
+    const draw = () => drawPlane(canvas, bounds, { circle: true });
     draw();
     const resized = new ResizeObserver(draw);
     resized.observe(canvas);
     return () => resized.disconnect();
-  }, [bounds, route, value, circle]);
+  }, [bounds]);
 
   const fill = () => {
     if (!grid.current) return;
@@ -368,83 +413,31 @@ export function PaintPlane({
     start();
     setFilling("blank");
     last.current = null;
-    if (grid.current) show(paintDab(grid.current, value, brush));
   };
-
-  const pointAt = (event: PointerEvent<HTMLButtonElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return {
-      real: Math.max(
-        left,
-        Math.min(right, left + ((event.clientX - rect.left) / rect.width) * (right - left)),
-      ),
-      imaginary: Math.max(
-        bottom,
-        Math.min(top, top - ((event.clientY - rect.top) / rect.height) * (top - bottom)),
-      ),
-    };
-  };
-  const moveTo = (point: ComplexPoint) => {
-    if (grid.current) show(paintStroke(grid.current, last.current ?? point, point, brush));
-    last.current = point;
-    // React would otherwise commit after this frame paints, one frame behind the pointer.
-    flushSync(() => onChange(point));
-  };
-  const picker = usePointPicker({
-    under: pointAt,
-    onChange: moveTo,
-    onHover: (point) => {
-      if (point) moveTo(point);
-      else last.current = null;
-    },
-  });
 
   return (
     <div className={styles.wrap}>
-      <button
-        type="button"
-        className={styles.plane}
-        aria-label={`${label} ${coordinates(value)}. Move the pointer or use the arrow keys.`}
-        data-paint-plane
-        {...picker}
-        onPointerDownCapture={(event) => {
-          event.currentTarget.focus({ preventScroll: true });
-          // A finger lands somewhere new, so its stroke must not join the last one.
-          if (event.pointerType !== "mouse") last.current = null;
+      <PlanePicker
+        bounds={bounds}
+        value={value}
+        onMove={(point) => {
+          if (grid.current) show(paintStroke(grid.current, last.current ?? point, point, BRUSH));
+          last.current = point;
+          setValue(point);
         }}
-        onKeyDown={(event) => {
-          if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
-          event.preventDefault();
-          const delta = event.shiftKey ? 0.1 : 0.01;
-          last.current = value;
-          moveTo({
-            real: Math.max(
-              left,
-              Math.min(
-                right,
-                value.real +
-                  (event.key === "ArrowLeft" ? -delta : event.key === "ArrowRight" ? delta : 0),
-              ),
-            ),
-            imaginary: Math.max(
-              bottom,
-              Math.min(
-                top,
-                value.imaginary +
-                  (event.key === "ArrowUp" ? delta : event.key === "ArrowDown" ? -delta : 0),
-              ),
-            ),
-          });
+        onBreak={() => {
+          last.current = null;
         }}
+        label={label}
       >
         <canvas
           ref={paper}
-          className={styles.paper}
+          className={`${styles.paper} ${styles.squares}`}
           width={COLUMNS}
           height={planeHeight(bounds, COLUMNS)}
         />
         <canvas ref={overlay} className={styles.overlay} />
-      </button>
+      </PlanePicker>
       <div className={styles.actions}>
         <button type="button" disabled={filling !== "blank"} onClick={fill}>
           Fill the rest
@@ -452,7 +445,6 @@ export function PaintPlane({
         <button type="button" onClick={clear}>
           Clear
         </button>
-        {children}
       </div>
     </div>
   );

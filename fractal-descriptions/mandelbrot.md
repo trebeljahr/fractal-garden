@@ -16,23 +16,29 @@ Each pixel gives us a number to try. Its horizontal coordinate tells us how far 
 
 Adding $c$ moves the point by those two amounts. Squaring changes both its distance from zero and its direction: multiply the distance by itself and double the angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-In the picture below, the ring marks the number you chose. The amber point starts at zero and jumps once for each square and add. If it crosses the dashed circle, two units from zero, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> The ring starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the point leave.
+On the plane below, the ring marks the number you add. The point starts at zero and jumps once for each square and add. The dots show where it lands, and the thin line joins them in order. If it crosses the dashed circle, two units from zero, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
 
-<figure data-orbit="mandelbrot"></figure>
+Move your pointer across the plane, or slide sideways on a phone. Some numbers pull the point in to one spot, some make it repeat a few spots forever, and some throw it out. The route ends at its first repeat.
 
-The route's shape depends on the number you pick. Move your pointer across the blank plane below, or drag on a phone. The point still starts at zero, and the spot under your pointer is the number you add. The buttons jump to a few of the shapes.
+<figure data-lesson="orbit-shapes"></figure>
 
-Each spot you touch gets a mark: dark if the point stays inside the dashed circle for 300 jumps, blue if it crosses.
+Now test many numbers at once. Each square below stands for the number at its center. Move your pointer over the plane to test squares: a square turns dark if the point stays inside the dashed circle for 300 jumps, and blue if it crosses.
+
+Press **Fill the rest** to test every square. The dark shape is a rough Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 
-Press **Fill the rest** to test every spot. The dark shape is the Mandelbrot set. Then move your pointer into each bulb and watch the route change.
+Give every pixel its own test and the edge sharpens. In this picture, the ring marks the number you chose. It starts on $-1$, so click it to see the repeat. Then pick a pixel near $1$ on the horizontal axis and watch the amber point leave.
+
+<figure data-orbit="mandelbrot"></figure>
 
 Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed his equipment. Some specks changed from one print to the next, so they were dirt. Others came in matching pairs, one at the top and its mirror image at the bottom. Bad equipment was unlikely to do that. He zoomed in on those pieces, and they were smaller, slightly deformed copies of the whole shape.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
 
+<figure data-article-images="mandelbrot-printout"></figure>
+
 A number belongs to the Mandelbrot set if the point never crosses the dashed circle. A point that crosses has **escaped**. The computer cannot wait forever, so black means “hasn't escaped yet.”
 
-Blue says only that the point escaped. Switch the demo to **Step colors** and each mark shows how many jumps that took, with one color for each count.
+In the next demo, color says more: each pixel shows how many jumps its point took to escape, with one color for each count.
 
 Every colored pixel has escaped, so it is outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
 

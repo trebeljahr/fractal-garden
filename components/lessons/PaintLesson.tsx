@@ -1,74 +1,61 @@
-import { useId, useMemo, useState } from "react";
-import common from "../../styles/lessons/Lesson.module.css";
+import { useMemo, useState } from "react";
 import styles from "../../styles/lessons/PaintPlane.module.css";
-import { JULIA_PRESETS } from "../../utils/escapeTimePlaces";
-import { PAINT_JUMPS, type PlaneBounds, STAYED } from "../../utils/lessons/paintPlane";
-import { type ComplexPoint, isOutside, traceTeachingOrbit } from "../../utils/orbitLesson";
-import { ToggleSwitch } from "../PanelPickers";
+import type { PlaneBounds } from "../../utils/lessons/paintPlane";
+import {
+  type ComplexPoint,
+  isOutside,
+  traceTeachingOrbit,
+  traceUntilLoop,
+} from "../../utils/orbitLesson";
 import { LessonFrame } from "./LessonFrame";
-import { coordinates, cssColor, DistanceChart, markColor, PaintPlane } from "./PaintPlane";
+import { coordinates, DistanceChart, OrbitPlane, PaintPlane } from "./PaintPlane";
 
 const ZERO = { real: 0, imaginary: 0 };
-const RABBIT = { real: JULIA_PRESETS.Rabbit.cReal, imaginary: JULIA_PRESETS.Rabbit.cImag };
+// Opens on a spiral with many arms, so the dots show what a route is.
+const OPENING = { real: -0.38, imaginary: 0.56 };
 // Each plane shows its whole escape circle.
 const BOUNDS: PlaneBounds = [-2.8, 2.8, -2.2, 2.2];
-const ROUTE_SHAPES: { name: string; c: ComplexPoint }[] = [
-  { name: "Three arms", c: RABBIT },
-  { name: "Seven arms", c: { real: 0.3768, imaginary: 0.145 } },
-  { name: "Spiral", c: { real: -0.3782, imaginary: 0.5619 } },
-  { name: "Ring", c: { real: -0.391, imaginary: 0.587 } },
-  { name: "On a line", c: { real: -1.7, imaginary: 0 } },
-  { name: "Leaves late", c: { real: -0.56, imaginary: 0.64 } },
-];
+// Enough for a spiral's arms to show. More dots only pile up on the ones already drawn.
+const ORBIT_JUMPS = 100;
 
-export default function PaintLesson() {
-  const [value, setValue] = useState<ComplexPoint>(RABBIT);
-  const [stepColors, setStepColors] = useState(false);
-  const id = useId();
-  const route = useMemo(() => traceTeachingOrbit(value, ZERO, false, PAINT_JUMPS), [value]);
-  const end = route[route.length - 1];
-  const crossed = isOutside(end.point);
-  const mark = markColor(crossed ? end.iteration : STAYED, stepColors);
+function outcome(jumps: number, crossed: boolean, period: number | undefined) {
+  if (crossed) return `Crossed the dashed circle on jump ${jumps}.`;
+  if (period === 1) return "Settles on one spot.";
+  if (period) return `Repeats every ${period} jumps.`;
+  return `Still inside the dashed circle after ${jumps} jumps.`;
+}
+
+/** One number's whole route on a plain plane, for hovering from shape to shape. */
+export function OrbitShapesLesson() {
+  const [value, setValue] = useState<ComplexPoint>(OPENING);
+  const { orbit, loop } = useMemo(() => traceUntilLoop(value, ZERO, false, ORBIT_JUMPS), [value]);
+  // The route ends at its first repeat. The chart keeps going, so the repeat can be read.
+  const chart = useMemo(() => traceTeachingOrbit(value, ZERO, false, ORBIT_JUMPS), [value]);
+  const end = orbit[orbit.length - 1];
   return (
-    <LessonFrame title="Color in the plane" kind="paint-mandelbrot">
+    <LessonFrame title="One number's route" kind="orbit-shapes">
       <div className={styles.lesson}>
-        <div className={common.options} data-paint-shapes>
-          {ROUTE_SHAPES.map(({ name, c }) => (
-            <button type="button" key={name} aria-pressed={value === c} onClick={() => setValue(c)}>
-              {name}
-            </button>
-          ))}
-        </div>
-        <PaintPlane
+        <OrbitPlane
           bounds={BOUNDS}
           value={value}
           onChange={setValue}
-          route={route}
-          circle
-          stepColors={stepColors}
+          route={orbit}
           label="Number c"
-        >
-          <label className={styles.mode} htmlFor={`${id}-switch`}>
-            <span className={stepColors ? undefined : styles.active}>Two colors</span>
-            <ToggleSwitch
-              id={`${id}-switch`}
-              checked={stepColors}
-              labelledBy={`${id}-label`}
-              onChange={setStepColors}
-            />
-            <span id={`${id}-label`} className={stepColors ? styles.active : undefined}>
-              Step colors
-            </span>
-          </label>
-        </PaintPlane>
-        <p className={styles.readout} data-paint-outcome>
-          <span className={styles.swatch} style={{ background: cssColor(mark) }} />c ={" "}
-          {coordinates(value)}.{" "}
-          {crossed
-            ? `Crossed the dashed circle on jump ${end.iteration}.`
-            : `Still inside the dashed circle after ${PAINT_JUMPS} jumps.`}
+        />
+        <p className={styles.readout} data-orbit-outcome>
+          c = {coordinates(value)}. {outcome(orbit.length - 1, isOutside(end.point), loop?.period)}
         </p>
-        <DistanceChart route={route} />
+        <DistanceChart route={chart} />
+      </div>
+    </LessonFrame>
+  );
+}
+
+export default function PaintLesson() {
+  return (
+    <LessonFrame title="Color in the plane" kind="paint-mandelbrot">
+      <div className={styles.lesson}>
+        <PaintPlane bounds={BOUNDS} label="Number c" />
       </div>
     </LessonFrame>
   );

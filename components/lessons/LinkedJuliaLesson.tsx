@@ -1,7 +1,8 @@
-import { type PointerEvent, type ReactNode, useId, useMemo } from "react";
+import { type PointerEvent, type ReactNode, useId, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
-import { usePointPicker, useTriedPoint } from "../../utils/hooks/usePointPicker";
+import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
 import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
@@ -61,7 +62,13 @@ export function LinkedMap({
     ((top - p.imaginary) / (top - bottom)) * MAP_HEIGHT,
   ];
   const point = xy(value);
-  const picker = usePointPicker({ under, onChange, onHover, onRelease });
+  const picker = usePointPicker({
+    under,
+    // React would otherwise commit after this frame paints, one frame behind the pointer.
+    onChange: (next) => flushSync(() => onChange(next)),
+    onHover,
+    onRelease,
+  });
   const id = useId().replace(/:/g, "");
   return (
     <button
@@ -144,11 +151,11 @@ export function LinkedMap({
 }
 
 export default function LinkedJuliaLesson() {
-  const c = useTriedPoint({ real: -1, imaginary: 0 });
-  const start = useTriedPoint({ real: 0.5, imaginary: 0 });
+  const [c, setC] = useState<ComplexPoint>({ real: -1, imaginary: 0 });
+  const [start, setStart] = useState<ComplexPoint>({ real: 0.5, imaginary: 0 });
   const { orbit, loop } = useMemo(
-    () => traceUntilLoop(c.value, start.value, false, LINKED_LIMIT, LINKED_RADIUS),
-    [c.value, start.value],
+    () => traceUntilLoop(c, start, false, LINKED_LIMIT, LINKED_RADIUS),
+    [c, start],
   );
   const end = orbit[orbit.length - 1];
   const outcome = loop
@@ -158,36 +165,25 @@ export default function LinkedJuliaLesson() {
       : `No escape after ${end.iteration} calculations. `;
   return (
     <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
-      <p>Move your pointer over either picture. Click or tap to keep a spot.</p>
+      <p>Drag the ring in either picture.</p>
       <div className={styles.pair}>
         <div>
           <h3>Mandelbrot · choose c</h3>
-          <LinkedMap
-            mapKind="parameter"
-            c={ZERO}
-            value={c.value}
-            onChange={c.keep}
-            onHover={c.tryOut}
-          />
-          <p data-selected-parameter={`${c.value.real},${c.value.imaginary}`}>
-            c = {text(c.value)}
-          </p>
+          <LinkedMap mapKind="parameter" c={ZERO} value={c} onChange={setC} />
+          <p data-selected-parameter={`${c.real},${c.imaginary}`}>c = {text(c)}</p>
         </div>
         <div>
           <h3>Julia · follow a starting point</h3>
           <LinkedMap
             mapKind="start"
-            c={c.value}
-            value={start.value}
-            onChange={start.keep}
-            onHover={start.tryOut}
+            c={c}
+            value={start}
+            onChange={setStart}
             orbit={orbit.map((item) => item.point)}
             loop={loop ? orbit.slice(loop.from).map((item) => item.point) : undefined}
             outcome={outcome}
           />
-          <p data-selected-start={`${start.value.real},${start.value.imaginary}`}>
-            {text(start.value)}
-          </p>
+          <p data-selected-start={`${start.real},${start.imaginary}`}>{text(start)}</p>
         </div>
       </div>
     </LessonFrame>

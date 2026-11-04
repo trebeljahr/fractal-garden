@@ -13,9 +13,6 @@
 .wrap > * {
   min-width: 0;
 }
-.lesson [data-paint-shapes] {
-  margin: 0;
-}
 @media (min-width: 800px) {
   .lesson {
     grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
@@ -30,9 +27,6 @@
   .lesson > :not(.wrap),
   .lesson .actions {
     grid-column: 2;
-  }
-  .lesson .mode {
-    margin-left: 0;
   }
 }
 button.plane.plane {
@@ -50,6 +44,9 @@ button.plane.plane {
   height: auto;
   background: #eee8ce;
 }
+.squares {
+  image-rendering: pixelated;
+}
 .overlay {
   position: absolute;
   inset: 0;
@@ -64,43 +61,8 @@ button.plane.plane {
   align-items: center;
   gap: 0.6rem;
 }
-.mode {
-  --explorer-field: var(--lesson-bg);
-  --explorer-accent: var(--lesson-accent);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.8rem;
-  min-height: 44px;
-  cursor: pointer;
-  font:
-    1.4rem / 1.4 "Montserrat",
-    sans-serif;
-}
-.mode > span {
-  opacity: 0.6;
-}
-.mode > .active {
-  opacity: 1;
-}
-.mode button[role="switch"] {
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-}
-.mode button[aria-checked="true"]:hover:not(:disabled) {
-  background: var(--lesson-accent);
-}
 .readout {
   font-variant-numeric: tabular-nums;
-}
-.swatch {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin-right: 0.8rem;
-  border: 1px solid #eee8ce70;
-  border-radius: 50%;
 }
 .chart {
   margin: 0;

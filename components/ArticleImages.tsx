@@ -36,6 +36,16 @@ const IMAGES = {
       caption: "The round bulb meets the heart-shaped body at a narrow neck.",
     },
   ],
+  "mandelbrot-printout": [
+    {
+      name: "mandelbrot-printout",
+      alt: "The Mandelbrot set drawn in rows of asterisks, with small detached groups of asterisks mirrored at the top and bottom",
+      caption:
+        "A modern copy of a 1978 text printout by Brooks and Matelski, not one of Mandelbrot's. Its detached specks also come in top and bottom pairs.",
+      width: 700,
+      height: 560,
+    },
+  ],
   "burning-ship": [
     {
       name: "burning-ship-little",
@@ -69,7 +79,9 @@ export function openView(event: React.MouseEvent<HTMLAnchorElement>, href: strin
 
 export default function ArticleImages({ kind }: { kind: ArticleImageKind }) {
   return (
-    <div className={styles.images}>
+    <div
+      className={`${styles.images} ${kind === "mandelbrot-printout" ? styles.small : ""}`.trim()}
+    >
       {IMAGES[kind].map((image) => {
         const href = "href" in image ? image.href : undefined;
         const link = (content: ReactNode, label?: string) =>

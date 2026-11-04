@@ -30,26 +30,6 @@ test("the slow escapes above the neck match the article's counts", () => {
   assert.equal(crossingJump(-0.75, 0.0001, 0, 0, 40000), 31417);
 });
 
-test("the shapes offered as presets do what their names say", () => {
-  const places = (c) => {
-    const route = traceTeachingOrbit(c, ZERO, false, 4000);
-    assert.equal(route.length, 4001);
-    const last = route[4000].point;
-    for (let period = 1; period <= 64; period++) {
-      const earlier = route[4000 - period].point;
-      if (Math.hypot(earlier.real - last.real, earlier.imaginary - last.imaginary) < 1e-6)
-        return period;
-    }
-    return null;
-  };
-  assert.equal(places(RABBIT), 3);
-  assert.equal(places({ real: 0.3768, imaginary: 0.145 }), 7);
-  assert.equal(crossingJump(-0.56, 0.64, 0, 0), 45);
-  const line = traceTeachingOrbit({ real: -1.7, imaginary: 0 }, ZERO, false, 300);
-  assert.equal(line.length, 301);
-  assert.ok(line.every(({ point }) => point.imaginary === 0));
-});
-
 test("a dab tests only cells inside its radius, and only once", () => {
   const grid = createGrid(BOUNDS, 280);
   assert.ok(grid.steps.every((step) => step === UNTESTED));
