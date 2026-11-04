@@ -84,7 +84,7 @@ export default function MandelbrotJuliaZoomLesson() {
         </div>
       </div>
       <p>
-        {c}. Julia picture turned {Math.round(Math.abs(degrees))}° counterclockwise and scaled ×
+        {c}. Right picture turned {Math.round(Math.abs(degrees))}° counterclockwise and scaled ×
         {Number((1 / scale).toPrecision(3))}.
       </p>
     </LessonFrame>

@@ -46,7 +46,7 @@ You saw the edge break into dust as $c$ moved, so it's natural to ask which valu
 
 In the demo below, each point of the left picture is one value of $c$. To choose its color, the demo starts at $0$ and follows the jumps, coloring the point black if it stays and blue if it crosses the dashed circle. The black shape is the Mandelbrot set.
 
-The right picture is the Julia picture for the $c$ under the amber ring. The line is the orbit of one starting point, which ends when the point escapes or repeats, or after 96 jumps, and the repeating part is amber.
+The right picture shows the Julia set for the $c$ under the amber ring. The line is the orbit of one starting point, which ends when the point escapes or repeats, or after 96 jumps, and the repeating part is amber.
 
 The demo starts on $c = -1$, where a point starting at $0.5$ ends up jumping back and forth between $-1$ and $0$. Moving to $(0, 0)$ on the left gives you the circle again, and moving outside the black shape breaks the Julia set into dust.
 
@@ -84,9 +84,9 @@ You might ask whether the same $c$ could have a second attractor. It can't, beca
 
 That means the Mandelbrot picture also tells you how long the orbit is, which you can check by dragging the ring in the demo. Inside the heart-shaped body, the orbit has one place, called a **fixed point**: one jump lands it on itself, so here the points really do end up in one spot. Inside the round bulb on the left, it has two places, as $c = -1$ sends $0$ to $-1$ and back, and inside the big bulbs above and below the heart, it has three.<sup><a id="julia-set-ref-9" href="#julia-set-source-7">7</a></sup> The numbers on the Mandelbrot picture mark more bulbs. Outside the black shape, $0$ escapes, so there is no attractor and all the dots escape.
 
-You can also read that number straight off the Julia picture. Count the colors that meet at a joint of the dark shape, and for a bulb that touches the heart, that count is the number of places. The lines that meet at the main fork of the bulb's largest antenna give the same count.<sup><a id="julia-set-ref-10" href="#julia-set-source-7">7</a></sup>
+You can also read that number straight off the picture of the Julia set. Count the colors that meet at a joint of the dark shape, and for a bulb that touches the heart, that count is the number of places. The lines that meet at the main fork of the bulb's largest antenna give the same count.<sup><a id="julia-set-ref-10" href="#julia-set-source-7">7</a></sup>
 
-Not every $c$ in the Mandelbrot set has an attractor, though. With $c = (0, 1)$, $0$ lands on a two-place orbit that pushes nearby points away, and the Julia picture has no dark area.<sup><a id="julia-set-ref-11" href="#julia-set-source-5">5</a></sup> And close to a bulb's rim, the points need far more jumps, so the demo may not find the attractor.
+Not every $c$ in the Mandelbrot set has an attractor, though. With $c = (0, 1)$, $0$ lands on a two-place orbit that pushes nearby points away, and the picture of its Julia set has no dark area.<sup><a id="julia-set-ref-11" href="#julia-set-source-5">5</a></sup> And close to a bulb's rim, the points need far more jumps, so the demo may not find the attractor.
 
 ## Further exploring
 

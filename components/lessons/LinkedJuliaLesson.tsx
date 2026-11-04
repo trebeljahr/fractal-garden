@@ -169,7 +169,7 @@ export default function LinkedJuliaLesson() {
       ? `Escapes after ${end.iteration} calculations. `
       : `No escape after ${end.iteration} calculations. `;
   return (
-    <LessonFrame title="One Mandelbrot point, a whole Julia picture" kind="linked-julia">
+    <LessonFrame title="Each value of c has its own Julia set" kind="linked-julia">
       <p>Drag the ring in either picture.</p>
       <div className={styles.pair}>
         <div>
