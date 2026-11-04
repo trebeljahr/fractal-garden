@@ -13,6 +13,9 @@ export const LEVY_TAPESTRY_CONSTRUCTION_MAX = 15;
 /** Level 4 draws 419,904 lines, each shorter than a pixel. */
 export const QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX = 3;
 
+/** With its eight neighbors filled, level 3 draws 209,952 lines. */
+export const QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX = 2;
+
 /** With the tiling on, the player draws the path up to 289 times: 295,936 lines at level 9. */
 export const TWINDRAGON_TILING_CONSTRUCTION_MAX = 8;
 

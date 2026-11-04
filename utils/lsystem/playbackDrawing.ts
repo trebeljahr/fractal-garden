@@ -2,7 +2,13 @@ import type { ConstructionView } from "../constructionView";
 import { untouchedCorner } from "../lessons/arrowheadChain";
 import { fibonacciParts } from "../lessons/fibonacciPieces";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
-import { ADDED_TINT, detourRuns, HALF_TURN_RULES, REMOVED_TINT } from "../lessons/halfTurnArea";
+import {
+  ADDED_TINT,
+  detourRuns,
+  HALF_TURN_RULES,
+  neighborShifts,
+  REMOVED_TINT,
+} from "../lessons/halfTurnArea";
 import { notchTriangleTip } from "../lessons/quadraticStart";
 import {
   LOOP_INSIDE_TINT,
@@ -64,12 +70,25 @@ export function preparePlaybackDrawing(
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y);
   }
+  const neighbors = view.neighbors && geometry.count > 0;
+  if (neighbors) {
+    // Fit the islands around this one too.
+    const corner = (geometry.count / 4) * 6;
+    const [startX, startY] = project(geometry.positions[0], geometry.positions[1], 0);
+    const [nextX, nextY] = project(geometry.positions[corner], geometry.positions[corner + 1], 0);
+    const side = Math.hypot(nextX - startX, nextY - startY);
+    minX -= side;
+    maxX += side;
+    minY -= side;
+    maxY += side;
+  }
   if (!Number.isFinite(minX)) minX = minY = maxX = maxY = 0;
   const span = Math.max(maxX - minX, maxY - minY, 1);
+  const margin = neighbors ? 0.94 : 1;
   const scale =
     Math.min(
-      (width * 0.8) / Math.max(maxX - minX, span * 0.1),
-      (height * 0.75) / Math.max(maxY - minY, span * 0.1),
+      (width * 0.8 * margin) / Math.max(maxX - minX, span * 0.1),
+      (height * (neighbors ? margin : 0.75)) / Math.max(maxY - minY, span * 0.1),
     ) * (scene ? 7.5 / view.cameraDistance : view.zoom);
   const screen = (x: number, y: number, z: number) => {
     const [px, py] = project(x, y, z);
@@ -122,11 +141,20 @@ export function preparePlaybackDrawing(
       notchRoom.closePath();
     }
   }
+  // The islands around this one: the same outline, shifted by one side of the starting square.
+  let neighbor: Path2D | null = null;
+  if (neighbors) {
+    neighbor = new Path2D();
+    neighbor.moveTo(projected[0], projected[1]);
+    for (let i = 0; i < geometry.count; i++)
+      neighbor.lineTo(projected[i * 4 + 2], projected[i * 4 + 3]);
+    neighbor.closePath();
+  }
   // The area each replacement takes from one side of its old line and adds to the other.
   const detours: { path: Path2D; until: number; tint: string }[] = [];
   const detourRule = HALF_TURN_RULES[view.detours as string];
   // Past this the detours are smaller than the line's width, and filling them stalls the page.
-  if (detourRule && geometry.count <= 5000)
+  if (detourRule && !neighbor && geometry.count <= 5000)
     for (const { from, to, effect } of detourRuns(geometry.count, detourRule)) {
       const path = new Path2D();
       path.moveTo(projected[from * 4], projected[from * 4 + 1]);
@@ -263,6 +291,22 @@ export function preparePlaybackDrawing(
       ctx.strokeStyle = "#eee8ce";
       ctx.lineWidth = 1;
       ctx.stroke(loopDiamond);
+    }
+    if (neighbor) {
+      const { sides, corners } = neighborShifts(projected, geometry.count);
+      ctx.fillStyle = view.color;
+      for (const [shifts, alpha] of [
+        [sides, 0.6],
+        [corners, 0.22],
+      ] as const) {
+        ctx.globalAlpha = alpha;
+        for (const [x, y] of shifts) {
+          ctx.translate(x, y);
+          ctx.fill(neighbor);
+          ctx.translate(-x, -y);
+        }
+      }
+      ctx.globalAlpha = 1;
     }
     const count = drawing ? drawn[consumed] : 0;
     const before = consumed > 0 ? drawn[consumed - 1] : 0;

@@ -23,6 +23,13 @@ export const HALF_TURN_RULES: Record<string, HalfTurnRule> = {
     firstDetour: "removed",
     color: "#ff8fab",
   },
+  island: {
+    rule: "F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F",
+    shrink: 6,
+    detourSquares: 3,
+    firstDetour: "added",
+    color: "#a0e7a0",
+  },
 };
 
 /** How many new lines replace one old line. */
@@ -73,6 +80,46 @@ export function replacementPoints({ rule }: HalfTurnRule) {
 /** Symbols shown in a row of the player, fewer than its usual 80: the picture is the point here. */
 const SYMBOL_WIDTH = 40;
 
+/**
+ * How far to shift a copy of the island to set it against each side, or against each corner. A
+ * quarter of the way around, the line reaches the starting square's next corner, so that first
+ * stretch spans one side. The other direction is the same shift turned 90 degrees. `lines` holds
+ * four numbers per line.
+ */
+export function neighborShifts(lines: ArrayLike<number>, count: number) {
+  const corner = (count / 4) * 4;
+  const [x, y] = [lines[corner] - lines[0], lines[corner + 1] - lines[1]];
+  return {
+    sides: [
+      [x, y],
+      [-x, -y],
+      [-y, x],
+      [y, -x],
+    ],
+    corners: [
+      [x - y, y + x],
+      [x + y, y - x],
+      [-x - y, x - y],
+      [y - x, -x - y],
+    ],
+  };
+}
+
+const areaRows = (rule: HalfTurnRule, level: number) => {
+  const moved = formatShare(areaMoved(rule, level));
+  return [
+    { label: "Removed", value: moved, tint: REMOVED_TINT },
+    { label: "Added", value: moved, tint: ADDED_TINT },
+  ];
+};
+
+const WHOLE_AREA = { label: "Area", value: "100%" };
+
+const lineLength = (rule: HalfTurnRule, level: number) => ({
+  label: "Line length",
+  value: `×${lineGrowth(rule, level)}`,
+});
+
 export const MINKOWSKI_LEAD: ConstructionLead = {
   initial: { detours: "minkowski", symbolWidth: SYMBOL_WIDTH },
   control: {
@@ -86,14 +133,25 @@ export const MINKOWSKI_LEAD: ConstructionLead = {
   },
   readout: (view, level) => {
     const rule = HALF_TURN_RULES.minkowski;
-    const length = { label: "Line length", value: `×${lineGrowth(rule, level)}` };
-    if (!view.island) return [length];
-    const moved = formatShare(areaMoved(rule, level));
-    return [
-      length,
-      { label: "Removed", value: moved, tint: REMOVED_TINT },
-      { label: "Added", value: moved, tint: ADDED_TINT },
-      { label: "Area", value: "100%" },
-    ];
+    const length = lineLength(rule, level);
+    return view.island ? [length, ...areaRows(rule, level), WHOLE_AREA] : [length];
+  },
+};
+
+export const ISLAND_LEAD: ConstructionLead = {
+  initial: { detours: "island", neighbors: false, symbolWidth: SYMBOL_WIDTH },
+  control: {
+    kind: "options",
+    path: "neighbors",
+    label: "Show",
+    options: [
+      { value: false, label: "One island" },
+      { value: true, label: "With neighbors" },
+    ],
+  },
+  readout: (view, level) => {
+    const rule = HALF_TURN_RULES.island;
+    const length = lineLength(rule, level);
+    return view.neighbors ? [length, WHOLE_AREA] : [length, ...areaRows(rule, level), WHOLE_AREA];
   },
 };

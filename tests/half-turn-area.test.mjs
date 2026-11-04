@@ -15,11 +15,17 @@ require.extensions[".ts"] = (module, filename) =>
 const { buildPlayback, playbackSource } = require("../utils/lsystem/playback.ts");
 const { preparePlaybackDrawing } = require("../utils/lsystem/playbackDrawing.ts");
 const {
+  MAX_CONSTRUCTION_LINES,
+  QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX,
+} = require("../utils/constructionLimits.ts");
+const {
   areaMoved,
   detourRuns,
   HALF_TURN_RULES,
+  ISLAND_LEAD,
   lineGrowth,
   MINKOWSKI_LEAD,
+  neighborShifts,
   replacementLines,
   replacementPoints,
 } = require("../utils/lessons/halfTurnArea.ts");
@@ -33,6 +39,14 @@ const FIGURES = [
     settings: { island: true },
     top: 5,
     lead: MINKOWSKI_LEAD,
+  },
+  {
+    name: "island",
+    kind: "quadraticKochIsland",
+    page: "quadratic-koch-island",
+    settings: {},
+    top: 4,
+    lead: ISLAND_LEAD,
   },
 ];
 
@@ -148,6 +162,163 @@ test("the Minkowski figure names what a level moves only around a square", () =>
   assert.deepEqual(values(true, 5), ["×32", "1.6%", "1.6%", "100%"]);
 });
 
+test("the island figure names what a level moves until the neighbors are showing", () => {
+  assert.equal(ISLAND_LEAD.control.path, "neighbors");
+  const values = (neighbors, level) =>
+    ISLAND_LEAD.readout({ neighbors }, level).map((row) => row.value);
+  assert.deepEqual(values(false, 1), ["×3", "33.3%", "33.3%", "100%"]);
+  assert.deepEqual(values(false, 3), ["×27", "8.3%", "8.3%", "100%"]);
+  assert.deepEqual(values(true, 2), ["×9", "100%"]);
+});
+
+// The small squares inside a closed walk, found row by row from its upright lines.
+function insideSquares(points) {
+  const rows = new Map();
+  for (let i = 0; i + 1 < points.length; i++) {
+    const [a, b] = [points[i], points[i + 1]];
+    if (a[0] !== b[0]) continue;
+    const row = Math.min(a[1], b[1]);
+    if (!rows.has(row)) rows.set(row, []);
+    rows.get(row).push(a[0]);
+  }
+  const squares = [];
+  for (const [row, walls] of rows) {
+    walls.sort((p, q) => p - q);
+    for (let i = 0; i + 1 < walls.length; i += 2)
+      for (let x = walls[i]; x < walls[i + 1]; x++) squares.push([x, row]);
+  }
+  return squares;
+}
+
+const FIGURE = Object.fromEntries(FIGURES.map((figure) => [figure.name, figure]));
+
+// The shifts the figure uses, measured in steps on the walk it draws.
+function shifts(figure, level) {
+  const points = walk(figure, level);
+  const flat = new Float32Array((points.length - 1) * 4);
+  for (let i = 0; i + 1 < points.length; i++) flat.set([...points[i], ...points[i + 1]], i * 4);
+  const { sides, corners } = neighborShifts(flat, points.length - 1);
+  const clean = (list) => list.map(([x, y]) => [x + 0, y + 0]);
+  return { sides: clean(sides), corners: clean(corners) };
+}
+
+test("copies shifted by one side cover the plane once, and each neighbor shares a quarter", () => {
+  for (const [name, top] of [
+    ["island", 3],
+    ["minkowski", 2],
+  ]) {
+    const figure = FIGURE[name];
+    for (let level = 1; level <= top; level++) {
+      const points = walk(figure, level);
+      const side = HALF_TURN_RULES[name].shrink ** level;
+      const { sides: moves, corners } = shifts(figure, level);
+      for (const [x, y] of moves) assert.equal(Math.hypot(x, y), side);
+      const line = (dx, dy) => {
+        const lines = new Set();
+        for (let i = 0; i + 1 < points.length; i++) {
+          const a = `${points[i][0] + dx},${points[i][1] + dy}`;
+          const b = `${points[i + 1][0] + dx},${points[i + 1][1] + dy}`;
+          lines.add(a < b ? `${a}|${b}` : `${b}|${a}`);
+        }
+        return lines;
+      };
+      const own = line(0, 0);
+      for (const [x, y] of moves) {
+        const shared = [...line(x, y)].filter((key) => own.has(key)).length;
+        assert.equal(shared, own.size / 4, `${name} level ${level}`);
+      }
+
+      // The eight copies the figure fills, and the island itself.
+      const covered = new Map();
+      const inside = insideSquares(points);
+      for (const [a, b] of [[0, 0], ...moves, ...corners])
+        for (const [x, y] of inside) {
+          const key = `${x + a},${y + b}`;
+          covered.set(key, (covered.get(key) ?? 0) + 1);
+        }
+      // Every square in the box around the middle island lies in exactly one copy.
+      const xs = points.map(([x]) => x);
+      const ys = points.map(([, y]) => y);
+      for (let x = Math.min(...xs); x < Math.max(...xs); x++)
+        for (let y = Math.min(...ys); y < Math.max(...ys); y++)
+          assert.equal(covered.get(`${x},${y}`), 1, `${name} level ${level}: ${x},${y}`);
+    }
+  }
+});
+
+/**
+ * The straight directions in which one island can move forever without running into its neighbor.
+ * Two small squares overlap when their offset is under one step on both axes, so a direction only
+ * changes between blocked and free at a line through a corner of the square around that offset.
+ * Testing those directions, and one between each neighboring pair, tests them all.
+ */
+function freeDirections(figure, level, [shiftX, shiftY]) {
+  const inside = insideSquares(walk(figure, level));
+  const offsets = new Set();
+  for (const a of inside)
+    for (const b of inside) offsets.add(`${b[0] + shiftX - a[0]},${b[1] + shiftY - a[1]}`);
+  const parsed = [...offsets].map((key) => key.split(",").map(Number));
+  const candidates = new Map();
+  for (const [x, y] of parsed)
+    for (const [dx, dy] of [
+      [x - 1, y - 1],
+      [x - 1, y + 1],
+      [x + 1, y - 1],
+      [x + 1, y + 1],
+    ])
+      if (dx || dy) candidates.set(Math.atan2(dy, dx), [dx, dy]);
+  const sorted = [...candidates.entries()].sort((p, q) => p[0] - q[0]).map(([, d]) => d);
+  const tests = [];
+  sorted.forEach(([px, py], i) => {
+    const [qx, qy] = sorted[(i + 1) % sorted.length];
+    const [lp, lq] = [Math.hypot(px, py), Math.hypot(qx, qy)];
+    tests.push([px, py], [px / lp + qx / lq, py / lp + qy / lq]);
+  });
+  const blocked = ([dx, dy]) =>
+    parsed.some(([x, y]) => {
+      let [low, high] = [0, Infinity];
+      for (const [offset, step] of [
+        [x, dx],
+        [y, dy],
+      ]) {
+        if (Math.abs(step) < 1e-12) {
+          if (Math.abs(offset) >= 1) return false;
+          continue;
+        }
+        const [p, q] = [(offset - 1) / step, (offset + 1) / step];
+        low = Math.max(low, Math.min(p, q));
+        high = Math.min(high, Math.max(p, q));
+      }
+      return high - low > 1e-9;
+    });
+  return tests.filter((direction) => !blocked(direction));
+}
+
+test("two of the island's steps run backward, and Minkowski's rule has none", () => {
+  const backward = (rule) => {
+    const points = replacementPoints(rule);
+    return points.filter((p, i) => i && p[0] < points[i - 1][0]).length;
+  };
+  assert.equal(backward(HALF_TURN_RULES.island), 2);
+  assert.equal(backward(HALF_TURN_RULES.minkowski), 0);
+});
+
+test("island neighbors lock at level 1, while Minkowski's lock only at level 2", () => {
+  for (const shift of shifts(FIGURE.island, 1).sides)
+    assert.deepEqual(freeDirections(FIGURE.island, 1, shift), []);
+  for (const shift of shifts(FIGURE.minkowski, 1).sides) {
+    const free = freeDirections(FIGURE.minkowski, 1, shift);
+    assert.ok(free.length > 0);
+    // The only way out is straight away from the neighbor.
+    for (const [dx, dy] of free) {
+      const length = Math.hypot(dx, dy) * Math.hypot(...shift);
+      assert.ok(Math.abs((dx * -shift[0] + dy * -shift[1]) / length - 1) < 1e-9);
+    }
+  }
+  for (const shift of shifts(FIGURE.minkowski, 2).sides)
+    assert.deepEqual(freeDirections(FIGURE.minkowski, 2, shift), []);
+});
+
 class FakePath {
   moveTo() {}
   lineTo() {}
@@ -157,7 +328,7 @@ class FakePath {
 }
 globalThis.Path2D = FakePath;
 
-function fills(figure, level, consumedShare = 1) {
+function fills(figure, level, consumedShare = 1, neighbors = false) {
   const built = model(figure, level);
   const paint = preparePlaybackDrawing(800, 500, built, false, {
     background: "#000",
@@ -167,6 +338,7 @@ function fills(figure, level, consumedShare = 1) {
     x: 0,
     y: 0,
     detours: figure.name,
+    neighbors,
   });
   const tints = [];
   const context = new Proxy(
@@ -195,4 +367,13 @@ test("the tints follow the pen, and stop when they would be thinner than the lin
   assert.ok(halfway > 0 && halfway < runs);
   assert.equal(fills(figure, 3, 0).length, 0);
   assert.equal(fills(figure, 4).length, 0);
+});
+
+test("the neighbors stay inside the figure's line budget and replace the tints", () => {
+  const figure = FIGURE.island;
+  assert.equal(fills(figure, 1, 1, true).length, 8);
+  // The line and eight filled copies of it.
+  const lines = (level) => 9 * model(figure, level).geometry.count;
+  assert.ok(lines(QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX) <= MAX_CONSTRUCTION_LINES);
+  assert.ok(lines(QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX + 1) > MAX_CONSTRUCTION_LINES);
 });

@@ -5,9 +5,13 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
-import { QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX } from "../../utils/constructionLimits";
+import {
+  QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
+  QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX,
+} from "../../utils/constructionLimits";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { ISLAND_LEAD } from "../../utils/lessons/halfTurnArea";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -19,6 +23,7 @@ type Config = {
   background: string;
   color: string;
   lineWidth: number;
+  neighbors?: boolean;
 };
 
 const MAX_ITERATIONS = 4;
@@ -38,13 +43,17 @@ const QuadraticKochIsland = ({ description }: Props) => {
     config,
     setConfig,
     params: config,
-    constructionMax: () => QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
+    constructionMax: (settings) =>
+      settings.neighbors
+        ? QUADRATIC_KOCH_ISLAND_NEIGHBORS_MAX
+        : QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
     width,
     height,
     min: 1,
     max: MAX_ITERATIONS,
     stepDelay: 900,
     holdDelay: 1800,
+    constructionLead: ISLAND_LEAD,
   });
 
   const handleUpdate = (newData: Config) => {

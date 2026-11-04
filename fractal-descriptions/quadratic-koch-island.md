@@ -1,24 +1,20 @@
 # Quadratic Koch Island
 
-This version starts with a square and replaces each side with an eighteen-segment path. Every turn is 90 degrees, so the smaller lines remain on a square grid.
-
-The same replacement is repeated on each of those eighteen segments.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
+Start with a square. Replace each side with eighteen lines, each one sixth as long. Every turn is 90 degrees, so the smaller lines stay on a square grid. Then replace each of those eighteen lines the same way.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-koch-island"></figure>
 
-Eight steps point along the original side and two point backward. Four point to each side. The sideways steps cancel, and the forward steps exceed the backward ones by six.
+Eighteen lines at one sixth of the length are three times as long as the old line, so **Line length** triples at every level. **Area** stays at exactly 100% of the square, as on the [Minkowski sausage](/l-system/minkowski-sausage). Each replacement takes three small squares from the island (orange) and adds three (blue).
 
-The replacement therefore finishes six step lengths ahead. Make each new step one sixth of the original length to keep its endpoints fixed.
+Now choose **With neighbors**. Copies of the island fit together with no gaps and no overlaps. What one island loses, its neighbor gains.<sup><a id="quadratic-koch-island-ref-2" href="#quadratic-koch-island-source-2">2</a></sup>
 
-Eighteen segments at one-sixth length have three times the old length. Every replacement triples the distance drawn around the route.
+Why do they fit? Press **Half turn** to rotate one replacement around its middle point.
 
-The exact rule is:
+<figure data-lesson="half-turn-island"></figure>
 
-```text
-F → F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F
-```
+It lands exactly on itself, so the line looks the same from either end. A neighboring square draws the shared side from the other end, so it gets the same line.
 
-F draws forward. Plus and minus turn in opposite directions.
+Two of the eighteen steps run backward, and they bend both tinted shapes into hooks. So at level 1 a piece of each island already sits under a hook of its neighbor, and neither can slide away from the other in any direction.<sup><a id="quadratic-koch-island-ref-3" href="#quadratic-koch-island-source-3">3</a></sup>
 
 ## Further exploring
 
@@ -27,3 +23,5 @@ F draws forward. Plus and minus turn in opposite directions.
 ## Sources and notes
 
 1. <span id="quadratic-koch-island-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Background on line replacement and drawing instructions, sections 1.1–1.3. [Back](#quadratic-koch-island-ref-1)
+2. <span id="quadratic-koch-island-source-2"></span> Calculation. Level $n$ has $4\cdot18^n$ lines, each $6^{-n}$ of a side. In exact grid coordinates for levels 1 to 4, the line closes, never reaches a corner twice and encloses $36^n$ small squares, which is the starting square's area. With copies shifted by one side in each direction, levels 1 to 3 leave no small square uncovered or covered twice, and each neighbor shares exactly a quarter of the line. [Back](#quadratic-koch-island-ref-2)
+3. <span id="quadratic-koch-island-source-3"></span> Calculation. Tested on two neighboring copies at level 1 in grid coordinates, for every straight direction. None leaves them apart. [Back](#quadratic-koch-island-ref-3)

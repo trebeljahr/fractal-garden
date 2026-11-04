@@ -120,6 +120,7 @@ const LESSONS = [
   "twindragon-digits",
   "carpet-line",
   "half-turn-minkowski",
+  "half-turn-island",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -242,5 +243,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <CarpetLineLesson />;
     case "half-turn-minkowski":
       return <HalfTurnLesson rule="minkowski" />;
+    case "half-turn-island":
+      return <HalfTurnLesson rule="island" />;
   }
 }
