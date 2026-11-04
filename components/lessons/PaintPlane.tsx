@@ -15,15 +15,15 @@ import type { ComplexPoint, OrbitStep } from "../../utils/orbitLesson";
 import { isOutside } from "../../utils/orbitLesson";
 
 const INK = "#10151a";
-const MARK = "#6d7276";
-const ROUTE = "#c8421c";
-const RING = "#f5c56d";
 const LINE = "#eee8ce";
+const MARK = LINE;
+const ROUTE = "#f5c56d";
+const RING = LINE;
 // About one screen pixel per cell at this demo's size.
 const COLUMNS = 560;
 const BRUSH = 0.05;
 const DRAW_MS = 3000;
-const INSIDE = [16, 21, 26];
+const INSIDE = [0, 0, 0];
 const ESCAPE_CIRCLE = 2;
 // A route that stays shows this many jumps, so a repeat is still readable.
 const CHART_JUMPS = 60;
@@ -96,7 +96,8 @@ function drawPlane(
     }
   }
   if (options.circle) {
-    context.strokeStyle = INK;
+    context.strokeStyle = LINE;
+    context.lineWidth = 1.5 * scale;
     context.setLineDash([6 * scale, 5 * scale]);
     context.beginPath();
     context.arc(px(0), py(0), (ESCAPE_CIRCLE / (right - left)) * width, 0, Math.PI * 2);
@@ -107,8 +108,8 @@ function drawPlane(
   if (route) {
     // The dots are the route. The line only says which dot comes next.
     context.lineJoin = "round";
-    context.strokeStyle = `${ROUTE}66`;
-    context.lineWidth = scale;
+    context.strokeStyle = `${ROUTE}aa`;
+    context.lineWidth = 2 * scale;
     context.beginPath();
     route.forEach(({ point }, index) => {
       if (index === 0) context.moveTo(px(point.real), py(point.imaginary));
@@ -118,8 +119,8 @@ function drawPlane(
     context.fillStyle = ROUTE;
     context.beginPath();
     for (const { point } of route) {
-      context.moveTo(px(point.real) + 2.5 * scale, py(point.imaginary));
-      context.arc(px(point.real), py(point.imaginary), 2.5 * scale, 0, Math.PI * 2);
+      context.moveTo(px(point.real) + 3 * scale, py(point.imaginary));
+      context.arc(px(point.real), py(point.imaginary), 3 * scale, 0, Math.PI * 2);
     }
     context.fill();
   }
@@ -180,7 +181,7 @@ export function DistanceChart({
       }
       const last = Math.min(shown ?? route.length, route.length, span + 1);
       context.strokeStyle = LINE;
-      context.lineWidth = 1.5 * scale;
+      context.lineWidth = 2 * scale;
       context.lineJoin = "round";
       context.beginPath();
       for (let index = 0; index < last; index++) {
