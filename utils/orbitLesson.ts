@@ -65,15 +65,26 @@ export function mirrorRoutes(
 export type OrbitLoop = { from: number; period: number };
 // The most jumps the orbit lesson follows when a point neither leaves nor repeats.
 export const ORBIT_LESSON_LIMIT = 32;
-// Landings this close read the same in the jump list and on screen.
+// Landings this close sit on the same spot on screen.
 const LOOP_TOLERANCE = 0.001;
+// The jump list prints this many decimals. A loop's two matching rows must print the same.
+const LISTED_DIGITS = 3;
+// Closer than this is the same place, not a point still closing in on it.
+const EXACT_LANDING = 1e-9;
 // A point lingering near a repelling cycle or creeping along drifts off within these jumps.
 const LOOP_CONFIRMATION = 8;
 // Landings of one loop are separate places. Closer ones are a point spiraling in to fewer places.
 const LOOP_SEPARATION = 0.01;
 
+function listedSame(a: number, b: number) {
+  return Number(a.toFixed(LISTED_DIGITS)) === Number(b.toFixed(LISTED_DIGITS));
+}
+
 function repeatsFrom(orbit: OrbitStep[], from: number, end: number) {
   const first = orbit[from].point;
+  const last = orbit[end].point;
+  if (!listedSame(first.real, last.real) || !listedSame(first.imaginary, last.imaginary))
+    return false;
   for (let i = from + 1; i < end; i++) {
     const { real, imaginary } = orbit[i].point;
     if (Math.hypot(real - first.real, imaginary - first.imaginary) < LOOP_SEPARATION) return false;
@@ -92,7 +103,14 @@ function repeatsFrom(orbit: OrbitStep[], from: number, end: number) {
   return true;
 }
 
-// Ends the orbit at the first jump that lands back on an earlier point.
+// Most loops are a point closing in on a place it never quite reaches. This tells the two apart.
+export function landsExactly(orbit: OrbitStep[], loop: OrbitLoop) {
+  const first = orbit[loop.from].point;
+  const last = orbit[loop.from + loop.period].point;
+  return Math.hypot(last.real - first.real, last.imaginary - first.imaginary) < EXACT_LANDING;
+}
+
+// Ends the orbit at the first jump that lands back on an earlier point, or closes in on it.
 export function untilLoop(
   trace: (jumps: number) => OrbitStep[],
   limit = ORBIT_LESSON_LIMIT,

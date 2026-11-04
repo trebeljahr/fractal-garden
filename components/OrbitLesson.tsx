@@ -21,6 +21,7 @@ import {
   jumpControl,
   jumpExit,
   jumpPoint,
+  landsExactly,
   ORBIT_LESSON_LIMIT,
   type OrbitKind,
   type Pixel,
@@ -347,7 +348,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const outcome = !finished
     ? ""
     : loop
-      ? `Jump ${max} lands back on jump ${loop.from}. ${loop.period === 1 ? "The point stays here." : `The same ${loop.period} jumps repeat from here.`}`
+      ? landsExactly(orbit, loop)
+        ? `Jump ${max} lands back on jump ${loop.from}. ${loop.period === 1 ? "The point stays here." : `The same ${loop.period} jumps repeat from here.`}`
+        : `Jump ${max} matches jump ${loop.from} to 3 decimals. ${loop.period === 1 ? "From here the point barely moves." : `From here the same ${loop.period} jumps nearly repeat.`}`
       : !crossed
         ? `Still inside the dashed circle after ${max} jumps.`
         : max === 0

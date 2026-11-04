@@ -12,6 +12,7 @@ import {
   jumpControl,
   jumpExit,
   jumpPoint,
+  landsExactly,
   mirrorRoutes,
   ORBIT_LESSON_LIMIT,
   squarePoint,
@@ -136,6 +137,24 @@ test("orbit lesson stops counting when a point lands back on an earlier one", ()
   assert.deepEqual(traceUntilLoop({ real: 0, imaginary: 1 }, zero).loop, { from: 2, period: 2 });
   // 0, -2, 2, 2: a point that stays put is a loop of one jump.
   assert.deepEqual(traceUntilLoop({ real: -2, imaginary: 0 }, zero).loop, { from: 2, period: 1 });
+});
+test("orbit lesson only matches rows the jump list prints the same", () => {
+  const zero = { real: 0, imaginary: 0 };
+  const listed = (value) => Number(value.toFixed(3)) + 0;
+  const row = ({ real, imaginary }) => `${listed(real)},${listed(imaginary)}`;
+  for (let x = -2; x <= 0.5; x += 0.05) {
+    for (let y = -1.2; y <= 1.2; y += 0.05) {
+      const { orbit, loop } = traceUntilLoop({ real: x, imaginary: y }, zero);
+      if (!loop) continue;
+      assert.equal(row(orbit.at(-1).point), row(orbit[loop.from].point), `(${x}, ${y})`);
+    }
+  }
+  // Closing in on one place is not landing on it. (0.03, 0.16) gets close, and never arrives.
+  const closing = traceUntilLoop({ real: 0.03, imaginary: 0.16 }, zero);
+  assert.equal(closing.loop.period, 1);
+  assert.equal(landsExactly(closing.orbit, closing.loop), false);
+  const exact = traceUntilLoop({ real: -1, imaginary: 0 }, zero);
+  assert.equal(landsExactly(exact.orbit, exact.loop), true);
 });
 test("orbit lesson does not call a slow or escaping orbit a loop", () => {
   const zero = { real: 0, imaginary: 0 };

@@ -4,7 +4,12 @@ import styles from "../../styles/lessons/LinkedExperiments.module.css";
 import { JULIA_COLORING, MANDELBROT_COLORING } from "../../utils/escapeTimeColoring";
 import { usePointPicker } from "../../utils/hooks/usePointPicker";
 import { LINKED_LIMIT, LINKED_RADIUS } from "../../utils/lessons/linkedJulia";
-import { type ComplexPoint, isOutside, traceUntilLoop } from "../../utils/orbitLesson";
+import {
+  type ComplexPoint,
+  isOutside,
+  landsExactly,
+  traceUntilLoop,
+} from "../../utils/orbitLesson";
 import { EscapeTimePicture } from "./EscapeTimePicture";
 import { LessonFrame } from "./LessonFrame";
 
@@ -159,7 +164,7 @@ export default function LinkedJuliaLesson() {
   );
   const end = orbit[orbit.length - 1];
   const outcome = loop
-    ? `Lands back on an earlier point after ${end.iteration} calculations. `
+    ? `${landsExactly(orbit, loop) ? "Lands back on" : "Comes within 0.001 of"} an earlier point after ${end.iteration} calculations. `
     : isOutside(end.point, LINKED_RADIUS)
       ? `Escapes after ${end.iteration} calculations. `
       : `No escape after ${end.iteration} calculations. `;
