@@ -40,11 +40,13 @@ Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed hi
 
 <figure data-article-images="mandelbrot-printout"></figure>
 
-A printout of asterisks can only show a rough outline, so how much detail does the edge really hold? Each arrow below starts at a place on the edge and points to that place enlarged, with a caption saying how many times closer it is than the whole set. One place has a spiral, another a star, another a thread that forks again and again, and one holds a whole tiny copy of the set, and all of them come from squaring and adding.
+A printout of asterisks can only show a rough outline, so how much detail does the edge really hold? It never runs out: however far you zoom in, the edge is still there, with new shapes in it. Below are a few of the places you can reach, among them a spiral, a star, a thread that forks again and again, and a whole tiny copy of the set.
 
 <figure data-lesson="mandelbrot-zoom-map"></figure>
 
 The deepest is $10^{100}$ times closer. To get a feel for that, if this view were as wide as an atom, the whole set would be far wider than the observable universe. Every picture still has an edge, so you can zoom into it again: clicking one opens it in the explorer at the top of this page.
+
+You might expect shapes this different to need different rules, but every one of these pictures comes from the rule we started with, $z_{n+1}=z_n^2+c$. The only thing that changes from pixel to pixel is $c$, and near the edge, values that fly off and values that don't sit right next to each other at every scale, so the smallest change in $c$ can give a completely different route.
 
 There's a problem hiding in the definition. A number belongs to the set if its point never crosses the dashed circle, but a computer can't wait forever to check “never”. All it can say is that a point has **escaped** by crossing the circle, or that it hasn't escaped yet, and that's all black really means.
 
