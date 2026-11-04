@@ -1,4 +1,5 @@
 import {
+  type ComponentType,
   cloneElement,
   createContext,
   type Dispatch,
@@ -16,7 +17,7 @@ import panelStyles from "../styles/ExplorerPanel.module.css";
 import viewStyles from "../styles/ExplorerViewControls.module.css";
 import styles from "../styles/FractalConstruction.module.css";
 import { constructionFrame } from "../utils/constructionFrame";
-import type { ConstructionLead } from "../utils/constructionLead";
+import type { ConstructionFlatProps, ConstructionLead } from "../utils/constructionLead";
 import {
   CONSTRUCTION_BOOLEANS,
   CONSTRUCTION_NUMBERS,
@@ -182,6 +183,21 @@ function ConstructionSurface({
   return <div ref={containerRef} className={styles.surface} />;
 }
 
+function FlatSurface({
+  draw: Draw,
+  view,
+  level,
+  onReady,
+}: ConstructionFlatProps & {
+  draw: ComponentType<ConstructionFlatProps>;
+  onReady: (level: number) => void;
+}) {
+  useEffect(() => {
+    onReady(level);
+  }, [level, onReady]);
+  return <Draw view={view} level={level} />;
+}
+
 function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const controls = useContext(ControlsContext);
   const [step, setStep] = useState(0);
@@ -204,7 +220,8 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const autoplayed = useRef(false);
   const frame = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  const limit = spec.maxForConfig?.(view) ?? spec.max;
+  const flat = spec.lead?.flat?.when(view) ? spec.lead.flat : null;
+  const limit = flat?.max ?? spec.maxForConfig?.(view) ?? spec.max;
   const max = Math.max(0, limit - spec.min);
   const selected = Math.min(step, max),
     level = spec.min + selected;
@@ -483,7 +500,9 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
         )}
         <div className={styles.viewport} style={{ background: view.background }}>
           {(lsystem ? seen : visible) &&
-            (lsystem ? (
+            (flat ? (
+              <FlatSurface draw={flat.draw} view={view} level={level} onReady={onReady} />
+            ) : lsystem ? (
               <LSystemProcess
                 key={`${spec.identity}:${level}:${processReset}`}
                 kind={spec.kind}

@@ -1,4 +1,6 @@
+import { QuadraticShadow } from "../components/QuadraticShadow";
 import { SceneFractalExplorer, type SceneVariant } from "../components/SceneFractalExplorer";
+import { QUADRATIC_SHADOW_LEAD, SHADOW_LEVELS } from "../utils/lessons/quadraticShadow";
 import { getDescription } from "../utils/readFiles";
 
 type Props = {
@@ -8,6 +10,15 @@ type Props = {
 type Variant = "default";
 
 const MAX_ITERATIONS = 3;
+
+const LEAD = {
+  ...QUADRATIC_SHADOW_LEAD,
+  flat: {
+    when: (view: Record<string, unknown>) => view.show === "shadow",
+    max: SHADOW_LEVELS,
+    draw: QuadraticShadow,
+  },
+};
 
 const VARIANTS: Record<Variant, SceneVariant> = {
   default: {
@@ -27,6 +38,7 @@ const QuadraticKoch3D = ({ description }: Props) => (
     initialVariant="default"
     fillColor="#ff8f7e"
     strokeColor="#ffe4de"
+    constructionLead={LEAD}
   />
 );
 

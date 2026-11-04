@@ -31,6 +31,17 @@ export type ConstructionLead = {
   ) => { label: string; value: string; tint?: string }[];
   /** A drawing laid over a GPU figure, which follows its camera. */
   overlay?: ComponentType<ConstructionOverlayProps>;
+  /** A flat drawing the control can swap the figure for. It builds no faces, so it can go deeper. */
+  flat?: {
+    when: (view: Record<string, unknown>) => boolean;
+    max: number;
+    draw: ComponentType<ConstructionFlatProps>;
+  };
+};
+
+export type ConstructionFlatProps = {
+  view: Record<string, unknown>;
+  level: number;
 };
 
 export type ConstructionOverlayProps = {
