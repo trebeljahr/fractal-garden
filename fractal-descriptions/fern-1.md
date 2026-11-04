@@ -1,27 +1,27 @@
 # Fern 1
 
-This fern is drawn from a string of instructions. F means move forward while drawing a line. X marks a position that will gain more instructions at the next step; it doesn't draw anything itself.
+This fern is four smaller copies of itself, joined by three straight stems. In the figure, each copy has its own color and the stems are pale.
 
-Starting with X, replace the letters using:
+<figure data-construction-player="fern-1"></figure>
+
+Start with X and replace the letters each round:
 
 ```text
 X → F+[[X]-X]-F[-FX]+X
 F → FF
 ```
 
-Plus and minus turn in opposite directions. The angle setting is −25 degrees.
+F draws a line. X draws nothing; the next round replaces it. The [L-system explorer](/l-system/explorer) explains the turns and brackets.
 
-<figure data-construction-player="fern-1"></figure>
+The X rule has three F's, which are the stems. Level 2 draws only those. The rule also has four X's, and each goes through the same replacements the first X did, one round behind. So level 3 has four copies of level 2's three lines, level 4 has four copies of level 3, and so on. Check it in the figure: **Each copy** at one level equals **All lines** at the level before.
 
-The brackets make branches possible. At an opening bracket, save the current position and direction. At its closing bracket, restore both without drawing a return line. The following instructions can then draw a different branch from the same position.<sup><a id="fern-1-ref-1" href="#fern-1-source-1">1</a></sup>
+The plus and minus signs only turn the copies. Two turn 25 degrees left, one turns 25 degrees right and one stays upright.
 
-The brackets inside brackets repeat that process within a branch. Every X adds four new X positions. Each existing F becomes FF, so the earlier stems become longer strings of drawing steps too.
+Each round, a copy gets about twice as tall. `F → FF` makes the stems twice as long to match, so each level looks like the one before with more detail.
 
-Change the angle to spread the branches apart or bring them closer together. The letter rules stay the same.
+Press **F stays F** to remove that rule. The four copies are still exact copies of the level before, but the stems stay one line long. The copies now start almost at the same spot and spread over each other. By level 5 the plant is wider than it is tall.
 
 ## Further exploring
-
-- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ### Videos
 
@@ -32,7 +32,4 @@ Change the angle to spread the branches apart or bring them closer together. The
 
 - [L-system plants — Wikipedia](https://en.wikipedia.org/wiki/L-system#Example_7:_fractal_plant)
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-
-## Sources and notes
-
-1. <span id="fern-1-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains bracketed branching, including saved position and orientation. [Back](#fern-1-ref-1)
+- [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf)

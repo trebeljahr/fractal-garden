@@ -1,5 +1,6 @@
 import type { ConstructionView } from "../constructionView";
 import { untouchedCorner } from "../lessons/arrowheadChain";
+import { fern1Parts } from "../lessons/fern1Copies";
 import { fibonacciParts } from "../lessons/fibonacciPieces";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import {
@@ -225,7 +226,8 @@ export function preparePlaybackDrawing(
   const chunks = new Map<number, Map<number, Path2D>>();
   const passes =
     view.timesDrawn === "tint" ? strokePasses(geometry.positions, geometry.count) : null;
-  const parts = fibonacciParts(view.parts, model.generation);
+  const parts =
+    fibonacciParts(view.parts, model.generation) ?? fern1Parts(view.stems, model.generation);
   const tints = passes
     ? TIMES_DRAWN_TINTS
     : parts
