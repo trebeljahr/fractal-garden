@@ -1,30 +1,26 @@
 # Mandelbrot Set
 
-Start with zero, square it and add $1$, then take what you get, square that and add $1$ again. If you keep going, you get
+The Mandelbrot set comes from one short rule:
 
 $$
-0\to1\to2\to5\to26\to\cdots
+z\to z^2+c
 $$
 
-and the numbers fly off toward infinity. If you add $-1$ instead, you get $0,-1,0,-1,\ldots$, and you're trapped between those two numbers forever.
+You pick a number $c$, start with $z=0$, and keep feeding each answer back into the rule. With $c=1$ you get $0\to1\to2\to5\to26\to\cdots$, and the numbers fly off toward infinity. With $c=-1$ you get $0,-1,0,-1,\ldots$, and you're trapped between those two numbers forever. The Mandelbrot set is all the values of $c$ that don't fly off.
 
-The question behind the Mandelbrot set is which numbers do which. If you add a given number over and over, do the answers stay within some limit, or do they grow forever? The set is all the numbers whose answers stay within a limit, and to draw it, we need to give every pixel on the screen a number of its own.
+To draw it, each pixel needs its own $c$. A pixel has two coordinates, so $c$ gets two parts, one for how far to move left or right and one for how far to move up or down, which makes it a **complex number**. Adding $c$ moves a point by those two amounts, and squaring multiplies the point's distance from zero by itself and doubles its angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-A pixel has two coordinates, so we use numbers with two parts, one for how far to move left or right and one for how far to move up or down. These are **complex numbers**, and we'll call the one we're adding $c$. Adding $c$ moves a point by those two amounts. Squaring a point changes both its distance from zero and its direction: the distance gets multiplied by itself, and the angle from the line pointing right doubles.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
-
-On the plane below, the ring marks $c$. The point starts at zero and jumps once for each square and add, with dots showing where it lands and a thin line joining them in order. The dashed circle, two units from zero, matters because once the point crosses it, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
-
-If you run your pointer across the plane, or slide sideways on a phone, you'll see three kinds of behavior. Some numbers draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it out past the circle. The route ends at its first repeat.
+In the demo below, the ring is $c$ and the point starts at zero. Each time you apply the rule, the point jumps to the next $z$, shown as a dot, and a thin line joins the dots in order. Once the point crosses the dashed circle, two units from zero, every later jump takes it farther away,<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup> so crossing means it has flown off. As you run your pointer across the plane, or slide sideways on a phone, you'll see some values of $c$ draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it past the circle. The route ends at its first repeat.
 
 <figure data-lesson="orbit-shapes"></figure>
 
-This suggests a way to draw the set: test each number, and color it dark if its point stays inside the circle. You can try that on the plane below, which sits closer in, so the dashed circle is out of view. Moving your pointer over it, or sliding sideways on a phone, tests the numbers nearby, and a number turns dark if its point stays within two units of zero for 300 jumps.
+That gives us a way to draw the set: test each $c$, and color it dark if its point stays inside the circle. The plane below sits closer in, so the circle is out of view. Moving your pointer over it, or sliding sideways on a phone, tests the values nearby, and each one turns dark if its point stays within two units of zero for 300 jumps.
 
-**Draw the rest** tests every number, and the dark shape you end up with is the Mandelbrot set.
+**Draw the rest** tests every value, and the dark shape you end up with is the Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 
-This is the finished picture, and every pixel in it still has a route you can follow. The ring starts on $-1$, so click it to see the repeat from earlier, then pick a pixel near $1$ on the horizontal axis to see the amber point fly off.
+This is the finished picture, and every pixel in it still has a route you can follow. The ring starts on $c=-1$, so click it to see the repeat from earlier, then pick a pixel near $c=1$ on the horizontal axis to see the amber point fly off.
 
 <figure data-orbit="mandelbrot"></figure>
 
