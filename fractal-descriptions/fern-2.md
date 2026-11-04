@@ -1,29 +1,27 @@
 # Fern 2
 
-Two letters control different parts of this fern. Y adds the main forks. X adds short side branches along the stems. Neither letter draws a line directly; both add F instructions that do the drawing.
+Each level of this fern starts with the whole level before it, line for line. The gold lines in the figure are that old plant. They never change at any later level.
 
-Start with Y and use:
+<figure data-construction-player="fern-2"></figure>
+
+Start with Y and replace the letters each round, with turns of 25.7 degrees:
 
 ```text
 Y → YFX[+Y][-Y]
 X → X[-FFF][+FFF]FX
 ```
 
-The turn angle is 25.7 degrees.
+F draws a line. X and Y draw nothing; the next round replaces them. The [L-system explorer](/l-system/explorer) explains the turns and brackets.
 
-<figure data-construction-player="fern-2"></figure>
+The Y rule starts with Y. Level 2's string is `YFX[+Y][-Y]`. To make level 3, replace every letter. The first Y becomes `YFX[+Y][-Y]` again, and everything else lands after it. This repeats at every level, so each string starts with the whole string before it. You can compare the two strings above the picture.
 
-Each pair of brackets defines a side branch. The opening bracket saves the position and direction, and the closing bracket restores them without drawing back along the branch.<sup><a id="fern-2-ref-1" href="#fern-2-source-1">1</a></sup>
+The pen reads from the left, so it draws the old plant first. F has no rule, so those lines keep their length. In [Fern 1](/l-system/fern-1), each old line doubles. In [Fern 3](/l-system/fern-3), each old line is replaced.
 
-A Y replacement leaves three Y positions: one on the continuing stem and two on side branches. An X replacement puts three F steps on each of two side branches. It also continues with an F step and two X positions.
+The rest of the Y rule says what comes next. `FX` is more stem, with pairs of short side branches. `[+Y]` and `[-Y]` are two more copies of the old plant, turned 25.7 degrees left and right. All of this starts at the top of the old main stem, so no branch on the old plant ever gets longer.
 
-Old F instructions stay unchanged. New length is added through the X and Y replacements. In [Fern 1](/l-system/fern-1), by comparison, each old F becomes two F steps as well.
-
-The first replacement draws one forward step. The second draws eleven because every X and Y in the old string gets replaced at once.
+The figure zooms out at each level to fit the new lines, so the same gold plant looks smaller each time.
 
 ## Further exploring
-
-- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ### Videos
 
@@ -33,7 +31,4 @@ The first replacement draws one forward step. The second draws eleven because ev
 ### Reading
 
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-
-## Sources and notes
-
-1. <span id="fern-2-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 explains the bracketed turtle method. [Back](#fern-2-ref-1)
+- [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf)
