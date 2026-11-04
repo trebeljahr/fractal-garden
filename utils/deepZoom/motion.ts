@@ -49,17 +49,21 @@ const fragment = `precision highp float;
 uniform sampler2D u_history;
 uniform sampler2D u_work;
 uniform sampler2D u_backdrop;
+uniform sampler2D u_previous;
 uniform vec2 u_resolution;
 uniform vec2 u_historySize;
 uniform vec2 u_workSize;
 uniform vec2 u_backdropSize;
+uniform vec2 u_previousSize;
 uniform vec3 u_historyTransform;
 uniform vec3 u_workTransform;
 uniform vec3 u_backdropTransform;
+uniform vec3 u_previousTransform;
 uniform float u_historyValid;
 uniform float u_workValid;
 uniform float u_backdropValid;
-uniform float u_workOverHistory;
+uniform float u_previousValid;
+uniform float u_fade;
 vec4 sampleSource(sampler2D image, vec2 size, vec3 transform, float valid, vec2 uv) {
   if (valid < 0.5) return vec4(0.0);
   vec2 p = 0.5 + 0.5 * (transform.xy + uv * transform.z) * min(size.x,size.y) / size;
@@ -71,9 +75,12 @@ void main() {
   vec4 history = sampleSource(u_history,u_historySize,u_historyTransform,u_historyValid,uv);
   vec4 work = sampleSource(u_work,u_workSize,u_workTransform,u_workValid,uv);
   vec4 backdrop = sampleSource(u_backdrop,u_backdropSize,u_backdropTransform,u_backdropValid,uv);
+  vec4 previous = sampleSource(u_previous,u_previousSize,u_previousTransform,u_previousValid,uv);
   vec3 color = backdrop.a > 0.999 ? backdrop.rgb : vec3(0.02,0.025,0.03);
-  if (history.a > 0.999) color = history.rgb;
-  if (work.a > 0.999 && (u_workOverHistory > 0.5 || (history.a <= 0.999 && backdrop.a <= 0.999)))
+  if (previous.a > 0.999) color = previous.rgb;
+  if (history.a > 0.999) color = mix(color, history.rgb, u_fade);
+  // Partial work only fills dark space. It never paints over a whole source.
+  if (work.a > 0.999 && history.a <= 0.999 && previous.a <= 0.999 && backdrop.a <= 0.999)
     color = work.rgb;
   gl_FragColor = vec4(color,1.0);
 }`;
@@ -107,8 +114,19 @@ function sameCamera(a: Source, b: Source) {
   const [x, y, ratio] = transform(a.state.view, b.state.view);
   return x === 0 && y === 0 && ratio === 1;
 }
-/** Below this, zooming has outrun finished sources, so partial detail beats none. */
-const MIN_HISTORY_DENSITY = 0.25;
+/** Moving sources are sized to finish in about this long, so zooming can't outrun them. */
+const MOVING_SOURCE_MS = 150;
+const MIN_MOVING_SAMPLING = 0.2;
+const MAX_MOVING_SAMPLING = 0.8;
+/** Start a source before history falls to its density, because zooming continues meanwhile. */
+const START_MARGIN = 1.25;
+/** A wider source extends this far past the camera, for nearby pans. */
+const MOVING_PADDING = 1.18;
+/** Pixels per millisecond assumed before the first moving batches are measured. */
+const INITIAL_PIXEL_RATE = 2000;
+/** A finished source fades in over this long, or this many frames if time stands still. */
+const FADE_MS = 120;
+const FADE_FRAMES = 30;
 /** A backdrop spans four viewports, so zooming out or panning shows it instead of dark. */
 const BACKDROP_SPAN = 4;
 /** With that span, a third of the native size per side costs a ninth of the pixels. */
@@ -155,8 +173,13 @@ export function createMandelbrotMotion(
   let moving = false;
   let paintAllowed = true;
   let completedVersion = -1;
-  let query: { handle: object; pixels: number; moving: boolean; detail: boolean } | null = null;
-  let sampleScale = 0.8;
+  let query: { handle: object; pixels: number; moving: boolean } | null = null;
+  let sampleScale = MAX_MOVING_SAMPLING;
+  let pixelRate = INITIAL_PIXEL_RATE;
+  let lastBatch: { at: number; pixels: number } | null = null;
+  let fade = 1;
+  let fadeStart = 0;
+  let fadeFrames = FADE_FRAMES;
   let batchPixels = 32768;
   let fallbackPixels = 16384;
   let fallbackFastFrames = 0;
@@ -191,17 +214,21 @@ export function createMandelbrotMotion(
         "history",
         "work",
         "backdrop",
+        "previous",
         "resolution",
         "historySize",
         "workSize",
         "backdropSize",
+        "previousSize",
         "historyTransform",
         "workTransform",
         "backdropTransform",
+        "previousTransform",
         "historyValid",
         "workValid",
         "backdropValid",
-        "workOverHistory",
+        "previousValid",
+        "fade",
       ].map((name) => [name, gl.getUniformLocation(shader.program, `u_${name}`)]),
     );
     const extension = gl.getExtension("EXT_disjoint_timer_query") as Timer | null;
@@ -244,6 +271,9 @@ export function createMandelbrotMotion(
     // The shown backdrop stays whole while its replacement is calculated.
     let backdrop = surface();
     let backdropWork = surface();
+    // The source history replaced, kept so its replacement can fade in over it.
+    // A coarser source can also wait here, showing only where history has no pixels.
+    let previous = surface();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (options.initialFrame) {
       history.source = capture(options.initialFrame);
@@ -282,6 +312,7 @@ export function createMandelbrotMotion(
         [history, "history", 3],
         [work, "work", 4],
         [backdrop, "backdrop", 5],
+        [previous, "previous", 6],
       ] as const) {
         gl.activeTexture(gl.TEXTURE0 + unit);
         gl.bindTexture(gl.TEXTURE_2D, image.texture);
@@ -292,12 +323,12 @@ export function createMandelbrotMotion(
         gl.uniform1f(uniforms[`${name}Valid`], valid ? 1 : 0);
         gl.uniform3f(uniforms[`${name}Transform`], t[0], t[1], t[2]);
       }
-      // Moving sources swap in whole, so the final native pass is the only
-      // sweep seen outward from the center. They fill space nothing else covers.
-      gl.uniform1f(
-        uniforms.workOverHistory,
-        work.native || (density(history) ?? 0) < MIN_HISTORY_DENSITY ? 1 : 0,
+      fadeFrames++;
+      fade = Math.min(
+        1,
+        Math.max((performance.now() - fadeStart) / FADE_MS, fadeFrames / FADE_FRAMES),
       );
+      gl.uniform1f(uniforms.fade, fade);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       presentations++;
       gl.activeTexture(gl.TEXTURE0);
@@ -389,7 +420,41 @@ export function createMandelbrotMotion(
         Math.abs(y) + (ratio * latest.height) / nativeSize <= (share * image.height) / sourceSize
       );
     };
-    const exposed = () => !coversViewport(history) && !coversViewport(backdrop);
+    const exposed = () =>
+      !coversViewport(history) && !coversViewport(previous) && !coversViewport(backdrop);
+    const showsCamera = (image: Surface) =>
+      latest !== null &&
+      image.origin !== null &&
+      compatible(latest, image.origin) &&
+      sameCamera(latest, image.origin);
+    /** A sampling density the measured GPU rate can finish in time. */
+    const movingSampling = () => {
+      if (!latest) return MAX_MOVING_SAMPLING;
+      const pixels = latest.width * latest.height * MOVING_PADDING ** 2;
+      return Math.max(
+        MIN_MOVING_SAMPLING,
+        Math.min(MAX_MOVING_SAMPLING, Math.sqrt((pixelRate * MOVING_SOURCE_MS) / pixels)),
+      );
+    };
+    /** Show a finished source whole. It never lowers the sharpness already on screen. */
+    const promoteWork = () => {
+      completedSources++;
+      const usableHistory = latest !== null && history.source && compatible(latest, history.source);
+      if (work.native || !usableHistory || (density(work) ?? 0) >= (density(history) ?? 0)) {
+        const spare = previous;
+        previous = history;
+        history = work;
+        work = spare;
+        fadeStart = performance.now();
+        fadeFrames = 0;
+        fade = 0;
+      } else if (!coversViewport(history)) {
+        const spare = previous;
+        previous = work;
+        work = spare;
+      }
+      discard(work);
+    };
     // Without a backdrop, the moving source alone fills edges exposed by zooming
     // out. Dropping it would blank them and make the native pass fill them again.
     const workFillsGap = () =>
@@ -445,7 +510,7 @@ export function createMandelbrotMotion(
       };
       const viewport = inWorkPixels(latest, latest.width, latest.height);
       if (!viewport) return;
-      // With nothing dark to fill, the tiles sweep outward from the center alone.
+      // With nothing dark to fill, tiles run outward from the center.
       const covered = coversViewport(backdrop)
         ? viewport
         : history.source && compatible(latest, history.source)
@@ -508,11 +573,10 @@ export function createMandelbrotMotion(
             Math.max(
               16384,
               // Resting passes favor throughput; motion keeps a short input budget.
-              Math.min(1048576, query.pixels * Math.max(0.25, Math.min(4, (moving ? 6 : 48) / ms))),
+              Math.min(1048576, query.pixels * Math.max(0.25, Math.min(4, (moving ? 8 : 48) / ms))),
             ),
           );
           if (moving && !query.moving) batchPixels = Math.min(batchPixels, 32768);
-          if (query.moving && query.detail && ms > 12) sampleScale = 0.75;
         }
       }
       timer.deleteQueryEXT(query.handle);
@@ -545,6 +609,7 @@ export function createMandelbrotMotion(
       }
       if (!paintAllowed) {
         present();
+        if (fade < 1) schedule();
         return;
       }
       // A finished source remains useful for reprojection even if the next camera
@@ -555,11 +620,7 @@ export function createMandelbrotMotion(
         work.origin &&
         compatible(latest, work.origin)
       ) {
-        completedSources++;
-        const swap = history;
-        history = work;
-        work = swap;
-        discard(work);
+        promoteWork();
       }
       if (backdropWork.snapshot && backdropWork.origin) {
         const usable = compatible(latest, backdropWork.origin);
@@ -573,7 +634,7 @@ export function createMandelbrotMotion(
       }
       // A native pass can outlive a short pause and a resumed gesture. Once
       // stopped, refine the final camera directly instead of finishing an old
-      // native view and then restarting another visible sweep.
+      // native view and then restarting another pass.
       if (
         work.snapshot &&
         (staleWork() ||
@@ -585,20 +646,26 @@ export function createMandelbrotMotion(
         discardedSources++;
         discard(work);
       }
-      const exactHistory =
-        history.origin && compatible(latest, history.origin) && sameCamera(latest, history.origin);
-      if (!work.snapshot && !(exactHistory && (moving || history.native)))
-        begin(work, moving ? sampleScale : 1, moving ? 1.18 : 1);
+      const exactHistory = showsCamera(history);
+      if (!work.snapshot) {
+        if (moving) {
+          sampleScale = movingSampling();
+          const enough =
+            exactHistory ||
+            showsCamera(previous) ||
+            (coversViewport(history) && (density(history) ?? 0) >= sampleScale * START_MARGIN);
+          if (!enough) begin(work, sampleScale, MOVING_PADDING);
+        } else if (!(exactHistory && history.native)) begin(work, 1, 1);
+      }
       if (backdropDue()) begin(backdropWork, BACKDROP_SAMPLING, BACKDROP_SPAN);
       const image =
         backdropWork.snapshot && (moving || !work.snapshot || exposed()) ? backdropWork : work;
       if (image.snapshot) {
-        const detail = image === work;
-        if (detail) prioritizeVisibleWork();
+        if (image === work) prioritizeVisibleWork();
         gl.bindFramebuffer(gl.FRAMEBUFFER, image.framebuffer);
         const handle = timer?.createQueryEXT() ?? null;
         if (handle && timer) {
-          query = { handle, pixels: 0, moving, detail };
+          query = { handle, pixels: 0, moving };
           timer.beginQueryEXT(timer.TIME_ELAPSED_EXT, handle);
         }
         const budget = handle ? batchPixels : timer ? 16384 : fallbackPixels;
@@ -653,10 +720,18 @@ export function createMandelbrotMotion(
           submittedPixels += pixels;
           submittedBatches++;
           if (!timer) fallbackLastFrame = timestamp;
+          const now = performance.now();
+          if (moving) {
+            const elapsed = lastBatch ? now - lastBatch.at : 0;
+            // Longer gaps mean nothing was asked of the GPU, not that it was slow.
+            if (lastBatch && elapsed > 0 && elapsed < 200)
+              pixelRate = 0.7 * pixelRate + (0.3 * lastBatch.pixels) / elapsed;
+            lastBatch = { at: now, pixels };
+          } else lastBatch = null;
         } finally {
           if (handle && timer) {
             timer.endQueryEXT(timer.TIME_ELAPSED_EXT);
-            query = { handle, pixels, moving, detail };
+            query = { handle, pixels, moving };
           }
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
@@ -672,7 +747,7 @@ export function createMandelbrotMotion(
         completedVersion = latest.version;
         options.complete(latest.version);
       }
-      if (query || work.snapshot || backdropWork.snapshot) schedule();
+      if (query || work.snapshot || backdropWork.snapshot || fade < 1) schedule();
     };
     const destroy = () => {
       if (destroyed) return;
@@ -737,6 +812,7 @@ export function createMandelbrotMotion(
           batchPixels,
           fallbackPixels,
           sampleScale,
+          pixelRate,
         };
       },
       destroy,

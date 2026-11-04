@@ -275,42 +275,87 @@ test("stopping at a new camera replaces an unfinished native pass with one final
     assert.equal(h.motion.getStats().completedSources, 1);
   }));
 
-test("moving sources swap in whole, leaving the native pass as the only visible sweep", () =>
-  harness(
-    (h) => {
-      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -20.5, 0, 0) };
-      h.update(true, { state, version: 2 });
-      h.tick();
-      const { workSubmittedFraction } = h.motion.getStats();
-      assert.ok(workSubmittedFraction > 0 && workSubmittedFraction < 1);
-      assert.deepEqual(
-        h.presents.at(-1).u_workOverHistory,
-        [0],
-        "partial motion work stays hidden",
-      );
-      h.flush();
-      assert.equal(h.motion.getStats().completedSources, 1);
-      assert.ok(h.presents.every((present) => present.u_workOverHistory[0] === 0));
-      h.update(false);
-      h.tick();
-      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [1], "the native pass sweeps");
-      h.flush();
-      assert.deepEqual(h.completions, [2]);
-    },
-    { initial: true },
-  ));
-
-test("partial motion work appears once zooming outruns the finished sources", () =>
+test("no partial source paints over a finished one, moving or at rest", () =>
   harness(
     (h) => {
       const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -23, 0, 0) };
       h.update(true, { state, version: 2 });
       h.tick();
       assert.ok(h.motion.getStats().workSubmittedFraction > 0);
-      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [1]);
+      const shader = readFileSync(new URL("../utils/deepZoom/motion.ts", import.meta.url), "utf8");
+      assert.match(
+        shader,
+        /work\.a > 0\.999 && history\.a <= 0\.999 && previous\.a <= 0\.999 && backdrop\.a <= 0\.999/,
+        "partial work only fills space with no finished source",
+      );
+      h.update(false);
+      h.tick();
+      assert.ok(h.motion.getStats().workSubmittedFraction > 0);
+      assert.equal(h.motion.getStats().historyVersion, null);
+      assert.ok(h.motion.getStats().historyEffectiveDensity < 0.2, "history stays until replaced");
+      h.flush();
+      assert.deepEqual(h.completions, [2]);
+      assert.equal(h.motion.getStats().historyEffectiveDensity, 1);
     },
     { initial: true },
   ));
+
+test("a finished source fades in over the one it replaces, then frames stop", () =>
+  harness(
+    (h) => {
+      const state = { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -23, 0, 0) };
+      h.update(false, { state, version: 2 });
+      while (h.motion.getStats().workSubmittedFraction < 1) h.tick();
+      assert.equal(h.presents.at(-1).u_fade[0], 1);
+      h.tick();
+      assert.ok(h.presents.at(-1).u_fade[0] < 1, "the swap starts a fade");
+      h.flush();
+      assert.equal(h.presents.at(-1).u_fade[0], 1);
+    },
+    { initial: true },
+  ));
+
+test("a coarser moving source never replaces sharper history", () =>
+  harness(
+    (h) => {
+      const near = { ...h.snapshot.state, view: moveViewport(h.snapshot.state.view, 0.3, 0) };
+      h.update(true, { state: near, version: 2 });
+      h.flush();
+      const first = h.motion.getStats();
+      assert.equal(first.completedSources, 1);
+      assert.ok(first.historyEffectiveDensity === 1, "sharp history stays on top");
+      assert.equal(first.historyCoversViewport, false);
+    },
+    { initial: true },
+  ));
+
+test("moving sources shrink to what the measured GPU rate can finish", () =>
+  harness((h) => {
+    const realNow = performance.now;
+    let now = 1000;
+    performance.now = () => now;
+    try {
+      h.update(true);
+      h.tick();
+      assert.equal(h.motion.getStats().sampleScale, 0.8);
+      for (let i = 0; i < 8; i++) {
+        now += 100;
+        h.update(true, { version: 2 + i });
+        h.tick();
+      }
+      assert.ok(h.motion.getStats().pixelRate < 1000);
+      h.update(true, {
+        state: { ...h.snapshot.state, view: zoomViewport(h.snapshot.state.view, -24, 0, 0) },
+        version: 20,
+      });
+      h.tick();
+      h.tick();
+      assert.ok(h.motion.getStats().sampleScale < 0.8);
+      assert.ok(h.motion.getStats().sampleScale >= 0.2);
+    } finally {
+      performance.now = realNow;
+    }
+  }));
 
 test("settling finishes a moving source that alone fills edges exposed by zooming out", () =>
   harness(
@@ -419,7 +464,7 @@ test("the backdrop keeps a zoom step ahead of a camera zooming out", () =>
     { backdrop: true },
   ));
 
-test("settling goes straight to a center-out native pass when the backdrop fills the edges", () =>
+test("settling goes straight to the native pass when the backdrop fills the edges", () =>
   harness(
     (h) => {
       finishRest(h);
@@ -429,7 +474,6 @@ test("settling goes straight to a center-out native pass when the backdrop fills
       const stats = h.motion.getStats();
       assert.equal(stats.historyCoversViewport, false);
       assert.equal(stats.backdropCoversViewport, true);
-      assert.deepEqual(h.presents.at(-1).u_workOverHistory, [0], "moving work stays hidden");
       h.update(false);
       const [first] = h.tick();
       assert.equal(h.motion.getStats().discardedSources, 1);
@@ -457,21 +501,6 @@ test("a replacement backdrop stays hidden until it is whole", () =>
       assert.ok(h.motion.getStats().backdropEffectiveDensity < density);
     },
     { backdrop: true },
-  ));
-
-test("slow backdrop batches do not lower motion sampling, but slow detail batches do", () =>
-  harness(
-    (h) => {
-      h.gpuMs = 15;
-      h.available = true;
-      h.update(true);
-      assert.ok(h.tick().every(isBackdrop));
-      assert.ok(h.tick().every((paint) => !isBackdrop(paint)));
-      assert.equal(h.motion.getStats().sampleScale, 0.8);
-      h.tick();
-      assert.equal(h.motion.getStats().sampleScale, 0.75);
-    },
-    { backdrop: true, timed: true },
   ));
 
 test("a parameter edit replaces the backdrop before its native pass", () =>
@@ -869,7 +898,7 @@ test("timing budgets distinguish moving and idle frames and allow bounded larger
         h.update(moving);
         h.tick();
         h.tick();
-        assert.equal(h.motion.getStats().batchPixels, moving ? 32768 : 131072);
+        assert.equal(h.motion.getStats().batchPixels, moving ? 43691 : 131072);
       },
       { timed: true },
     );
@@ -889,23 +918,6 @@ test("timing budgets distinguish moving and idle frames and allow bounded larger
     { timed: true, size: [2048, 1536] },
   );
 });
-
-test("idle GPU timing does not lower motion sampling quality", () =>
-  harness(
-    (h) => {
-      h.gpuMs = 15;
-      h.available = true;
-      h.update(false);
-      h.tick();
-      h.tick();
-      assert.equal(h.motion.getStats().sampleScale, 0.8);
-      h.update(true);
-      h.tick();
-      h.tick();
-      assert.equal(h.motion.getStats().sampleScale, 0.75);
-    },
-    { timed: true },
-  ));
 
 test("settling replaces unfinished motion work immediately when completed history covers it", () =>
   harness(
