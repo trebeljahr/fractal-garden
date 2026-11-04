@@ -1,26 +1,26 @@
 # Fern 3
 
-Each line in this fern is replaced by a three-step stem with two pairs of side branches. The first pair has two steps per branch. The second pair has one step per branch.
+This fern never gets taller. Every level adds lines, but the height stays exactly the length of the first line. From level 5 on, the width stops changing too.
 
-Start with F and apply:
+<figure data-construction-player="fern-3"></figure>
+
+Start with one line and replace every line with this, each round:
 
 ```text
 F → F[+FF][-FF]F[-F][+F]F
 ```
 
-F draws forward. Plus and minus turn by 22.5 degrees.
+Each new F is one third as long as the line it replaces, and the turns are 22.5 degrees. The [L-system explorer](/l-system/explorer) explains the turns and brackets.
 
-<figure data-construction-player="fern-3"></figure>
+Level 2 shows the rule. The three F's outside the brackets make a stem of three steps, which ends exactly where the old line ended. So every old line stays where it was, now in three steps. The figure tints those lines gold. Everything else is a new side branch.
 
-Brackets save a branch's starting position and direction. Closing the bracket restores them without drawing a return line, so the main stem continues from the same junction.<sup><a id="fern-3-ref-1" href="#fern-3-source-1">1</a></sup>
+Now walk from the foot of level 2 to any tip. To reach the first pair of branches, you take one stem step, then two branch steps. To reach the second pair, you take two stem steps, then one branch step. Up the main stem, you take three. Every walk is three steps, the length of the old line.
 
-There are nine F steps in the replacement. On the next round, every one of those steps receives the whole replacement. A two-step side branch therefore receives two copies in succession, while a one-step branch receives one.
+A walk that bends can't climb as high as a straight walk of the same length. Only the main stem is straight, so only its top reaches full height. Replacing a line doesn't make any walk along it longer, so this holds at every level.
 
-The segment count goes from 1 to 9 to 81. Dividing each new segment's length by three keeps the three-step main stem the same height as the line it replaces. The plant stays the same height as more branches appear.
+The same is true of any line, whichever way it points: its replacement never reaches farther that way than the line's end. Level 2 has lines turned once, level 3 has lines turned twice, and so on. Four turns of 22.5 degrees make 90, so level 5 is the first with lines pointing straight sideways. The widest point of the fern is the end of one of those lines. Nothing can reach past it, so the width stays at 0.690 of the height.
 
 ## Further exploring
-
-- [L-system explorer](/l-system/explorer), for trying other replacement rules
 
 ### Videos
 
@@ -30,7 +30,4 @@ The segment count goes from 1 to 9 to 81. Dividing each new segment's length by 
 ### Reading
 
 - [L-System User Notes — Paul Bourke](https://paulbourke.net/fractals/lsys/)
-
-## Sources and notes
-
-1. <span id="fern-3-source-1"></span> Przemysław Prusinkiewicz and Aristid Lindenmayer, [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf), Springer-Verlag, 1990. Section 1.6 supplies the branching interpretation. [Back](#fern-3-ref-1)
+- [The Algorithmic Beauty of Plants, chapter 1](https://algorithmicbotany.org/papers/abop/abop-ch1.lowquality.pdf)

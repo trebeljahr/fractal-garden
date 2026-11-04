@@ -2,6 +2,7 @@ import type { ConstructionView } from "../constructionView";
 import { untouchedCorner } from "../lessons/arrowheadChain";
 import { fern1Parts } from "../lessons/fern1Copies";
 import { fern2Parts } from "../lessons/fern2OldPlant";
+import { fern3KeepsOldLine, fern3Tints } from "../lessons/fern3Size";
 import { fibonacciParts } from "../lessons/fibonacciPieces";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import {
@@ -231,15 +232,17 @@ export function preparePlaybackDrawing(
     fibonacciParts(view.parts, model.generation) ??
     fern1Parts(view.stems, model.generation) ??
     fern2Parts(view.oldPlant, model.generation);
+  const fern3 = fern3Tints(view.keptLines, model.generation, view.color);
   const tints = passes
     ? TIMES_DRAWN_TINTS
     : parts
       ? parts.tints
-      : view.copies === "seven"
-        ? GOSPER_COPY_TINTS
-        : model.copies > 1
-          ? TERDRAGON_COPY_TINTS.slice(0, model.copies)
-          : null;
+      : (fern3 ??
+        (view.copies === "seven"
+          ? GOSPER_COPY_TINTS
+          : model.copies > 1
+            ? TERDRAGON_COPY_TINTS.slice(0, model.copies)
+            : null));
   // At the first levels, the level before shows dim under this one. Three strokes replaced each of
   // its lines, so that line joins the first stroke's start to the third stroke's end.
   const oldLines =
@@ -254,7 +257,11 @@ export function preparePlaybackDrawing(
       ? timesDrawnTint(passes[line])
       : parts
         ? parts.ends.findIndex((end) => line < end)
-        : Math.floor((line * (tints as string[]).length) / geometry.count);
+        : fern3
+          ? fern3KeepsOldLine(line)
+            ? 0
+            : 1
+          : Math.floor((line * (tints as string[]).length) / geometry.count);
   const tintOf = (line: number) => (tints ? tints[tintSlot(line)] : view.color);
   const lines = (start: number, end: number) => {
     const paths = new Map<number, Path2D>();
