@@ -99,6 +99,7 @@ export default function LSystemProcess({
     source.turns,
     source.repeat,
     source.fibonacci,
+    source.copies,
   ]);
   // Paint and camera edits do not rebuild the rewriting or turtle trace.
   // biome-ignore lint/correctness/useExhaustiveDependencies: key contains every geometry input.
@@ -111,6 +112,7 @@ export default function LSystemProcess({
         source.turns,
         source.repeat,
         source.fibonacci,
+        source.copies,
       ),
     [key],
   );

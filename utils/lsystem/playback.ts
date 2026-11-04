@@ -37,6 +37,7 @@ export function playbackSource(kind: string, params: unknown) {
       firstDragon?: string;
       secondDragon?: string;
       rule?: string;
+      copies?: unknown;
     };
     const recipes: Record<
       string,
@@ -100,6 +101,7 @@ export function playbackSource(kind: string, params: unknown) {
       legacy: false,
       turns: recipe.turns,
       repeat: kind === "twindragon" ? 2 : 1,
+      copies: kind === "terdragon" ? ((settings.copies as number | undefined) ?? 1) : 1,
       fibonacci: kind === "fibonacciWordFractal" ? settings.angle : undefined,
       spec: {
         ...DEFAULT_SPEC,
@@ -135,6 +137,54 @@ export function playbackSource(kind: string, params: unknown) {
   };
 }
 
+const COPY_TURN = Math.PI / 3;
+const FULL_TURN_COPIES = 6;
+
+/**
+ * Walks `copies` copies of the path from its start, each turned 60 degrees from the last. The
+ * positions always hold all six, so from two copies up the frame stays put as copies are added.
+ */
+function withTurnedCopies(
+  geometry: ReturnType<typeof interpret>,
+  poses: Float32Array,
+  drawn: Uint32Array,
+  symbols: number,
+  copies: number,
+) {
+  const lines = geometry.count;
+  const positions = new Float32Array(lines * 6 * FULL_TURN_COPIES);
+  const widths = new Float32Array(lines * copies);
+  const depths = new Uint16Array(lines * copies);
+  for (let copy = 0; copy < FULL_TURN_COPIES; copy++) {
+    const c = Math.cos(copy * COPY_TURN);
+    const s = Math.sin(copy * COPY_TURN);
+    for (let i = 0; i < lines * 6; i += 3) {
+      const x = geometry.positions[i];
+      const y = geometry.positions[i + 1];
+      const offset = copy * lines * 6 + i;
+      positions[offset] = c * x - s * y;
+      positions[offset + 1] = s * x + c * y;
+      positions[offset + 2] = geometry.positions[i + 2];
+    }
+    if (copy >= copies) continue;
+    widths.set(geometry.widths.subarray(0, lines), copy * lines);
+    depths.set(geometry.depths.subarray(0, lines), copy * lines);
+    if (!copy) continue;
+    for (let i = 1; i <= symbols; i++) {
+      const from = i * 6;
+      const to = (copy * symbols + i) * 6;
+      poses[to] = c * poses[from] - s * poses[from + 1];
+      poses[to + 1] = s * poses[from] + c * poses[from + 1];
+      poses[to + 2] = poses[from + 2];
+      poses[to + 3] = c * poses[from + 3] - s * poses[from + 4];
+      poses[to + 4] = s * poses[from + 3] + c * poses[from + 4];
+      poses[to + 5] = poses[from + 5];
+      drawn[copy * symbols + i] = copy * lines + drawn[i];
+    }
+  }
+  return { ...geometry, positions, widths, depths, count: lines * copies };
+}
+
 export function buildPlayback(
   spec: LSystemSpec,
   generation: number,
@@ -142,6 +192,7 @@ export function buildPlayback(
   turns?: Record<string, number>,
   repeat = 1,
   fibonacci?: number,
+  copies = 1,
 ) {
   const history = [spec.axiom.slice(0, 160)];
   let offsets = new Uint32Array(0);
@@ -163,8 +214,9 @@ export function buildPlayback(
   const word = expansion.sentence;
   // Six floats for position + heading and one segment count per symbol, rather
   // than millions of JS objects for a large generation.
-  const poses = new Float32Array((word.length * repeat + 1) * 6);
-  const drawn = new Uint32Array(word.length * repeat + 1);
+  const walks = Math.max(repeat, copies);
+  const poses = new Float32Array((word.length * walks + 1) * 6);
+  const drawn = new Uint32Array(word.length * walks + 1);
   let geometry = interpret(word, spec, {
     legacy2d: legacy,
     turns,
@@ -203,12 +255,14 @@ export function buildPlayback(
     }
     geometry = { ...geometry, positions, widths, depths, min, max, count: geometry.count * 2 };
   }
+  if (copies > 1) geometry = withTurnedCopies(geometry, poses, drawn, word.length, copies);
   const actual = expansion.iterations;
   if (actual === 0) offsets = new Uint32Array(0);
   return {
     word,
     repeat,
-    instructionLength: word.length * repeat,
+    copies,
+    instructionLength: word.length * walks,
     previous,
     offsets,
     poses,

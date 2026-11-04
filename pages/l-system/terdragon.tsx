@@ -5,8 +5,10 @@ import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import { TurtleCurveZoom } from "../../components/TurtleCurveZoom";
 import styles from "../../styles/Fullscreen.module.css";
+import { TERDRAGON_CONSTRUCTION_MAX } from "../../utils/constructionLimits";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { TERDRAGON_LEAD } from "../../utils/lessons/terdragonCopies";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -41,8 +43,10 @@ const Terdragon = ({ description }: Props) => {
     height,
     min: 1,
     max: MAX_ITERATIONS,
+    constructionMax: () => TERDRAGON_CONSTRUCTION_MAX,
     stepDelay: 900,
     holdDelay: 1800,
+    constructionLead: TERDRAGON_LEAD,
   });
 
   const handleUpdate = (newData: Config) => {

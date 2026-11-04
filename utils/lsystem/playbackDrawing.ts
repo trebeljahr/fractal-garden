@@ -1,9 +1,12 @@
 import type { ConstructionView } from "../constructionView";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import { notchTriangleTip } from "../lessons/quadraticStart";
+import { TERDRAGON_COPY_TINTS, terdragonCensus } from "../lessons/terdragonCopies";
 import { strokePasses, TIMES_DRAWN_TINTS, timesDrawnTint } from "../lessons/timesDrawn";
 import { viewRotation } from "../orientation";
 import type { Playback } from "./playback";
+
+const OLD_LINES_TO_LEVEL = 3;
 
 export function preparePlaybackDrawing(
   width: number,
@@ -27,7 +30,7 @@ export function preparePlaybackDrawing(
     maxX = -Infinity,
     maxY = -Infinity;
   // Fit to the whole path so the camera stays still while the turtle walks.
-  for (let i = 0; i < geometry.count * 6; i += 3) {
+  for (let i = 0; i < geometry.positions.length; i += 3) {
     const [x, y] = project(
       geometry.positions[i],
       geometry.positions[i + 1],
@@ -94,7 +97,22 @@ export function preparePlaybackDrawing(
   const chunks = new Map<number, Map<number, Path2D>>();
   const passes =
     view.timesDrawn === "tint" ? strokePasses(geometry.positions, geometry.count) : null;
-  const tints = passes ? TIMES_DRAWN_TINTS : view.copies === "seven" ? GOSPER_COPY_TINTS : null;
+  const tints = passes
+    ? TIMES_DRAWN_TINTS
+    : view.copies === "seven"
+      ? GOSPER_COPY_TINTS
+      : model.copies > 1
+        ? TERDRAGON_COPY_TINTS.slice(0, model.copies)
+        : null;
+  // At the first levels, the level before shows dim under this one. Three strokes replaced each of
+  // its lines, so that line joins the first stroke's start to the third stroke's end.
+  const oldLines =
+    view.showOldLines && model.generation <= OLD_LINES_TO_LEVEL ? new Path2D() : null;
+  if (oldLines)
+    for (let i = 0; i < geometry.count; i += 3) {
+      oldLines.moveTo(projected[i * 4], projected[i * 4 + 1]);
+      oldLines.lineTo(projected[(i + 2) * 4 + 2], projected[(i + 2) * 4 + 3]);
+    }
   const tintSlot = (line: number) =>
     passes
       ? timesDrawnTint(passes[line])
@@ -162,6 +180,11 @@ export function preparePlaybackDrawing(
       ctx.restore();
     }
     ctx.setLineDash([]);
+    if (oldLines) {
+      ctx.strokeStyle = "#eee8ce40";
+      ctx.lineWidth = 1;
+      ctx.stroke(oldLines);
+    }
     ctx.strokeStyle = view.color;
     ctx.lineCap = "round";
     const stroke = (path: Path2D, weight: number) => {
@@ -217,9 +240,31 @@ export function preparePlaybackDrawing(
       ctx.stroke();
     }
     // A finished level is just the picture.
-    if (!drawing || consumed >= model.instructionLength) return;
+    if (!drawing || consumed >= model.instructionLength) {
+      if (drawing && model.copies === TERDRAGON_COPY_TINTS.length) {
+        // The part where no line of the grid is missing. Its corners lie along the six first lines.
+        const { hexagonSide } = terdragonCensus(model.generation, model.copies);
+        ctx.beginPath();
+        for (let copy = 0; copy < model.copies; copy++) {
+          const o = copy * (geometry.count / model.copies) * 6;
+          const [x, y] = screen(
+            geometry.positions[o + 3] * hexagonSide,
+            geometry.positions[o + 4] * hexagonSide,
+            0,
+          );
+          ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.25;
+        ctx.stroke();
+      }
+      return;
+    }
+    // The pen lifts between copies.
+    const lifted = model.copies > 1 && consumed > 1 && (consumed - 1) % model.word.length === 0;
     const current = consumed * 6,
-      prev = Math.max(0, consumed - 1) * 6;
+      prev = lifted ? current : Math.max(0, consumed - 1) * 6;
     const head = screen(
       poses[prev] + (poses[current] - poses[prev]) * progress,
       poses[prev + 1] + (poses[current + 1] - poses[prev + 1]) * progress,

@@ -16,6 +16,9 @@ export const QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX = 3;
 /** With the tiling on, the player draws the path up to 289 times: 295,936 lines at level 9. */
 export const TWINDRAGON_TILING_CONSTRUCTION_MAX = 8;
 
+/** With six copies, level 10 draws 354,294 lines. */
+export const TERDRAGON_CONSTRUCTION_MAX = 9;
+
 /** Lines in a star fractal: every star down to `depth`, each with one line per tip. */
 export function starLines(points: number, depth: number) {
   let lines = 0;

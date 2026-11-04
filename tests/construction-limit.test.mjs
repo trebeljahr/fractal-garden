@@ -209,6 +209,7 @@ const {
   QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
   starConstructionMax,
   starLines,
+  TERDRAGON_CONSTRUCTION_MAX,
   TWINDRAGON_TILING_CONSTRUCTION_MAX,
 } = require("../utils/constructionLimits.ts");
 const { buildPlayback, playbackSource } = require("../utils/lsystem/playback.ts");
@@ -259,6 +260,7 @@ const TURTLE_FIGURES = {
 const OWN_LIMITS = {
   "levy-tapestry": LEVY_TAPESTRY_CONSTRUCTION_MAX,
   "quadratic-koch-island": QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX,
+  terdragon: TERDRAGON_CONSTRUCTION_MAX,
 };
 
 function turtleModel(kind, level, settings = {}) {
@@ -278,6 +280,7 @@ function turtleModel(kind, level, settings = {}) {
     source.turns,
     source.repeat,
     source.fibonacci,
+    source.copies,
   );
 }
 
@@ -316,6 +319,12 @@ test("figures over the budget stop at the last level within it", () => {
   assert.ok(
     over("quadraticKochIsland", QUADRATIC_KOCH_ISLAND_CONSTRUCTION_MAX) > MAX_CONSTRUCTION_LINES,
   );
+});
+
+test("the terdragon's limit counts all six copies", () => {
+  const lines = (level) => turtleModel("terdragon", level, { copies: 6 }).geometry.count;
+  assert.ok(lines(TERDRAGON_CONSTRUCTION_MAX) <= MAX_CONSTRUCTION_LINES);
+  assert.ok(lines(TERDRAGON_CONSTRUCTION_MAX + 1) > MAX_CONSTRUCTION_LINES);
 });
 
 test("a twindragon tiling counts every copy the player draws", () => {

@@ -197,8 +197,8 @@ function ConstructionSequence({ spec }: { spec: ConstructionSpec }) {
   const lsystem = hasLSystemPlayback(spec.kind);
   const [pageVisible, setPageVisible] = useState(true);
   const [view, setView] = useState<ConstructionView>(() => ({
-    ...spec.lead?.initial,
     ...spec.config,
+    ...spec.lead?.initial,
     ...initialConstructionView(spec.params, spec.gpuSpec ? CAMERA_DISTANCE : undefined),
   }));
   const autoplayed = useRef(false);
