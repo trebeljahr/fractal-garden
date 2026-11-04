@@ -20,7 +20,7 @@ Now drag the height. Height 0 is the middle, and height 1 is the top corner. Awa
 
 Two other stops on the slider stay solid. At 0.50 the cut goes through the middle of the top copy, and at 0.75 through the middle of that copy's top copy.
 
-This page's other two solids, the dodecahedron and the icosahedron, don't do this. Their copies are smaller than half size, so they stop short of the center, and a cut through the middle has a hole from level 1.
+This page's other two solids, the dodecahedron and the icosahedron, don't do this. Their copies are smaller than half size, so they stop short of the center, and a cut through the middle has a hole after one replacement.
 
 ## Further exploring
 
