@@ -1,0 +1,30 @@
+.plane {
+  display: block;
+  width: 100%;
+  aspect-ratio: 360 / 300;
+  background: var(--lesson-bg);
+}
+.widePlane {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  aspect-ratio: 360 / 300;
+  background: var(--lesson-bg);
+}
+.square {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  aspect-ratio: 1;
+  background: var(--lesson-bg);
+}
+.stretch {
+  font:
+    600 13px "Montserrat",
+    sans-serif;
+  paint-order: stroke;
+  stroke: var(--lesson-bg);
+  stroke-width: 3px;
+}
