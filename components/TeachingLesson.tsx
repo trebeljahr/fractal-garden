@@ -19,9 +19,6 @@ const MandelbrotJuliaZoomLesson = dynamic(() => import("./lessons/MandelbrotJuli
 const FamilyExplorerLesson = dynamic(() =>
   import("./lessons/HolomorphicFamilies").then((m) => m.FamilyExplorerLesson),
 );
-const FamilyCopiesLesson = dynamic(() =>
-  import("./lessons/HolomorphicFamilies").then((m) => m.FamilyCopiesLesson),
-);
 const StepLimitLesson = dynamic(() => import("./lessons/StepLimitLesson"));
 const LSystemLesson = dynamic(() => import("./lessons/LSystemLesson"));
 const DragonTilingLesson = dynamic(() => import("./lessons/DragonTilingLesson"));
@@ -82,7 +79,6 @@ const LESSONS = [
   "mandelbrot-zoom-map",
   "mandelbrot-julia-zoom",
   "family-explorer",
-  "family-copies",
   "step-limit-mandelbrot",
   "step-limit-julia",
   "koch-measurement",
@@ -171,8 +167,6 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <MandelbrotJuliaZoomLesson />;
     case "family-explorer":
       return <FamilyExplorerLesson />;
-    case "family-copies":
-      return <FamilyCopiesLesson />;
     case "step-limit-mandelbrot":
       return <StepLimitLesson formula="mandelbrot" />;
     case "step-limit-julia":

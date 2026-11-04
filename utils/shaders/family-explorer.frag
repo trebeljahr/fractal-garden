@@ -38,6 +38,16 @@ vec3 glow(vec3 deep, vec3 bright, float t, float period) {
 
 vec2 startFor(vec2 c) {
   if (u_rule < 0.5) return c / 3.0;
+  if (u_rule > 5.5) {
+    vec2 inner = vec2(1.0 - c.x, -c.y);
+    float angle = atan(inner.y, inner.x) / 2.0;
+    return pow(dot(inner, inner), 0.25) * vec2(cos(angle), sin(angle));
+  }
+  if (u_rule > 4.5) {
+    float angle = atan(c.y, c.x) / 3.0;
+    return pow(dot(c, c) / 4.0, 1.0 / 6.0) * vec2(cos(angle), sin(angle));
+  }
+  if (u_rule > 3.5) return vec2(0.0);
   if (u_rule > 2.5) return vec2(1.5707963, 0.0);
   if (u_rule > 1.5) {
     float angle = atan(c.y, c.x) / 4.0;
@@ -83,11 +93,36 @@ vec3 colorAt(vec2 point) {
         float t = jumps + 1.0 - log(log(dot(z, z)) / log(1e6)) / log(2.0);
         return glow(BLUE_DEEP, BLUE, t * 1.6, 70.0);
       }
-    } else {
-      z = times(c, vec2(sin(z.x) * (exp(z.y) + exp(-z.y)) * 0.5, cos(z.x) * (exp(z.y) - exp(-z.y)) * 0.5));
+    } else if (u_rule < 4.5) {
+      vec2 turned = u_rule < 3.5
+        ? vec2(sin(z.x) * (exp(z.y) + exp(-z.y)) * 0.5, cos(z.x) * (exp(z.y) - exp(-z.y)) * 0.5)
+        : vec2(cos(z.x) * (exp(z.y) + exp(-z.y)) * 0.5, -sin(z.x) * (exp(z.y) - exp(-z.y)) * 0.5);
+      z = times(c, turned);
       if (abs(z.y) > 40.0) {
         float t = jumps + 1.0 - log(abs(z.y) / 40.0) / 40.0;
         return glow(BLUE_DEEP, BLUE, t * 2.0, 70.0);
+      }
+    } else if (u_rule > 5.5) {
+      vec2 toOne = z - vec2(1.0, 0.0);
+      float nearOne = dot(toOne, toOne);
+      if (nearOne < 1e-6) {
+        float t = jumps + 1.0 - log(max(log(sqrt(nearOne)) / log(1e-3), 1.0)) / log(2.0);
+        return glow(AMBER_DEEP, AMBER, t * 1.6, 70.0);
+      }
+      vec2 bottom = 2.0 * z + c - vec2(2.0, 0.0);
+      if (dot(bottom, bottom) < 1e-16) return glow(BLUE_DEEP, BLUE, jumps + 1.0, 70.0);
+      vec2 part = over(times(z, z) + c - vec2(1.0, 0.0), bottom);
+      z = times(part, part);
+      if (dot(z, z) > 1e6) {
+        float t = jumps + 1.0 - log(log(dot(z, z)) / log(1e6)) / log(2.0);
+        return glow(BLUE_DEEP, BLUE, t * 1.6, 70.0);
+      }
+    } else {
+      if (dot(z, z) < 1e-12) return glow(BLUE_DEEP, BLUE, jumps + 1.0, 70.0);
+      z = times(z, z) + over(c, z);
+      if (dot(z, z) > 1e6) {
+        float t = jumps + 1.0 - log(log(dot(z, z)) / log(1e6)) / log(2.0);
+        return glow(BLUE_DEEP, BLUE, t * 1.6, 70.0);
       }
     }
     // A route that returns to where it was is trapped, so a black pixel can stop early.

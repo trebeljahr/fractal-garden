@@ -9,7 +9,6 @@ import styles from "../../styles/lessons/HolomorphicFamilies.module.css";
 import common from "../../styles/lessons/Lesson.module.css";
 import { useReducedMotion } from "../../utils/hooks/useReducedMotion";
 import {
-  COPY_GALLERY,
   FAMILY_RULES,
   familyStart,
   flightView,
@@ -22,7 +21,6 @@ import { createFamilyRenderer, type FamilyFrame } from "../../utils/shaders/fami
 import { isSidewaysSlide } from "../../utils/touchSlide";
 import { LessonFrame } from "./LessonFrame";
 
-const SELECT_PLACE = "family-explorer-place";
 const REST_MS = 150;
 const MOVING_SCALE = 1.25;
 const LARGEST_CANVAS = 2000;
@@ -350,6 +348,10 @@ const pair = (p: ComplexPoint, digits: number) =>
 const ROOT_NAMES = ["−1", "1", "the third root"];
 const ROOT_INK = ["#6fa4ee", "#f0ad58", "#e874ad"];
 const NEWTON = 0;
+const TILE_PX = 300;
+const ALL_PLACES = FAMILY_RULES.flatMap((rule, ruleIndex) =>
+  rule.places.map((place, placeIndex) => ({ rule, ruleIndex, place, placeIndex })),
+);
 
 export function FamilyExplorerLesson() {
   const [ruleIndex, setRuleIndex] = useState(NEWTON);
@@ -365,7 +367,7 @@ export function FamilyExplorerLesson() {
   const views = useRef({ left, right });
   views.current = { left, right };
   const reduced = useReducedMotion();
-  const figure = useRef<HTMLDivElement>(null);
+  const tiles = useRef<HTMLDivElement>(null);
 
   const stopFlight = () => cancelAnimationFrame(flight.current);
   const flyTo = (toLeft: PlaneView, toRight: PlaneView) => {
@@ -388,27 +390,27 @@ export function FamilyExplorerLesson() {
       if (raw < 1) flight.current = requestAnimationFrame(fly);
     });
   };
-  const startsCenter = (index: number, c: ComplexPoint) =>
-    FAMILY_RULES[index].startsCloseHalf < FAMILY_RULES[index].startsHalf
-      ? familyStart(index, c)
-      : { real: 0, imaginary: 0 };
-  const goToPlace = (index: number, placeIndex: number, startWide: boolean) => {
+  const goToPlace = (index: number, placeIndex: number) => {
     const chosen = FAMILY_RULES[index];
     const place = chosen.places[placeIndex];
-    if (startWide) {
+    if (index !== ruleIndex) {
+      const wide = { center: { real: 0, imaginary: 0 }, half: chosen.startsHalf };
       setRuleIndex(index);
       setLeft(chosen.whole);
-      setRight({ center: { real: 0, imaginary: 0 }, half: chosen.startsHalf });
-      views.current = {
-        left: chosen.whole,
-        right: { center: { real: 0, imaginary: 0 }, half: chosen.startsHalf },
-      };
+      setRight(wide);
+      views.current = { left: chosen.whole, right: wide };
     }
     setParam(place.at);
-    setActivePlace(placeIndex);
+    setActivePlace(ALL_PLACES.findIndex((item) => item.place === place));
     flyTo(
       { center: place.at, half: place.half },
-      { center: startsCenter(index, place.at), half: chosen.startsCloseHalf },
+      {
+        center:
+          chosen.startsCloseHalf < chosen.startsHalf
+            ? familyStart(chosen.shader, place.at)
+            : { real: 0, imaginary: 0 },
+        half: chosen.startsCloseHalf,
+      },
     );
   };
   const goWhole = () => {
@@ -424,19 +426,53 @@ export function FamilyExplorerLesson() {
     setLeft(chosen.whole);
     setRight({ center: { real: 0, imaginary: 0 }, half: chosen.startsHalf });
   };
-  // The gallery further down the page opens its pictures here.
-  const openPlace = useRef(goToPlace);
-  openPlace.current = goToPlace;
+  useEffect(() => () => cancelAnimationFrame(flight.current), []);
+
+  // One small picture per frame, so the row of copies never holds up the page.
   useEffect(() => {
-    const open = (event: Event) => {
-      const { rule: index, place } = (event as CustomEvent).detail;
-      figure.current?.scrollIntoView({ block: "center" });
-      openPlace.current(index, place, true);
-    };
-    window.addEventListener(SELECT_PLACE, open);
+    const box = tiles.current;
+    if (!box) return;
+    let frame = 0;
+    let cancelled = false;
+    const nearby = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        nearby.disconnect();
+        const scratch = document.createElement("canvas");
+        const renderer = createFamilyRenderer(scratch);
+        if (!renderer) return;
+        const canvases = Array.from(box.querySelectorAll("canvas"));
+        let next = 0;
+        const paintNext = () => {
+          if (cancelled || next >= canvases.length) {
+            renderer.dispose();
+            return;
+          }
+          const { rule: tileRule, place } = ALL_PLACES[next];
+          renderer.draw(
+            {
+              rule: tileRule.shader,
+              family: true,
+              center: place.at,
+              half: place.half,
+              param: place.at,
+              sharp: true,
+            },
+            TILE_PX,
+          );
+          canvases[next].getContext("2d")?.drawImage(scratch, 0, 0);
+          next++;
+          frame = requestAnimationFrame(paintNext);
+        };
+        frame = requestAnimationFrame(paintNext);
+      },
+      { rootMargin: "100% 0px" },
+    );
+    nearby.observe(box);
     return () => {
-      window.removeEventListener(SELECT_PLACE, open);
-      cancelAnimationFrame(flight.current);
+      cancelled = true;
+      nearby.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -456,8 +492,8 @@ export function FamilyExplorerLesson() {
     param,
     sharp: true,
   };
-  const outcome = useMemo(() => startOutcome(ruleIndex, param), [ruleIndex, param]);
-  const start = familyStart(ruleIndex, param);
+  const outcome = useMemo(() => startOutcome(rule.shader, param), [rule.shader, param]);
+  const start = familyStart(rule.shader, param);
   const digits = left.half < 0.2 ? 4 : 2;
   const zoom = Number((rule.whole.half / left.half).toPrecision(2));
   const pick = (next: ComplexPoint) => {
@@ -506,157 +542,77 @@ export function FamilyExplorerLesson() {
     );
   return (
     <LessonFrame title="The whole family, and one member of it" kind="family-explorer">
-      <div ref={figure}>
-        <div className={common.options}>
-          {FAMILY_RULES.map((option, index) => (
-            <button
-              type="button"
-              key={option.name}
-              aria-pressed={index === ruleIndex}
-              onClick={() => chooseRule(index)}
-            >
-              {option.name}
-            </button>
-          ))}
-        </div>
-        <div className={common.options}>
-          <button type="button" aria-pressed={left.half === rule.whole.half} onClick={goWhole}>
-            Whole plane
+      <div className={common.options}>
+        {FAMILY_RULES.map((option, index) => (
+          <button
+            type="button"
+            key={option.name}
+            aria-pressed={index === ruleIndex}
+            onClick={() => chooseRule(index)}
+          >
+            {option.name}
           </button>
-          {rule.places.map((place, index) => (
-            <button
-              type="button"
-              key={place.name}
-              aria-pressed={index === activePlace}
-              onClick={() => goToPlace(ruleIndex, index, false)}
-            >
-              Copy {place.name}
-            </button>
-          ))}
-        </div>
-        <div className={styles.pair}>
-          <div>
-            <h3>{rule.allTitle}</h3>
-            <FamilyStage
-              frame={leftFrame}
-              widest={rule.whole.half * 1.5}
-              view={left}
-              onView={movedLeft}
-              onPick={pick}
-              ring={param}
-              label={`Every ${rule.free} for ${rule.name}. The ring is at ${pair(param, 4)}. Click to move the ring, drag to pan, pinch to zoom, or use the arrow keys and plus and minus.`}
-            />
-          </div>
-          <div>
-            <h3>{rule.oneTitle}</h3>
-            <FamilyStage
-              frame={rightFrame}
-              widest={rule.startsHalf * 1.5}
-              view={right}
-              onView={movedRight}
-              label={`Every ${rule.start} for ${rule.name} with ${pair(param, 4)}. Black if it never settles or flies off. Drag to pan, pinch to zoom.`}
-            >
-              {roots.map(({ name, at }) => (
-                <span key={name} className={styles.root} style={inRight(at)} />
-              ))}
-              <span className={styles.start} style={inRight(start)} />
-            </FamilyStage>
-          </div>
-        </div>
-        <p data-family-readout>
-          {pair(param, digits)}, zoom ×{zoom}. From the white dot, the route {said}.
-        </p>
-        <p className={styles.hint}>
-          Click to move the ring, drag to pan, pinch or click and scroll to zoom.
-        </p>
+        ))}
+        <button type="button" aria-pressed={left.half === rule.whole.half} onClick={goWhole}>
+          Whole plane
+        </button>
       </div>
-    </LessonFrame>
-  );
-}
-
-const TILE_PX = 420;
-
-export function FamilyCopiesLesson() {
-  const grid = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const box = grid.current;
-    if (!box) return;
-    let frame = 0;
-    let cancelled = false;
-    const nearby = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        nearby.disconnect();
-        const scratch = document.createElement("canvas");
-        const renderer = createFamilyRenderer(scratch);
-        if (!renderer) return;
-        const tiles = Array.from(box.querySelectorAll("canvas"));
-        // One picture per frame, so a large gallery never holds up the page.
-        let next = 0;
-        const paintNext = () => {
-          if (cancelled || next >= tiles.length) {
-            renderer.dispose();
-            return;
-          }
-          const [ruleIndex, placeIndex] = COPY_GALLERY[next];
-          const rule = FAMILY_RULES[ruleIndex];
-          const place = rule.places[placeIndex];
-          const size = Math.min(TILE_PX, Math.round(tiles[next].clientWidth * 2) || TILE_PX);
-          renderer.draw(
-            {
-              rule: rule.shader,
-              family: true,
-              center: place.at,
-              half: place.half,
-              param: place.at,
-              sharp: true,
-            },
-            size,
-          );
-          tiles[next].width = size;
-          tiles[next].height = size;
-          tiles[next].getContext("2d")?.drawImage(scratch, 0, 0);
-          next++;
-          frame = requestAnimationFrame(paintNext);
-        };
-        frame = requestAnimationFrame(paintNext);
-      },
-      { rootMargin: "100% 0px" },
-    );
-    nearby.observe(box);
-    return () => {
-      cancelled = true;
-      nearby.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, []);
-  return (
-    <LessonFrame title="The same shape, in different rules" kind="family-copies">
-      <div ref={grid} className={styles.gallery}>
-        {COPY_GALLERY.map(([ruleIndex, placeIndex]) => {
-          const rule = FAMILY_RULES[ruleIndex];
-          const place = rule.places[placeIndex];
-          return (
-            <button
-              type="button"
-              key={`${ruleIndex}:${placeIndex}`}
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent(SELECT_PLACE, {
-                    detail: { rule: ruleIndex, place: placeIndex },
-                  }),
-                )
-              }
-            >
-              <span className={styles.caption}>
-                {rule.name}
-                <br />
-                near {pair(place.at, 3)}
-              </span>
-              <canvas width={TILE_PX} height={TILE_PX} />
-            </button>
-          );
-        })}
+      <p className={styles.formula} data-family-formula>
+        {rule.formula}
+      </p>
+      <div className={styles.pair}>
+        <div>
+          <h3>{rule.allTitle}</h3>
+          <FamilyStage
+            frame={leftFrame}
+            widest={rule.whole.half * 1.5}
+            view={left}
+            onView={movedLeft}
+            onPick={pick}
+            ring={param}
+            label={`Every ${rule.free} for ${rule.formula}. The ring is at ${pair(param, 4)}. Click to move the ring, drag to pan, pinch to zoom, or use the arrow keys and plus and minus.`}
+          />
+        </div>
+        <div>
+          <h3>{rule.oneTitle}</h3>
+          <FamilyStage
+            frame={rightFrame}
+            widest={rule.startsHalf * 1.5}
+            view={right}
+            onView={movedRight}
+            label={`Every ${rule.start} for ${rule.formula} with ${rule.symbol} = ${pair(param, 4)}. Drag to pan, pinch to zoom.`}
+          >
+            {roots.map(({ name, at }) => (
+              <span key={name} className={styles.root} style={inRight(at)} />
+            ))}
+            <span className={styles.start} style={inRight(start)} />
+          </FamilyStage>
+        </div>
+      </div>
+      <p data-family-readout>
+        {rule.symbol} = {pair(param, digits)}, zoom ×{zoom}. From the white dot, the route {said}.
+      </p>
+      <p className={styles.hint}>
+        Click to move the ring, drag to pan, pinch or click and scroll to zoom.
+      </p>
+      <div ref={tiles} className={styles.gallery} data-family-copies>
+        {ALL_PLACES.map(({ rule: tileRule, ruleIndex: tileIndex, place, placeIndex }, index) => (
+          <button
+            type="button"
+            key={`${tileRule.shader}:${placeIndex}`}
+            aria-pressed={index === activePlace}
+            onClick={() => goToPlace(tileIndex, placeIndex)}
+          >
+            <canvas width={TILE_PX} height={TILE_PX} />
+            <span className={styles.caption}>
+              {tileRule.caption}
+              <br />
+              {tileRule.symbol} = {pair(place.at, 3)}
+              <br />
+              {Math.round(place.overlap * 100)}% match
+            </span>
+          </button>
+        ))}
       </div>
     </LessonFrame>
   );

@@ -13,7 +13,6 @@ require.extensions[".ts"] = (module, filename) =>
     filename,
   );
 const {
-  COPY_GALLERY,
   FAMILY_RULES,
   familyJump,
   familyStart,
@@ -36,12 +35,11 @@ test("Newton's method traps the guess 0 for z³ − 2z + 2, as the article says"
 });
 
 test("every listed copy has a route trapped in a repeat", () => {
-  FAMILY_RULES.forEach((rule, index) => {
+  for (const rule of FAMILY_RULES)
     for (const place of rule.places) {
-      const outcome = startOutcome(index, place.at);
-      assert.equal(outcome.kind, "repeat", `${rule.name} ${place.name}: ${outcome.kind}`);
+      const outcome = startOutcome(rule.shader, place.at);
+      assert.equal(outcome.kind, "repeat", `${rule.name} ${place.at.real}: ${outcome.kind}`);
     }
-  });
 });
 
 test("Newton's Copy A has a repeat of 2 in its heart and 4 in its bulb, as the article says", () => {
@@ -54,42 +52,38 @@ test("Newton's Copy A has a repeat of 2 in its heart and 4 in its bulb, as the a
 
 test("Newton's other copies have repeats of their own lengths", () => {
   const lengths = FAMILY_RULES[0].places.map(({ at }) => startOutcome(0, at).length);
-  assert.deepEqual(lengths, [2, 3, 3, 4, 4, 5]);
+  assert.deepEqual(lengths, [2, 3, 4, 4, 5]);
 });
 
 test("each start is a place where the rule's slope is zero", () => {
-  FAMILY_RULES.forEach((rule, index) => {
+  for (const rule of FAMILY_RULES) {
     const c = rule.places[0].at;
-    const { real, imaginary } = familyStart(index, c);
+    const { real, imaginary } = familyStart(rule.shader, c);
     const h = 1e-4;
-    const moved = (dx, dy) => familyJump(index, c, real + dx, imaginary + dy);
-    const at = moved(0, 0);
-    const near = moved(h, 0);
-    // A slope of zero moves the result far less than the step that caused it.
+    const at = familyJump(rule.shader, c, real, imaginary);
+    const near = familyJump(rule.shader, c, real + h, imaginary);
     assert.ok(Math.hypot(near[0] - at[0], near[1] - at[1]) / h < 0.02, rule.name);
-  });
+  }
 });
 
 test("outside the copies the route ends some other way", () => {
   assert.equal(startOutcome(0, { real: 2, imaginary: 0.5 }).kind, "root");
   assert.equal(startOutcome(1, { real: 1, imaginary: 1 }).kind, "escape");
-  assert.equal(startOutcome(2, { real: 1.5, imaginary: 1.5 }).kind, "escape");
   assert.equal(startOutcome(3, { real: 1, imaginary: 3 }).kind, "escape");
-  assert.equal(FAMILY_RULES.length, 4);
+  assert.equal(startOutcome(4, { real: 1, imaginary: 3 }).kind, "escape");
 });
 
-test("the gallery names real places, and the article holds each demo once", () => {
-  for (const [rule, place] of COPY_GALLERY) assert.ok(FAMILY_RULES[rule].places[place]);
-  for (const kind of ["family-explorer", "family-copies"])
-    assert.equal(article.split(`data-lesson="${kind}"`).length, 2, kind);
+test("the article holds the demo once and none of the removed ones", () => {
+  assert.equal(article.split('data-lesson="family-explorer"').length, 2);
   for (const removed of [
+    "family-copies",
     "repeat-stretch",
     "all-repeats",
     "tiny-patch",
     "newton-copy",
-    "newton-family",
   ])
     assert.ok(!article.includes(removed), removed);
+  assert.match(article, /\(z\^2-1\)\(z-t\)/);
 });
 
 test("zooming keeps the point under the pointer still and stops at the deepest view", () => {
