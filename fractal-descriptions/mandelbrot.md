@@ -114,6 +114,7 @@ Two of those pictures need a qualification. The copies in $z^3+c$ look different
 - [What’s so special about the Mandelbrot Set? — Numberphile](https://www.youtube.com/watch?v=FFftmWSzgmk)
 - [Beyond the Mandelbrot set, an intro to holomorphic dynamics — 3Blue1Brown](https://www.youtube.com/watch?v=LqbZpur38nw)
 - [Decoding Math’s Famed Fractal: The Mandelbrot Set — Quanta Magazine](https://www.youtube.com/watch?v=u9GAnW8xFJY)
+- [The Mandelbrot Set: The origin and applications of Fractal Geometry — wocomoDOCS](https://www.youtube.com/watch?v=tCtYOFed1Mk)
 - [Mandelbrot Set — The Coding Train](https://www.youtube.com/watch?v=6z7GQewK-Ks)
 
 ### Reading
