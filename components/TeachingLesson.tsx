@@ -58,6 +58,7 @@ const NFlakeOutlineLesson = dynamic(() => import("./lessons/NFlakeOutlineLesson"
 const JerusalemFitLesson = dynamic(() => import("./lessons/JerusalemFitLesson"));
 const VicsekJoinsLesson = dynamic(() => import("./lessons/VicsekJoinsLesson"));
 const TwindragonDigitsLesson = dynamic(() => import("./lessons/TwindragonDigitsLesson"));
+const CarpetLineLesson = dynamic(() => import("./lessons/CarpetLineLesson"));
 
 const LESSONS = [
   "linked-julia",
@@ -114,6 +115,7 @@ const LESSONS = [
   "jerusalem-fit",
   "vicsek-joins",
   "twindragon-digits",
+  "carpet-line",
 ] as const;
 export type TeachingLessonKind = (typeof LESSONS)[number];
 export function isTeachingLessonKind(value: unknown): value is TeachingLessonKind {
@@ -230,5 +232,7 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
       return <VicsekJoinsLesson />;
     case "twindragon-digits":
       return <TwindragonDigitsLesson />;
+    case "carpet-line":
+      return <CarpetLineLesson />;
   }
 }

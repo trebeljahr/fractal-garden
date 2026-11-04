@@ -17,18 +17,6 @@ const IMAGES = {
       height: 648,
     },
   ],
-  carpet: [
-    {
-      name: "carpet-depth-1",
-      alt: "Sierpinski carpet with one central square removed",
-      caption: "After one step, the center square is removed.",
-    },
-    {
-      name: "carpet-depth-3",
-      alt: "Sierpinski carpet with three generations of square holes",
-      caption: "After three steps, holes of three sizes are visible.",
-    },
-  ],
   menger: [
     {
       name: "menger-level-1",
