@@ -14,6 +14,21 @@ Rico's correction, 2026-10-23: explain things simply, with the patience needed
 for a five-year-old and the brevity of Derek Sivers. Fewer words, chosen well.
 Assume no mathematical background. Respect the reader; do not use baby talk.
 
+Rico's correction, 2026-11-04: short and accurate is not enough. Results stated
+one after another kill the discovery. Write like a 3Blue1Brown or Numberphile
+video: someone talking you through a thing they find fascinating. Where this
+conflicts with an older rule below, this one wins. `fractal-descriptions/mandelbrot.md`
+is the reference.
+
+- Open with a question the reader would really ask or a thing they can notice.
+  Raise the obvious objection, then answer it. For example: “Why on earth should
+  they match?” then “Shouldn't all those extra nudges ruin the match?” The answer
+  must follow right away and must explain the mechanism.
+- Do not open a passage with a stage direction such as “Now zoom in on the edge”,
+  “Look at the round bulb” or “Move the slider”. Say how to use a demo only as far
+  as the reader needs it, and tie it to what they want to find out.
+- A short human reaction is fine when a real discovery comes with it, such as
+  “Those digits look familiar.” It is not a substitute for the discovery.
 - Start with something the reader can see, draw, remove, rotate or try. Explain one
   step at a time. Build the picture before introducing a name or equation.
 - Use ordinary spoken English, concrete nouns and active verbs. Keep sentences
@@ -25,8 +40,8 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
   an argument into jargon such as "outer-third depth coordinate".
 - Keep useful, verified facts. Mathematical accuracy does not require a formal
   tone. State necessary qualifications once, in plain words, next to the claim.
-- No clever transitions, abstract throat-clearing, forced contrasts, stock
-  sentence patterns or closing summaries. Read every paragraph aloud. If it
+- No abstract throat-clearing, forced contrasts, stock sentence patterns or
+  closing summaries. Read every paragraph aloud. If it
   would sound strange while explaining the picture to someone, rewrite it.
 - Information density means useful understanding per word. It does not mean
   maximum facts, symbols or technical terms per sentence. Do not turn these
@@ -38,6 +53,9 @@ Assume no mathematical background. Respect the reader; do not use baby talk.
   places for the next cut", "numbers take a journey" or "a rule grows a plant".
   A short sentence can still be vague. Explain the intermediate step that makes
   the next sentence follow; do not fill that gap with a pleasant-sounding phrase.
+  An everyday figure of speech is fine when the mechanism is stated next to it:
+  “a point holds out” beside the step counts, “playing catch-up” beside the growth
+  of each nudge.
 - The shared construction player has no stock heading or injected summary.
   Construction explanations belong in the article, in the relevant sequence.
 
