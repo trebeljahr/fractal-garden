@@ -10,8 +10,6 @@ The answers grow larger and larger. Now add $-1$ each time instead. You get $0,-
 
 The Mandelbrot picture tests which numbers you can add without the answers growing beyond every limit.
 
-<figure data-article-images="mandelbrot"></figure>
-
 Each pixel gives us a number to try. Its horizontal coordinate tells us how far to move left or right; its vertical coordinate tells us how far to move up or down. Together, these form a **complex number**, which we call $c$.
 
 Adding $c$ moves the point by those two amounts. Squaring changes both its distance from zero and its direction: multiply the distance by itself and double the angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
@@ -44,7 +42,7 @@ Every colored pixel has escaped, so it is outside the set. The colors repeat eve
 
 Move the slider to choose how many steps the computer calculates before it stops. In **Whole set**, more steps turn black pixels into colored ones until the heart and the bulb appear.
 
-**Spiral** shows a tiny piece of the edge, near the neck. The dark band across the middle isn't black: those pixels escaped at about step 40. At 200 steps there are also round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along.
+**Spiral** shows a tiny piece of the edge, near the narrow neck where the bulb meets the heart. The dark band across the middle isn't black: those pixels escaped at about step 40. At 200 steps there are also round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along.
 
 **Black and white** drops the colors: white pixels have escaped, and black pixels haven't. At high step counts, black specks look separate, but the set is one connected piece.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> Each pixel tests only one point, so the parts joining the specks are too thin to show.
 

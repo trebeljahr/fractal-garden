@@ -29,13 +29,6 @@ const IMAGES = {
       caption: "The next step removes seven smaller cubes inside each remaining cube.",
     },
   ],
-  mandelbrot: [
-    {
-      name: "mandelbrot-body",
-      alt: "Mandelbrot heart-shaped body with a round bulb to its left",
-      caption: "The round bulb meets the heart-shaped body at a narrow neck.",
-    },
-  ],
   "mandelbrot-printout": [
     {
       name: "mandelbrot-printout",
