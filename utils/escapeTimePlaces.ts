@@ -349,7 +349,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "The main body, round bulbs and long antenna.",
     center: [-0.5, 0],
     zoomSize: 1.5,
-    iterations: 200,
+    iterations: 150,
     group: "Start wide",
   },
   {
@@ -358,7 +358,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Small bulbs crowd the meeting of the two largest bodies.",
     center: [-0.75, 0.1],
     zoomSize: 0.08,
-    iterations: 600,
+    iterations: 150,
     group: "Start wide",
   },
   {
@@ -367,7 +367,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Curling tails along the edge of the main body.",
     center: [-0.7463, 0.1102],
     zoomSize: 0.005,
-    iterations: 800,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -376,7 +376,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "A tighter view of the coils inside the valley.",
     center: [-0.7435669, 0.1314023],
     zoomSize: 0.0006,
-    iterations: 1200,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -385,7 +385,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Nested curls pack the spaces between larger branches.",
     center: [-0.743644786, 0.1318252536],
     zoomSize: 0.0004,
-    iterations: 1400,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -394,7 +394,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Two spirals meet in a narrow fold.",
     center: [-0.7612, -0.0852],
     zoomSize: 0.004,
-    iterations: 800,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -403,7 +403,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Move closer to the paired spiral's center.",
     center: [-0.761574, -0.0847596],
     zoomSize: 0.0012,
-    iterations: 1000,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -412,7 +412,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "A chain of small curls follows the edge of a northern bulb.",
     center: [-0.0886, 0.6545],
     zoomSize: 0.015,
-    iterations: 800,
+    iterations: 150,
     group: "Valleys and spirals",
   },
   {
@@ -421,7 +421,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "Branching filaments surround a bulb on the antenna.",
     center: [-1.3605, 0.0055],
     zoomSize: 0.03,
-    iterations: 700,
+    iterations: 150,
     group: "Along the antenna",
   },
   {
@@ -430,7 +430,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "A smaller copy on the long antenna.",
     center: [-1.7549, 0],
     zoomSize: 0.035,
-    iterations: 600,
+    iterations: 150,
     group: "Along the antenna",
   },
   {
@@ -439,7 +439,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "The small copy has its own bulbs and folded edges.",
     center: [-1.768, 0],
     zoomSize: 0.009,
-    iterations: 1000,
+    iterations: 150,
     group: "Along the antenna",
   },
   {
@@ -448,7 +448,7 @@ export const MANDELBROT_PLACES = places("mandelbrot", [
     detail: "A round bulb surrounded by branching arms.",
     center: [-0.12, 0.745],
     zoomSize: 0.09,
-    iterations: 900,
+    iterations: 150,
     group: "Start wide",
   },
 ]);

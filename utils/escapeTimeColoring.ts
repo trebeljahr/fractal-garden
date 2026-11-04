@@ -128,7 +128,7 @@ export function createColoring(
 
 // Each explorer's opening colors. Article demos share them so the pictures match.
 export const MANDELBROT_COLORING = createColoring("classic", {
-  iterations: 200,
+  iterations: 150,
   colorDensity: 1,
   colorOffset: 0.5,
   interior: "#000000",

@@ -112,6 +112,8 @@ type SelectProps = SharedControlProps & {
 
 type NumberProps = SharedControlProps & {
   disableSlider?: boolean | null;
+  /** Space the slider by ratio, for ranges that span orders of magnitude. */
+  logarithmic?: boolean | null;
   max?: number | null;
   min?: number | null;
   step?: number | null;
@@ -507,6 +509,7 @@ export const PanelNumber = ({
   data,
   disableSlider,
   label,
+  logarithmic,
   max,
   min,
   path,
@@ -523,9 +526,15 @@ export const PanelNumber = ({
   const hasSlider = disableSlider !== true && hasFiniteRange(min, max);
   const sliderMin = hasSlider ? (min as number) : 0;
   const sliderMax = hasSlider ? (max as number) : 0;
+  const logSlider = logarithmic === true && sliderMin > 0 && sliderMax > sliderMin;
+  const logRange = logSlider ? Math.log(sliderMax / sliderMin) : 1;
   const sliderPercent =
     hasSlider && sliderMax !== sliderMin
-      ? (((value - sliderMin) / (sliderMax - sliderMin)) * 100).toFixed(2)
+      ? (
+          (logSlider
+            ? Math.log(value / sliderMin) / logRange
+            : (value - sliderMin) / (sliderMax - sliderMin)) * 100
+        ).toFixed(2)
       : "0.00";
   const numericStep = typeof step === "number" && Number.isFinite(step) && step > 0 ? step : 1;
 
@@ -564,15 +573,20 @@ export const PanelNumber = ({
             <input
               aria-labelledby={labelId}
               className={styles.numberSlider}
-              max={sliderMax}
-              min={sliderMin}
-              onChange={(event) => updateValue(Number(event.target.value))}
-              step={numericStep}
+              max={logSlider ? 100 : sliderMax}
+              min={logSlider ? 0 : sliderMin}
+              onChange={(event) => {
+                const position = Number(event.target.value);
+                updateValue(
+                  logSlider ? sliderMin * Math.exp((position / 100) * logRange) : position,
+                );
+              }}
+              step={logSlider ? 0.1 : numericStep}
               style={{
                 backgroundImage: `linear-gradient(90deg, var(--explorer-accent) 0%, var(--explorer-accent) ${sliderPercent}%, var(--explorer-field) ${sliderPercent}%, var(--explorer-field) 100%)`,
               }}
               type="range"
-              value={value}
+              value={logSlider ? sliderPercent : value}
             />
           ) : null}
 

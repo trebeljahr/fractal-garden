@@ -19,7 +19,8 @@ await mkdir(output, { recursive: true });
 
 function render({ bounds, width, height, c }) {
   const [left, right, bottom, top] = bounds;
-  const { iterations, colorDensity, colorOffset, interior } = MANDELBROT_COLORING;
+  const iterations = 200;
+  const { colorDensity, colorOffset, interior } = MANDELBROT_COLORING;
   const inside = [1, 3, 5].map((at) => Number.parseInt(interior.slice(at, at + 2), 16));
   const columns = width * smoothing;
   const rows = height * smoothing;

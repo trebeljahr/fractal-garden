@@ -43,10 +43,11 @@ type Job = {
 };
 
 export function iterationBudget(view: DeepViewport, requested: number) {
-  return Math.min(
-    MAX_RENDER_ITERATIONS,
-    Math.max(Math.round(requested), Math.ceil(200 + Math.max(0, -view.logZoom) * 12)),
-  );
+  const depth = Math.max(0, -view.logZoom);
+  // The studio value is honored down to about 2^-12. Deeper than 2^-16, low limits turn
+  // most of the picture black, so the floor ramps up to the depth rule between the two.
+  const floor = Math.min(200 + depth * 12, Math.max(0, depth - 10) * 65);
+  return Math.min(MAX_RENDER_ITERATIONS, Math.max(Math.round(requested), Math.ceil(floor)));
 }
 
 /** Worker orbit calculation, GPU perturbation, and progressively repaired tiles. */

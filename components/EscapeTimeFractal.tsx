@@ -255,7 +255,8 @@ export function EscapeTimeFractal<T extends EscapeTimeColoring>({
         />
         <PanelNumber
           path="iterations"
-          label="Minimum iterations"
+          label="Minimum steps"
+          logarithmic
           min={10}
           max={MAX_RENDER_ITERATIONS}
           step={10}

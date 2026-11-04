@@ -1073,3 +1073,15 @@ test("anchored Mandelbrot zoom refreshes before deltaCenter loses pixel precisio
     assert.equal(h.worker.jobs.length, 0);
     assert.ok(h.draws.every((draw) => !("u_ratio" in draw.uniforms)));
   }));
+
+test("the studio step limit holds at ordinary depth and grows only when deep", () => {
+  const atDepth = (bits) => iterationBudget({ logZoom: -bits }, 150);
+  assert.equal(atDepth(0), 150);
+  assert.equal(atDepth(7), 150);
+  assert.equal(atDepth(12), 150);
+  assert.equal(atDepth(16), 390);
+  assert.equal(atDepth(20), 440);
+  assert.equal(atDepth(332), 4184);
+  assert.equal(atDepth(2000), 8192);
+  assert.equal(iterationBudget({ logZoom: -7 }, 800), 800);
+});
