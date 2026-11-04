@@ -140,6 +140,21 @@ figure .digitRow button.wholeDigit[aria-pressed="true"] {
   border-color: #7fd8e8;
   background: #7fd8e824;
 }
+figure fieldset.cubeRow {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.cubeRow legend {
+  padding: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1.4rem;
+  color: #eee8cebb;
+}
+figure .cubeRow button {
+  min-width: 0;
+  padding-inline: 0;
+}
 .digitStage {
   max-width: 62vh;
   margin: 0 auto;

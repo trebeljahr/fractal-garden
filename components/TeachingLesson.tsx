@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 // Load a lesson only on the pages that include its figure marker.
 const DragonFoldLesson = dynamic(() => import("./lessons/DragonFoldLesson"));
 const HilbertJoinLesson = dynamic(() => import("./lessons/HilbertJoinLesson"));
+const HilbertMirrorLesson = dynamic(() => import("./lessons/HilbertMirrorLesson"));
 const KochMeasurementLesson = dynamic(() => import("./lessons/KochMeasurementLesson"));
 const DlaContactsLesson = dynamic(() => import("./lessons/DlaContactsLesson"));
 const LinkedJuliaLesson = dynamic(() => import("./lessons/LinkedJuliaLesson"));
@@ -77,6 +78,7 @@ const LESSONS = [
   "koch-measurement",
   "dragon-fold",
   "hilbert-join",
+  "hilbert-mirror",
   "dla-contacts",
   "lsystem-koch",
   "lsystem-dragon",
@@ -131,6 +133,8 @@ export default function TeachingLesson({ kind }: { kind: TeachingLessonKind }) {
   switch (kind) {
     case "dragon-fold":
       return <DragonFoldLesson />;
+    case "hilbert-mirror":
+      return <HilbertMirrorLesson />;
     case "hilbert-join":
       return <HilbertJoinLesson />;
     case "koch-measurement":
