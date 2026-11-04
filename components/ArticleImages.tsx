@@ -34,7 +34,7 @@ const IMAGES = {
       name: "mandelbrot-printout",
       alt: "The Mandelbrot set drawn in rows of asterisks, with small detached groups of asterisks mirrored at the top and bottom",
       caption:
-        "A modern copy of a 1978 text printout by Brooks and Matelski, not one of Mandelbrot's. Its detached specks also come in top and bottom pairs.",
+        "A copy of Brooks and Matelski's 1978 printout, with the detached specks in mirrored pairs at the top and bottom.",
       width: 700,
       height: 560,
     },
