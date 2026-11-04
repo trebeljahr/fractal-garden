@@ -46,7 +46,7 @@ export function markColor(step: number, stepColors: boolean) {
 export function cssColor([red, green, blue]: number[]) {
   return `rgb(${red}, ${green}, ${blue})`;
 }
-export function number(value: number, digits = 2) {
+function number(value: number, digits = 2) {
   return String(Number(value.toFixed(digits)) + 0).replace("-", "−");
 }
 export function coordinates(point: ComplexPoint, digits = 2) {
@@ -66,12 +66,11 @@ function fitToDisplay(canvas: HTMLCanvasElement) {
   return { width, height, scale };
 }
 
-export function drawPlane(
+function drawPlane(
   canvas: HTMLCanvasElement,
   bounds: PlaneBounds,
   options: {
     route?: OrbitStep[];
-    shown?: number;
     ring?: ComplexPoint;
     circle?: boolean;
   },
@@ -117,7 +116,7 @@ export function drawPlane(
   }
   const route = options.route;
   if (route) {
-    const shown = Math.min(options.shown ?? route.length, route.length);
+    const shown = route.length;
     const trace = () => {
       context.beginPath();
       let lastX = Number.NaN;

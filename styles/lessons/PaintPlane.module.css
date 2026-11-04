@@ -118,8 +118,3 @@ button.plane.plane {
   height: 72px;
   background: #10151a;
 }
-.neck {
-  position: relative;
-  aspect-ratio: 5.6 / 4.4;
-  background: #eee8ce;
-}
