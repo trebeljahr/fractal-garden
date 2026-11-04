@@ -8,6 +8,7 @@ import type { CanvasViewport } from "../../utils/canvasViewport";
 import { useCanvasViewport } from "../../utils/hooks/useCanvasViewport";
 import { useFractalRenderer } from "../../utils/hooks/useFractalRenderer";
 import { useFractalViewportSize } from "../../utils/hooks/useFractalViewportSize";
+import { FIBONACCI_LEAD } from "../../utils/lessons/fibonacciPieces";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
@@ -47,6 +48,7 @@ const FibonacciWordFractal = ({ description }: Props) => {
     max: MAX_ITERATIONS,
     stepDelay: 900,
     holdDelay: 2200,
+    constructionLead: FIBONACCI_LEAD,
   });
 
   const viewport = useCanvasViewport(canvas);

@@ -1,5 +1,6 @@
 import type { ConstructionView } from "../constructionView";
 import { untouchedCorner } from "../lessons/arrowheadChain";
+import { fibonacciParts } from "../lessons/fibonacciPieces";
 import { GOSPER_COPY_TINTS } from "../lessons/gosperCopies";
 import { notchTriangleTip } from "../lessons/quadraticStart";
 import {
@@ -180,13 +181,16 @@ export function preparePlaybackDrawing(
   const chunks = new Map<number, Map<number, Path2D>>();
   const passes =
     view.timesDrawn === "tint" ? strokePasses(geometry.positions, geometry.count) : null;
+  const parts = fibonacciParts(view.parts, model.generation);
   const tints = passes
     ? TIMES_DRAWN_TINTS
-    : view.copies === "seven"
-      ? GOSPER_COPY_TINTS
-      : model.copies > 1
-        ? TERDRAGON_COPY_TINTS.slice(0, model.copies)
-        : null;
+    : parts
+      ? parts.tints
+      : view.copies === "seven"
+        ? GOSPER_COPY_TINTS
+        : model.copies > 1
+          ? TERDRAGON_COPY_TINTS.slice(0, model.copies)
+          : null;
   // At the first levels, the level before shows dim under this one. Three strokes replaced each of
   // its lines, so that line joins the first stroke's start to the third stroke's end.
   const oldLines =
@@ -199,7 +203,9 @@ export function preparePlaybackDrawing(
   const tintSlot = (line: number) =>
     passes
       ? timesDrawnTint(passes[line])
-      : Math.floor((line * (tints as string[]).length) / geometry.count);
+      : parts
+        ? parts.ends.findIndex((end) => line < end)
+        : Math.floor((line * (tints as string[]).length) / geometry.count);
   const tintOf = (line: number) => (tints ? tints[tintSlot(line)] : view.color);
   const lines = (start: number, end: number) => {
     const paths = new Map<number, Path2D>();
@@ -370,6 +376,18 @@ export function preparePlaybackDrawing(
     }
     // A finished level is just the picture.
     if (!drawing || consumed >= model.instructionLength) {
+      if (drawing && parts?.ends.length === 5) {
+        // The straight distance the readout measures.
+        const last = (geometry.count - 1) * 4;
+        ctx.beginPath();
+        ctx.moveTo(projected[0], projected[1]);
+        ctx.lineTo(projected[last + 2], projected[last + 3]);
+        ctx.strokeStyle = "#eee8ce";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
       if (drawing && model.copies === TERDRAGON_COPY_TINTS.length) {
         // The part where no line of the grid is missing. Its corners lie along the six first lines.
         const { hexagonSide } = terdragonCensus(model.generation, model.copies);
