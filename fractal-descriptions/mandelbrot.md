@@ -44,19 +44,19 @@ A printout of asterisks can only show a rough outline, so how much detail does t
 
 <figure data-lesson="mandelbrot-zoom-map"></figure>
 
-The deepest is $10^{100}$ times closer. To get a feel for that, if this view were as wide as an atom, the whole set would be far wider than the observable universe. Every picture still has an edge, so you can zoom into it again: clicking one opens it in the explorer at the top of this page.
+The deepest is $10^{100}$ times closer. To get a feel for that, if this view were as wide as an atom, the whole set would be far wider than the observable universe. If you click one of these pictures, it opens in the explorer at the top of this page, and you can keep zooming in from there without ever reaching a point where the detail stops.
 
 You might expect shapes this different to need different rules, but every one of these pictures comes from the rule we started with, $z_{n+1}=z_n^2+c$. The only thing that changes from pixel to pixel is $c$, and near the edge, values that fly off and values that don't sit right next to each other at every scale, so the smallest change in $c$ can give a completely different route.
 
-There's a problem hiding in the definition. A number belongs to the set if its point never crosses the dashed circle, but a computer can't wait forever to check “never”. All it can say is that a point has **escaped** by crossing the circle, or that it hasn't escaped yet, and that's all black really means.
+You might wonder how the computer decides which pixels to paint black. A number belongs to the set if its point never crosses the dashed circle, and a computer can't wait forever to find out that something never happens. If the point crosses the circle, we know for sure that it has **escaped**. But if it's still inside after 300 jumps, it might cross on jump 301, so the computer has to give up at some point and paint the pixel black anyway. That means a black pixel only tells you the point hasn't escaped yet.
 
 The next demo adds more information by coloring each escaped pixel according to how many jumps it took, so any colored pixel is definitely outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
 
 The slider sets how many steps the computer tries before giving up. In **Whole set**, more steps turn black pixels into colored ones until the heart and the bulb appear.
 
-**Spiral** shows how misleading black can be. It's a tiny piece of the edge, near the narrow neck where the bulb meets the heart. At 200 steps you'll see round black dots that look like small bulbs, but by 1000 steps almost all of that black is gone, which means those points were outside the set all along. The dark band across the middle was never black, by the way: those pixels escaped at about step 40.
+To see how wrong black can be, look at **Spiral**, a tiny part of the edge near the narrow neck where the bulb meets the heart. If the computer tries 200 steps, you get round black dots that look like small bulbs of the set. If it tries 1000 steps, almost all of those dots turn to color, so those points were outside the set all along and 200 steps wasn't enough to catch them. The dark band across the middle looks black at every step limit, but those pixels escaped at about step 40, and the color for step 40 happens to be nearly black.
 
-**Black and white** drops the colors, so white pixels have escaped and black pixels haven't. At high step counts, the black specks look like separate islands, even though the set is all one connected piece.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> You can't see the connections because each pixel tests only one point, and the parts joining the specks are too thin to show.
+If you switch to **Black and white**, white pixels have escaped and black pixels haven't, and at high step counts the black is left as specks that look like separate islands. But it has been proved that the set is all one connected piece,<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> so something must join those specks. You can't see it because each pixel tests only one point, and the parts doing the joining are so thin that those test points almost always miss them.
 
 <figure data-lesson="step-limit-mandelbrot"></figure>
 
