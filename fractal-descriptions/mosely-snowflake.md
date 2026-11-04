@@ -6,7 +6,7 @@ Divide a cube into 27 equal cubes, remove the eight corner cubes and the center 
 
 Removing cubes exposes new faces inside the holes. Repeat forever and the volume approaches zero, while the surface area grows without bound. This happens with either center option.<sup><a id="mosely-snowflake-ref-1" href="#mosely-snowflake-source-1">1</a></sup>
 
-The figure opens looking toward a corner, and from there a cube has a hexagonal outline. With **Center kept**, its shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake) as the construction repeats.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> With **Center removed**, a hole opens in the middle from level 2 on, because the line of sight through the middle meets only the center cube and two corner cubes, and all three are gone.
+The figure opens looking toward a corner, and from there a cube has a hexagonal outline. With **Center kept**, its shadow approaches a filled [Koch snowflake](/l-system/koch-snowflake) as the construction repeats.<sup><a id="mosely-snowflake-ref-2" href="#mosely-snowflake-source-2">2</a></sup> With **Center removed**, a hole opens in the middle from level 2 on. The line of sight through the middle meets only the center cube and two corner cubes, and all three are gone after the first step, but the neighboring cubes still have corners touching that line, and their shadows close up around it. The next step removes those corners too, which opens the hole.
 
 <figure data-article-images="mosely-koch"></figure>
 
