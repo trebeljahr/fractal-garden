@@ -4,17 +4,17 @@ Pick a point $(x, y)$. It jumps to a new point using this rule, and you plot eve
 
 $$x' = b\,y + F(x), \qquad y' = -x + F(x'), \qquad F(x) = a x + \frac{2(1 - a)x^2}{1 + x^2}$$
 
-One landing tells you nothing. After thousands of landings, a flower appears. The number $a$ changes how many petals you get. **Places to explore** has examples.
+After thousands of landings, a flower appears, and the number $a$ changes how many petals you get. **Places to explore** has examples.
 
 The number $b$ decides what happens over time. Take any small patch of points. One jump moves and distorts the patch, but its area comes out multiplied by exactly $b$, whatever the point and whatever $a$ is.<sup><a id="mira-fractal-ref-2" href="#mira-fractal-source-2">2</a></sup>
 
-With $b = 1$, no area is ever lost. With $b = 0.9998$, one jump barely changes anything. After about 3,500 jumps, though, the patch has half its area, and after 100,000 jumps it has almost none.
+So with $b = 1$, no area is ever lost. With $b = 0.9998$, one jump barely changes anything, but after about 3,500 jumps the patch has half its area, and after 100,000 jumps it has almost none.
 
 That changes the picture you get. Start at $(12.1, 0)$ with $a = 0.7$. With $b = 1$, the point keeps reaching about 15 from the center for as long as we ran it. With $b = 0.9998$, it reaches 15 only during its first few thousand jumps. After 10,000 jumps it stays within about 5, and after 20,000 within about 4.<sup><a id="mira-fractal-ref-3" href="#mira-fractal-source-3">3</a></sup>
 
 <figure data-lesson="mira"></figure>
 
-So the long arms are the early part of a slow fall. MathWorld's pictures with $b = 0.9998$ stop after 10,000 jumps, and those arms are all from the time before the point settled in. Plot longer and they fade next to the middle, where new landings keep piling up.
+So the long arms come from the early part of the run, before the point has settled in. MathWorld's pictures with $b = 0.9998$ stop after 10,000 jumps, which is why they show those arms. Plot longer and they fade next to the middle, where new landings keep piling up.
 
 The rule's two-line form is one that Igor Gumowski, at CERN, and Christian Mira, at Toulouse, used to study particle motion in accelerators.<sup><a id="mira-fractal-ref-4" href="#mira-fractal-source-4">4</a></sup>
 

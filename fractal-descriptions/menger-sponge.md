@@ -1,26 +1,20 @@
 # Menger Sponge
 
-Build a cube from 27 little cubes: three across, three high and three deep. Remove the middle cube from each face, then the cube hidden at the center. This opens three square tunnels that meet inside.
-
-Twenty cubes remain. Make the same three tunnels in each of those cubes, then repeat.
+Build a cube from 27 little cubes, three across, three high and three deep. Remove the middle cube from each face and the cube hidden at the center, and the seven gaps join into three square tunnels that meet inside. Twenty cubes remain, so make the same three tunnels in each of those, and keep repeating.
 
 <figure data-construction-player="menger"></figure>
 
-Every round removes seven out of every twenty-seven cubes. Keep going forever and the volume approaches zero. Any drawing we stop at still contains solid cubes.
+Every round removes seven out of every twenty-seven cubes, so if you keep going forever the volume approaches zero. Any drawing we stop at still contains solid cubes.
 
 <figure data-article-images="menger"></figure>
 
-Look straight at one face. The holes line up through the depth of the sponge, giving the same pattern as the [Sierpinski carpet](/sierpinski-carpet).
+The tunnels run straight through, so from directly in front the holes line up through the depth of the sponge and give the same pattern as the [Sierpinski carpet](/sierpinski-carpet). A flat slice through the middle, facing one corner of the sponge, looks nothing like that. Its outline has six sides, and inside it the square tunnels make a six-pointed star.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
 
-Now look at a flat slice through the middle, facing one corner of the sponge. Its outline has six sides. Inside it, the square tunnels make a six-pointed star.<sup><a id="menger-sponge-ref-1" href="#menger-sponge-source-1">1</a></sup>
-
-Move the slice below and watch the holes change. The amber faces show where the sponge meets it, and the front part of the sponge is hidden. Highlight a tunnel to see its opening in teal.
+The figure below hides the front part of the sponge, and the amber faces show where the sponge meets the slice. Each tunnel crosses the tilted slice at an angle, and the star is where the three openings overlap, so highlight a tunnel to see its opening in teal. Moving the slice away from the center makes it meet different parts of the tunnels, which changes the shape of the hole. At round 0 there are no tunnels, so the centered slice is a solid six-sided shape.
 
 <figure data-projection="menger"></figure>
 
-Each tunnel crosses the tilted slice at an angle. The three openings overlap to make the star. As you move the slice away from the center, it meets different parts of the tunnels, so the hole changes shape. At round 0 there are no tunnels, and the centered slice is a solid six-sided shape.
-
-Choose **Shadow** to swap the flat view for the shadow from straight in front. It includes cubes at every depth, so moving the slice leaves it unchanged.
+Choose **Shadow** to swap the flat view for the shadow from straight in front. That shadow includes cubes at every depth, so moving the slice doesn't change it.
 
 ## Further exploring
 

@@ -1,8 +1,8 @@
 # Diffusion-Limited Aggregation
 
-Place one particle and keep it still. Release a second particle nearby. Move it randomly until it touches the first, then leave it there too.
+Place one particle and keep it still. Release a second particle nearby and move it randomly until it touches the first, then leave it there too.
 
-In the diagram, press the next-step button to move the amber particle one square up, down, left or right, at random. A touch along an edge or at a corner makes it stick. Follow a few walks to see which particles reach the fixed square.
+In the diagram, the next-step button moves the amber particle one square up, down, left or right, at random, and a touch along an edge or at a corner makes it stick. Follow a few walks to see which particles reach the fixed square.
 
 <figure data-lesson="dla"></figure>
 
@@ -10,11 +10,11 @@ Walk 3 leaves the picture before it touches anything. That particle adds nothing
 
 Keep releasing particles and they form a cluster. Why does it grow branches instead of filling the gaps between them?
 
-The next experiment starts with a fork. Press Play to release particles near the dotted border. They move and stick as before. Each first touch leaves a mark, then the particle is removed, so the fork stays the same.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup> Compare the exposed tips with the gap between the branches. Where do the most marks collect?
+The next experiment tests this on a fork. Press Play to release particles near the dotted border. They move and stick as before, except that each first touch leaves a mark and then the particle is removed, so the fork stays the same.<sup><a id="diffusion-limited-aggregation-ref-1" href="#diffusion-limited-aggregation-source-1">1</a></sup> Compare the exposed tips with the gap between the branches, and see where the most marks collect.
 
 <figure data-lesson="dla-contacts"></figure>
 
-A particle heading into the gap may hit an outer branch first. It sticks there and never reaches the inside. Exposed tips collect more particles, extend farther, and block still more arrivals.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup>
+A particle heading into the gap may hit an outer branch first, and then it sticks there and never reaches the inside. So exposed tips collect more particles, extend farther, and block still more arrivals.<sup><a id="diffusion-limited-aggregation-ref-2" href="#diffusion-limited-aggregation-source-2">2</a></sup>
 
 Choose **Let it grow** and press Play. Each particle now stays where it first touches, so the next one can stick to it. Watch which branches extend.
 

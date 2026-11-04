@@ -1,22 +1,20 @@
 # Koch Surface
 
-Start with a regular tetrahedron, a solid with four equal triangles for faces. Take one face and join the midpoints of its edges. This divides it into four equal triangles. Keep the three corner triangles flat, and stand a smaller regular tetrahedron on the middle one.
-
-That smaller tetrahedron hides the middle triangle and adds three sloping faces. With the three corners, that makes six triangles in place of one. Do this to every face, then repeat on every triangle.<sup><a id="koch-surface-ref-1" href="#koch-surface-source-1">1</a></sup>
+Start with a regular tetrahedron, a solid with four equal triangles for faces. On one face, join the midpoints of the edges, which divides it into four equal triangles. Keep the three corner triangles flat, and stand a smaller regular tetrahedron on the middle one. It hides the middle triangle and adds three sloping faces, so with the three corners you have six triangles in place of one. Do this to every face, then repeat on every triangle.<sup><a id="koch-surface-ref-1" href="#koch-surface-source-1">1</a></sup>
 
 <figure data-lesson="koch-cube"></figure>
 
-The tetrahedron's four corners sit on four corners of a cube, drawn around it in the picture. Drag the picture sideways to turn it. Step to round 1: the four new tips land exactly on the cube's other four corners. Keep stepping. The bumps never poke out of the cube and never run into each other, and the solid fills more of the cube every round.
+The tetrahedron's four corners sit on four corners of a cube, drawn around it in the picture, which you can turn by dragging sideways. At round 1, the four new tips land exactly on the cube's other four corners. The later bumps never poke out of the cube and never run into each other, and the solid fills more of the cube every round.
 
-Go back to round 0 and press **One face**. The amber lines mark a pyramid standing on that face, with its tip on an empty corner of the cube. Four of these pyramids make up everything in the cube outside the tetrahedron.
+To see how much more, go back to round 0 and press **One face**. The amber lines mark a pyramid standing on that face, with its tip on an empty corner of the cube, and four of these pyramids make up everything in the cube outside the tetrahedron.
 
-Step to round 1. The new bump reaches that same tip, so it fits inside the pyramid, and it takes exactly a quarter of the volume. The amber lines now mark what remains: six smaller pyramids of the same shape, one standing on each of the six new triangles. The next round does the same thing inside each of those, at half the width.<sup><a id="koch-surface-ref-2" href="#koch-surface-source-2">2</a></sup>
+At round 1 the new bump reaches that same tip, so it fits inside the pyramid and takes exactly a quarter of the volume. The amber lines now mark what remains: six smaller pyramids of the same shape, one standing on each of the six new triangles. The next round does the same thing inside each of those, at half the width.<sup><a id="koch-surface-ref-2" href="#koch-surface-source-2">2</a></sup>
 
-So each round fills a quarter of whatever is still empty. The tetrahedron takes up a third of the cube, which leaves two thirds empty. After round 1, half is empty. After round 2, three eighths. The empty share heads to zero, so the solid fills the whole cube.<sup><a id="koch-surface-ref-3" href="#koch-surface-source-3">3</a></sup>
+So each round fills a quarter of whatever is still empty. The tetrahedron takes up a third of the cube, which leaves two thirds empty, then half after round 1 and three eighths after round 2. The empty share heads to zero, so the solid fills the whole cube.<sup><a id="koch-surface-ref-3" href="#koch-surface-source-3">3</a></sup>
 
-The surface area has no such limit. One triangle becomes six, each with a quarter of the area, so the total grows by half every round. By round 2 it is larger than all six faces of the cube together.
+The surface area has no such limit. One triangle becomes six, each with a quarter of the area, so the total grows by half every round, and by round 2 it is larger than all six faces of the cube together.
 
-So the surface can't simply be the cube's six faces. Every triangle, at every round, stays tilted against those faces at the same angle as the tetrahedron's faces. The edges where the first bumps meet the tetrahedron never move, and they run through the inside of the cube. In the limit, the cube's plain faces become the outer layer, with all the folded surface still inside them. The authors of one paper on this shape compare it to a geode: smooth outside, crystals inside.<sup><a id="koch-surface-ref-4" href="#koch-surface-source-3">3</a></sup>
+That means the surface can't simply be the cube's six faces. Every triangle, at every round, stays tilted against those faces at the same angle as the tetrahedron's faces, and the edges where the first bumps meet the tetrahedron never move, so they still run through the inside of the cube. In the limit, the cube's plain faces become the outer layer, with all the folded surface still inside them. The authors of one paper on this shape compare it to a geode: smooth outside, crystals inside.<sup><a id="koch-surface-ref-4" href="#koch-surface-source-3">3</a></sup>
 
 ## Further exploring
 

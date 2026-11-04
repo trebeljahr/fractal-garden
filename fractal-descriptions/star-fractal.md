@@ -1,20 +1,20 @@
 # Star Fractal
 
-Draw a five-pointed star without lifting your pen: mark five points evenly around a circle, then join every second point. Now put a smaller star on each of the five tips, facing the same way, and repeat. Each round multiplies the number of new stars by five: 1, 5, 25, 125.
+Draw a five-pointed star without lifting your pen by marking five points evenly around a circle and joining every second point. Now put a smaller star on each of the five tips, facing the same way, and repeat, so that each round multiplies the number of new stars by five: 1, 5, 25, 125.
 
 MathWorld describes a star fractal as repeated copies of a pentagram, and leaves the details open.<sup><a id="star-fractal-ref-1" href="#star-fractal-source-1">1</a></sup> This page centers each copy on a tip.
 
 <figure data-construction-player="star-fractal"></figure>
 
-How big should the copies be? Too large and the groups of stars run into each other. Too small and they sit apart. Between those there is one exact size where neighboring groups just touch: about 0.382 of the parent's size.<sup><a id="star-fractal-ref-2" href="#star-fractal-source-2">2</a></sup>
+The rule doesn't say how big the copies should be. Too large and the groups of stars run into each other, too small and they sit apart, and between those there is one exact size where neighboring groups just touch: about 0.382 of the parent's size.<sup><a id="star-fractal-ref-2" href="#star-fractal-source-2">2</a></sup>
 
-That number is already in the star. Each long line of a five-pointed star is crossed twice, and the piece from a tip to the first crossing is 0.382 of the whole line.<sup><a id="star-fractal-ref-3" href="#star-fractal-source-3">3</a></sup> So at this size, the long lines of a small star have the same length as that tip piece of its parent.
+That number is already in the star. Each long line of a five-pointed star is crossed twice, and the piece from a tip to the first crossing is 0.382 of the whole line,<sup><a id="star-fractal-ref-3" href="#star-fractal-source-3">3</a></sup> so at this size the long lines of a small star have the same length as that tip piece of its parent.
 
 <figure data-lesson="star-fractal"></figure>
 
-Go to the touching size and show only the smallest stars. You have seen this arrangement before: it is the pentagon [N-flake](/n-flake). Both constructions shrink by 0.382 and place five copies in the same five directions.<sup><a id="star-fractal-ref-4" href="#star-fractal-source-4">4</a></sup> Only the drawing at each spot differs, so the two share the same limit.
+Go to the touching size and show only the smallest stars, and you get the pentagon [N-flake](/n-flake). Both constructions shrink by 0.382 and place five copies in the same five directions,<sup><a id="star-fractal-ref-4" href="#star-fractal-source-4">4</a></sup> and only the drawing at each spot differs, so the two share the same limit.
 
-**Distance from center**, in **Exploration controls**, places the copies inside or outside the tips, as in MathWorld's second picture. **Tips** uses another number of points. Copies still touch at the N-flake size for that number.
+**Distance from center**, in **Exploration controls**, places the copies inside or outside the tips, as in MathWorld's second picture. **Tips** uses another number of points, and copies still touch at the N-flake size for that number.
 
 ## Sources and notes
 

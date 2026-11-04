@@ -1,16 +1,14 @@
 # Board
 
-The Board pattern starts with a square. Each side is replaced by a seven-line path that includes a small square loop.
-
-To draw one replacement, go forward two steps. Make three right-angle turns with one forward step after each turn. Turn once more and go forward two steps. The route finishes three step lengths ahead of its starting point, so each new step is one third of the old line. In the figure's rule, `F → FF+F+F+F+FF`, F draws a step and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup>
+The Board pattern starts with a square and replaces each side using `F → FF+F+F+F+FF`, where F draws a step and each plus makes a 90-degree turn.<sup><a id="board-ref-1" href="#board-source-1">1</a></sup> Reading that rule, the pen goes forward two steps, makes three right-angle turns with one forward step after each turn, then turns once more and goes forward two steps. That is a seven-line path with a small square loop in it, and it finishes three step lengths ahead of where it started, so each new step is one third of the old line.
 
 <figure data-construction-player="board"></figure>
 
-After the loop, the pen's next step goes over the line it drew just before the loop: the middle third of the old line. So seven strokes draw six different lines. The tint shows how many times each line has been drawn. At level 2, the middle of each side of the square is drawn twice.
+After the loop, the pen's next step goes over the line it drew just before the loop: the middle third of the old line. So seven strokes draw six different lines. The tint shows how many times each line has been drawn, and at level 2, the middle of each side of the square is drawn twice.
 
-Those two strokes run in the same direction, so at the next level their replacements land exactly on top of each other. Five of the six new lines are drawn twice, and the middle one is drawn four times. This happens again at every level. From level 2 to level 6, the line at the very middle of each side of the square is drawn 2, 4, 8, 16, then 32 times. At level 4, it is the yellow line.
+Those two strokes run in the same direction, so at the next level their replacements land exactly on top of each other. Five of the six new lines are drawn twice, and the middle one is drawn four times. Since this happens again at every level, the line at the very middle of each side of the square is drawn 2, 4, 8, 16, then 32 times from level 2 to level 6. At level 4, it is the yellow line.
 
-Each level multiplies the pen strokes by seven and the different lines by only six. At level 6, the pen makes 67,228 strokes to draw 31,104 different lines. Repeat forever, and almost every stroke goes over a line already drawn.<sup><a id="board-ref-2" href="#board-source-2">2</a></sup>
+Each level multiplies the pen strokes by seven and the different lines by only six. At level 6, the pen makes 67,228 strokes to draw 31,104 different lines, and if you repeat forever, almost every stroke goes over a line already drawn.<sup><a id="board-ref-2" href="#board-source-2">2</a></sup>
 
 [Crystal](/l-system/crystal) also draws a line twice, but out and back. Its two replacements land in different places, so no line there is ever drawn more than twice.
 

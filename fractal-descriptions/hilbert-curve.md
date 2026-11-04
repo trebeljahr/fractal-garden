@@ -1,22 +1,20 @@
 # Hilbert Curve
 
-Place a dot at each corner of a square. Join them with three lines to make a U. You can follow it through all four dots without lifting your pen.
+Place a dot at each corner of a square and join them with three lines to make a U, which you can follow through all four dots without lifting your pen. To visit more dots, divide the square into four smaller squares and put a smaller U in each. That leaves four separate paths, so their ends have to face one another before you can join them into one.
 
-To visit more dots, divide the square into four smaller squares. Put a smaller U in each one. Their ends need to face one another so you can join them into a single path.
-
-Below, try rotating route 1 until its filled end sits beside route 2's hollow start. A join should be as short as the other lines. The dashed joins are too long.
+Below, try rotating route 1 until its filled end sits beside route 2's hollow start. A join should be as short as the other lines, and the dashed joins are too long.
 
 <figure data-lesson="hilbert-join"></figure>
 
-Once the four paths join, you have a route through sixteen dots. Repeat the arrangement with four copies of this new route. Choose the 8 × 8 grid to see this. Each colored route now contains four smaller routes, joined in the same way. Reverse one. Its start and end swap places, and the joins beside it stop fitting.
+Once the four paths join, you have a route through sixteen dots, so you can repeat the arrangement with four copies of this new route. Choose the 8 × 8 grid to see this: each colored route now contains four smaller routes, joined in the same way. If you reverse one, its start and end swap places, and the joins beside it stop fitting.
 
 Each round visits four times as many dots, still without lifting the pen or visiting a dot twice.<sup><a id="hilbert-curve-ref-1" href="#hilbert-curve-source-1">1</a></sup>
 
 <figure data-construction-player="lsystem-hilbert"></figure>
 
-Pick a spot in one of the gaps. As the grid gets finer, the path passes closer to it. In the infinite limit, the path reaches every spot in the square. That is what **space-filling** means. Every finite drawing still leaves gaps between its lines.
+Pick a spot in one of the gaps, and as the grid gets finer, the path passes closer to it. In the infinite limit, the path reaches every spot in the square, which is what **space-filling** means. Every finite drawing still leaves gaps between its lines.
 
-The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube. It joins eight smaller paths, one in each of eight smaller cubes.
+The [3D version](/l-system/hilbert-curve-3d) does the same inside a cube, joining eight smaller paths, one in each of eight smaller cubes.
 
 ## Further exploring
 

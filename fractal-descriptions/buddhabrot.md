@@ -1,22 +1,20 @@
 # Buddhabrot
 
-Choose a number. Start at zero, square, add your chosen number, and repeat. This is the same calculation used for the [Mandelbrot set](/mandelbrot).
+A Buddhabrot runs the calculation of the [Mandelbrot set](/mandelbrot): choose a number, start at zero, square, add your chosen number, and repeat. The Mandelbrot picture then colors the pixel you chose. A Buddhabrot instead records the places the calculation visits along the way. If the results escape, it puts a faint dot at each saved position, and if they don't, it leaves that route out.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
 
-The Mandelbrot picture colors the pixel you chose. A Buddhabrot records the places the calculation visits along the way. If the results escape, put a faint dot at each saved position. If they don't, leave that route out.<sup><a id="buddhabrot-ref-1" href="#buddhabrot-source-1">1</a></sup>
+The gray shape below is the Mandelbrot set, turned on its side. Move over the left picture to try a number, and click or tap to keep one, and its route appears in amber, one dot for each saved position. Press **Record this route** twice and the same squares brighten. A number inside the gray shape never escapes, so it has nothing to record.
 
-The gray shape below is the Mandelbrot set, turned on its side. Move over the left picture to try a number, and click or tap to keep one. Its route appears in amber, one dot for each saved position. Press **Record this route** twice and the same squares brighten. A number inside the gray shape never escapes, so it has nothing to record.
-
-Then press **Test 100 million numbers**. Each number that escapes adds its faint dots, and a picture fades in over a few seconds.
+**Test 100 million numbers** does the same thing for every number it tries. Each one that escapes adds its faint dots, and a picture fades in over a few seconds.
 
 <figure data-investigation="buddhabrot"></figure>
 
 ## Long routes start on the edge
 
-Bright pixels were visited often. The picture has a soft cloud and thin, sharp lines. To see which routes make which, sort them by length.
+Bright pixels were visited often, and the bright parts of this picture are of two kinds: a soft cloud and thin, sharp lines. Sorting the routes by length shows which routes make which.
 
-Press **Up to 20 steps**. These are 89% of the numbers, and they make only the cloud. Press **201 to 2,000 steps**. Only one number in 900 takes that long, yet those routes lay down a quarter of all the dots. The cloud is gone and the lines remain.
+Press **Up to 20 steps**. These are 89% of the numbers, and they make only the cloud. Press **201 to 2,000 steps**, and the cloud is gone while the lines remain. Only one number in 900 takes that long, yet those routes lay down a quarter of all the dots.
 
-Watch the left picture as you switch. It shows where each group starts. Short routes start anywhere well outside the gray shape. Long routes start in a thin line around its edge.<sup><a id="buddhabrot-ref-2" href="#buddhabrot-source-2">2</a></sup> Of those long routes, 99% start within $0.01$ of a number that never escapes. Almost none of the short routes do.<sup><a id="buddhabrot-ref-3" href="#buddhabrot-source-3">3</a></sup> Move just outside the gray shape and the step count climbs into the tens or hundreds.
+The left picture shows where each group starts, so watch it as you switch. Short routes start anywhere well outside the gray shape, and long routes start in a thin line around its edge.<sup><a id="buddhabrot-ref-2" href="#buddhabrot-source-2">2</a></sup> Of those long routes, 99% start within $0.01$ of a number that never escapes, and almost none of the short routes do.<sup><a id="buddhabrot-ref-3" href="#buddhabrot-source-3">3</a></sup> You can check this on the left picture: move just outside the gray shape and the step count climbs into the tens or hundreds.
 
 ## One outline, bent again and again
 
@@ -26,29 +24,29 @@ This picture follows the long routes together, one step at a time.<sup><a id="bu
 
 The first step of a route lands on its own number, because $0^2$ plus the number is the number. So step 1 draws the outline of the gray shape.
 
-At step 2, each dot moves to its position squared plus its number, and the whole outline bends. Take the round bulb at the top, centered on $-1$. Since $(-1)^2+(-1)=0$, it lands around $0$, inside the big round body. On step 3, $0^2+(-1)=-1$, and it hops back, bent into a heart. Click through the steps and watch it hop.
+At step 2, each dot moves to its position squared plus its number, and the whole outline bends. Take the round bulb at the top, centered on $-1$. Since $(-1)^2+(-1)=0$, it lands around $0$, inside the big round body. On step 3, $0^2+(-1)=-1$, so it hops back, bent into a heart. Click through the steps and watch it hop.
 
-Each later step bends the outline again. By step 20 it has become a tangle of thin curves in the shape of the finished picture.
+Each later step bends the outline again, and by step 20 it has become a tangle of thin curves in the shape of the finished picture.
 
-Those 20 steps hold only 4% of a long route's dots. The rest come later, as the route keeps returning to its own number.<sup><a id="buddhabrot-ref-10" href="#buddhabrot-source-2">2</a></sup> About one step in ten lands within $0.05$ of it. A route spread evenly over the circle of radius 2 would do that once in 1,600 steps. From there, its next steps land close to its first steps, so it draws the same bent outlines again.<sup><a id="buddhabrot-ref-5" href="#buddhabrot-source-5">5</a></sup> Compare step 2 with **Every step**: the oval and the circle in the middle are still there.
+Those 20 steps hold only 4% of a long route's dots. The rest come later, as the route keeps returning to its own number.<sup><a id="buddhabrot-ref-10" href="#buddhabrot-source-2">2</a></sup> About one step in ten lands within $0.05$ of it, where a route spread evenly over the circle of radius 2 would do that once in 1,600 steps. From there, its next steps land close to its first steps, so it draws the same bent outlines again.<sup><a id="buddhabrot-ref-5" href="#buddhabrot-source-5">5</a></sup> Compare step 2 with **Every step**: the oval and the circle in the middle are still there.
 
-The full explorer's **Fractal Studio Controls** choose the same groups with **Maximum iterations** and **Minimum orbit length**. It opens with a maximum of 20, which shows the cloud. Set the maximum to 2,000 and the minimum to 201 for the long routes.
+The full explorer's **Fractal Studio Controls** choose the same groups with **Maximum iterations** and **Minimum orbit length**. It opens with a maximum of 20, which shows the cloud, so set the maximum to 2,000 and the minimum to 201 for the long routes.
 
-Melinda Green developed this method in 1993. Lori Gardi later supplied the name.<sup><a id="buddhabrot-ref-6" href="#buddhabrot-source-1">1</a></sup>
+Melinda Green developed this method in 1993, and Lori Gardi later supplied the name.<sup><a id="buddhabrot-ref-6" href="#buddhabrot-source-1">1</a></sup>
 
 ## A branching diagram inside
 
-What happens if we keep the routes that don't escape? This is the **Anti-Buddhabrot** idea. Green found a connection to the [logistic map](/logistic-map) by changing which coordinates she plotted.<sup><a id="buddhabrot-ref-7" href="#buddhabrot-source-6">6</a></sup>
+What happens if we keep the routes that don't escape? This is the **Anti-Buddhabrot** idea, and Green found a connection to the [logistic map](/logistic-map) by changing which coordinates she plotted.<sup><a id="buddhabrot-ref-7" href="#buddhabrot-source-6">6</a></sup>
 
-The next picture puts these routes into a three-dimensional cloud. Each later answer becomes a dot. Two coordinates place it at the chosen number in the Mandelbrot picture. Its depth comes from the answer's horizontal coordinate.
+The next picture puts these routes into a three-dimensional cloud, where each later answer becomes a dot. Two coordinates place the dot at the chosen number in the Mandelbrot picture, and its depth comes from the answer's horizontal coordinate.
 
-Seen from the front, all those answers overlap at the number that produced them. Turn the cloud sideways to separate them. Press **Play turn** and follow the amber dots.
+Seen from the front, all those answers overlap at the number that produced them, so the cloud has to turn sideways to separate them. Press **Play turn** and follow the amber dots.
 
 <figure data-investigation="buddhabrot-connection"></figure>
 
-At a quarter turn, only the amber slice remains: numbers chosen along the Mandelbrot picture's horizontal center line.<sup><a id="buddhabrot-ref-8" href="#buddhabrot-source-7">7</a></sup> Each column now shows the answers one calculation keeps approaching. One answer makes one branch; an alternating pair makes two.
+At a quarter turn, only the amber slice remains: numbers chosen along the Mandelbrot picture's horizontal center line.<sup><a id="buddhabrot-ref-8" href="#buddhabrot-source-7">7</a></sup> Each column now shows the answers one calculation keeps approaching, so one answer makes one branch and an alternating pair makes two.
 
-Choose **Logistic map**. The same dots move to that map's usual coordinates, with branches splitting toward the right. This view covers its growth values from $1$ to $4$.
+Choose **Logistic map**, and the same dots move to that map's usual coordinates, with branches splitting toward the right. This view covers its growth values from $1$ to $4$.
 
 The two calculations are connected by a change of coordinates. Writing the logistic rule as $x_{n+1}=rx_n(1-x_n)$, set
 
@@ -56,7 +54,7 @@ $$
 z=r\left(\frac12-x\right),\qquad c=\frac{r(2-r)}4.
 $$
 
-The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with. Starting at $x=\frac12$ in one is starting at $z=0$ in the other.<sup><a id="buddhabrot-ref-9" href="#buddhabrot-source-8">8</a></sup>
+The rule becomes $z_{n+1}=z_n^2+c$, the square-and-add calculation we began with, and starting at $x=\frac12$ in one is starting at $z=0$ in the other.<sup><a id="buddhabrot-ref-9" href="#buddhabrot-source-8">8</a></sup>
 
 ## Further exploring
 

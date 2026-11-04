@@ -1,12 +1,12 @@
 # Sierpinski Tetrahedron
 
-A tetrahedron is a pyramid with a triangular base. Replace it with four half-size copies, one at each corner. The copies touch at their corners, leaving an opening in the center. Repeat inside each copy.
+A tetrahedron is a pyramid with a triangular base. Replace it with four half-size copies, one at each corner, and they touch at their corners and leave an opening in the center. Then do the same inside each copy.
 
 <figure data-construction-player="sierpinski-tetrahedron"></figure>
 
-Each copy has half the width, half the height and half the depth. That gives it one eighth of the original volume. Four copies add up to half the volume, so every step removes half of what remains.
+Each copy has half the width, half the height and half the depth, which gives it one eighth of the original volume. Four copies add up to half the volume, so every step removes half of what remains.
 
-The holes don't always appear in a shadow. From one direction, the shadow is a filled square.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup> From another, it has the holes of a [Sierpinski triangle](/l-system/sierpinski-triangle).<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> The colors below identify the same four copies in the solid and its shadow. Select a copy to highlight it in both drawings.
+Those holes don't always appear in a shadow. From one direction, the shadow is a filled square.<sup><a id="sierpinski-tetrahedron-ref-1" href="#sierpinski-tetrahedron-source-1">1</a></sup> From another, it has the holes of a [Sierpinski triangle](/l-system/sierpinski-triangle).<sup><a id="sierpinski-tetrahedron-ref-2" href="#sierpinski-tetrahedron-source-2">2</a></sup> The colors below identify the same four copies in the solid and its shadow, and selecting a copy highlights it in both drawings.
 
 <figure data-projection="tetrahedron"></figure>
 

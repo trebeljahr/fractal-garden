@@ -1,18 +1,14 @@
 # Lévy Curve
 
-Replace a straight line with two equal lines meeting at a right angle. Keep the original endpoints fixed. Repeat on both new lines, placing each replacement on the same side of its line.
+Replace a straight line with two equal lines meeting at a right angle, keeping the original endpoints fixed. Then repeat on both new lines, placing each replacement on the same side of its line. As drawing instructions, this page's rule is `F → -F++F-`, with 45-degree turns, and the two adjacent plus signs make the right angle between the new lines.
 
 <figure data-construction-player="levy-curve"></figure>
 
-The original line is the long side of a right triangle. The two new lines are its equal shorter sides. Each must be $1/\sqrt2$ times the old length, about 71%, for the endpoints to stay fixed.
+The original line is the long side of a right triangle, and the two new lines are its equal shorter sides, so each must be $1/\sqrt2$ times the old length, about 71%, for the endpoints to stay fixed. Their combined length is about 1.414 times the old length, which means each round doubles the line count and increases the total distance drawn by that same factor.
 
-Their combined length is about 1.414 times the old length. Each round doubles the line count and increases the total distance drawn by that same factor.
+Every drawing you can make leaves gaps between its lines, but in the infinite limit the curve fills a region.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
 
-Every drawing you can make leaves gaps between its lines. In the infinite limit, the curve fills a region.<sup><a id="levy-curve-ref-1" href="#levy-curve-source-1">1</a></sup>
-
-The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size. It changes which direction the smaller pieces face, producing a different outline. Its figure has a **Lévy** button that swaps between the two rules.
-
-This page's rule is `F → -F++F-`, with 45-degree turns. The two adjacent plus signs make the right angle between the new lines.
+The [Dragon curve](/l-system/dragon-curve) uses the same two-piece size but changes which direction the smaller pieces face, which produces a different outline. Its figure has a **Lévy** button that swaps between the two rules.
 
 ## Further exploring
 

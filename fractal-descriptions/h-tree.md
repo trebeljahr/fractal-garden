@@ -1,22 +1,20 @@
 # H Tree
 
-Draw a horizontal line. Center a shorter vertical line on each endpoint. The three lines form an H.
-
-Center horizontal lines on the four new endpoints. Continue alternating horizontal and vertical lines, making each new line about 71% as long as the one before it. After two steps, the length has halved.
+Draw a horizontal line and center a shorter vertical line on each endpoint, so that the three lines form an H. Then center horizontal lines on the four new endpoints and keep alternating, making each new line about 71% as long as the one before it, which halves the length every two steps.
 
 <figure data-lesson="h-tree-route"></figure>
 
-The 71% comes from the frame around the picture, a rectangle with sides in the ratio $\sqrt2:1$. A sheet of A4 paper has very nearly this shape.<sup><a id="h-tree-ref-1" href="#h-tree-source-1">1</a></sup> Divide the rectangle in half across its long side. Each half is the same shape again, scaled down to about 71%. The first line joins the centers of those two halves. Divide each half the same way, and the next two lines join the centers of the quarters. Every later line does the same, so the tree never leaves the rectangle.
+The 71% comes from the frame around the picture, a rectangle with sides in the ratio $\sqrt2:1$, which is very nearly the shape of a sheet of A4 paper.<sup><a id="h-tree-ref-1" href="#h-tree-source-1">1</a></sup> Divide the rectangle in half across its long side and each half is the same shape again, scaled down to about 71%. The first line joins the centers of those two halves. Divide each half the same way and the next two lines join the centers of the quarters. Every later line does the same, so the tree never leaves the rectangle.
 
-After any round, each tip is the center of one small rectangle, and the small rectangles together make up the whole frame. The picture outlines the one around the chosen tip. The small rectangles shrink every round, so every point of the frame ends up close to a tip. The readout gives the largest gap possible, and it halves every two rounds.
+After any round, each tip is the center of one small rectangle, and the small rectangles together make up the whole frame. The picture outlines the one around the chosen tip. These rectangles shrink every round, so every point of the frame ends up close to a tip, and the readout gives the largest gap possible, which halves every two rounds.
 
 So the tree comes as close as you like to every point of the rectangle, but it never contains them all.<sup><a id="h-tree-ref-2" href="#h-tree-source-2">2</a></sup> The upright line through the center, for example, meets the tree only at the center, because every later line stays on one side of it.
 
-Move your pointer over the picture, or tap on a phone. The white route runs from the center of the tree to the nearest tip. Try a tip close to the center, then one in a far corner. The straight-line distance from the center changes a lot. The route stays the same length. Click to keep a route in view while you try another.
+Move your pointer over the picture, or tap on a phone, and the white route runs from the center of the tree to the nearest tip. If you try a tip close to the center and then one in a far corner, the straight-line distance from the center changes a lot but the route stays the same length. Click to keep a route in view while you try another.
 
 The route to any tip follows half of the first line, then half of a line from each later round. Every tip has the same list of pieces, so every route in a round is equally long.<sup><a id="h-tree-ref-3" href="#h-tree-source-3">3</a></sup>
 
-This has a practical use in circuits. Put a clock at the center and a circuit component at each tip, and the clock's signal travels the same length of wire to reach each one.<sup><a id="h-tree-ref-4" href="#h-tree-source-4">4</a></sup>
+This has a practical use in circuits: put a clock at the center and a circuit component at each tip, and the clock's signal travels the same length of wire to reach each one.<sup><a id="h-tree-ref-4" href="#h-tree-source-4">4</a></sup>
 
 ## Further exploring
 

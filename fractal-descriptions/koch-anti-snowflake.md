@@ -1,18 +1,14 @@
 # Koch Anti-Snowflake
 
-Start with an equilateral triangle. Divide each side into thirds. Replace the middle third with two sides of a smaller triangle pointing inward.
-
-Four one-third-length lines replace each old side. Repeat on every new line. This is the inward version of the [Koch snowflake](/l-system/koch-snowflake).<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
+Start with a triangle with three equal sides, divide each side into thirds, and replace the middle third with two sides of a smaller triangle pointing inward. Each old side is now four lines, each a third as long, and the same replacement then repeats on every new line. This is the inward version of the [Koch snowflake](/l-system/koch-snowflake).<sup><a id="koch-anti-snowflake-ref-1" href="#koch-anti-snowflake-source-1">1</a></sup>
 
 <figure data-construction-player="koch-anti-snowflake"></figure>
 
-The total edge length increases by a factor of $4/3$ each step. The area decreases because the new triangular notches remove pieces of the interior.
+Four lines at a third of the length make the total edge $4/3$ as long at each step. The area decreases, because each new notch removes a triangle from the interior.
 
-The first replacement removes three triangles, each with one ninth of the starting area. The next removes four times as many triangles, each with one ninth of that size. The amount removed in each round is four ninths of the previous round's amount.
+The first replacement removes three triangles, each with one ninth of the starting area. The next removes four times as many, each one ninth of that size, so every round removes four ninths of what the previous round removed. All these decreasing amounts add up to three fifths of the original area, which leaves two fifths in the infinite anti-snowflake.
 
-Adding all these decreasing amounts gives three fifths of the original area. Two fifths remains in the infinite anti-snowflake.
-
-The ordinary snowflake adds those triangles and ends with 60% more area than it started with.
+The ordinary snowflake adds those triangles instead, and ends with 60% more area than it started with.
 
 ## Further exploring
 

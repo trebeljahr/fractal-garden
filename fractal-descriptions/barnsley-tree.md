@@ -1,20 +1,18 @@
 # Barnsley's Tree
 
-This picture comes from a rule with two moves.<sup><a id="barnsley-tree-ref-1" href="#barnsley-tree-source-1">1</a></sup> First, move the point one unit toward the vertical axis: a point on the right moves left by 1, a point on the left moves right by 1. Second, multiply by $c = 0.6 + 1.1i$. That multiplication turns the point about 61 degrees around zero and stretches its distance from zero by about 1.25.
+This picture comes from two moves, applied to a point over and over.<sup><a id="barnsley-tree-ref-1" href="#barnsley-tree-source-1">1</a></sup> First, move the point one unit toward the vertical axis, so a point on the right moves left by 1 and a point on the left moves right by 1. Second, multiply by $c = 0.6 + 1.1i$, which turns the point about 61 degrees around zero and stretches its distance from zero by about 1.25.
 
-Follow a point. The dotted line is the first move, the arc is the second.
+In the demo, the dotted line is the first move and the arc is the second.
 
 <figure data-orbit="barnsley-tree"></figure>
 
-Stay on one side and the two moves add up to one spiral: each jump turns and stretches around a fixed center at about $(0.71, -0.80)$ on the right, or $(-0.71, 0.80)$ on the left.<sup><a id="barnsley-tree-ref-2" href="#barnsley-tree-source-2">2</a></sup> Each time a point crosses the axis, it switches to the other spiral. That single sharp edge is what cuts the picture into scrolls.
+As long as a point stays on one side, the two moves add up to one spiral: each jump turns and stretches around a fixed center at about $(0.71, -0.80)$ on the right, or $(-0.71, 0.80)$ on the left.<sup><a id="barnsley-tree-ref-2" href="#barnsley-tree-source-2">2</a></sup> Each time a point crosses the axis, it switches to the other spiral, and that switch is what divides the picture into scrolls.
 
-The colors count jumps until the point first leaves a circle of radius 2. This page opens with that radius because MathWorld's picture uses it.<sup><a id="barnsley-tree-ref-3" href="#barnsley-tree-source-1">1</a></sup> Now here is the catch: a point outside that circle can come back in. The count tells you when a point first crossed a line, not where it ended up.
-
-Make the circle bigger.
+The colors count jumps until the point first leaves a circle of radius 2. This page opens with that radius because MathWorld's picture uses it.<sup><a id="barnsley-tree-ref-3" href="#barnsley-tree-source-1">1</a></sup> But a point outside that circle can come back in, so the count tells you when a point first crossed the circle, not where it ended up. The next demo lets you make the circle bigger.
 
 <figure data-lesson="barnsley-radius"></figure>
 
-Past a radius of about 5, a point that leaves can never return, because the stretch beats the one-unit move.<sup><a id="barnsley-tree-ref-4" href="#barnsley-tree-source-3">3</a></sup> With that circle, the scrolls are gone. All those colored pixels belonged to one solid shape of points that never leave. The scrolls showed how points wander around inside it.
+Past a radius of about 5, a point that leaves can never return, because the stretch beats the one-unit move.<sup><a id="barnsley-tree-ref-4" href="#barnsley-tree-source-3">3</a></sup> With that circle the scrolls are gone, which means all those colored pixels belonged to one solid shape of points that never leave. The scrolls showed how points wander around inside it.
 
 Change $c$ to see other shapes. At $c = 1 + i$ the stretch is about 1.41, large enough that most points leave for good, and the picture splits into two curled shapes.
 

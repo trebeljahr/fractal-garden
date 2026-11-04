@@ -1,56 +1,46 @@
 # Sierpinski Triangle
 
-Mark the halfway point on each side of a triangle. Join the marks to make four equal triangles, then remove the upside-down one in the middle.
-
-Three triangles remain. Remove the middle of each one in the same way. Then do it again inside every smaller triangle.
+Mark the halfway point on each side of a triangle and join the marks, which divides it into four equal triangles, then remove the upside-down one in the middle. That leaves three triangles, so remove the middle of each of those in the same way, and then the middle of every smaller triangle after that.
 
 <figure data-construction-player="sierpinski-triangle"></figure>
 
-Each round removes a quarter of the area that is left. Repeat forever and no filled patch survives, although the triangle borders still meet at their corners.
+Each round removes a quarter of the area that is left, so if you repeat forever no filled patch survives, although the triangle borders still meet at their corners.
 
 ## Start with a fish
 
-Look at the three triangles left after the first round. Each is a half-size copy of the original, moved toward one of its corners.
-
-Try those same moves with a different starting shape. Make three half-size copies of a square, a circle or a fish. Move them toward the same three corners, then repeat on the whole picture. Step all four pictures together and compare the gaps between the copies as the starting drawings get smaller.
+Each of the three triangles left after the first round is a half-size copy of the original, moved toward one of its corners. Those moves work on any starting shape, so try them on a square, a circle or a fish: make three half-size copies, move them toward the same three corners, then repeat on the whole picture. Step all four pictures together and compare the gaps between the copies as the starting drawings get smaller.
 
 <figure data-lesson="sierpinski-seeds"></figure>
 
-The fish stay fish. They just get smaller and more numerous. As each copy shrinks, its original outline becomes harder to distinguish. All four arrangements approach the same Sierpinski triangle.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
+The fish stay fish, only smaller and more numerous, and as they shrink it gets harder to make out their outline. All four arrangements approach the same Sierpinski triangle.<sup><a id="sierpinski-triangle-ref-1" href="#sierpinski-triangle-source-1">1</a></sup>
 
 ## Move one dot
 
-Instead of copying a whole picture, start with one dot. Pick a corner at random and move the dot halfway toward it. Mark that position. Then pick another corner and repeat from the new position.
-
-Try a few moves one at a time. Then add a thousand. Where do the dots collect?
+You can draw the same shape with one dot instead of whole pictures. Pick a corner at random, move the dot halfway toward it and mark that position, then pick another corner and repeat from where you landed. Try a few moves one at a time and then add a thousand to see where the dots collect.
 
 <figure data-lesson="sierpinski-chaos"></figure>
 
-The dots collect in the same three half-size copies we made above. Each move uses one of the same three rules. After many random choices, the dots trace the Sierpinski triangle. A few early dots may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-1">1</a></sup>
+They collect in the same three half-size copies, because moving halfway to a corner is one of the same three rules that made the copies above. After many random choices the dots trace the Sierpinski triangle, apart from a few early ones that may fall in its holes or outside it.<sup><a id="sierpinski-triangle-ref-2" href="#sierpinski-triangle-source-1">1</a></sup>
 
 This is the **chaos game**. The [Barnsley fern](/barnsley-fern) also uses random choices, but its four moves shrink, turn and place the dot in different parts of a fern.
 
 ## Add two numbers
 
-Start a row with just a 1. Put a 1 at each end of the next row. To fill each space between them, add the two numbers just above it. These rows form **Pascal's triangle**.
-
-Choose a number below to see its addition. Then color the odd numbers and show more rows.
+Start a row with just a 1. Every later row has a 1 at each end, and each space between them gets the sum of the two numbers just above it. These rows form **Pascal's triangle**. Choose a number below to see its addition, then color the odd numbers and show more rows.
 
 <figure data-lesson="sierpinski-pascal"></figure>
 
-The even numbers leave the same triangular gaps.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-2">2</a></sup> We can find those gaps without calculating the large numbers: odd plus odd is even, and even plus even is even. A sum is odd only when one number is odd and the other is even.
+The even numbers leave the same triangular gaps.<sup><a id="sierpinski-triangle-ref-3" href="#sierpinski-triangle-source-2">2</a></sup> You can find those gaps without calculating the large numbers, because odd plus odd is even and even plus even is even, so a sum is odd only when one number is odd and the other is even.
 
 ## Replace the numbers with cells
 
-Let a filled cell stand for odd and a blank cell for even. The addition rule becomes a drawing rule: fill the cell below when the two cells above differ. Leave it blank when they match.
+Since only odd and even matter, let a filled cell stand for odd and a blank cell for even. The addition rule then becomes a drawing rule: fill the cell below when the two cells above differ, and leave it blank when they match.
 
-In the square grid below, those two cells sit diagonally above the new one. The cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-2">2</a></sup>
-
-Read each small rule below from top to bottom: three cells in one row decide the cell below.
+In the square grid below, those two cells sit diagonally above the new one, and the cell directly above it makes no difference. This rule is called **Rule 90**.<sup><a id="sierpinski-triangle-ref-4" href="#sierpinski-triangle-source-2">2</a></sup> Each small rule below reads from top to bottom: three cells in one row decide the cell below.
 
 <figure data-lesson="sierpinski-cells"></figure>
 
-The filled cells make the same pattern as the odd numbers, with an empty cell between neighboring entries. Change a bottom cell in a small rule to see how the rows change. Small rules with two filled cells side by side never apply to Rule 90's rows, so changing just one of those does nothing.
+The filled cells make the same pattern as the odd numbers, with an empty cell between neighboring entries. You can change a bottom cell in a small rule to see how the rows change, but the small rules with two filled cells side by side never apply to Rule 90's rows, so changing just one of those does nothing.
 
 The [Sierpinski arrowhead](/l-system/sierpinski-arrowhead) draws this triangle another way, by repeatedly bending one connected line. The [Sierpinski tetrahedron](/sierpinski-tetrahedron) extends the corner-copy rule into three dimensions, with four half-size pyramids.
 

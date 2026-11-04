@@ -1,22 +1,18 @@
 # Koch Snowflake
 
-Draw a triangle with three equal sides. Divide each side into thirds. Replace the middle third with two sides of a small triangle, pointing outward. Each straight side now has a bump.
-
-Do the same to every line in the new outline, including the sides of the bumps.
+Draw a triangle with three equal sides, divide each side into thirds, and replace the middle third with two sides of a small triangle pointing outward. Each straight side now has a bump in it. Then do the same to every line in the new outline, including the sides of the bumps.
 
 <figure data-construction-player="koch"></figure>
 
-Going around a bump takes longer than going straight across. Four short lines now cover a distance that used to need three. The outline gets a third longer every round.
+Going around a bump takes longer than going straight across, because four short lines now cover a distance that used to need three. So the outline gets a third longer every round.
 
-Move the slider below to straighten one edge without stretching its pieces. Then choose the next round. Compare that growing length with the area added by the new bumps.
+To measure that, move the slider below, which straightens one edge without stretching its pieces, and then choose the next round. Underneath, you can compare that growing length with the area the new bumps add.
 
 <figure data-lesson="koch-measurement"></figure>
 
-There are more new triangles each round, but they are much smaller. After the first round, each batch has four times as many triangles, each with one ninth of the area. Together they add less than half as much area as the previous batch.
+The area behaves differently because the new triangles shrink faster than they multiply. After the first round, each batch has four times as many triangles, each with one ninth of the area, so a batch adds less than half as much area as the one before it. That means the outline keeps getting longer without limit, while the area inside approaches a fixed size.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
 
-The outline keeps getting longer without limit, while the area inside approaches a fixed size.<sup><a id="koch-snowflake-ref-1" href="#koch-snowflake-source-1">1</a></sup>
-
-Turn the bumps inward to make the [anti-snowflake](/l-system/koch-anti-snowflake). They now remove area, while the outline still gets longer.
+**Bumps inward** turns this into the [anti-snowflake](/l-system/koch-anti-snowflake), where the triangles remove area while the outline still gets longer.
 
 ## Further exploring
 

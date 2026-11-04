@@ -1,18 +1,18 @@
 # N-Flake
 
-This construction replaces a polygon with smaller copies at its corners. A triangle has three corners, so it produces three copies. A pentagon produces five. Each copy is replaced in the same way on the next step.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup>
+Replace a polygon with smaller copies at its corners, so that a triangle becomes three copies and a pentagon becomes five. On the next step, replace each copy in the same way.<sup><a id="n-flake-ref-1" href="#n-flake-source-1">1</a></sup>
 
 <figure data-lesson="n-flake-outline"></figure>
 
-The copies shrink until neighbors just touch. Triangle copies are half the original width. Pentagon copies are about 38% of the width, and hexagon copies are one third. The triangle version is the [Sierpinski triangle](/l-system/sierpinski-triangle).
+The copies shrink until neighbors just touch, which makes triangle copies half the original width, pentagon copies about 38% of the width and hexagon copies one third. The triangle version is the [Sierpinski triangle](/l-system/sierpinski-triangle).
 
-The outline of the hexagon version is another fractal. Look at one side of the hexagon in round 1. Two corner copies lie along that side, each covering one third of it. They touch at a single point inside the hexagon, which leaves a triangular notch between them. So one straight line has become four lines, each one third as long. That is the rule of the [Koch curve](/l-system/koch-snowflake).
+The outline of the hexagon version is another fractal. Take one side of the hexagon in round 1. Two corner copies lie along that side, each covering one third of it, and they touch at a single point inside the hexagon, which leaves a triangular notch between them. So one straight line has become four lines, each one third as long, and that is the rule of the [Koch curve](/l-system/koch-snowflake).
 
-Each of those four lines is a side of a small hexagon, so round 2 does the same to all four. Each new notch points into its own small hexagon, so the notches stay on the same side of the line as you walk along it. The Koch rule keeps them on one side too.
+Each of those four lines is a side of a small hexagon, so round 2 does the same to all four. Each new notch points into its own small hexagon, which keeps the notches on the same side of the line as you walk along it, and the Koch rule keeps them on one side too.
 
-The amber line is drawn from the Koch rule alone, with no information about the hexagons. It follows their outline in every round: 24 lines, then 96, then 384.<sup><a id="n-flake-ref-2" href="#n-flake-source-2">2</a></sup> Repeat forever and the six curves close up into a Koch snowflake, with its six largest points on the hexagon's corners.<sup><a id="n-flake-ref-3" href="#n-flake-source-3">3</a></sup>
+The amber line is drawn from the Koch rule alone, with no information about the hexagons, and it follows their outline in every round: 24 lines, then 96, then 384.<sup><a id="n-flake-ref-2" href="#n-flake-source-2">2</a></sup> Repeat forever and the six curves close up into a Koch snowflake, with its six largest points on the hexagon's corners.<sup><a id="n-flake-ref-3" href="#n-flake-source-3">3</a></sup>
 
-**Center copy** adds another polygon between the corner copies. For squares, the four half-size corner squares already fill the original square. A fifth square in the center covers some of the same area again. For hexagons, the center copy fits between the six corner copies and fills a gap. It never reaches the outline, so the amber line stays the same with it or without it.
+**Center copy** adds another polygon between the corner copies. For squares, the four half-size corner squares already fill the original square, so a fifth square in the center covers some of the same area again. For hexagons, the center copy fills a gap between the six corner copies, and because it never reaches the outline, the amber line stays the same with it or without it.
 
 ## Further exploring
 

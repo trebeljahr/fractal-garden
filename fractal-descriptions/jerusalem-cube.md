@@ -1,20 +1,20 @@
 # Jerusalem Cube
 
-The Jerusalem cube uses two sizes of smaller cube. Eight larger copies sit at the corners. Twelve smaller copies sit between them along the edges. The spaces left between them form cross-shaped openings.
+The Jerusalem cube replaces a cube with smaller cubes of two sizes. Eight larger copies sit at the corners and twelve smaller copies sit between them along the edges, and the spaces left between them form cross-shaped openings.
 
 Eric Baird devised this construction in 2010.<sup><a id="jerusalem-cube-ref-1" href="#jerusalem-cube-source-1">1</a></sup>
 
 <figure data-construction-player="jerusalem-cube"></figure>
 
-The corner cubes are about 41.4% as wide as the original. That number comes from one edge. Along each edge there is a corner cube, an edge cube, then another corner cube, and their widths must add up to the edge's length.
+The corner cubes are about 41.4% as wide as the original, and that number comes from one edge. Along each edge sit a corner cube, an edge cube and another corner cube, and their widths must add up to the edge's length.
 
-That alone allows many sizes: a wider corner cube just leaves less room for a thinner edge cube. The second rule settles it. If a corner cube is $k$ times as wide as the original, the edge cube is $k$ times as wide as the corner cube. It then has the same width as the small cube the next level puts in that corner cube's corner, and the two meet face to face. The faint squares below are those small cubes.
+That alone allows many sizes, because a wider corner cube just leaves less room for a thinner edge cube. A second rule settles it: if a corner cube is $k$ times as wide as the original, the edge cube is $k$ times as wide as the corner cube. It then has the same width as the small cube the next level puts in that corner cube's corner, so the two meet face to face. The faint squares below are those small cubes.
 
 <figure data-lesson="jerusalem-fit"></figure>
 
-Drag the width. Below 0.414, the three widths fall short of the edge, and amber marks the gaps. Above it, they run past the edge, and amber marks the overlaps. At 0.414 the edge cube is 0.172 wide, and 0.414 + 0.172 + 0.414 = 1.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
+Drag the width. Below 0.414, the three widths fall short of the edge and amber marks the gaps. Above it, they run past the edge and amber marks the overlaps. At 0.414 the edge cube is 0.172 wide, and 0.414 + 0.172 + 0.414 = 1.<sup><a id="jerusalem-cube-ref-2" href="#jerusalem-cube-source-2">2</a></sup>
 
-The edge cubes are already the size of a corner cube's corner cube, so the level control counts them as two steps. Level 2 splits only the corner cubes. Level 3 splits the edge cubes too.
+Because the edge cubes are already the size of a corner cube's corner cube, the level control counts them as two steps. Level 2 splits only the corner cubes, and level 3 splits the edge cubes too.
 
 ## Further exploring
 

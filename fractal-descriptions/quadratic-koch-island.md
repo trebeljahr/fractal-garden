@@ -1,18 +1,18 @@
 # Quadratic Koch Island
 
-Start with a square. Replace each side with eighteen lines, each one sixth as long. Every turn is 90 degrees, so the smaller lines stay on a square grid. Then replace each of those eighteen lines the same way.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
+Start with a square and replace each side with eighteen lines, each one sixth as long. Every turn is 90 degrees, so the smaller lines stay on a square grid, and each of those eighteen lines can then be replaced the same way.<sup><a id="quadratic-koch-island-ref-1" href="#quadratic-koch-island-source-1">1</a></sup>
 
 <figure data-construction-player="quadratic-koch-island"></figure>
 
-Eighteen lines at one sixth of the length are three times as long as the old line, so **Line length** triples at every level. **Area** stays at exactly 100% of the square, as on the [Minkowski sausage](/l-system/minkowski-sausage). Each replacement takes three small squares from the island (orange) and adds three (blue).
+Eighteen lines at one sixth of the length come to three times the old line, so **Line length** triples at every level. **Area** stays at exactly 100% of the square, as on the [Minkowski sausage](/l-system/minkowski-sausage), because each replacement takes three small squares from the island (orange) and adds three (blue).
 
-Now choose **With neighbors**. Copies of the island fit together with no gaps and no overlaps. What one island loses, its neighbor gains.<sup><a id="quadratic-koch-island-ref-2" href="#quadratic-koch-island-source-2">2</a></sup>
+**With neighbors** shows where those squares go. Copies of the island fit together with no gaps and no overlaps, so what one island loses, its neighbor gains.<sup><a id="quadratic-koch-island-ref-2" href="#quadratic-koch-island-source-2">2</a></sup>
 
-Why do they fit? Press **Half turn** to rotate one replacement around its middle point.
+They fit because of a symmetry in the replacement. Press **Half turn** to rotate one replacement around its middle point.
 
 <figure data-lesson="half-turn-island"></figure>
 
-It lands exactly on itself, so the line looks the same from either end. A neighboring square draws the shared side from the other end, so it gets the same line.
+It lands exactly on itself, so the line looks the same from either end. A neighboring square draws the shared side from the other end, and it gets the same line.
 
 Two of the eighteen steps run backward, and they bend both tinted shapes into hooks. So at level 1 a piece of each island already sits under a hook of its neighbor, and neither can slide away from the other in any direction.<sup><a id="quadratic-koch-island-ref-3" href="#quadratic-koch-island-source-3">3</a></sup>
 

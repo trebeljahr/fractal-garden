@@ -1,22 +1,20 @@
 # Circles and Squares
 
-John Connett found this picture by accident, while working on a program to draw the [Mandelbrot set](/mandelbrot).<sup><a id="circles-and-squares-ref-1" href="#circles-and-squares-source-1">1</a></sup> Lay a grid of dots over the plane, with a fixed step between neighbors. For each dot, compute $x^2 + y^2$ and drop the fraction. Paint the dot light if the whole number is even, dark if it is odd.
+Lay a grid of dots over the plane, with a fixed step between neighbors. For each dot, compute $x^2 + y^2$ and drop the fraction, then paint the dot light if the whole number is even and dark if it is odd. John Connett found this picture by accident, while working on a program to draw the [Mandelbrot set](/mandelbrot).<sup><a id="circles-and-squares-ref-1" href="#circles-and-squares-source-1">1</a></sup>
 
-Points at the same distance from the center get the same value, so this rule draws one set of rings around one center. When the dots are close together, that is what you see.
-
-Spread the dots apart.
+Points at the same distance from the center get the same value, so the rule draws one set of rings around one center, and when the dots are close together that is what you see. Spread the dots apart by raising the step between them.
 
 <figure data-lesson="circle-ghosts"></figure>
 
-More centers appear, in rows, each with its own rings. The formula has only one center. All the others are ghosts.
+More centers appear, in rows, each with its own rings, even though the formula has only one center. All the others are ghosts.
 
-Rings get thinner as they go outward, and eventually they are thinner than the gaps between dots. Then a row of dots skips over whole rings. At certain distances it skips exactly one ring per dot, or two, or any whole number. Each dot lands at the same place in its ring as its neighbor, so that row looks as if it has stopped moving outward at all. To the eye, that is a center.
+Rings get thinner as they go outward, and eventually they are thinner than the gaps between dots, so a row of dots skips over whole rings. At certain distances it skips exactly one ring per dot, or two, or any whole number, which puts each dot at the same place in its ring as its neighbor. That row looks as if it has stopped moving outward at all, and to the eye that is a center.
 
 You can check this with the numbers. "Even or odd" is the same as keeping the remainder after dividing by $m = 2$. With a step of $s$, moving $n$ dots along a row adds $2nsx$ to $x^2 + y^2$, plus a constant. Dots sit at multiples of $s$, so when $n = m/(2s^2)$ this added amount is a whole multiple of $m$, and the remainder ignores it. The rings around that dot are then an exact copy of the rings around the true center.<sup><a id="circles-and-squares-ref-2" href="#circles-and-squares-source-2">2</a></sup>
 
-In the close-up at a ghost center, you can see this directly. There is one full ring between neighboring dots, so every dot in that row lands at the same place in its ring.
+The close-up at a ghost center shows this directly: there is one full ring between neighboring dots, so every dot in that row lands at the same place in its ring.
 
-The result is a moiré pattern, like the shimmer of two overlapping window screens. It belongs to the dots rather than to the rings. MathWorld lists it among fractals, but it does not contain smaller and smaller copies of itself: zoom in far enough and you only see the rings.<sup><a id="circles-and-squares-ref-3" href="#circles-and-squares-source-1">1</a></sup>
+The result is a moiré pattern, like the shimmer of two overlapping window screens, and it belongs to the dots rather than to the rings. MathWorld lists it among fractals, but it does not contain smaller and smaller copies of itself, because if you zoom in far enough you only see the rings.<sup><a id="circles-and-squares-ref-3" href="#circles-and-squares-source-1">1</a></sup>
 
 MathWorld writes the rule as $z_{n+1} = z_n^2 \pmod m$.<sup><a id="circles-and-squares-ref-4" href="#circles-and-squares-source-3">3</a></sup> This page reads that as $z_1 = x^2 + y^2$, with $m = 2$ by default. **Squarings** in the controls repeats the square-and-remainder step, which folds each ring into many.
 

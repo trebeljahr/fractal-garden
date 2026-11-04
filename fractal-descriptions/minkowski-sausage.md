@@ -1,24 +1,20 @@
 # Minkowski Sausage
 
-Replace a straight line with eight smaller lines arranged in right-angle steps. One square-shaped detour lies on each side of the old line.
-
-The replacement finishes four step lengths ahead, facing the original direction. Giving each new step one quarter of the old length keeps both endpoints in place.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
+Replace a straight line with eight smaller lines arranged in right-angle steps, with one square-shaped detour on each side of the old line. The replacement finishes four step lengths ahead, facing the original direction, so giving each new step one quarter of the old length keeps both endpoints in place.<sup><a id="minkowski-sausage-ref-1" href="#minkowski-sausage-source-1">1</a></sup>
 
 <figure data-construction-player="minkowski-sausage"></figure>
 
-Eight quarter-length lines have twice the length of one original line. So **Line length** doubles at every level.
+Eight quarter-length lines have twice the length of one original line, so **Line length** doubles at every level.
 
-Now choose **Around a square**. The same replacement runs along all four sides, and the line closes into an island. Raise the level. By level 5 the line is 32 times as long as the square's outline, but **Area** still reads exactly 100% of the square. Repeat forever and the line grows without bound, while the area never changes.<sup><a id="minkowski-sausage-ref-2" href="#minkowski-sausage-source-2">2</a></sup>
+**Around a square** runs the same replacement along all four sides, which closes the line into an island. By level 5 the line is 32 times as long as the square's outline, but **Area** still reads exactly 100% of the square. Repeat forever and the line grows without bound, while the area never changes.<sup><a id="minkowski-sausage-ref-2" href="#minkowski-sausage-source-2">2</a></sup>
 
-The tints show what a level changes. Every replacement takes one small square out of the island (orange) and adds one to it (blue). So **Removed** and **Added** always match.
-
-Why do they match? Press **Half turn** to rotate one replacement around its middle point.
+The tints show what a level changes: every replacement takes one small square out of the island (orange) and adds one to it (blue), so **Removed** and **Added** always match. To see why they match, press **Half turn** to rotate one replacement around its middle point.
 
 <figure data-lesson="half-turn-minkowski"></figure>
 
 It lands exactly on itself, and the two tints trade places. So the detour on one side of the old line has the same shape and size as the detour on the other, and one adds what the other removes.
 
-The [quadratic snowflake](/l-system/quadratic-snowflake) has a notch on one side of each old line and nothing on the other. A half turn doesn't land on itself, and its area shrinks.
+The [quadratic snowflake](/l-system/quadratic-snowflake) has a notch on one side of each old line and nothing on the other, so a half turn doesn't land on itself, and its area shrinks.
 
 ## Further exploring
 

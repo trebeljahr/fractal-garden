@@ -2,15 +2,13 @@
 
 An L-system produces a picture by replacing letters in a string, then reading the result as drawing instructions. Aristid Lindenmayer introduced these systems in 1968 to describe plant development.<sup><a id="l-system-explorer-ref-1" href="#l-system-explorer-source-1">1</a></sup>
 
-F usually means draw forward. Plus and minus mean turn. For example, replacing F with `F+F` gives two lines with a turn between them. Replacing both new F letters again gives `F+F+F+F`.
-
-Every replacement uses the old string. A letter added during this round waits until the next round before being replaced itself.
+F usually means draw forward, and plus and minus mean turn. Replacing F with `F+F`, for example, gives two lines with a turn between them, and replacing both new F letters again gives `F+F+F+F`. Every replacement uses the old string, so a letter added during this round waits until the next round before being replaced itself.
 
 <figure data-construction-player="l-system-explorer"></figure>
 
-Brackets let the route branch. In `F[+F]F`, the first F draws a stem. The opening bracket saves its endpoint and direction. Plus turns and the next F draws a side branch. The closing bracket returns to the saved position without drawing. The final F continues the stem.
+Brackets let the route branch. In `F[+F]F`, the first F draws a stem and the opening bracket saves its endpoint and direction. Plus turns and the next F draws a side branch. The closing bracket returns to the saved position without drawing, so the final F continues the stem.
 
-A letter can also have a replacement without drawing anything. X is often used this way to mark where more instructions will appear. The F lines stay in the string while X gets replaced again.
+A letter can also have a replacement without drawing anything. X is often used this way, to mark where more instructions will appear, so the F lines stay in the string while X gets replaced again.
 
 To try this, open **L-System Studio Controls** at the top of the page and choose the Fern 4 preset. Change the angle to spread the branches apart. Then move `[+X]` to the front of the X rule, so it reads `[+X]FF[-X]+X`. That branch now starts at the foot of the stem instead of partway up.
 

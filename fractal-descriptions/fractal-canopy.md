@@ -1,16 +1,14 @@
 # Fractal Canopy
 
-A branch ends in several shorter branches. Each of those branches ends in the same arrangement. Repeating this rule produces the canopy.
+A branch ends in several shorter branches, and each of those ends in the same arrangement. Repeating this rule produces the canopy. The **Classic canopy** uses three branches at each tip, with 43 degrees between neighboring directions. Each is 60% as long as its parent, a length ratio of 60%.
 
-The **Classic canopy** uses three branches at each tip. Each is 60% as long as its parent, a length ratio of 60%, with 43 degrees between neighboring directions.
-
-The figure uses two branches per tip, so the tree above the trunk has a left half and a right half. Make the branches longer and the halves grow toward each other. For each angle between the branches, exactly one length ratio makes them just touch.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
+The figure uses two branches per tip, so the tree above the trunk has a left half and a right half. Making the branches longer brings the halves toward each other, and for each angle between the branches, exactly one length ratio makes them just touch.<sup><a id="fractal-canopy-ref-1" href="#fractal-canopy-source-1">1</a></sup>
 
 <figure data-construction="canopy"></figure>
 
-The figure opens at 120°. Drag the length ratio up. Below 61.8%, a gap stays between the halves. At 61.8% they touch. Above it, they cross.<sup><a id="fractal-canopy-ref-2" href="#fractal-canopy-source-2">2</a></sup> Move the angle and the touching ratio moves too, from 50.8% at 20° to 70.7% at 180°, where the tree is the [H tree](/h-tree) on a trunk.<sup><a id="fractal-canopy-ref-3" href="#fractal-canopy-source-3">3</a></sup>
+The figure opens at 120°. Drag the length ratio up: below 61.8%, a gap stays between the halves, at 61.8% they touch, and above it they cross.<sup><a id="fractal-canopy-ref-2" href="#fractal-canopy-source-2">2</a></sup> Move the angle and the touching ratio moves too, from 50.8% at 20° to 70.7% at 180°, where the tree is the [H tree](/h-tree) on a trunk.<sup><a id="fractal-canopy-ref-3" href="#fractal-canopy-source-3">3</a></sup>
 
-Why 61.8% at 120°? The halves are mirror images across the dashed line, so they touch where one half reaches that line. The blue route is the part of the right half that comes closest to it. At 120°, each branch on this route either goes straight up or moves sideways by the same share of its length.
+Why 61.8% at 120°? The halves are mirror images across the dashed line, so they touch where one half reaches that line, and the blue route is the part of the right half that comes closest to it. At 120°, each branch on this route either goes straight up or moves sideways by the same share of its length.
 
 The route's first branch is 61.8% of a trunk long and moves right. The second is 38.2% and goes straight up. All the others move left: 23.6%, 14.6%, 9.0%, 5.6% and so on. Those left-moving lengths add up to exactly 61.8%, so the route ends on the line.<sup><a id="fractal-canopy-ref-4" href="#fractal-canopy-source-4">4</a></sup>
 
