@@ -1,90 +1,88 @@
 # Mandelbrot Set
 
-Start with zero. Square it, then add $1$. Take the answer, square it, add $1$ again, and keep going:
+Start with zero, square it and add $1$, then take what you get, square that and add $1$ again. If you keep going, you get
 
 $$
 0\to1\to2\to5\to26\to\cdots
 $$
 
-That blows up fast. Add $-1$ instead and you get $0,-1,0,-1,\ldots$: the same two numbers, forever.
+and the numbers fly off toward infinity. If you add $-1$ instead, you get $0,-1,0,-1,\ldots$, and you're trapped between those two numbers forever.
 
-So some numbers blow up and others stay trapped. Which is which? The Mandelbrot set is the answer, drawn as a picture. It holds every number you can add without the answers growing beyond every limit.
+The question behind the Mandelbrot set is which numbers do which. If you add a given number over and over, do the answers stay within some limit, or do they grow forever? The set is all the numbers whose answers stay within a limit, and to draw it, we need to give every pixel on the screen a number of its own.
 
-To draw that, every pixel needs a number. A pixel has two coordinates, so its number gets two parts: how far to move left or right, and how far to move up or down. That pair is a **complex number**, which we call $c$.
+A pixel has two coordinates, so we use numbers with two parts, one for how far to move left or right and one for how far to move up or down. These are **complex numbers**, and we'll call the one we're adding $c$. Adding $c$ moves a point by those two amounts. Squaring a point changes both its distance from zero and its direction: the distance gets multiplied by itself, and the angle from the line pointing right doubles.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
 
-Adding $c$ moves the point by those two amounts. Squaring changes both its distance from zero and its direction: multiply the distance by itself and double the angle from the line pointing right.<sup><a id="mandelbrot-ref-1" href="#mandelbrot-source-1">1</a></sup>
+On the plane below, the ring marks $c$. The point starts at zero and jumps once for each square and add, with dots showing where it lands and a thin line joining them in order. The dashed circle, two units from zero, matters because once the point crosses it, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
 
-On the plane below, the ring marks the number you add. The point starts at zero and jumps once for each square and add. The dots show where it lands, and the thin line joins them in order. Once it crosses the dashed circle, two units from zero, every later jump takes it farther away.<sup><a id="mandelbrot-ref-2" href="#mandelbrot-source-2">2</a></sup>
-
-Run your pointer across the plane, or slide sideways on a phone, and see how differently the numbers behave. Some pull the point in to one spot, some make it repeat a few spots forever, and some throw it out. The route ends at its first repeat.
+If you run your pointer across the plane, or slide sideways on a phone, you'll see three kinds of behavior. Some numbers draw the point in toward one spot, some trap it in a repeat of a few spots, and some throw it out past the circle. The route ends at its first repeat.
 
 <figure data-lesson="orbit-shapes"></figure>
 
-Each number either keeps its point inside the circle or loses it. Color the plane by that answer and a shape appears. This plane sits closer, so the dashed circle is out of view. Your pointer, or your finger sliding sideways, tests the numbers near it: dark if the point stays within two units of zero for 300 jumps, blank if it goes farther.
+This suggests a way to draw the set: test each number, and color it dark if its point stays inside the circle. You can try that on the plane below, which sits closer in, so the dashed circle is out of view. Moving your pointer over it, or sliding sideways on a phone, tests the numbers nearby, and a number turns dark if its point stays within two units of zero for 300 jumps.
 
-**Draw the rest** tests every number. The dark shape is the Mandelbrot set.
+**Draw the rest** tests every number, and the dark shape you end up with is the Mandelbrot set.
 
 <figure data-lesson="paint-mandelbrot"></figure>
 
-Every number in the finished picture still has its route. The ring starts on $-1$, so click it to see the repeat. Pick a pixel near $1$ on the horizontal axis and the amber point leaves.
+This is the finished picture, and every pixel in it still has a route you can follow. The ring starts on $-1$, so click it to see the repeat from earlier, then pick a pixel near $1$ on the horizontal axis to see the amber point fly off.
 
 <figure data-orbit="mandelbrot"></figure>
 
-Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed his equipment. Some specks changed from one print to the next, so they were dirt. Others came in matching pairs, one at the top and its mirror image at the bottom. Dirt is unlikely to do that. He zoomed in on those pieces, and they were smaller, slightly deformed copies of the whole shape.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
+Benoit Mandelbrot's first printouts of this shape looked dirty, and he blamed his equipment. Some of the specks changed from one print to the next, so those really were dirt. But others came in matching pairs, one at the top and its mirror image at the bottom, which is hard to explain with bad equipment. When he zoomed in on those pieces, they turned out to be smaller, slightly deformed copies of the whole shape.<sup><a id="mandelbrot-ref-3" href="#mandelbrot-source-3">3</a></sup>
 
 <figure data-article-images="mandelbrot-printout"></figure>
 
-A printout of asterisks can only show a rough outline. How far down does the edge go? Each arrow below starts at a place on the edge and points to that place enlarged, and the caption says how many times closer it is than the whole set. One place has a spiral, another a star, another a thread that forks again and again, and one holds a whole tiny copy of the set. All of them come from square and add.
+A printout of asterisks can only show a rough outline, so how much detail does the edge really hold? Each arrow below starts at a place on the edge and points to that place enlarged, with a caption saying how many times closer it is than the whole set. One place has a spiral, another a star, another a thread that forks again and again, and one holds a whole tiny copy of the set, and all of them come from squaring and adding.
 
 <figure data-lesson="mandelbrot-zoom-map"></figure>
 
-The deepest is $10^{100}$ times closer. If that view were as wide as an atom, the whole set would be far wider than the observable universe. And every picture still has an edge, so you can zoom into it again. Click one to open it in the explorer at the top of this page and keep going.
+The deepest is $10^{100}$ times closer. To get a feel for that, if this view were as wide as an atom, the whole set would be far wider than the observable universe. Every picture still has an edge, so you can zoom into it again: clicking one opens it in the explorer at the top of this page.
 
-A number belongs to the Mandelbrot set if its point never crosses the dashed circle. A point that crosses has **escaped**. That “never” is a problem, because a computer can't wait forever. So black really means “hasn't escaped yet.”
+There's a problem hiding in the definition. A number belongs to the set if its point never crosses the dashed circle, but a computer can't wait forever to check “never”. All it can say is that a point has **escaped** by crossing the circle, or that it hasn't escaped yet, and that's all black really means.
 
-Color helps. In the next demo, each pixel shows how many jumps its point took to escape, so every colored pixel is definitely outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
+The next demo adds more information by coloring each escaped pixel according to how many jumps it took, so any colored pixel is definitely outside the set. The colors repeat every 40 steps, so one color can mean step 30 or step 70.
 
-The slider sets how many steps the computer calculates before it gives up. In **Whole set**, more steps turn black pixels into colored ones until the heart and the bulb appear.
+The slider sets how many steps the computer tries before giving up. In **Whole set**, more steps turn black pixels into colored ones until the heart and the bulb appear.
 
-**Spiral** shows how badly black can mislead you. It's a tiny piece of the edge, near the narrow neck where the bulb meets the heart. At 200 steps it has round black dots that look like small bulbs. By 1000 steps, almost all of that black is gone. Those points were outside the set all along. The dark band across the middle isn't black at all: those pixels escaped at about step 40.
+**Spiral** shows how misleading black can be. It's a tiny piece of the edge, near the narrow neck where the bulb meets the heart. At 200 steps you'll see round black dots that look like small bulbs, but by 1000 steps almost all of that black is gone, which means those points were outside the set all along. The dark band across the middle was never black, by the way: those pixels escaped at about step 40.
 
-**Black and white** drops the colors: white pixels have escaped, and black pixels haven't. At high step counts the black specks look like separate islands, but the set is one connected piece.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> Each pixel tests only one point, so the parts joining the specks are too thin to show.
+**Black and white** drops the colors, so white pixels have escaped and black pixels haven't. At high step counts, the black specks look like separate islands, even though the set is all one connected piece.<sup><a id="mandelbrot-ref-4" href="#mandelbrot-source-4">4</a></sup> You can't see the connections because each pixel tests only one point, and the parts joining the specks are too thin to show.
 
 <figure data-lesson="step-limit-mandelbrot"></figure>
 
-How long can a point hold out? Start at $-0.75$, where the bulb meets the body, and move straight up. A point $0.1$ above it crosses the dashed circle after 33 steps. A point $0.01$ above it takes 315 steps, $0.001$ above takes 3143, and $0.0001$ above takes 31417. Closer points take longer, so no step limit catches every point.
+You might wonder how high a step limit would have to be to catch everything, and the neck shows that no limit is high enough. Start at $-0.75$, where the bulb meets the body, and move straight up. A point $0.1$ above it crosses the dashed circle after 33 steps. A point $0.01$ above it takes 315 steps, $0.001$ above takes 3143, and $0.0001$ above takes 31417. The closer you get, the longer it takes.
 
-Those digits look familiar. Multiply each count by its distance: $3.3$, $3.15$, $3.143$, $3.1417$. They seem to be heading for π.<sup><a id="mandelbrot-ref-5" href="#mandelbrot-source-5">5</a></sup> Nothing in square and add mentions π.
+There's something odd about those counts. If you multiply each one by its distance, you get $3.3$, $3.15$, $3.143$, $3.1417$, which seem to be heading for π.<sup><a id="mandelbrot-ref-5" href="#mandelbrot-source-5">5</a></sup> Nothing in this calculation looks like it should involve π.
 
-The black parts of the picture are sorted by what the point does. In the heart-shaped body, it settles toward one value.<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup> In the round bulb on the left, it falls into a two-number repeat, like the $0,-1$ at that bulb's center. In the big bulbs above and below the heart, the repeat has three numbers, and smaller bulbs have other lengths.<sup><a id="mandelbrot-ref-7" href="#mandelbrot-source-7">7</a></sup> Along the horizontal axis, these lengths make the branching picture of the [logistic map](/logistic-map).
+The parts of the black shape also differ in what the point does there. Inside the heart-shaped body, it settles toward one value,<sup><a id="mandelbrot-ref-6" href="#mandelbrot-source-6">6</a></sup> and inside the round bulb on the left, it gets trapped in a two-number repeat, like the $0,-1$ at that bulb's center. The big bulbs above and below the heart give a three-number repeat, and smaller bulbs give other lengths.<sup><a id="mandelbrot-ref-7" href="#mandelbrot-source-7">7</a></sup> If you follow these lengths along the horizontal axis, you get the branching picture of the [logistic map](/logistic-map).
 
-Every calculation so far has started at zero. What if it didn't? Keep one number to add, and give every pixel a different start. That draws a [Julia picture](/julia-set). So each point in the Mandelbrot picture has a whole shape of its own.
+So far, every calculation has started at zero, and the only thing we've changed is the number we add. You could just as well do the opposite: fix the number you add and let every pixel be a different starting point. The result is called a [Julia picture](/julia-set), and since there's one for every choice of $c$, each point in the Mandelbrot picture has a whole shape of its own.
 
 <figure data-lesson="linked-julia"></figure>
 
-These two pictures ask different questions. The Mandelbrot picture always starts at zero and changes the number you add. The Julia picture keeps one number and changes the start. Zoomed out, they look nothing alike, which is what you'd expect. Zoomed in at the right value of $c$, they become the same picture.
+The two kinds of picture ask different questions, so you wouldn't expect them to have much to do with each other, and zoomed out they don't look alike. But zoom in at the right value of $c$ and they turn into the same picture.
 
-Take $c=(0,1)$. Starting at zero, the point goes to $(0,1)$, $(-1,1)$, $(0,-1)$, $(-1,1)$, $(0,-1)$, and repeats those two forever. A point close to that repeat moves farther from it every two jumps.
+If you take $c=(0,1)$ and start at zero, the point goes to $(0,1)$, $(-1,1)$, $(0,-1)$, $(-1,1)$, $(0,-1)$, and repeats those last two forever. A point close to that repeat moves farther from it every two jumps.
 
-Both pictures below are centered on $c$ and use the same colors.<sup><a id="mandelbrot-ref-8" href="#mandelbrot-source-8">8</a></sup> The Julia picture is also turned and scaled by the amounts shown under it. Slide the zoom up, and by about ×200 the two **Fork** pictures look the same.
+Both pictures below are centered on $c$ and use the same colors,<sup><a id="mandelbrot-ref-8" href="#mandelbrot-source-8">8</a></sup> and the Julia picture is also turned and scaled by the amounts shown under it. As you raise the zoom, the two **Fork** pictures look the same by about ×200.
 
 <figure data-lesson="mandelbrot-julia-zoom"></figure>
 
-Why on earth should they match? Every pixel on the left adds a different number. Every pixel on the right adds the same one. These are two different experiments.
+Why would they match? Every pixel on the left uses a different number to add, while every pixel on the right uses the same one, so these are really two different calculations.
 
-Follow one pixel from each picture. The Mandelbrot pixel adds a number close to $c$, so its first jump from zero lands close to $c$. The Julia pixel simply starts close to $c$. So both points begin a tiny distance from $c$, and both follow zero's route for a while. Then that tiny distance grows, they leave the route and they escape. The color counts the jumps.
+To see what's going on, follow one pixel from each picture. The Mandelbrot pixel adds a number close to $c$, so its first jump from zero lands close to $c$. The Julia pixel starts close to $c$ because that's where we're looking. So both points begin a tiny distance from $c$, both follow zero's route for a while, and then that tiny distance grows until they leave the route and escape. The color is the number of jumps that took.
 
-That nearly explains it, but there's a catch. The Julia point is off by a little once, at the start. The Mandelbrot point adds the wrong number at every jump, so it gets the same little nudge again and again. Shouldn't all those extra nudges ruin the match?
+That isn't quite the whole story, because the two points differ in one way. The Julia point is off by a small amount once, at the start, whereas the Mandelbrot point adds a slightly wrong number at every jump, so it picks up the same small error over and over. You might expect all those extra errors to ruin the match.
 
-They don't, because a nudge keeps growing after it happens. At **Fork**, it grows about 5.7 times every two jumps. So the first nudge has the most time to grow, and every later nudge is playing catch-up. The second ends up half the size of the first. The third ends up about a sixth, the fourth about an eleventh. The late ones hardly count.
+The reason they don't is that an error keeps growing after it happens. At **Fork**, an error gets about 5.7 times larger every two jumps, so the first error has the most time to grow and each later one has less. Measured at the same moment, the second error is half the size of the first, the third about a sixth and the fourth about an eleventh, so the later ones barely change the total.
 
-So the whole pile of nudges adds up to one fixed number: $(0.8,-0.4)$. It acts like a single nudge at the start, 0.89 times the size and turned 27° clockwise. Undo that and the two pictures line up. That's the 27° and ×1.12 under **Fork**, and each $c$ has its own pair.<sup><a id="mandelbrot-ref-9" href="#mandelbrot-source-9">9</a></sup>
+If you add all of them up, each with its own direction, you get one fixed number, $(0.8,-0.4)$. In other words, all those errors have the same effect as one error at the start, 0.89 times the size and turned 27° clockwise. Undoing that lines up the pictures, which is where the 27° and ×1.12 under **Fork** come from. Each $c$ has its own pair.<sup><a id="mandelbrot-ref-9" href="#mandelbrot-source-9">9</a></sup>
 
-None of this is special to **Fork**. Tan Lei proved in 1990 that zooming in brings the two pictures ever closer at every $c$ where zero lands exactly on a repeat it did not start on.<sup><a id="mandelbrot-ref-10" href="#mandelbrot-source-10">10</a></sup> **Star** and **Spiral** are two more. At **Spiral**, near the neck, zero takes 24 jumps to land, and the pictures need more zoom to match.
+None of this relies on anything special about **Fork**. Tan Lei proved in 1990 that zooming in brings the two pictures ever closer at every $c$ where zero lands exactly on a repeat it did not start on.<sup><a id="mandelbrot-ref-10" href="#mandelbrot-source-10">10</a></sup> **Star** and **Spiral** are two more. At **Spiral**, near the neck, zero takes 24 jumps to land, and the pictures need more zoom to match.
 
-And these spots are everywhere: any stretch of the Mandelbrot set's edge, however short, contains some.<sup><a id="mandelbrot-ref-11" href="#mandelbrot-source-11">11</a></sup> Pick one, zoom in, and there is the Julia set for that number, sitting inside the Mandelbrot set.
+These values of $c$ are also everywhere: any stretch of the Mandelbrot set's edge, however short, contains some.<sup><a id="mandelbrot-ref-11" href="#mandelbrot-source-11">11</a></sup> So all along the edge, there are places where zooming in shows you a Julia set.
 
-One difference never goes away. The Mandelbrot picture has black specks, small copies of the whole set, and this Julia set has no inside to show black. But copies closer to $c$ shrink faster than their distance to $c$, so the specks get too small to see as you zoom.<sup><a id="mandelbrot-ref-12" href="#mandelbrot-source-10">10</a></sup>
+One difference remains however far you zoom. The Mandelbrot picture has black specks, which are small copies of the whole set, and this Julia set has no inside to show black. But copies closer to $c$ shrink faster than their distance to $c$, so the specks get too small to see as you zoom.<sup><a id="mandelbrot-ref-12" href="#mandelbrot-source-10">10</a></sup>
 
 ## Further exploring
 
@@ -116,6 +114,6 @@ One difference never goes away. The Mandelbrot picture has black specks, small c
 6. <span id="mandelbrot-source-6"></span> [Local Connectivity of Julia Sets and Bifurcation Loci: Three Theorems of J.-C. Yoccoz](https://pi.math.cornell.edu/~hubbard/hubbard.pdf). [Back](#mandelbrot-ref-6)
 7. <span id="mandelbrot-source-7"></span> [Rotation Numbers and Internal Angles of the Mandelbrot Bulbs](https://math.libretexts.org/Bookshelves/Scientific_Computing_Simulations_and_Modeling/The_Mandelbrot_and_Julia_sets_Anatomy_(Demidov)/1%3A_Quick_tour/1.1%3A_Rotation_Numbers_and_Internal_angles_of_the_Mandelbrot_bulbs). [Back](#mandelbrot-ref-7)
 8. <span id="mandelbrot-source-8"></span> Diagram construction: the Mandelbrot count includes the first jump, from zero to the pixel's number. A Julia pixel starts there, so the right picture adds one to its count. [Back](#mandelbrot-ref-8)
-9. <span id="mandelbrot-source-9"></span> Calculation: a Mandelbrot pixel $d$ away from $c$ matches a Julia pixel $wd$ away from $c$, where $w=\lim_{n\to\infty}\frac{\partial z_n/\partial c}{\partial z_n/\partial z_1}$ along zero's route. This equals the sum of $1/(\partial z_k/\partial z_1)$ over $k\ge1$, whose terms are the nudges. At $c=(0,1)$ their sizes are $1$, $0.5$, $0.18$, $0.088$, and so on, each turned differently, and $w=0.8-0.4i$. [Back](#mandelbrot-ref-9)
+9. <span id="mandelbrot-source-9"></span> Calculation: a Mandelbrot pixel $d$ away from $c$ matches a Julia pixel $wd$ away from $c$, where $w=\lim_{n\to\infty}\frac{\partial z_n/\partial c}{\partial z_n/\partial z_1}$ along zero's route. This equals the sum of $1/(\partial z_k/\partial z_1)$ over $k\ge1$, whose terms are the errors. At $c=(0,1)$ their sizes are $1$, $0.5$, $0.18$, $0.088$, and so on, each turned differently, and $w=0.8-0.4i$. [Back](#mandelbrot-ref-9)
 10. <span id="mandelbrot-source-10"></span> [Similarity Between the Mandelbrot Set and Julia Sets](https://web.archive.org/web/20221206041349/https://math.univ-angers.fr/~tanlei/papers/similarityMJ.pdf). Theorem 5.1 states the match, and section 6 gives the sizes of the small copies. [Back](#mandelbrot-ref-10) [Back](#mandelbrot-ref-12)
 11. <span id="mandelbrot-source-11"></span> [Misiurewicz point](https://en.wikipedia.org/wiki/Misiurewicz_point). [Back](#mandelbrot-ref-11)

@@ -20,19 +20,32 @@ video: someone talking you through a thing they find fascinating. Where this
 conflicts with an older rule below, this one wins. `fractal-descriptions/mandelbrot.md`
 is the reference.
 
-- Open with a question the reader would really ask or a thing they can notice.
-  Raise the obvious objection, then answer it. For example: “Why on earth should
-  they match?” then “Shouldn't all those extra nudges ruin the match?” The answer
-  must follow right away and must explain the mechanism.
-- Do not open a passage with a stage direction such as “Now zoom in on the edge”,
-  “Look at the round bulb” or “Move the slider”. Say how to use a demo only as far
-  as the reader needs it, and tie it to what they want to find out.
-- A short human reaction is fine when a real discovery comes with it, such as
-  “Those digits look familiar.” It is not a substitute for the discovery.
+Rico's follow-up, same day: phrases such as “a point holds out” are still weird
+and LLM-like. Compare the prose with 3Blue1Brown, Numberphile and Wait But Why, and
+read a real transcript when unsure. Grant Sanderson's are in the `3b1b/captions` repo.
+
+- Connect the reasoning. Those explainers speak in linked sentences that carry an
+  argument with “so”, “because”, “which means” and “if you… you get…”. A sentence
+  may be as long as the thought. Do not chop reasoning into staccato fragments.
+- Write as someone thinking it through with the reader: “You might wonder…”,
+  “To see what's going on, follow one pixel…”, “That isn't quite the whole story.”
+  Ask a question only where the reader would really ask it, then answer it with
+  the mechanism right away.
+- These read as LLM writing, so do not use them: punchy closing sentences (“The
+  late ones hardly count.”), invented metaphors (“a point holds out”, “playing
+  catch-up”, “a pile of nudges”), drama openers (“Why on earth”, “Those digits look
+  familiar.”) and one-line reveals.
+- Use the figures mathematicians use: a point flies off, gets trapped in a repeat,
+  is drawn in or pushed away. Otherwise use a plain word such as “error”.
+- Do not open a passage with a bare command such as “Now zoom in on the edge”, “Look
+  at the round bulb” or “Move the slider”. Say what the reader will find out, then
+  how the demo shows it: “If you drag the ring to…, it starts inside and escapes.”
+- Scale comparisons in the Wait But Why manner are welcome when they are concrete
+  and checked, such as how wide the whole set would be if a deep view were an atom.
 - Start with something the reader can see, draw, remove, rotate or try. Explain one
   step at a time. Build the picture before introducing a name or equation.
-- Use ordinary spoken English, concrete nouns and active verbs. Keep sentences
-  short, but vary their rhythm. Keep the words needed to make them easy to read.
+- Use ordinary spoken English, concrete nouns and active verbs. Let sentence length
+  follow the reasoning. Keep the words needed to make them easy to read.
 - Let excitement come from an actual discovery: a square tunnel makes a star
   hole, a paper fold makes a dragon, a fish becomes a triangle. No generic praise.
 - Explain a technical term before using it. Remove terms, formulas and
@@ -53,9 +66,6 @@ is the reference.
   places for the next cut", "numbers take a journey" or "a rule grows a plant".
   A short sentence can still be vague. Explain the intermediate step that makes
   the next sentence follow; do not fill that gap with a pleasant-sounding phrase.
-  An everyday figure of speech is fine when the mechanism is stated next to it:
-  “a point holds out” beside the step counts, “playing catch-up” beside the growth
-  of each nudge.
 - The shared construction player has no stock heading or injected summary.
   Construction explanations belong in the article, in the relevant sequence.
 
