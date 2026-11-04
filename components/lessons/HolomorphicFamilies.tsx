@@ -505,7 +505,7 @@ export function FamilyExplorerLesson() {
       "does nothing the demo can name"
     );
   return (
-    <LessonFrame title="One rule, every value of its free number" kind="family-explorer">
+    <LessonFrame title="The whole family, and one member of it" kind="family-explorer">
       <div ref={figure}>
         <div className={common.options}>
           {FAMILY_RULES.map((option, index) => (
@@ -536,7 +536,7 @@ export function FamilyExplorerLesson() {
         </div>
         <div className={styles.pair}>
           <div>
-            <h3>Every {rule.free}</h3>
+            <h3>{rule.allTitle}</h3>
             <FamilyStage
               frame={leftFrame}
               widest={rule.whole.half * 1.5}
@@ -548,7 +548,7 @@ export function FamilyExplorerLesson() {
             />
           </div>
           <div>
-            <h3>Every {rule.start} for that one</h3>
+            <h3>{rule.oneTitle}</h3>
             <FamilyStage
               frame={rightFrame}
               widest={rule.startsHalf * 1.5}

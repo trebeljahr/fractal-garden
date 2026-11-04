@@ -16,6 +16,9 @@ export type FamilyRule = {
   name: string;
   /** What the free number is called in the demo. */
   free: string;
+  /** The headings of the two pictures. */
+  allTitle: string;
+  oneTitle: string;
   /** What a point on the right picture is called. */
   start: string;
   whole: { center: ComplexPoint; half: number };
@@ -31,6 +34,8 @@ export const FAMILY_RULES: FamilyRule[] = [
     shader: 0,
     name: "Newton's method",
     free: "third root",
+    allTitle: "All polynomials · pick a third root",
+    oneTitle: "That polynomial · every first guess",
     start: "first guess",
     whole: { center: point(0, 0), half: 3.4 },
     startsHalf: 3.4,
@@ -48,6 +53,8 @@ export const FAMILY_RULES: FamilyRule[] = [
     shader: 1,
     name: "z² + c",
     free: "value of c",
+    allTitle: "All values of c · pick one",
+    oneTitle: "That c · every starting point",
     start: "starting point",
     whole: { center: point(-0.6, 0), half: 1.6 },
     startsHalf: 1.8,
@@ -61,6 +68,8 @@ export const FAMILY_RULES: FamilyRule[] = [
     shader: 2,
     name: "z² + c/z²",
     free: "value of c",
+    allTitle: "All values of c · pick one",
+    oneTitle: "That c · every starting point",
     start: "starting point",
     whole: { center: point(0, 0), half: 0.8 },
     startsHalf: 2,
@@ -74,6 +83,8 @@ export const FAMILY_RULES: FamilyRule[] = [
     shader: 3,
     name: "c · sin z",
     free: "value of c",
+    allTitle: "All values of c · pick one",
+    oneTitle: "That c · every starting point",
     start: "starting point",
     whole: { center: point(0, 0), half: 3.4 },
     startsHalf: 4,
