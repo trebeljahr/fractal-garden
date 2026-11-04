@@ -2,11 +2,14 @@ import LSystem, { type Ruleset } from "../../components/LSystem";
 import { NavElement } from "../../components/Navbar";
 import { SideDrawer } from "../../components/SideDrawer";
 import styles from "../../styles/Fullscreen.module.css";
+import { timesDrawnLead } from "../../utils/lessons/timesDrawn";
 import { getDescription } from "../../utils/readFiles";
 
 type Props = {
   description: string;
 };
+
+const BOARD_LEAD = timesDrawnLead("F+F+F+F", "FF+F+F+F+FF");
 
 const Board = ({ description }: Props) => {
   const board: Ruleset = {
@@ -28,7 +31,7 @@ const Board = ({ description }: Props) => {
   return (
     <>
       <main className={styles.lSystem}>
-        <LSystem ruleset={board} />
+        <LSystem ruleset={board} constructionLead={BOARD_LEAD} />
         <SideDrawer description={description} />
         <NavElement />
       </main>

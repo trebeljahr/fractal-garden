@@ -209,3 +209,93 @@ test("Crystal's readout counts the figure's level", () => {
   );
   assert.ok(lead.readout({ timesDrawn: "tint" }, 4)[3].tint);
 });
+
+const BOARD = page("board");
+
+const choose = (n, k) => (k === 0 ? 1 : (choose(n - 1, k - 1) * n) / k);
+
+test("Board's strokes multiply by seven, its lines by six, and each line's count can double", () => {
+  assert.equal(BOARD.maxLevel, 6);
+  for (let level = 1; level <= BOARD.maxLevel; level++) {
+    const n = level - 1;
+    const census = timesDrawnCensus(BOARD.axiom, BOARD.rule, level);
+    assert.equal(census.strokes, 4 * 7 ** n);
+    assert.equal(census.lines, 4 * 6 ** n);
+    assert.deepEqual(
+      census.drawn,
+      Array.from({ length: n + 1 }, (_, k) => [2 ** k, 4 * choose(n, k) * 5 ** (n - k)]),
+    );
+  }
+  const { strokes, lines } = timesDrawnCensus(BOARD.axiom, BOARD.rule, 6);
+  assert.deepEqual([strokes, lines], [67228, 31104]);
+});
+
+test("no Board line is drawn in both directions", () => {
+  for (let level = 1; level <= BOARD.maxLevel; level++)
+    for (const { forward, back } of tally(walk(BOARD, level).strokes).values())
+      assert.ok(forward === 0 || back === 0);
+});
+
+test("the most-drawn Board lines sit at the very middle of each side of the square", () => {
+  for (let level = 2; level <= BOARD.maxLevel; level++) {
+    const size = 3 ** (level - 1);
+    const most = Array.from(tally(walk(BOARD, level).strokes).values()).filter(
+      ({ forward, back }) => forward + back === 2 ** (level - 1),
+    );
+    assert.equal(most.length, 4);
+    const middles = most.map(({ stroke: [x, y, u, v] }) => `${(x + u) / 2},${(y + v) / 2}`).sort();
+    assert.deepEqual(
+      middles,
+      [`0,${size / 2}`, `${size},${size / 2}`, `${size / 2},0`, `${size / 2},${size}`].sort(),
+    );
+  }
+});
+
+/** The strokes that replace each stroke of the level before, in pen order. */
+function replacements(fractal, level, perStroke) {
+  const { strokes } = walk(fractal, level);
+  const { strokes: parents } = walk(fractal, level - 1);
+  assert.equal(strokes.length, parents.length * perStroke);
+  return parents.map((parent, i) => ({
+    parent,
+    children: strokes.slice(i * perStroke, (i + 1) * perStroke),
+  }));
+}
+
+test("a line repeated the same way lands on itself, and one repeated out and back does not", () => {
+  for (let level = 3; level <= BOARD.maxLevel; level++) {
+    const byLine = new Map();
+    for (const { parent, children } of replacements(BOARD, level, 7)) {
+      const known = byLine.get(lineName(parent));
+      if (known) assert.deepEqual(children, known);
+      else byLine.set(lineName(parent), children);
+    }
+  }
+  for (let level = 3; level <= CRYSTAL.maxLevel; level++) {
+    const sideLines = new Map();
+    for (const { parent, children } of replacements(CRYSTAL, level, 5)) {
+      // The third stroke of the replacement is the side line going out.
+      const side = lineName(children[2]);
+      assert.ok(!sideLines.has(side), "no two strokes put their side line in the same place");
+      sideLines.set(side, parent);
+    }
+  }
+});
+
+test("Board's readout keys every count to its tint and leaves out the gaps", () => {
+  const rows = timesDrawnLead(BOARD.axiom, BOARD.rule).readout({ timesDrawn: "tint" }, 6);
+  assert.deepEqual(
+    rows.map((row) => row.label),
+    [
+      "Pen strokes",
+      "Different lines",
+      "Drawn once",
+      "Drawn twice",
+      "Drawn 4 times",
+      "Drawn 8 times",
+      "Drawn 16 times",
+      "Drawn 32 times",
+    ],
+  );
+  assert.equal(new Set(rows.slice(2).map((row) => row.tint)).size, 6);
+});
