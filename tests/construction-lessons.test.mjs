@@ -9,6 +9,7 @@ import {
 import { keepMengerCube, mengerLayers } from "../utils/menger.ts";
 import {
   ESCAPE_RADIUS,
+  isOutside,
   jumpControl,
   jumpExit,
   jumpPoint,
@@ -155,6 +156,34 @@ test("orbit lesson only matches rows the jump list prints the same", () => {
   assert.equal(landsExactly(closing.orbit, closing.loop), false);
   const exact = traceUntilLoop({ real: -1, imaginary: 0 }, zero);
   assert.equal(landsExactly(exact.orbit, exact.loop), true);
+  close(closing.gap, 2 * Math.hypot(closing.orbit[5].point.real, closing.orbit[5].point.imaginary));
+  assert.ok(closing.gap < 1);
+});
+test("orbit lesson never settles a point that later leaves", () => {
+  const zero = { real: 0, imaginary: 0 };
+  const leavesOn = (c) => {
+    let z = zero;
+    for (let jump = 1; jump <= 20000; jump++) {
+      const square = squarePoint(z);
+      z = { real: square.real + c.real, imaginary: square.imaginary + c.imaginary };
+      if (isOutside(z)) return jump;
+    }
+    return null;
+  };
+  // Rows here match to three decimals by jump 14, but the gap grows and the point leaves on 142.
+  const lingering = { real: -0.74, imaginary: 0.29 };
+  assert.equal(leavesOn(lingering), 142);
+  assert.equal(traceUntilLoop(lingering, zero).loop, null);
+  // An exact repeat can still push close points away: 0, i, -1 + i, -i, -1 + i.
+  const pushing = traceUntilLoop({ real: 0, imaginary: 1 }, zero);
+  assert.ok(Math.abs(pushing.gap - 4 * Math.SQRT2) < 1e-9);
+  for (let x = -220; x <= 60; x++) {
+    for (let y = 0; y <= 130; y++) {
+      const c = { real: x / 100, imaginary: y / 100 };
+      const { orbit, loop } = traceUntilLoop(c, zero);
+      if (loop && !landsExactly(orbit, loop)) assert.equal(leavesOn(c), null, `${x}, ${y}`);
+    }
+  }
 });
 test("orbit lesson does not call a slow or escaping orbit a loop", () => {
   const zero = { real: 0, imaginary: 0 };

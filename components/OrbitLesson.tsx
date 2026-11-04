@@ -24,7 +24,9 @@ import {
   landsExactly,
   ORBIT_LESSON_LIMIT,
   type OrbitKind,
+  type OrbitLoop,
   type Pixel,
+  squarePoint,
   traceBarnsleyTreeOrbit,
   traceCactusOrbit,
   traceMandelbarOrbit,
@@ -89,10 +91,36 @@ const COLORING = {
 function traceOrbit(kind: OrbitKind, value: ComplexPoint) {
   if (kind === "julia") return traceUntilLoop(JULIA_C, value);
   if (kind === "mandelbar") return untilLoop((jumps) => traceMandelbarOrbit(value, jumps));
-  if (kind === "cactus") return untilLoop((jumps) => traceCactusOrbit(value, jumps));
+  if (kind === "cactus")
+    return untilLoop(
+      (jumps) => traceCactusOrbit(value, jumps),
+      ORBIT_LESSON_LIMIT,
+      (z) => {
+        // The rule's derivative is 3z^2 + c - 1.
+        const square = squarePoint(z);
+        return Math.hypot(3 * square.real + value.real - 1, 3 * square.imaginary + value.imaginary);
+      },
+    );
   if (kind === "barnsley-tree")
-    return untilLoop((jumps) => traceBarnsleyTreeOrbit(TREE_C, value, jumps));
+    return untilLoop(
+      (jumps) => traceBarnsleyTreeOrbit(TREE_C, value, jumps),
+      ORBIT_LESSON_LIMIT,
+      () => Math.hypot(TREE_C.real, TREE_C.imaginary),
+    );
   return traceUntilLoop(value, ZERO, kind === "burning-ship");
+}
+function gapFactor(gap: number) {
+  return gap < 0.01 ? "less than 0.01" : number(gap, 2);
+}
+function repeatOutcome(max: number, loop: OrbitLoop, exact: boolean, gap: number) {
+  const each = loop.period === 1 ? "each jump" : `each round of ${loop.period} jumps`;
+  if (!exact)
+    return `Jump ${max} matches jump ${loop.from} to 3 decimals. Near here, ${each} shrinks the gap between two close points to ${gapFactor(gap)} of its size, so the point can't leave.`;
+  const repeats =
+    loop.period === 1 ? "The point stays here." : `The same ${loop.period} jumps repeat from here.`;
+  const pushed =
+    gap > 1 ? ` A point close by moves ${number(gap, 1)} times farther away ${each}.` : "";
+  return `Jump ${max} lands back on jump ${loop.from}. ${repeats}${pushed}`;
 }
 const STARTS_AT_PIXEL: OrbitKind[] = ["julia", "barnsley-tree"];
 const WORKED_BY_HAND: OrbitKind[] = ["julia", "burning-ship"];
@@ -245,7 +273,7 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const viewHeight = view.top - view.bottom;
   const viewBounds = useMemo(() => [view.left, view.right, view.bottom, view.top] as const, [view]);
   const height = (width * viewHeight) / viewWidth;
-  const { orbit, loop } = useMemo(() => traceOrbit(kind, value), [value, kind]);
+  const { orbit, loop, gap } = useMemo(() => traceOrbit(kind, value), [value, kind]);
   const max = orbit.length - 1;
   const shown = dragging ? max : Math.min(motion.step, max);
   const landed = hop < 1 ? shown - 1 : shown;
@@ -348,11 +376,9 @@ export default function OrbitLesson({ kind }: { kind: OrbitKind }) {
   const outcome = !finished
     ? ""
     : loop
-      ? landsExactly(orbit, loop)
-        ? `Jump ${max} lands back on jump ${loop.from}. ${loop.period === 1 ? "The point stays here." : `The same ${loop.period} jumps repeat from here.`}`
-        : `Jump ${max} matches jump ${loop.from} to 3 decimals. ${loop.period === 1 ? "From here the point barely moves." : `From here the same ${loop.period} jumps nearly repeat.`}`
+      ? repeatOutcome(max, loop, landsExactly(orbit, loop), gap ?? 1)
       : !crossed
-        ? `Still inside the dashed circle after ${max} jumps.`
+        ? `Still inside the dashed circle after ${max} jumps. It could still leave.`
         : max === 0
           ? "Already outside the dashed circle."
           : `Crossed the dashed circle on jump ${max}.`;

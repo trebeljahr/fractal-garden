@@ -110,20 +110,30 @@ export function landsExactly(orbit: OrbitStep[], loop: OrbitLoop) {
   return Math.hypot(last.real - first.real, last.imaginary - first.imaginary) < EXACT_LANDING;
 }
 
+// How many times one jump from z multiplies the gap between two close points.
+export type GapStretch = (z: ComplexPoint) => number;
+// z^2 + c doubles |z|. Burning Ship's fold and Mandelbar's mirror keep distances, so they match.
+export const squareStretch: GapStretch = (z) => 2 * Math.hypot(z.real, z.imaginary);
+
 // Ends the orbit at the first jump that lands back on an earlier point, or closes in on it.
+// Rows can match while the point is about to leave, so closing in also needs the gap to shrink.
 export function untilLoop(
   trace: (jumps: number) => OrbitStep[],
   limit = ORBIT_LESSON_LIMIT,
-): { orbit: OrbitStep[]; loop: OrbitLoop | null } {
+  stretch: GapStretch = squareStretch,
+): { orbit: OrbitStep[]; loop: OrbitLoop | null; gap: number | null } {
   const orbit = trace(limit + LOOP_CONFIRMATION);
   const last = Math.min(limit, orbit.length - 1);
   for (let end = 1; end <= last; end++) {
     for (let from = end - 1; from >= 0; from--) {
-      if (repeatsFrom(orbit, from, end))
-        return { orbit: orbit.slice(0, end + 1), loop: { from, period: end - from } };
+      if (!repeatsFrom(orbit, from, end)) continue;
+      const loop = { from, period: end - from };
+      const gap = orbit.slice(from, end).reduce((total, { point }) => total * stretch(point), 1);
+      if (gap < 1 || landsExactly(orbit, loop))
+        return { orbit: orbit.slice(0, end + 1), loop, gap };
     }
   }
-  return { orbit: orbit.slice(0, last + 1), loop: null };
+  return { orbit: orbit.slice(0, last + 1), loop: null, gap: null };
 }
 
 export function traceUntilLoop(
