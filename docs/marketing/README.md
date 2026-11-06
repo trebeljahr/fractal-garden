@@ -48,3 +48,7 @@ The gallery shots hide the interface with each page's own **Hide UI** button. Th
 | `social-preview/social-preview-d.png` | D: the home card's three by two grid with renders | The six `screenshots/gallery-*.webp` renders |
 
 None of them is uploaded to GitHub yet. The repository settings take one card under **Social preview**. `--review=<folder>` also copies the PNGs to that folder with a `review-sheet.jpg` of all four.
+
+## Live GitHub social preview
+
+`social-preview/github-social-preview.jpg` is the card uploaded in Settings → Social preview on 2026-11-07. It is the existing home-grid link-preview crop from the vault press set (`ai-work-notes/projects/fractal-garden/assets/home-grid-top-crop-1200x630.webp`), center-cropped to 1280×640 with ImageMagick (`magick SRC -resize 1280x640^ -gravity center -extent 1280x640 -quality 90`); no new design.
