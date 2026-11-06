@@ -1,0 +1,168 @@
+{
+  "screenshots": {
+    "mandelbrot-double-spiral": {
+      "file": "docs/marketing/screenshots/mandelbrot-double-spiral.webp",
+      "purpose": "README hero: the Mandelbrot explorer with its controls, zoomed into a spiral",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 517542,
+      "sha256": "3dd25014e716237db4386d5a7f1f438b3955464a5e5a714716763b88e3dc56e9",
+      "source": "/mandelbrot (Places to explore: Double spiral)",
+      "interface": "visible",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "home": {
+      "file": "docs/marketing/screenshots/home.webp",
+      "purpose": "Home page: title and the first row of the fractal grid",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 148024,
+      "sha256": "61f632af36f35e380d98ff603c96256fa3a87c822b40002f3b75e80cf3bb3812",
+      "source": "/",
+      "interface": "visible",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "mandelbrot-article": {
+      "file": "docs/marketing/screenshots/mandelbrot-article.webp",
+      "purpose": "The article under the Mandelbrot explorer, with its first interactive demo",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 182326,
+      "sha256": "6b68030fe5a2ca33021a8491397b30b6c0190750567df8b4efde9168d0bd61e2",
+      "source": "/mandelbrot",
+      "interface": "visible",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "l-system-explorer": {
+      "file": "docs/marketing/screenshots/l-system-explorer.webp",
+      "purpose": "L-system explorer: write rules, see the curve",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 201072,
+      "sha256": "2deba4ac3e2b79419d97bb3549e380164b5f5ae106af494ab6dbd17f4e945c17",
+      "source": "/l-system/explorer",
+      "interface": "visible",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-mandelbrot-seahorse-valley": {
+      "file": "docs/marketing/screenshots/gallery-mandelbrot-seahorse-valley.webp",
+      "purpose": "Gallery: Mandelbrot set, Seahorse Valley, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 537768,
+      "sha256": "21ac1967e7b035c2eaa200fddafd1e84e48e5c5f194ec3f21f0f996ff4f7d7b8",
+      "source": "/mandelbrot (Places to explore: Seahorse Valley)",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-julia-sea-spiral": {
+      "file": "docs/marketing/screenshots/gallery-julia-sea-spiral.webp",
+      "purpose": "Gallery: Julia set, Sea spiral, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 295822,
+      "sha256": "8fdec947e1cdec4994165baaef9e1ed51790d4495931e8e9ba99e890ec196736",
+      "source": "/julia-set (Places to explore: Sea spiral)",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-burning-ship-little-ship": {
+      "file": "docs/marketing/screenshots/gallery-burning-ship-little-ship.webp",
+      "purpose": "Gallery: Burning Ship, Little ship, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 477600,
+      "sha256": "e378bf12a1004bbf697cde4d48f1963140507ed44626990759bfe77cf77d925f",
+      "source": "/burning-ship (Places to explore: Little ship)",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-mandelbulb": {
+      "file": "docs/marketing/screenshots/gallery-mandelbulb.webp",
+      "purpose": "Gallery: Mandelbulb, default view, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 312382,
+      "sha256": "56fec04a05cfbde223a813417df459464d6e85809d1bcbc1271bbc018848c333",
+      "source": "/mandelbulb",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-dragon-curve": {
+      "file": "docs/marketing/screenshots/gallery-dragon-curve.webp",
+      "purpose": "Gallery: Dragon curve L-system, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 390976,
+      "sha256": "d3efd7f8ac151ce05bcf203d5359a650609d40f6aec764a927506ed99c493f70",
+      "source": "/l-system/dragon-curve",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "gallery-barnsley-fern": {
+      "file": "docs/marketing/screenshots/gallery-barnsley-fern.webp",
+      "purpose": "Gallery: Barnsley fern, interface hidden",
+      "width": 3200,
+      "height": 2000,
+      "bytes": 282672,
+      "sha256": "c4fea0bc50952f8822c999f2fd681598bc8ddbe8225196471b9c672cfe692e2b",
+      "source": "/barnsley-fern",
+      "interface": "hidden with the page's Hide UI button; its Show UI button made transparent",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    },
+    "mobile-mandelbrot": {
+      "file": "docs/marketing/screenshots/mobile-mandelbrot.webp",
+      "purpose": "Phone width: the Mandelbrot explorer",
+      "width": 1170,
+      "height": 2532,
+      "bytes": 96072,
+      "sha256": "b26fda7b6954ab726d4a1e0e03896047af6b538d0a2d918bcb8a9abd9b4d3b3b",
+      "source": "/mandelbrot",
+      "interface": "visible",
+      "captured": "2026-11-06",
+      "commit": "6e98a25"
+    }
+  },
+  "socialPreview": {
+    "a": {
+      "file": "docs/marketing/social-preview/social-preview-a.png",
+      "purpose": "Screenshot-led: Seahorse Valley full bleed, title and one line on the left",
+      "width": 1280,
+      "height": 640,
+      "bytes": 775591,
+      "sha256": "22dc11d813288c110f4b8ebc535028fb0392b530d50e7eb04de77d75d7933f89",
+      "encoding": "PNG, lossless",
+      "rendered": "2026-11-06"
+    },
+    "b": {
+      "file": "docs/marketing/social-preview/social-preview-b.png",
+      "purpose": "Brand-led: the home page heading over a row of six home-grid thumbnails",
+      "width": 1280,
+      "height": 640,
+      "bytes": 250504,
+      "sha256": "2d2e51ef66a16f6ef3267e632cc298cb3e7212e48abcbd846f9160cca4549090",
+      "encoding": "PNG, lossless",
+      "rendered": "2026-11-06"
+    },
+    "c": {
+      "file": "docs/marketing/social-preview/social-preview-c.png",
+      "purpose": "Split: title and line on the left, a 2x2 mosaic of captures on the right",
+      "width": 1280,
+      "height": 640,
+      "bytes": 398117,
+      "sha256": "6d22bbe91e6ec198dd027b7f24206d7d89eeae209ca1a4dc3f4f41220547a409",
+      "encoding": "PNG, lossless",
+      "rendered": "2026-11-06"
+    }
+  }
+}

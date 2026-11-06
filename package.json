@@ -2,6 +2,17 @@
   "name": "fractals",
   "version": "0.1.0",
   "private": true,
+  "description": "Zoom into the Mandelbrot set, fly through a Menger sponge and write your own L-systems, live in your browser.",
+  "homepage": "https://fractal.garden",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trebeljahr/fractal-garden.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trebeljahr/fractal-garden/issues"
+  },
+  "license": "MIT",
+  "author": "Rico Trebeljahr",
   "packageManager": "pnpm@10.33.2",
   "engines": {
     "node": ">=24"
@@ -10,6 +21,8 @@
     "dev": "next dev -p 1111",
     "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs && node scripts/generate-sitemap.mjs",
     "og:images": "node scripts/generate-og-images.mjs",
+    "marketing:screenshots": "node scripts/marketing/capture-screenshots.mjs",
+    "marketing:social-preview": "node scripts/marketing/render-social-preview.mjs",
     "validate:presets": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-lsystem-presets.mjs",
     "check:links": "node scripts/check-article-links.mjs",
     "test:garden": "node scripts/test-garden.mjs",
