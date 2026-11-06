@@ -136,33 +136,76 @@
   "socialPreview": {
     "a": {
       "file": "docs/marketing/social-preview/social-preview-a.png",
-      "purpose": "Screenshot-led: Seahorse Valley full bleed, title and one line on the left",
+      "purpose": "The home link preview at 2:1: the same six thumbnails, panel and title.",
       "width": 1280,
       "height": 640,
-      "bytes": 775591,
-      "sha256": "22dc11d813288c110f4b8ebc535028fb0392b530d50e7eb04de77d75d7933f89",
-      "encoding": "PNG, lossless",
-      "rendered": "2026-11-06"
+      "bytes": 282237,
+      "sha256": "fe62c5778f242e39dd486d9afd606c9a7909d4551938698662e054c5fc92c304",
+      "encoding": "PNG, 256-colour palette",
+      "design": "scripts/generate-og-images.mjs (the public/assets/og/home.jpg link preview)",
+      "sources": [
+        "public/assets/fractal-images/mandelbrot.jpg",
+        "public/assets/fractal-images/barnsley-fern.jpg",
+        "public/assets/fractal-images/menger-sponge.jpg",
+        "public/assets/fractal-images/penrose-tiling.jpg",
+        "public/assets/fractal-images/julia-set.jpg",
+        "public/assets/fractal-images/pythagoras-tree.jpg"
+      ],
+      "rendered": "2026-11-07"
     },
     "b": {
       "file": "docs/marketing/social-preview/social-preview-b.png",
-      "purpose": "Brand-led: the home page heading over a row of six home-grid thumbnails",
+      "purpose": "The same design over eight other fractal thumbnails, four by two.",
       "width": 1280,
       "height": 640,
-      "bytes": 250504,
-      "sha256": "2d2e51ef66a16f6ef3267e632cc298cb3e7212e48abcbd846f9160cca4549090",
-      "encoding": "PNG, lossless",
-      "rendered": "2026-11-06"
+      "bytes": 257055,
+      "sha256": "e4573387e90bdb6e3a20ae994988339545f8b1c13a5b69ffd2dac10a4c2937db",
+      "encoding": "PNG, 256-colour palette",
+      "design": "scripts/generate-og-images.mjs (the public/assets/og/home.jpg link preview)",
+      "sources": [
+        "public/assets/fractal-images/burning-ship.jpg",
+        "public/assets/fractal-images/barnsley-tree.jpg",
+        "public/assets/fractal-images/jerusalem-cube.jpg",
+        "public/assets/fractal-images/l-system-twindragon.jpg",
+        "public/assets/fractal-images/romanesco.jpg",
+        "public/assets/fractal-images/mandelbar-set.jpg",
+        "public/assets/fractal-images/quadratic-koch-3d.jpg",
+        "public/assets/fractal-images/l-system-dragon-curve.jpg"
+      ],
+      "rendered": "2026-11-07"
     },
     "c": {
       "file": "docs/marketing/social-preview/social-preview-c.png",
-      "purpose": "Split: title and line on the left, a 2x2 mosaic of captures on the right",
+      "purpose": "The same panel over one render: Mandelbrot set, Seahorse Valley, full bleed.",
       "width": 1280,
       "height": 640,
-      "bytes": 398117,
-      "sha256": "6d22bbe91e6ec198dd027b7f24206d7d89eeae209ca1a4dc3f4f41220547a409",
+      "bytes": 659947,
+      "sha256": "085bb0f6bd715b7e155e07c127cd85b727fd1c7b8dc3878d9fbc3dfd199f5844",
       "encoding": "PNG, lossless",
-      "rendered": "2026-11-06"
+      "design": "scripts/generate-og-images.mjs (the public/assets/og/home.jpg link preview)",
+      "sources": [
+        "docs/marketing/screenshots/gallery-mandelbrot-seahorse-valley.webp"
+      ],
+      "rendered": "2026-11-07"
+    },
+    "d": {
+      "file": "docs/marketing/social-preview/social-preview-d.png",
+      "purpose": "The home card's three by two grid with the six gallery renders in place of the thumbnails.",
+      "width": 1280,
+      "height": 640,
+      "bytes": 698835,
+      "sha256": "29e6ce24b7d620e9a382299e5a07ff7898d457d761a99769c35b17eb070d9f1d",
+      "encoding": "PNG, lossless",
+      "design": "scripts/generate-og-images.mjs (the public/assets/og/home.jpg link preview)",
+      "sources": [
+        "docs/marketing/screenshots/gallery-mandelbrot-seahorse-valley.webp",
+        "docs/marketing/screenshots/gallery-julia-sea-spiral.webp",
+        "docs/marketing/screenshots/gallery-burning-ship-little-ship.webp",
+        "docs/marketing/screenshots/gallery-mandelbulb.webp",
+        "docs/marketing/screenshots/gallery-dragon-curve.webp",
+        "docs/marketing/screenshots/gallery-barnsley-fern.webp"
+      ],
+      "rendered": "2026-11-07"
     }
   }
 }

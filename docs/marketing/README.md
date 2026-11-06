@@ -1,6 +1,6 @@
 # Marketing assets
 
-Screenshots and GitHub social preview cards for Fractal Garden. Every image is a capture of the real site in headless Chromium (ANGLE Metal GPU), taken from a static build of commit `6e98a25` on 2026-11-06. Nothing is mocked up or generated.
+Screenshots and GitHub social preview cards for Fractal Garden. Every screenshot is a capture of the real site in headless Chromium (ANGLE Metal GPU), taken from a static build of commit `6e98a25` on 2026-11-06. The cards are the site's own link preview design, composed from those captures and the site's fractal thumbnails. Nothing is mocked up or generated.
 
 [`manifest.json`](manifest.json) lists every file with its purpose, size, SHA-256, source page and capture date.
 
@@ -9,12 +9,12 @@ Screenshots and GitHub social preview cards for Fractal Garden. Every image is a
 ```bash
 pnpm build                      # static site in out/
 pnpm marketing:screenshots      # serves out/ on a free port, writes screenshots/
-pnpm marketing:social-preview   # renders social-preview/*.png from template.html
+pnpm marketing:social-preview   # renders social-preview/*.png in the site's link preview design
 ```
 
-Both scripts need Playwright, which is not a project dependency: install it with `npm i -g playwright`. Set `CHROMIUM_PATH` to use a Chromium build other than Playwright's default. `--only=name1,name2` recaptures single shots. `--base-url=<url>` captures a running site instead of `out/`.
+The screenshot script needs Playwright, which is not a project dependency: install it with `npm i -g playwright`. Set `CHROMIUM_PATH` to use a Chromium build other than Playwright's default. `--only=name1,name2` recaptures single shots. `--base-url=<url>` captures a running site instead of `out/`. The social preview script needs only sharp.
 
-Scripts: [`scripts/marketing/capture-screenshots.mjs`](../../scripts/marketing/capture-screenshots.mjs) and [`scripts/marketing/render-social-preview.mjs`](../../scripts/marketing/render-social-preview.mjs).
+Scripts: [`scripts/marketing/capture-screenshots.mjs`](../../scripts/marketing/capture-screenshots.mjs), [`scripts/marketing/render-social-preview.mjs`](../../scripts/marketing/render-social-preview.mjs) and [`scripts/generate-og-images.mjs`](../../scripts/generate-og-images.mjs), which holds the card design.
 
 ## Screenshots
 
@@ -26,24 +26,25 @@ Desktop shots are 1600×1000 CSS pixels at device scale 2, so the files are 3200
 | `screenshots/home.webp` | Home page: title and the first row of the grid | Marketing set |
 | `screenshots/mandelbrot-article.webp` | Mandelbrot article with its first interactive demo | README |
 | `screenshots/l-system-explorer.webp` | L-System Explorer, default preset | README |
-| `screenshots/gallery-mandelbrot-seahorse-valley.webp` | Mandelbrot set, Seahorse Valley | README gallery, card A |
-| `screenshots/gallery-julia-sea-spiral.webp` | Julia set, Sea spiral | README gallery, card C |
-| `screenshots/gallery-burning-ship-little-ship.webp` | Burning Ship, Little ship | README gallery, card C |
-| `screenshots/gallery-mandelbulb.webp` | Mandelbulb, default view | README gallery, card C |
-| `screenshots/gallery-dragon-curve.webp` | Dragon curve L-system | README gallery |
-| `screenshots/gallery-barnsley-fern.webp` | Barnsley fern | README gallery, card C |
+| `screenshots/gallery-mandelbrot-seahorse-valley.webp` | Mandelbrot set, Seahorse Valley | README gallery, cards C and D |
+| `screenshots/gallery-julia-sea-spiral.webp` | Julia set, Sea spiral | README gallery, card D |
+| `screenshots/gallery-burning-ship-little-ship.webp` | Burning Ship, Little ship | README gallery, card D |
+| `screenshots/gallery-mandelbulb.webp` | Mandelbulb, default view | README gallery, card D |
+| `screenshots/gallery-dragon-curve.webp` | Dragon curve L-system | README gallery, card D |
+| `screenshots/gallery-barnsley-fern.webp` | Barnsley fern | README gallery, card D |
 | `screenshots/mobile-mandelbrot.webp` | Mandelbrot explorer at phone width (390×844 at scale 3, 1170×2532) | Marketing set |
 
 The gallery shots hide the interface with each page's own **Hide UI** button. That button leaves a small **Show UI** button in the corner, which the script makes transparent for the capture.
 
 ## Social preview cards
 
-1280×640 PNG, each under 1 MB, key content inside a 64 px margin. Built from [`social-preview/template.html`](social-preview/template.html) with the site's own Montserrat and Merriweather files and its colours (`#091115`, `#f5f1d1`, `#f5cc75`).
+1280×640 PNG, each under 1 MB (a 256-colour palette when the lossless file is larger). Each is the site's link preview, [`public/assets/og/home.jpg`](../../public/assets/og/home.jpg), at 2:1: pictures in a grid under the same vignette, the same dark rounded panel, "Fractal Garden" and "fractal.garden" in the same type and colours. The design and the four cards (`SOCIAL_PREVIEW_CARDS`) are in [`scripts/generate-og-images.mjs`](../../scripts/generate-og-images.mjs); `pnpm og:images` renders the 1200×630 card from the same code. The text sits inside the panel, well inside a 64 px margin. Rendered on 2026-11-07.
 
-| File | Composition |
-| --- | --- |
-| `social-preview/social-preview-a.png` | A, screenshot-led: Seahorse Valley full bleed, title and one line on the left |
-| `social-preview/social-preview-b.png` | B, brand-led: the home page heading over six home-grid thumbnails |
-| `social-preview/social-preview-c.png` | C, split: title on the left, a 2×2 mosaic of gallery shots on the right |
+| File | Option | Pictures |
+| --- | --- | --- |
+| `social-preview/social-preview-a.png` | A: the home link preview at 2:1 | The home card's six thumbnails from `public/assets/fractal-images/`: Mandelbrot set, Barnsley fern, Menger sponge, Penrose tiling, Julia set, Pythagoras tree |
+| `social-preview/social-preview-b.png` | B: the same design, four by two | Eight other thumbnails: Burning Ship, Barnsley tree, Jerusalem cube, twindragon, romanesco, Mandelbar set, quadratic Koch surface, dragon curve |
+| `social-preview/social-preview-c.png` | C: the panel over one render, full bleed | `screenshots/gallery-mandelbrot-seahorse-valley.webp` |
+| `social-preview/social-preview-d.png` | D: the home card's three by two grid with renders | The six `screenshots/gallery-*.webp` renders |
 
-None of them is uploaded to GitHub yet. The repository settings take one card under **Social preview**.
+None of them is uploaded to GitHub yet. The repository settings take one card under **Social preview**. `--review=<folder>` also copies the PNGs to that folder with a `review-sheet.jpg` of all four.
