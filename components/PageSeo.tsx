@@ -14,6 +14,7 @@ export const PageSeo = () => {
     );
   }
   const seo = getPageSeo(pathname);
+  const author = { "@type": "Person", name: "Rico Trebeljahr", url: "https://ricos.site" };
   // These pages include explanatory articles alongside their interactive views.
   const article = ["/mandelbulb", "/newton-fractal"].includes(pathname)
     ? {
@@ -24,10 +25,26 @@ export const PageSeo = () => {
         image: seo.imageUrl,
         url: seo.url,
         mainEntityOfPage: seo.url,
-        author: { "@type": "Person", name: "Rico Trebeljahr", url: "https://ricos.site" },
+        author,
         inLanguage: "en",
       }
     : null;
+  // Google reads the site name from a WebSite entity on the home page.
+  const website =
+    pathname === "/"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: seo.siteName,
+          url: seo.url,
+          description: seo.description,
+          image: seo.imageUrl,
+          author,
+          inLanguage: "en",
+          isAccessibleForFree: true,
+        }
+      : null;
+  const schema = article ?? website;
 
   return (
     <Head>
@@ -36,11 +53,12 @@ export const PageSeo = () => {
       <meta key="keywords" name="keywords" content={seo.keywords} />
       <meta key="robots" name="robots" content="index,follow" />
       <link key="canonical" rel="canonical" href={seo.url} />
-      {article ? (
+      {schema ? (
         <script
-          key="article-schema"
+          key="page-schema"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(article).replace(/</g, "\\u003c") }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inline; "<" is escaped.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
         />
       ) : null}
 
