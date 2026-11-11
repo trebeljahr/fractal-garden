@@ -33,13 +33,12 @@ Desktop shots are 1600×1000 CSS pixels at device scale 2, so the files are 3200
 | `screenshots/gallery-dragon-curve.webp` | Dragon curve L-system | README gallery, card D |
 | `screenshots/gallery-barnsley-fern.webp` | Barnsley fern | README gallery, card D |
 | `screenshots/mobile-mandelbrot.webp` | Mandelbrot explorer at phone width (390×844 at scale 3, 1170×2532) | Marketing set |
-| `screenshots/home-grid-top.webp` | Top of the home page, title over the first row of the gallery (2400×1260). Not from the capture script: the press set's home-grid crop of 2026-10-08, the same file the live GitHub card was cut from | og-wordmark |
 
 The gallery shots hide the interface with each page's own **Hide UI** button. That button leaves a small **Show UI** button in the corner, which the script makes transparent for the capture.
 
 ## Social preview cards
 
-1280×640 PNG, each under 1 MB (a 256-colour palette when the lossless file is larger). Each is the site's link preview, [`public/assets/og/home.jpg`](../../public/assets/og/home.jpg), at 2:1: pictures in a grid under the same vignette, the same dark rounded panel, "Fractal Garden" and "fractal.garden" in the same type and colours. The design and the four cards (`SOCIAL_PREVIEW_CARDS`) are in [`scripts/generate-og-images.mjs`](../../scripts/generate-og-images.mjs); `pnpm og:images` renders the 1200×630 card from the same code. The text sits inside the panel, well inside a 64 px margin. Rendered on 2026-11-07.
+1280×640 PNG, each under 1 MB (a 256-colour palette when the lossless file is larger). Each is the site's link preview, [`public/assets/og/home.jpg`](../../public/assets/og/home.jpg), at 2:1: pictures in a grid under the same vignette, the same dark rounded panel and "Fractal Garden" in the same type, with the green "fractal.garden" line of the uploaded card (the 1200×630 card has the site's subtitle in grey instead). The design and the four cards (`SOCIAL_PREVIEW_CARDS`) are in [`scripts/generate-og-images.mjs`](../../scripts/generate-og-images.mjs); `pnpm og:images` renders the 1200×630 card from the same code. The text sits inside the panel, well inside a 64 px margin. Rendered on 2026-11-07.
 
 | File | Option | Pictures |
 | --- | --- | --- |
@@ -52,11 +51,11 @@ None of them is uploaded to GitHub yet. The repository settings take one card un
 
 ## og:image cards
 
-1200×630 PNG, the og:image size, written by `pnpm marketing:social-preview` after the GitHub cards. Rendered on 2026-11-11.
+1200×630 PNG, the og:image size, written by `pnpm marketing:social-preview` after the GitHub cards. Rendered on 2026-11-12.
 
 | File | What it shows |
 | --- | --- |
-| `social-preview/og-wordmark.png` | `screenshots/home-grid-top.webp` downscaled: the "Fractal Garden" title over the Mandelbrot set, Julia set and Burning Ship cards. |
+| `social-preview/og-wordmark.png` | The site's link preview card (`public/assets/og/home.jpg`, from `scripts/generate-og-images.mjs`) as lossless PNG: six thumbnails under the dark panel, "Fractal Garden" and the site's subtitle "An Exhibition Of Mathematical Beauty" in grey. |
 | `social-preview/og-clean.png` | No text: eight thumbnails from `public/assets/fractal-images/` as the home page's square cards on its background, four by two (Mandelbrot set, Barnsley fern, Julia set, Menger sponge; Pythagoras tree, Burning Ship, twindragon, Mandelbar set). Drawn at 2× and downscaled. |
 
 ## Live GitHub social preview

@@ -131,17 +131,6 @@
       "interface": "visible",
       "captured": "2026-11-06",
       "commit": "6e98a25"
-    },
-    "home-grid-top": {
-      "file": "docs/marketing/screenshots/home-grid-top.webp",
-      "purpose": "Source of og-wordmark.png: the top of the home page, title over the first row of the gallery",
-      "width": 2400,
-      "height": 1260,
-      "bytes": 98682,
-      "sha256": "7fdf2de221a93bf832472bff30c3c59a2fe30f4200e22aaa0ebc4b13abb6a0f7",
-      "source": "https://fractal.garden/ (crop of the top of the page, press set; WebP copy of the lossless master in the design-history archive, fractal-garden/2026-10-08/press-screenshots/)",
-      "interface": "visible",
-      "captured": "2026-10-08"
     }
   },
   "socialPreview": {
@@ -220,14 +209,19 @@
     },
     "og-wordmark": {
       "file": "docs/marketing/social-preview/og-wordmark.png",
-      "purpose": "og:image: the top of the home page, title over the first row of the gallery.",
+      "purpose": "og:image: the home link preview card, six thumbnails under the title panel with the site's subtitle.",
       "width": 1200,
       "height": 630,
-      "bytes": 281009,
-      "sha256": "1191be79206383a6ad5db19e63ada061e87742b42a4531dabeb2b7f4981b2f47",
+      "bytes": 980891,
+      "sha256": "78895d354801c9691245cbd177865dc07a3219e31b174476a3d698f81bf33173",
       "encoding": "PNG, lossless",
       "sources": [
-        "docs/marketing/screenshots/home-grid-top.webp"
+        "public/assets/fractal-images/mandelbrot.jpg",
+        "public/assets/fractal-images/barnsley-fern.jpg",
+        "public/assets/fractal-images/menger-sponge.jpg",
+        "public/assets/fractal-images/penrose-tiling.jpg",
+        "public/assets/fractal-images/julia-set.jpg",
+        "public/assets/fractal-images/pythagoras-tree.jpg"
       ],
       "rendered": "2026-11-11"
     },

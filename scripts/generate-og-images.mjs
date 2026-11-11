@@ -23,8 +23,10 @@ const BACKGROUND = "#141414";
 
 // One entry per card. `tiles` are thumbnail basenames, or paths from the
 // repository root for other images, laid out in a grid of `columns`; a
-// per-route card can use a single tile with columns: 1.
-const CARDS = [
+// per-route card can use a single tile with columns: 1. `subtitleStyle`
+// overrides the line under the title (size, letterSpacing, color, baseline:
+// px below the panel's top edge); see SUBTITLE_STYLE.
+export const CARDS = [
   {
     output: "home.jpg",
     columns: 3,
@@ -37,12 +39,18 @@ const CARDS = [
       "pythagoras-tree",
     ],
     title: "Fractal Garden",
-    subtitle: "fractal.garden",
+    // The site's own subtitle, in a quiet grey, so the line does not read as a link.
+    subtitle: "An Exhibition Of Mathematical Beauty",
+    subtitleStyle: { size: 29, letterSpacing: 2, color: "#c9c9c9", baseline: 184 },
   },
 ];
 
+// The URL line in green, as on the GitHub social preview cards.
+const SUBTITLE_STYLE = { size: 38, letterSpacing: 3, color: "#9be89b", baseline: 188 };
+
 // GitHub's social preview card is 1280x640. Same tiles, panel and type as
 // the home card; only the canvas and the pictures under the panel change.
+// They keep the "fractal.garden" line of the card uploaded on 2026-11-07.
 export const SOCIAL_PREVIEW_CARDS = [
   {
     id: "a",
@@ -89,7 +97,7 @@ export const SOCIAL_PREVIEW_CARDS = [
   width: 1280,
   height: 640,
   title: CARDS[0].title,
-  subtitle: CARDS[0].subtitle,
+  subtitle: "fractal.garden",
 }));
 
 function escapeXml(text) {
@@ -121,7 +129,14 @@ async function renderTiles({ tiles, columns, width: W = OG_WIDTH, height: H = OG
   );
 }
 
-function renderOverlay({ title, subtitle, width: W = OG_WIDTH, height: H = OG_HEIGHT }) {
+function renderOverlay({
+  title,
+  subtitle,
+  subtitleStyle,
+  width: W = OG_WIDTH,
+  height: H = OG_HEIGHT,
+}) {
+  const sub = { ...SUBTITLE_STYLE, ...subtitleStyle };
   const panelWidth = 760;
   const panelHeight = 230;
   const panelX = (W - panelWidth) / 2;
@@ -142,9 +157,9 @@ function renderOverlay({ title, subtitle, width: W = OG_WIDTH, height: H = OG_HE
       <text x="${centerX}" y="${panelY + 128}" text-anchor="middle"
         font-family="${FONT_STACK}" font-size="92" font-weight="700" fill="#ffffff"
         letter-spacing="1">${escapeXml(title)}</text>
-      <text x="${centerX}" y="${panelY + 188}" text-anchor="middle"
-        font-family="${FONT_STACK}" font-size="38" font-weight="500" fill="#9be89b"
-        letter-spacing="3">${escapeXml(subtitle)}</text>
+      <text x="${centerX}" y="${panelY + sub.baseline}" text-anchor="middle"
+        font-family="${FONT_STACK}" font-size="${sub.size}" font-weight="500" fill="${sub.color}"
+        letter-spacing="${sub.letterSpacing}">${escapeXml(subtitle)}</text>
     </svg>`;
 
   return Buffer.from(svg);

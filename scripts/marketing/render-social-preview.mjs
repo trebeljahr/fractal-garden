@@ -13,9 +13,9 @@
 //
 // It also writes two og:image cards, 1200x630 PNG, downscaled with
 // ImageMagick (`magick`):
-//   og-wordmark.png  the top of the home page, title over the first row of
-//     the gallery: screenshots/home-grid-top.webp (2400x1260, the press set's
-//     home-grid crop of 2026-10-08) downscaled.
+//   og-wordmark.png  the site's link preview card, public/assets/og/home.jpg's
+//     design as lossless PNG: six thumbnails, the panel, "Fractal Garden" and
+//     the subtitle (CARDS[0] in scripts/generate-og-images.mjs).
 //   og-clean.png  the home page's gallery cards without the title, subtitle
 //     or captions: eight thumbnails from public/assets/fractal-images as
 //     square cards on the page's #091115 background, four by two, the
@@ -27,7 +27,7 @@ import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { composeCard, SOCIAL_PREVIEW_CARDS } from "../generate-og-images.mjs";
+import { CARDS, composeCard, SOCIAL_PREVIEW_CARDS } from "../generate-og-images.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const DIR = join(ROOT, "docs", "marketing", "social-preview");
@@ -35,7 +35,6 @@ const MANIFEST = join(ROOT, "docs", "marketing", "manifest.json");
 const MAX_BYTES = 1_000_000;
 const REVIEW_DIR = process.argv.find((a) => a.startsWith("--review="))?.slice("--review=".length);
 
-const HOME_GRID_TOP = "docs/marketing/screenshots/home-grid-top.webp";
 const OG_CLEAN_ROWS = [
   ["mandelbrot", "barnsley-fern", "julia-set", "menger-sponge"],
   ["pythagoras-tree", "burning-ship", "l-system-twindragon", "mandelbar-set"],
@@ -99,9 +98,9 @@ async function ogClean() {
 const OG_CARDS = [
   {
     id: "og-wordmark",
-    what: "og:image: the top of the home page, title over the first row of the gallery.",
-    sources: [HOME_GRID_TOP],
-    render: (out) => toOgSize(join(ROOT, HOME_GRID_TOP), out),
+    what: "og:image: the home link preview card, six thumbnails under the title panel with the site's subtitle.",
+    sources: CARDS[0].tiles.map((tile) => `public/assets/fractal-images/${tile}.jpg`),
+    render: async (out) => toOgSize(await (await composeCard(CARDS[0])).png().toBuffer(), out),
   },
   {
     id: "og-clean",
