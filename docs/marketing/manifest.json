@@ -212,14 +212,14 @@
       "purpose": "og:image: the home link preview card, six thumbnails under the title panel with the site's subtitle.",
       "width": 1200,
       "height": 630,
-      "bytes": 980891,
-      "sha256": "78895d354801c9691245cbd177865dc07a3219e31b174476a3d698f81bf33173",
+      "bytes": 827798,
+      "sha256": "d2acd0100ae4c0bfc13aa0427db1644c7dd9164b20bbaa230474ea7c1bbbf08a",
       "encoding": "PNG, lossless",
       "sources": [
         "public/assets/fractal-images/mandelbrot.jpg",
         "public/assets/fractal-images/barnsley-fern.jpg",
         "public/assets/fractal-images/menger-sponge.jpg",
-        "public/assets/fractal-images/penrose-tiling.jpg",
+        "public/assets/fractal-images/l-system-twindragon.jpg",
         "public/assets/fractal-images/julia-set.jpg",
         "public/assets/fractal-images/pythagoras-tree.jpg"
       ],
@@ -227,21 +227,19 @@
     },
     "og-clean": {
       "file": "docs/marketing/social-preview/og-clean.png",
-      "purpose": "og:image without text: eight gallery thumbnails as the home page's cards, four by two.",
+      "purpose": "og:image without text: the home link preview card's six thumbnails, no vignette, panel or text.",
       "width": 1200,
       "height": 630,
-      "bytes": 522898,
-      "sha256": "522cf7d26f5831034f670d65617b5c38949980de4ed276d0a52bc84979d3bcf4",
+      "bytes": 929763,
+      "sha256": "827ecee4e3038552b6bfb3569fd34d6fd30b5eb79a4da32c767fdf169426efda",
       "encoding": "PNG, lossless",
       "sources": [
         "public/assets/fractal-images/mandelbrot.jpg",
         "public/assets/fractal-images/barnsley-fern.jpg",
-        "public/assets/fractal-images/julia-set.jpg",
         "public/assets/fractal-images/menger-sponge.jpg",
-        "public/assets/fractal-images/pythagoras-tree.jpg",
-        "public/assets/fractal-images/burning-ship.jpg",
         "public/assets/fractal-images/l-system-twindragon.jpg",
-        "public/assets/fractal-images/mandelbar-set.jpg"
+        "public/assets/fractal-images/julia-set.jpg",
+        "public/assets/fractal-images/pythagoras-tree.jpg"
       ],
       "rendered": "2026-11-11"
     }

@@ -30,11 +30,13 @@ export const CARDS = [
   {
     output: "home.jpg",
     columns: 3,
+    // The twindragon replaced the Penrose tiling (2026-11-11): a tiling is
+    // not really a fractal, and the purple and orange halves add colour.
     tiles: [
       "mandelbrot",
       "barnsley-fern",
       "menger-sponge",
-      "penrose-tiling",
+      "l-system-twindragon",
       "julia-set",
       "pythagoras-tree",
     ],
@@ -56,7 +58,15 @@ export const SOCIAL_PREVIEW_CARDS = [
     id: "a",
     what: "The home link preview at 2:1: the same six thumbnails, panel and title.",
     columns: 3,
-    tiles: CARDS[0].tiles,
+    // The uploaded card's tiles, from before the twindragon replaced the tiling.
+    tiles: [
+      "mandelbrot",
+      "barnsley-fern",
+      "menger-sponge",
+      "penrose-tiling",
+      "julia-set",
+      "pythagoras-tree",
+    ],
   },
   {
     id: "b",
@@ -165,14 +175,17 @@ function renderOverlay({
   return Buffer.from(svg);
 }
 
-/** The card as a sharp pipeline; the caller picks the output format. */
-export async function composeCard(card) {
+/**
+ * The card as a sharp pipeline; the caller picks the output format. With
+ * `panel: false` only the tiles are drawn: no vignette, panel or text.
+ */
+export async function composeCard(card, { panel = true } = {}) {
   const width = card.width ?? OG_WIDTH;
   const height = card.height ?? OG_HEIGHT;
   const tiles = await renderTiles(card);
   return sharp({
     create: { width, height, channels: 3, background: BACKGROUND },
-  }).composite([...tiles, { input: renderOverlay(card), left: 0, top: 0 }]);
+  }).composite(panel ? [...tiles, { input: renderOverlay(card), left: 0, top: 0 }] : tiles);
 }
 
 async function renderCard(card) {

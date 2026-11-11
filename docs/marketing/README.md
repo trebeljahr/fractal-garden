@@ -42,7 +42,7 @@ The gallery shots hide the interface with each page's own **Hide UI** button. Th
 
 | File | Option | Pictures |
 | --- | --- | --- |
-| `social-preview/social-preview-a.png` | A: the home link preview at 2:1 | The home card's six thumbnails from `public/assets/fractal-images/`: Mandelbrot set, Barnsley fern, Menger sponge, Penrose tiling, Julia set, Pythagoras tree |
+| `social-preview/social-preview-a.png` | A: the home link preview at 2:1 | The home card's six thumbnails as uploaded, from before the twindragon replaced the Penrose tiling: Mandelbrot set, Barnsley fern, Menger sponge, Penrose tiling, Julia set, Pythagoras tree |
 | `social-preview/social-preview-b.png` | B: the same design, four by two | Eight other thumbnails: Burning Ship, Barnsley tree, Jerusalem cube, twindragon, romanesco, Mandelbar set, quadratic Koch surface, dragon curve |
 | `social-preview/social-preview-c.png` | C: the panel over one render, full bleed | `screenshots/gallery-mandelbrot-seahorse-valley.webp` |
 | `social-preview/social-preview-d.png` | D: the home card's three by two grid with renders | The six `screenshots/gallery-*.webp` renders |
@@ -55,8 +55,8 @@ None of them is uploaded to GitHub yet. The repository settings take one card un
 
 | File | What it shows |
 | --- | --- |
-| `social-preview/og-wordmark.png` | The site's link preview card (`public/assets/og/home.jpg`, from `scripts/generate-og-images.mjs`) as lossless PNG: six thumbnails under the dark panel, "Fractal Garden" and the site's subtitle "An Exhibition Of Mathematical Beauty" in grey. |
-| `social-preview/og-clean.png` | No text: eight thumbnails from `public/assets/fractal-images/` as the home page's square cards on its background, four by two (Mandelbrot set, Barnsley fern, Julia set, Menger sponge; Pythagoras tree, Burning Ship, twindragon, Mandelbar set). Drawn at 2× and downscaled. |
+| `social-preview/og-wordmark.png` | The site's link preview card (`public/assets/og/home.jpg`, from `scripts/generate-og-images.mjs`) as lossless PNG: six thumbnails (Mandelbrot set, Barnsley fern, Menger sponge, twindragon, Julia set, Pythagoras tree) under the dark panel, "Fractal Garden" and the site's subtitle "An Exhibition Of Mathematical Beauty" in grey. |
+| `social-preview/og-clean.png` | No text: the same six thumbnails as `og-wordmark.png`, without the vignette, panel or text. |
 
 ## Live GitHub social preview
 

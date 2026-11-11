@@ -16,11 +16,8 @@
 //   og-wordmark.png  the site's link preview card, public/assets/og/home.jpg's
 //     design as lossless PNG: six thumbnails, the panel, "Fractal Garden" and
 //     the subtitle (CARDS[0] in scripts/generate-og-images.mjs).
-//   og-clean.png  the home page's gallery cards without the title, subtitle
-//     or captions: eight thumbnails from public/assets/fractal-images as
-//     square cards on the page's #091115 background, four by two, the
-//     escape-time blues alternating with the grey-backed geometric ones.
-//     Drawn at 2x and downscaled.
+//   og-clean.png  the same six thumbnails without the vignette, panel or
+//     text, so the text-free card is the wordmark card's background.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
@@ -34,11 +31,6 @@ const DIR = join(ROOT, "docs", "marketing", "social-preview");
 const MANIFEST = join(ROOT, "docs", "marketing", "manifest.json");
 const MAX_BYTES = 1_000_000;
 const REVIEW_DIR = process.argv.find((a) => a.startsWith("--review="))?.slice("--review=".length);
-
-const OG_CLEAN_ROWS = [
-  ["mandelbrot", "barnsley-fern", "julia-set", "menger-sponge"],
-  ["pythagoras-tree", "burning-ship", "l-system-twindragon", "mandelbar-set"],
-];
 
 /** Downscale an image file or PNG buffer to exactly 1200x630 with ImageMagick. */
 function toOgSize(input, out) {
@@ -64,37 +56,6 @@ function toOgSize(input, out) {
   }
 }
 
-/** The clean card: 256 px cards, 28 px gaps, 5 px corners, drawn at 2x. */
-async function ogClean() {
-  const S = 2;
-  const W = 1200 * S;
-  const H = 630 * S;
-  const TILE = 256 * S;
-  const GAP = 28 * S;
-  const RADIUS = 5 * S;
-  const cols = OG_CLEAN_ROWS[0].length;
-  const x0 = Math.round((W - cols * TILE - (cols - 1) * GAP) / 2);
-  const y0 = Math.round((H - OG_CLEAN_ROWS.length * TILE - (OG_CLEAN_ROWS.length - 1) * GAP) / 2);
-  const mask = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${TILE}" height="${TILE}"><rect width="${TILE}" height="${TILE}" rx="${RADIUS}" ry="${RADIUS}"/></svg>`,
-  );
-  const composites = [];
-  for (const [r, row] of OG_CLEAN_ROWS.entries()) {
-    for (const [c, name] of row.entries()) {
-      const input = await sharp(join(ROOT, "public", "assets", "fractal-images", `${name}.jpg`))
-        .resize(TILE, TILE, { fit: "cover", position: "centre" })
-        .composite([{ input: mask, blend: "dest-in" }])
-        .png()
-        .toBuffer();
-      composites.push({ input, left: x0 + c * (TILE + GAP), top: y0 + r * (TILE + GAP) });
-    }
-  }
-  return sharp({ create: { width: W, height: H, channels: 3, background: { r: 9, g: 17, b: 21 } } })
-    .composite(composites)
-    .png()
-    .toBuffer();
-}
-
 const OG_CARDS = [
   {
     id: "og-wordmark",
@@ -104,9 +65,10 @@ const OG_CARDS = [
   },
   {
     id: "og-clean",
-    what: "og:image without text: eight gallery thumbnails as the home page's cards, four by two.",
-    sources: OG_CLEAN_ROWS.flat().map((tile) => `public/assets/fractal-images/${tile}.jpg`),
-    render: async (out) => toOgSize(await ogClean(), out),
+    what: "og:image without text: the home link preview card's six thumbnails, no vignette, panel or text.",
+    sources: CARDS[0].tiles.map((tile) => `public/assets/fractal-images/${tile}.jpg`),
+    render: async (out) =>
+      toOgSize(await (await composeCard(CARDS[0], { panel: false })).png().toBuffer(), out),
   },
 ];
 
