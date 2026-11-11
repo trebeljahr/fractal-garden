@@ -9,10 +9,10 @@ Screenshots and GitHub social preview cards for Fractal Garden. Every screenshot
 ```bash
 pnpm build                      # static site in out/
 pnpm marketing:screenshots      # serves out/ on a free port, writes screenshots/
-pnpm marketing:social-preview   # renders social-preview/*.png in the site's link preview design
+pnpm marketing:social-preview   # renders social-preview/*.png: the GitHub cards and the og:image cards
 ```
 
-The screenshot script needs Playwright, which is not a project dependency: install it with `npm i -g playwright`. Set `CHROMIUM_PATH` to use a Chromium build other than Playwright's default. `--only=name1,name2` recaptures single shots. `--base-url=<url>` captures a running site instead of `out/`. The social preview script needs only sharp.
+The screenshot script needs Playwright, which is not a project dependency: install it with `npm i -g playwright`. Set `CHROMIUM_PATH` to use a Chromium build other than Playwright's default. `--only=name1,name2` recaptures single shots. `--base-url=<url>` captures a running site instead of `out/`. The social preview script needs sharp, and ImageMagick (`magick`) for the og:image cards.
 
 Scripts: [`scripts/marketing/capture-screenshots.mjs`](../../scripts/marketing/capture-screenshots.mjs), [`scripts/marketing/render-social-preview.mjs`](../../scripts/marketing/render-social-preview.mjs) and [`scripts/generate-og-images.mjs`](../../scripts/generate-og-images.mjs), which holds the card design.
 
@@ -33,6 +33,7 @@ Desktop shots are 1600×1000 CSS pixels at device scale 2, so the files are 3200
 | `screenshots/gallery-dragon-curve.webp` | Dragon curve L-system | README gallery, card D |
 | `screenshots/gallery-barnsley-fern.webp` | Barnsley fern | README gallery, card D |
 | `screenshots/mobile-mandelbrot.webp` | Mandelbrot explorer at phone width (390×844 at scale 3, 1170×2532) | Marketing set |
+| `screenshots/home-grid-top.webp` | Top of the home page, title over the first row of the gallery (2400×1260). Not from the capture script: the press set's home-grid crop of 2026-10-08, the same file the live GitHub card was cut from | og-wordmark |
 
 The gallery shots hide the interface with each page's own **Hide UI** button. That button leaves a small **Show UI** button in the corner, which the script makes transparent for the capture.
 
@@ -48,6 +49,15 @@ The gallery shots hide the interface with each page's own **Hide UI** button. Th
 | `social-preview/social-preview-d.png` | D: the home card's three by two grid with renders | The six `screenshots/gallery-*.webp` renders |
 
 None of them is uploaded to GitHub yet. The repository settings take one card under **Social preview**. `--review=<folder>` also copies the PNGs to that folder with a `review-sheet.jpg` of all four.
+
+## og:image cards
+
+1200×630 PNG, the og:image size, written by `pnpm marketing:social-preview` after the GitHub cards. Rendered on 2026-11-11.
+
+| File | What it shows |
+| --- | --- |
+| `social-preview/og-wordmark.png` | `screenshots/home-grid-top.webp` downscaled: the "Fractal Garden" title over the Mandelbrot set, Julia set and Burning Ship cards. |
+| `social-preview/og-clean.png` | No text: eight thumbnails from `public/assets/fractal-images/` as the home page's square cards on its background, four by two (Mandelbrot set, Barnsley fern, Julia set, Menger sponge; Pythagoras tree, Burning Ship, twindragon, Mandelbar set). Drawn at 2× and downscaled. |
 
 ## Live GitHub social preview
 

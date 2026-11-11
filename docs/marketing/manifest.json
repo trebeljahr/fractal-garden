@@ -131,6 +131,17 @@
       "interface": "visible",
       "captured": "2026-11-06",
       "commit": "6e98a25"
+    },
+    "home-grid-top": {
+      "file": "docs/marketing/screenshots/home-grid-top.webp",
+      "purpose": "Source of og-wordmark.png: the top of the home page, title over the first row of the gallery",
+      "width": 2400,
+      "height": 1260,
+      "bytes": 98682,
+      "sha256": "7fdf2de221a93bf832472bff30c3c59a2fe30f4200e22aaa0ebc4b13abb6a0f7",
+      "source": "https://fractal.garden/ (crop of the top of the page, press set; WebP copy of the lossless master in the design-history archive, fractal-garden/2026-10-08/press-screenshots/)",
+      "interface": "visible",
+      "captured": "2026-10-08"
     }
   },
   "socialPreview": {
@@ -206,6 +217,39 @@
         "docs/marketing/screenshots/gallery-barnsley-fern.webp"
       ],
       "rendered": "2026-11-07"
+    },
+    "og-wordmark": {
+      "file": "docs/marketing/social-preview/og-wordmark.png",
+      "purpose": "og:image: the top of the home page, title over the first row of the gallery.",
+      "width": 1200,
+      "height": 630,
+      "bytes": 281009,
+      "sha256": "1191be79206383a6ad5db19e63ada061e87742b42a4531dabeb2b7f4981b2f47",
+      "encoding": "PNG, lossless",
+      "sources": [
+        "docs/marketing/screenshots/home-grid-top.webp"
+      ],
+      "rendered": "2026-11-11"
+    },
+    "og-clean": {
+      "file": "docs/marketing/social-preview/og-clean.png",
+      "purpose": "og:image without text: eight gallery thumbnails as the home page's cards, four by two.",
+      "width": 1200,
+      "height": 630,
+      "bytes": 522898,
+      "sha256": "522cf7d26f5831034f670d65617b5c38949980de4ed276d0a52bc84979d3bcf4",
+      "encoding": "PNG, lossless",
+      "sources": [
+        "public/assets/fractal-images/mandelbrot.jpg",
+        "public/assets/fractal-images/barnsley-fern.jpg",
+        "public/assets/fractal-images/julia-set.jpg",
+        "public/assets/fractal-images/menger-sponge.jpg",
+        "public/assets/fractal-images/pythagoras-tree.jpg",
+        "public/assets/fractal-images/burning-ship.jpg",
+        "public/assets/fractal-images/l-system-twindragon.jpg",
+        "public/assets/fractal-images/mandelbar-set.jpg"
+      ],
+      "rendered": "2026-11-11"
     }
   }
 }
